@@ -77,6 +77,22 @@ void main(void)
         goto loop;
     }
 
+    whal_Flash_Unlock(&flash, 0, 0);
+    
+    uint8_t data[] = "TESTING TESTING HELLO\r\n";
+    uint8_t tmp[sizeof(data)] = {0};
+    whal_Flash_Erase(&flash, 0x08080000, 0x1000);
+
+    do {
+        err = whal_Flash_Write(&flash, 0x08080000, data, sizeof(data));
+    } while (err == WHAL_ENOTREADY);
+
+    whal_Flash_Read(&flash, 0x08080000, tmp, sizeof(tmp));
+
+    whal_Flash_Lock(&flash, 0, 0);
+
+    whal_Uart_Send(&lpuart1, tmp, sizeof(tmp));
+
     while (1) {
         uint8_t input[8];
         err = whal_Uart_Send(&lpuart1, (uint8_t *)"Enter Stuff:\r\n", 14);

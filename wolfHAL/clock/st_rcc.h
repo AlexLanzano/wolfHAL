@@ -37,6 +37,7 @@ typedef enum whal_StRcc_PeriphClk {
     WHAL_ST_RCC_PERIPH_GPIOA,
     WHAL_ST_RCC_PERIPH_GPIOB,
     WHAL_ST_RCC_PERIPH_LPUART1,
+    WHAL_ST_RCC_PERIPH_FLASH,
 } whal_StRcc_PeriphClk;
 
 /*

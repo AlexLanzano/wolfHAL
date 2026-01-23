@@ -6,6 +6,7 @@ whal_StRcc_PeriphClk periphClkEn[] =
     WHAL_ST_RCC_PERIPH_GPIOA,
     WHAL_ST_RCC_PERIPH_GPIOB,
     WHAL_ST_RCC_PERIPH_LPUART1,
+    WHAL_ST_RCC_PERIPH_FLASH,
 };
 
 whal_Clock rcc = {
@@ -88,4 +89,9 @@ whal_Uart lpuart1 = {
 
 whal_Flash flash = {
     WHAL_STM32WB55_FLASH_DEVICE,
+
+    .cfg = &(whal_StFlash_Cfg) {
+        .startAddr = 0x08000000,
+        .size = 0x100000,
+    },
 };

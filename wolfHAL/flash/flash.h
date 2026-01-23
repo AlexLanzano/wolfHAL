@@ -21,6 +21,12 @@ typedef struct {
     whal_Error (*Init)(whal_Flash *flashDev);
     /* Release any resources owned by the flash driver. */
     whal_Error (*Deinit)(whal_Flash *flashDev);
+    /* Lock a flash region to prevent modification. */
+    whal_Error (*Lock)(whal_Flash *flashDev, size_t addr, size_t len);
+    /* Unlock a flash region to allow modification. */
+    whal_Error (*Unlock)(whal_Flash *flashDev, size_t addr, size_t len);
+    /* Read data from flash into a buffer. */
+    whal_Error (*Read)(whal_Flash *flashDev, size_t addr, uint8_t *data, size_t dataSz);
     /* Program a region of flash starting at @p addr. */
     whal_Error (*Write)(whal_Flash *flashDev, size_t addr, uint8_t *data, size_t dataSz);
     /* Erase a flash range starting at @p addr. */
@@ -56,6 +62,40 @@ whal_Error whal_Flash_Init(whal_Flash *flashDev);
  * @retval WHAL_EINVAL  Null pointer or missing driver callbacks.
  */
 whal_Error whal_Flash_Deinit(whal_Flash *flashDev);
+/*
+ * @brief Lock a region of flash to prevent modification.
+ *
+ * @param flashDev Flash instance to lock.
+ * @param addr     Byte address in flash to lock.
+ * @param len      Number of bytes to lock.
+ *
+ * @retval WHAL_SUCCESS Lock applied.
+ * @retval WHAL_EINVAL  Null pointer or missing callbacks.
+ */
+whal_Error whal_Flash_Lock(whal_Flash *flashDev, size_t addr, size_t len);
+/*
+ * @brief Unlock a region of flash to allow modification.
+ *
+ * @param flashDev Flash instance to unlock.
+ * @param addr     Byte address in flash to unlock.
+ * @param len      Number of bytes to unlock.
+ *
+ * @retval WHAL_SUCCESS Unlock applied.
+ * @retval WHAL_EINVAL  Null pointer or missing callbacks.
+ */
+whal_Error whal_Flash_Unlock(whal_Flash *flashDev, size_t addr, size_t len);
+/*
+ * @brief Read data from flash into a buffer.
+ *
+ * @param flashDev Flash instance to read from.
+ * @param addr     Byte address in flash to read.
+ * @param data     Destination buffer.
+ * @param dataSz   Number of bytes to read.
+ *
+ * @retval WHAL_SUCCESS Read completed.
+ * @retval WHAL_EINVAL  Null pointer or missing callbacks.
+ */
+whal_Error whal_Flash_Read(whal_Flash *flashDev, size_t addr, uint8_t *data, size_t dataSz);
 /*
  * @brief Write data into flash.
  *

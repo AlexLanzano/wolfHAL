@@ -39,6 +39,9 @@
 #define ST_RCC_AHB2ENR_ADCEN   WHAL_MASK(13)
 #define ST_RCC_AHB2ENR_AES1EN  WHAL_MASK(16)
 
+#define ST_RCC_AHB3ENR_REG 0x50
+#define ST_RCC_AHB3ENR_FLASHEN WHAL_MASK(25)
+
 #define ST_RCC_APB1ENR2_REG 0x05C
 #define ST_RCC_APB1ENR2_LPUART1EN WHAL_MASK(0)
 #define ST_RCC_APB1ENR2_LPTIM2EN  WHAL_MASK(5)
@@ -153,6 +156,15 @@ whal_Error whal_StRcc_Enable(whal_Clock *clkDev)
         case WHAL_ST_RCC_PERIPH_LPUART1:
             err = whal_Reg_Update(&clkDev->regmap, ST_RCC_APB1ENR2_REG, ST_RCC_APB1ENR2_LPUART1EN,
                                   whal_SetBits(ST_RCC_APB1ENR2_LPUART1EN, 1));
+            if (err) {
+                return err;
+            }
+
+            break;
+
+        case WHAL_ST_RCC_PERIPH_FLASH:
+            err = whal_Reg_Update(&clkDev->regmap, ST_RCC_AHB3ENR_REG, ST_RCC_AHB3ENR_FLASHEN,
+                                  whal_SetBits(ST_RCC_AHB3ENR_FLASHEN, 1));
             if (err) {
                 return err;
             }

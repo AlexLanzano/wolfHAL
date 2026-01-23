@@ -12,6 +12,8 @@
  * @brief STM32 flash configuration placeholder. Extend as options are needed.
  */
 typedef struct whal_StFlash_Cfg {
+    size_t startAddr;
+    size_t size;
 } whal_StFlash_Cfg;
 
 /*
@@ -61,6 +63,41 @@ whal_Error whal_StFlash_Init(whal_Flash *flashDev);
  * @retval WHAL_EINVAL  Invalid arguments.
  */
 whal_Error whal_StFlash_Deinit(whal_Flash *flashDev);
+/*
+ * @brief Lock a flash range.
+ *
+ * @param flashDev Flash device instance.
+ * @param addr     Flash address to lock.
+ * @param len      Number of bytes to lock.
+ *
+ * @retval WHAL_SUCCESS Lock applied.
+ * @retval WHAL_EINVAL  Invalid arguments.
+ */
+whal_Error whal_StFlash_Lock(whal_Flash *flashDev, size_t addr, size_t len);
+/*
+ * @brief Unlock a flash range.
+ *
+ * @param flashDev Flash device instance.
+ * @param addr     Flash address to unlock.
+ * @param len      Number of bytes to unlock.
+ *
+ * @retval WHAL_SUCCESS Unlock applied.
+ * @retval WHAL_EINVAL  Invalid arguments.
+ */
+whal_Error whal_StFlash_Unlock(whal_Flash *flashDev, size_t addr, size_t len);
+/*
+ * @brief Read data from flash into a buffer.
+ *
+ * @param flashDev Flash device instance.
+ * @param addr     Flash address to read.
+ * @param data     Destination buffer.
+ * @param dataSz   Number of bytes to read.
+ *
+ * @retval WHAL_SUCCESS Read completed.
+ * @retval WHAL_EINVAL  Invalid arguments.
+ */
+whal_Error whal_StFlash_Read(whal_Flash *flashDev, size_t addr, uint8_t *data,
+                             size_t dataSz);
 /*
  * @brief Write a block of data to flash.
  *

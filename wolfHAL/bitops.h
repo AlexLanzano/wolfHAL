@@ -6,6 +6,8 @@
  * @brief Bit manipulation helpers for register fields.
  */
 
+#include <stdint.h>
+
 #if defined(__GNUC__)
 /* Count trailing zeros in a mask. */
 #define whal_CountTrailingZeros(mask) __builtin_ctz(mask)
@@ -40,6 +42,7 @@ static size_t whal_CountTrailingZeros(mask)
 
 /* Create a mask covering bits @p high_bit down to @p low_bit (inclusive). */
 #define WHAL_MASK_RANGE(high_bit, low_bit) \
-    ((((1ul << (((high_bit) - (low_bit)) + 1)) - 1ul)) << (low_bit))
+    ((~0UL >> ((sizeof(uintptr_t) * 8) - 1 - (high_bit))) & \
+     (~0UL << (low_bit)))
 
 #endif /* WHAL_BITOPS_H */
