@@ -40,6 +40,20 @@ typedef enum whal_StRcc_PeriphClk {
     WHAL_ST_RCC_PERIPH_FLASH,
 } whal_StRcc_PeriphClk;
 
+typedef enum whal_StRcc_MsiRange {
+    WHAL_ST_RCC_MSIRANGE_100kHz,
+    WHAL_ST_RCC_MSIRANGE_200kHz,
+    WHAL_ST_RCC_MSIRANGE_400kHz,
+    WHAL_ST_RCC_MSIRANGE_800kHz,
+    WHAL_ST_RCC_MSIRANGE_1MHz,
+    WHAL_ST_RCC_MSIRANGE_2MHz,
+    WHAL_ST_RCC_MSIRANGE_4MHz,
+    WHAL_ST_RCC_MSIRANGE_8MHz,
+    WHAL_ST_RCC_MSIRANGE_16MHz,
+    WHAL_ST_RCC_MSIRANGE_24MHz,
+    WHAL_ST_RCC_MSIRANGE_32MHz,
+    WHAL_ST_RCC_MSIRANGE_48MHz,
+} whal_StRcc_MsiRange;
 /*
  * @brief PLL configuration parameters.
  */

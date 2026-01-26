@@ -5,6 +5,7 @@
 #include <wolfHAL/bitops.h>
 
 #define ST_RCC_CR_REG 0x000
+#define ST_RCC_CR_MSIRANGE WHAL_MASK_RANGE(7, 4)
 #define ST_RCC_CR_PLLON_MASK WHAL_MASK(24)
 
 #define ST_RCC_CFGR_REG 0x008
@@ -192,6 +193,19 @@ whal_Error whal_StRcc_Disable(whal_Clock *clkDev)
     cfg = (whal_StRcc_Cfg *)clkDev->cfg;
 
     if (cfg->sysClkSrc == WHAL_ST_RCC_SYSCLK_SRC_PLL) {
+
+        err = whal_Reg_Update(&clkDev->regmap, ST_RCC_CFGR_REG, ST_RCC_CFGR_SW,
+                              whal_SetBits(ST_RCC_CFGR_SW, WHAL_ST_RCC_SYSCLK_SRC_MSI));
+        if (err) {
+            return err;
+        }
+
+        err = whal_Reg_Update(&clkDev->regmap, ST_RCC_CR_REG, ST_RCC_CR_MSIRANGE,
+                              whal_SetBits(ST_RCC_CR_MSIRANGE, WHAL_ST_RCC_MSIRANGE_4MHz));
+        if (err) {
+            return err;
+        }
+
         err = whal_Reg_Update(&clkDev->regmap, ST_RCC_CR_REG,
                               ST_RCC_CR_PLLON_MASK,
                               whal_SetBits(ST_RCC_CR_PLLON_MASK, 0));
@@ -201,13 +215,45 @@ whal_Error whal_StRcc_Disable(whal_Clock *clkDev)
     }
 
     for (int i = 0; i < cfg->periphClkEnCount; ++i) {
-        if (cfg->periphClkEn[i] == WHAL_ST_RCC_PERIPH_GPIOA) {
-            err = whal_Reg_Update(&clkDev->regmap, ST_RCC_AHB2ENR_REG,
-                                  ST_RCC_AHB2ENR_GPIOAEN,
+        switch (cfg->periphClkEn[i]) {
+        case WHAL_ST_RCC_PERIPH_GPIOA:
+            err = whal_Reg_Update(&clkDev->regmap, ST_RCC_AHB2ENR_REG, ST_RCC_AHB2ENR_GPIOAEN,
                                   whal_SetBits(ST_RCC_AHB2ENR_GPIOAEN, 0));
             if (err) {
                 return err;
             }
+
+            break;
+
+        case WHAL_ST_RCC_PERIPH_GPIOB:
+            err = whal_Reg_Update(&clkDev->regmap, ST_RCC_AHB2ENR_REG, ST_RCC_AHB2ENR_GPIOBEN,
+                                  whal_SetBits(ST_RCC_AHB2ENR_GPIOBEN, 0));
+            if (err) {
+                return err;
+            }
+
+            break;
+
+        case WHAL_ST_RCC_PERIPH_LPUART1:
+            err = whal_Reg_Update(&clkDev->regmap, ST_RCC_APB1ENR2_REG, ST_RCC_APB1ENR2_LPUART1EN,
+                                  whal_SetBits(ST_RCC_APB1ENR2_LPUART1EN, 0));
+            if (err) {
+                return err;
+            }
+
+            break;
+
+        case WHAL_ST_RCC_PERIPH_FLASH:
+            err = whal_Reg_Update(&clkDev->regmap, ST_RCC_AHB3ENR_REG, ST_RCC_AHB3ENR_FLASHEN,
+                                  whal_SetBits(ST_RCC_AHB3ENR_FLASHEN, 0));
+            if (err) {
+                return err;
+            }
+
+            break;
+
+        default:
+            return WHAL_EINVAL;
         }
     }
 
