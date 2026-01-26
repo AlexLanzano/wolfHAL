@@ -109,7 +109,7 @@ whal_Error whal_StFlash_Read(whal_Flash *flashDev, size_t addr, uint8_t *data,
  * @retval WHAL_SUCCESS Program completed.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_StFlash_Write(whal_Flash *flashDev, size_t addr, uint8_t *data,
+whal_Error whal_StFlash_Write(whal_Flash *flashDev, size_t addr, const uint8_t *data,
                               size_t dataSz);
 /*
  * @brief Erase a flash range.

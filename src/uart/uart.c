@@ -20,7 +20,7 @@ inline whal_Error whal_Uart_Deinit(whal_Uart *uartDev)
     return uartDev->driver->Deinit(uartDev);
 }
 
-inline whal_Error whal_Uart_Send(whal_Uart *uartDev, uint8_t *data, size_t dataSz)
+inline whal_Error whal_Uart_Send(whal_Uart *uartDev, const uint8_t *data, size_t dataSz)
 {
     if (!uartDev || !uartDev->driver || !uartDev->driver->Send || !data) {
         return WHAL_EINVAL;

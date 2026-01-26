@@ -21,7 +21,7 @@ static whal_Error whal_StGpio_GetPortAddr(whal_Gpio *gpioDev, whal_StGpio_Cfg *p
     whal_StGpio_Port port = pinCfg->port;
     size_t regBase = gpioDev->regmap.base;
 
-    if (port < WHAL_STGPIO_PORT_A || port > WHAL_STGPIO_PORT_H || !portAddr) {
+    if (port > WHAL_STGPIO_PORT_H || !portAddr) {
         return WHAL_EINVAL;
     }
 

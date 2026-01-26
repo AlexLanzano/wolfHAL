@@ -11,5 +11,7 @@
 
 #include <wolfHAL/clock/clock.h>
 #include <wolfHAL/gpio/gpio.h>
+#include <wolfHAL/uart/uart.h>
+#include <wolfHAL/flash/flash.h>
 
 #endif /* WOLFHAL_H */

@@ -22,7 +22,7 @@ typedef struct {
     /* Deinitialize the UART hardware. */
     whal_Error (*Deinit)(whal_Uart *uartDev);
     /* Transmit a buffer. */
-    whal_Error (*Send)(whal_Uart *uartDev, uint8_t *data, size_t dataSz);
+    whal_Error (*Send)(whal_Uart *uartDev, const uint8_t *data, size_t dataSz);
     /* Receive into a buffer. */
     whal_Error (*Recv)(whal_Uart *uartDev, uint8_t *data, size_t dataSz);
     /* Issue driver-specific commands. */
@@ -68,7 +68,7 @@ whal_Error whal_Uart_Deinit(whal_Uart *uartDev);
  * @retval WHAL_SUCCESS Buffer was queued or transmitted.
  * @retval WHAL_EINVAL  Null pointer or driver failed to send.
  */
-whal_Error whal_Uart_Send(whal_Uart *uartDev, uint8_t *data, size_t dataSz);
+whal_Error whal_Uart_Send(whal_Uart *uartDev, const uint8_t *data, size_t dataSz);
 
 /*
  * @brief Receives data from the UART into a buffer.

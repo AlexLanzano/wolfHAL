@@ -48,7 +48,7 @@ inline whal_Error whal_Flash_Read(whal_Flash *flashDev, size_t addr, uint8_t *da
     return flashDev->driver->Read(flashDev, addr, data, dataSz);
 }
 
-inline whal_Error whal_Flash_Write(whal_Flash *flashDev, size_t addr, uint8_t *data,
+inline whal_Error whal_Flash_Write(whal_Flash *flashDev, size_t addr, const uint8_t *data,
                                   size_t dataSz)
 {
     if (!flashDev || !flashDev->driver || !flashDev->driver->Write || !data) {

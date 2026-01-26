@@ -28,7 +28,7 @@ typedef struct {
     /* Read data from flash into a buffer. */
     whal_Error (*Read)(whal_Flash *flashDev, size_t addr, uint8_t *data, size_t dataSz);
     /* Program a region of flash starting at @p addr. */
-    whal_Error (*Write)(whal_Flash *flashDev, size_t addr, uint8_t *data, size_t dataSz);
+    whal_Error (*Write)(whal_Flash *flashDev, size_t addr, const uint8_t *data, size_t dataSz);
     /* Erase a flash range starting at @p addr. */
     whal_Error (*Erase)(whal_Flash *flashDev, size_t addr, size_t dataSz);
     /* Issue a driver-specific command. */
@@ -107,7 +107,7 @@ whal_Error whal_Flash_Read(whal_Flash *flashDev, size_t addr, uint8_t *data, siz
  * @retval WHAL_SUCCESS Write accepted or completed.
  * @retval WHAL_EINVAL  Null pointer, missing callbacks, or bad arguments.
  */
-whal_Error whal_Flash_Write(whal_Flash *flashDev, size_t addr, uint8_t *data, size_t dataSz);
+whal_Error whal_Flash_Write(whal_Flash *flashDev, size_t addr, const uint8_t *data, size_t dataSz);
 /*
  * @brief Erase a region of flash.
  *

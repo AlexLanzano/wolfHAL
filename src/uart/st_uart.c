@@ -67,7 +67,7 @@ whal_Error whal_StUart_Deinit(whal_Uart *uartDev)
     return WHAL_SUCCESS;
 }
 extern void WaitMs(size_t ms);
-whal_Error whal_StUart_Send(whal_Uart *uartDev, uint8_t *data, size_t dataSz)
+whal_Error whal_StUart_Send(whal_Uart *uartDev, const uint8_t *data, size_t dataSz)
 {
     whal_Error err;
     const whal_Regmap *reg = &uartDev->regmap;

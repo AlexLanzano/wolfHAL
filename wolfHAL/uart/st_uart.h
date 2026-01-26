@@ -52,7 +52,7 @@ whal_Error whal_StUart_Deinit(whal_Uart *uartDev);
  * @retval WHAL_SUCCESS Transfer completed.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_StUart_Send(whal_Uart *uartDev, uint8_t *data, size_t dataSz);
+whal_Error whal_StUart_Send(whal_Uart *uartDev, const uint8_t *data, size_t dataSz);
 /*
  * @brief Receive a buffer over UART.
  *
