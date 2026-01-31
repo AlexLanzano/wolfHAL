@@ -24,18 +24,15 @@ typedef struct {
     whal_Error (*Get)(whal_Gpio *gpioDev, size_t pin, size_t *value); 
     /* Write a pin value. */
     whal_Error (*Set)(whal_Gpio *gpioDev, size_t pin, size_t value); 
-    /* Issue driver-specific commands. */
-    whal_Error (*Cmd)(whal_Gpio *gpioDev, size_t cmd, void *args);
 } whal_GpioDriver;
 
 /*
- * @brief GPIO device instance containing driver, configuration, and pin table.
+ * @brief GPIO device instance containing driver and configuration data.
  */
 struct whal_Gpio {
     const whal_Regmap regmap;
     const whal_GpioDriver *driver;
-    void *pinCfg;
-    size_t pinCount;
+    const void *cfg;
 };
 
 /*
@@ -44,7 +41,21 @@ struct whal_Gpio {
  * @param gpioDev GPIO instance to initialize.
  *
  * @retval WHAL_SUCCESS Driver-specific init completed.
- * @retval WHAL_EINVAL  Null pointer or missing callbacks.
+ * @retval WHAL_EINVAL  Null pointer or missing driver function.
+ */
+#ifdef WHAL_CFG_NO_CALLBACKS
+#define whal_Gpio_Init(gpioDev) ((gpioDev)->driver->Init((gpioDev)))
+#define whal_Gpio_Deinit(gpioDev) ((gpioDev)->driver->Deinit((gpioDev)))
+#define whal_Gpio_Get(gpioDev, pin, value) ((gpioDev)->driver->Get((gpioDev), (pin), (value)))
+#define whal_Gpio_Set(gpioDev, pin, value) ((gpioDev)->driver->Set((gpioDev), (pin), (value)))
+#else
+/*
+ * @brief Initialize a GPIO device and its pins.
+ *
+ * @param gpioDev GPIO instance to initialize.
+ *
+ * @retval WHAL_SUCCESS Driver-specific init completed.
+ * @retval WHAL_EINVAL  Null pointer or missing driver function.
  */
 whal_Error whal_Gpio_Init(whal_Gpio *gpioDev);
 /*
@@ -53,7 +64,7 @@ whal_Error whal_Gpio_Init(whal_Gpio *gpioDev);
  * @param gpioDev GPIO instance to deinitialize.
  *
  * @retval WHAL_SUCCESS Driver-specific deinit completed.
- * @retval WHAL_EINVAL  Null pointer or missing callbacks.
+ * @retval WHAL_EINVAL  Null pointer or missing driver function.
  */
 whal_Error whal_Gpio_Deinit(whal_Gpio *gpioDev);
 /*
@@ -64,7 +75,7 @@ whal_Error whal_Gpio_Deinit(whal_Gpio *gpioDev);
  * @param value   Storage for the sampled pin value.
  *
  * @retval WHAL_SUCCESS Pin value stored in @p value.
- * @retval WHAL_EINVAL  Null pointer, missing callbacks, or bad pin.
+ * @retval WHAL_EINVAL  Null pointer, missing driver function, or bad pin.
  */
 whal_Error whal_Gpio_Get(whal_Gpio *gpioDev, size_t pin, size_t *value);
 /*
@@ -75,19 +86,9 @@ whal_Error whal_Gpio_Get(whal_Gpio *gpioDev, size_t pin, size_t *value);
  * @param value   Output value to drive (typically 0 or 1).
  *
  * @retval WHAL_SUCCESS Pin updated.
- * @retval WHAL_EINVAL  Null pointer, missing callbacks, or bad pin.
+ * @retval WHAL_EINVAL  Null pointer, missing driver function, or bad pin.
  */
 whal_Error whal_Gpio_Set(whal_Gpio *gpioDev, size_t pin, size_t value);
-/*
- * @brief Send a driver-specific command to the GPIO device.
- *
- * @param gpioDev GPIO instance to command.
- * @param cmd     Driver-defined command selector.
- * @param args    Optional command argument payload.
- *
- * @retval WHAL_SUCCESS Command accepted and executed.
- * @retval WHAL_EINVAL  Null pointer or missing callbacks.
- */
-whal_Error whal_Gpio_Cmd(whal_Gpio *gpioDev, size_t cmd, void *args);
+#endif
 
 #endif /* WHAL_GPIO_H */

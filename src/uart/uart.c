@@ -38,11 +38,3 @@ inline whal_Error whal_Uart_Recv(whal_Uart *uartDev, uint8_t *data, size_t dataS
     return uartDev->driver->Recv(uartDev, data, dataSz);
 }
 
-inline whal_Error whal_Uart_Cmd(whal_Uart *uartDev, size_t cmd, void *args)
-{
-    if (!uartDev || !uartDev->driver || !uartDev->driver->Cmd) {
-        return WHAL_EINVAL;
-    }
-
-    return uartDev->driver->Cmd(uartDev, cmd, args);
-}

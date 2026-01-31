@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <wolfHAL/clock/clock.h>
+#include <wolfHAL/flash/st_flash.h>
 #include <stddef.h>
 
 /*
@@ -29,16 +30,6 @@ typedef enum {
     WHAL_ST_RCC_PLLCLK_SRC_HSI16,
     WHAL_ST_RCC_PLLCLK_SRC_HSE,
 } whal_StRcc_PllClockSrc;
-
-/*
- * @brief Peripherals that can be clock-gated by this driver.
- */
-typedef enum whal_StRcc_PeriphClk {
-    WHAL_ST_RCC_PERIPH_GPIOA,
-    WHAL_ST_RCC_PERIPH_GPIOB,
-    WHAL_ST_RCC_PERIPH_LPUART1,
-    WHAL_ST_RCC_PERIPH_FLASH,
-} whal_StRcc_PeriphClk;
 
 typedef enum whal_StRcc_MsiRange {
     WHAL_ST_RCC_MSIRANGE_100kHz,
@@ -74,18 +65,26 @@ typedef struct whal_StRcc_MsiClkCfg {
 } whal_StRcc_MsiClkCfg;
 
 /*
+ * @brief Register and mask pair for gating peripheral clocks.
+ */
+typedef struct whal_StRcc_Clk {
+    size_t regOffset;
+    size_t enableMask;
+} whal_StRcc_Clk;
+
+/*
  * @brief Composite configuration for the STM32 RCC driver.
  */
 typedef struct whal_StRcc_Cfg {
+    whal_Flash *flash;
+    whal_StFlash_Latency flashLatency;
+
     whal_StRcc_SysClockSrc sysClkSrc;
 
     union {
         whal_StRcc_PllClkCfg pll;
         whal_StRcc_MsiClkCfg msi;
     } sysClkCfg;
-
-    whal_StRcc_PeriphClk *periphClkEn;
-    uint8_t periphClkEnCount;
 } whal_StRcc_Cfg;
 
 /*
@@ -112,23 +111,25 @@ whal_Error whal_StRcc_Init(whal_Clock *clkDev);
  */
 whal_Error whal_StRcc_Deinit(whal_Clock *clkDev);
 /*
- * @brief Enable the configured clocks and peripheral gates.
+ * @brief Enable a peripheral clock gate.
  *
  * @param clkDev Clock device instance.
+ * @param clk    Pointer to a whal_StRcc_Clk descriptor.
  *
- * @retval WHAL_SUCCESS Clocks enabled.
+ * @retval WHAL_SUCCESS Clock enabled.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_StRcc_Enable(whal_Clock *clkDev);
+whal_Error whal_StRcc_Enable(whal_Clock *clkDev, const void *clk);
 /*
- * @brief Disable the configured clocks and peripheral gates.
+ * @brief Disable a peripheral clock gate.
  *
  * @param clkDev Clock device instance.
+ * @param clk    Pointer to a whal_StRcc_Clk descriptor.
  *
- * @retval WHAL_SUCCESS Clocks disabled.
+ * @retval WHAL_SUCCESS Clock disabled.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_StRcc_Disable(whal_Clock *clkDev);
+whal_Error whal_StRcc_Disable(whal_Clock *clkDev, const void *clk);
 /*
  * @brief Compute the current system clock rate.
  *
@@ -139,16 +140,5 @@ whal_Error whal_StRcc_Disable(whal_Clock *clkDev);
  * @retval WHAL_EINVAL  Invalid arguments.
  */
 whal_Error whal_StRcc_GetRate(whal_Clock *clkDev, size_t *rateOut);
-/*
- * @brief Dispatch a driver-specific RCC command.
- *
- * @param clkDev Clock device instance.
- * @param cmd    Driver-defined command selector.
- * @param args   Optional command arguments.
- *
- * @retval WHAL_SUCCESS Command handled.
- * @retval WHAL_EINVAL  Invalid arguments.
- */
-whal_Error whal_StRcc_Cmd(whal_Clock *clkDev, size_t cmd, void *args);
 
 #endif /* WHAL_ST_RCC_H */

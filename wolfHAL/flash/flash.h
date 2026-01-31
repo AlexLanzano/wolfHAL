@@ -31,8 +31,6 @@ typedef struct {
     whal_Error (*Write)(whal_Flash *flashDev, size_t addr, const uint8_t *data, size_t dataSz);
     /* Erase a flash range starting at @p addr. */
     whal_Error (*Erase)(whal_Flash *flashDev, size_t addr, size_t dataSz);
-    /* Issue a driver-specific command. */
-    whal_Error (*Cmd)(whal_Flash *flashDev, size_t cmd, void *args);
 } whal_FlashDriver;
 
 /*
@@ -50,7 +48,24 @@ struct whal_Flash {
  * @param flashDev Flash instance to initialize.
  *
  * @retval WHAL_SUCCESS Driver-specific init completed.
- * @retval WHAL_EINVAL  Null pointer or missing driver callbacks.
+ * @retval WHAL_EINVAL  Null pointer or missing driver function.
+ */
+#ifdef WHAL_CFG_NO_CALLBACKS
+#define whal_Flash_Init(flashDev) ((flashDev)->driver->Init((flashDev)))
+#define whal_Flash_Deinit(flashDev) ((flashDev)->driver->Deinit((flashDev)))
+#define whal_Flash_Lock(flashDev, addr, len) ((flashDev)->driver->Lock((flashDev), (addr), (len)))
+#define whal_Flash_Unlock(flashDev, addr, len) ((flashDev)->driver->Unlock((flashDev), (addr), (len)))
+#define whal_Flash_Read(flashDev, addr, data, dataSz) ((flashDev)->driver->Read((flashDev), (addr), (data), (dataSz)))
+#define whal_Flash_Write(flashDev, addr, data, dataSz) ((flashDev)->driver->Write((flashDev), (addr), (data), (dataSz)))
+#define whal_Flash_Erase(flashDev, addr, dataSz) ((flashDev)->driver->Erase((flashDev), (addr), (dataSz)))
+#else
+/*
+ * @brief Initialize a flash device and its driver.
+ *
+ * @param flashDev Flash instance to initialize.
+ *
+ * @retval WHAL_SUCCESS Driver-specific init completed.
+ * @retval WHAL_EINVAL  Null pointer or missing driver function.
  */
 whal_Error whal_Flash_Init(whal_Flash *flashDev);
 /*
@@ -59,7 +74,7 @@ whal_Error whal_Flash_Init(whal_Flash *flashDev);
  * @param flashDev Flash instance to deinitialize.
  *
  * @retval WHAL_SUCCESS Driver-specific deinit completed.
- * @retval WHAL_EINVAL  Null pointer or missing driver callbacks.
+ * @retval WHAL_EINVAL  Null pointer or missing driver function.
  */
 whal_Error whal_Flash_Deinit(whal_Flash *flashDev);
 /*
@@ -70,7 +85,7 @@ whal_Error whal_Flash_Deinit(whal_Flash *flashDev);
  * @param len      Number of bytes to lock.
  *
  * @retval WHAL_SUCCESS Lock applied.
- * @retval WHAL_EINVAL  Null pointer or missing callbacks.
+ * @retval WHAL_EINVAL  Null pointer or missing driver function.
  */
 whal_Error whal_Flash_Lock(whal_Flash *flashDev, size_t addr, size_t len);
 /*
@@ -81,7 +96,7 @@ whal_Error whal_Flash_Lock(whal_Flash *flashDev, size_t addr, size_t len);
  * @param len      Number of bytes to unlock.
  *
  * @retval WHAL_SUCCESS Unlock applied.
- * @retval WHAL_EINVAL  Null pointer or missing callbacks.
+ * @retval WHAL_EINVAL  Null pointer or missing driver function.
  */
 whal_Error whal_Flash_Unlock(whal_Flash *flashDev, size_t addr, size_t len);
 /*
@@ -93,7 +108,7 @@ whal_Error whal_Flash_Unlock(whal_Flash *flashDev, size_t addr, size_t len);
  * @param dataSz   Number of bytes to read.
  *
  * @retval WHAL_SUCCESS Read completed.
- * @retval WHAL_EINVAL  Null pointer or missing callbacks.
+ * @retval WHAL_EINVAL  Null pointer or missing driver function.
  */
 whal_Error whal_Flash_Read(whal_Flash *flashDev, size_t addr, uint8_t *data, size_t dataSz);
 /*
@@ -105,7 +120,7 @@ whal_Error whal_Flash_Read(whal_Flash *flashDev, size_t addr, uint8_t *data, siz
  * @param dataSz   Number of bytes to write.
  *
  * @retval WHAL_SUCCESS Write accepted or completed.
- * @retval WHAL_EINVAL  Null pointer, missing callbacks, or bad arguments.
+ * @retval WHAL_EINVAL  Null pointer, missing driver function, or bad arguments.
  */
 whal_Error whal_Flash_Write(whal_Flash *flashDev, size_t addr, const uint8_t *data, size_t dataSz);
 /*
@@ -116,19 +131,9 @@ whal_Error whal_Flash_Write(whal_Flash *flashDev, size_t addr, const uint8_t *da
  * @param dataSz   Number of bytes (or sector-aligned size) to erase.
  *
  * @retval WHAL_SUCCESS Erase accepted or completed.
- * @retval WHAL_EINVAL  Null pointer or missing callbacks.
+ * @retval WHAL_EINVAL  Null pointer or missing driver function.
  */
 whal_Error whal_Flash_Erase(whal_Flash *flashDev, size_t addr, size_t dataSz);
-/*
- * @brief Send a driver-specific command to the flash device.
- *
- * @param flashDev Flash instance to command.
- * @param cmd      Driver-defined command selector.
- * @param args     Optional command argument payload.
- *
- * @retval WHAL_SUCCESS Command accepted and executed.
- * @retval WHAL_EINVAL  Null pointer or missing callbacks.
- */
-whal_Error whal_Flash_Cmd(whal_Flash *flashDev, size_t cmd, void *args);
+#endif
 
 #endif /* WHAL_FLASH_H */

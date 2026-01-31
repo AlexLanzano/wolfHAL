@@ -35,57 +35,71 @@ whal_Error whal_StUart_Init(whal_Uart *uartDev)
 
     cfg = (whal_StUart_Cfg *)uartDev->cfg;
 
-    err = whal_Clock_GetRate(cfg->sysClk, &clockFreq);
+    err = whal_Clock_Enable(cfg->clkCtrl, cfg->clk);
     if (err != WHAL_SUCCESS) {
         return err;
     }
 
-    brr = (clockFreq / cfg->baud) * 256;
-    
-    err = whal_Reg_Update(reg, STUART_BRR_REG,
-                          STUART_BRR_BRR_MASK,
-                          whal_SetBits(STUART_BRR_BRR_MASK, brr));
-    if (err) {
+    err = whal_Clock_GetRate(cfg->clkCtrl, &clockFreq);
+    if (err != WHAL_SUCCESS) {
         return err;
     }
 
-    err = whal_Reg_Update(reg, STUART_CR1_REG,
-                          STUART_CR1_UE | STUART_CR1_RE | STUART_CR1_TE,
-                          whal_SetBits(STUART_CR1_UE, 1) |
-                          whal_SetBits(STUART_CR1_RE, 1) |
-                          whal_SetBits(STUART_CR1_TE, 1));
-    if (err) {
-        return err;
+    if (cfg->lpuart) {
+        brr = (clockFreq / cfg->baud) * 256;
     }
+    else {
+        brr = (clockFreq / cfg->baud);
+    }
+    
+    whal_Reg_Update(reg->base, STUART_BRR_REG,
+                    STUART_BRR_BRR_MASK,
+                    whal_SetBits(STUART_BRR_BRR_MASK, brr));
+    whal_Reg_Update(reg->base, STUART_CR1_REG,
+                    STUART_CR1_UE | STUART_CR1_RE | STUART_CR1_TE,
+                    whal_SetBits(STUART_CR1_UE, 1) |
+                    whal_SetBits(STUART_CR1_RE, 1) |
+                    whal_SetBits(STUART_CR1_TE, 1));
     
     return WHAL_SUCCESS;
 }
 
 whal_Error whal_StUart_Deinit(whal_Uart *uartDev)
 {
+    whal_Error err;
+    const whal_Regmap *reg = &uartDev->regmap;
+    whal_StUart_Cfg *cfg = (whal_StUart_Cfg *)uartDev->cfg;
+
+    whal_Reg_Update(reg->base, STUART_CR1_REG,
+                    STUART_CR1_UE | STUART_CR1_RE | STUART_CR1_TE,
+                    whal_SetBits(STUART_CR1_UE, 0) |
+                    whal_SetBits(STUART_CR1_RE, 0) |
+                    whal_SetBits(STUART_CR1_TE, 0));
+
+    whal_Reg_Update(reg->base, STUART_BRR_REG,
+                          STUART_BRR_BRR_MASK,
+                          whal_SetBits(STUART_BRR_BRR_MASK, 0));
+
+    err = whal_Clock_Disable(cfg->clkCtrl, cfg->clk);
+    if (err) {
+        return err;
+    }
 
     return WHAL_SUCCESS;
 }
-extern void WaitMs(size_t ms);
+
 whal_Error whal_StUart_Send(whal_Uart *uartDev, const uint8_t *data, size_t dataSz)
 {
-    whal_Error err;
     const whal_Regmap *reg = &uartDev->regmap;
     
     for (size_t i = 0; i < dataSz; ++i) {
         size_t txComplete = 0;
 
-        err = whal_Reg_Update(reg, STUART_TDR_REG, STUART_TDR_TDR_MASK, 
-                              whal_SetBits(STUART_TDR_TDR_MASK, data[i]));
-        if (err) {
-            return err;
-        }
+        whal_Reg_Update(reg->base, STUART_TDR_REG, STUART_TDR_TDR_MASK, 
+                        whal_SetBits(STUART_TDR_TDR_MASK, data[i]));
 
         while (!txComplete) {
-            err = whal_Reg_Get(reg, STUART_ISR_REG, STUART_ISR_TC_MASK, &txComplete);
-            if (err) {
-                return err;
-            }
+            whal_Reg_Get(reg->base, STUART_ISR_REG, STUART_ISR_TC_MASK, &txComplete);
         }
     }
 
@@ -94,7 +108,6 @@ whal_Error whal_StUart_Send(whal_Uart *uartDev, const uint8_t *data, size_t data
 
 whal_Error whal_StUart_Recv(whal_Uart *uartDev, uint8_t *data, size_t dataSz)
 {
-    whal_Error err;
     const whal_Regmap *reg = &uartDev->regmap;
     size_t d;
     
@@ -102,26 +115,14 @@ whal_Error whal_StUart_Recv(whal_Uart *uartDev, uint8_t *data, size_t dataSz)
         size_t dataReceived = 0;
 
         while (!dataReceived) {
-            err = whal_Reg_Get(reg, STUART_ISR_REG, STUART_ISR_RXFNE_MASK, &dataReceived);
-            if (err) {
-                return err;
-            }
+            whal_Reg_Get(reg->base, STUART_ISR_REG, STUART_ISR_RXFNE_MASK, &dataReceived);
         }
 
-        err = whal_Reg_Get(reg, STUART_RDR_REG, 
-                           STUART_RDR_RDR_MASK, &d);
-        if (err) {
-            return err;
-        }
+        whal_Reg_Get(reg->base, STUART_RDR_REG, 
+                     STUART_RDR_RDR_MASK, &d);
 
         data[i] = d;
     }
-
-    return WHAL_SUCCESS;
-}
-
-whal_Error whal_StUart_Cmd(whal_Uart *uartDev, size_t cmd, void *args)
-{
 
     return WHAL_SUCCESS;
 }
@@ -131,5 +132,4 @@ whal_UartDriver whal_StUart_Driver = {
     .Deinit = whal_StUart_Deinit,
     .Send = whal_StUart_Send,
     .Recv = whal_StUart_Recv,
-    .Cmd = whal_StUart_Cmd,
 };

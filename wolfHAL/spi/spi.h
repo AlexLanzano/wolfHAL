@@ -27,8 +27,6 @@ typedef struct {
     whal_Error (*Send)(whal_Spi *spiDev, void *spiComCfg, const uint8_t *data, size_t dataSz);
     /* Receive into a buffer. */
     whal_Error (*Recv)(whal_Spi *spiDev, void *spiComCfg, uint8_t *data, size_t dataSz);
-    /* Issue driver-specific commands. */
-    whal_Error (*Cmd)(whal_Spi *spiDev, size_t cmd, void *args);
 } whal_SpiDriver;
 
 /*
@@ -40,6 +38,24 @@ struct whal_Spi {
     void *cfg;
 };
 
+/*
+ * @brief Initializes an SPI device and its driver.
+ *
+ * @param spiDev Pointer to the SPI instance to initialize.
+ *
+ * @retval WHAL_SUCCESS Driver-specific init completed.
+ * @retval WHAL_EINVAL  Null pointer or driver rejected configuration.
+ */
+#ifdef WHAL_CFG_NO_CALLBACKS
+#define whal_Spi_Init(spiDev) ((spiDev)->driver->Init((spiDev)))
+#define whal_Spi_Deinit(spiDev) ((spiDev)->driver->Deinit((spiDev)))
+#define whal_Spi_SendRecv(spiDev, spiComCfg, tx, txLen, rx, rxLen) \
+    ((spiDev)->driver->SendRecv((spiDev), (spiComCfg), (tx), (txLen), (rx), (rxLen)))
+#define whal_Spi_Send(spiDev, spiComCfg, data, dataSz) \
+    ((spiDev)->driver->Send((spiDev), (spiComCfg), (data), (dataSz)))
+#define whal_Spi_Recv(spiDev, spiComCfg, data, dataSz) \
+    ((spiDev)->driver->Recv((spiDev), (spiComCfg), (data), (dataSz)))
+#else
 /*
  * @brief Initializes an SPI device and its driver.
  *
@@ -96,16 +112,6 @@ whal_Error whal_Spi_Send(whal_Spi *spiDev, void *spiComCfg, const uint8_t *data,
  * @retval WHAL_EINVAL  Null pointer or driver failed to receive.
  */
 whal_Error whal_Spi_Recv(whal_Spi *spiDev, void *spiComCfg, uint8_t *data, size_t dataSz);
-/*
- * @brief Issues a driver-specific command to an SPI device.
- *
- * @param spiDev Pointer to the SPI instance.
- * @param cmd    Numeric command selector defined by the driver.
- * @param args   Optional command arguments, interpreted per cmd.
- *
- * @retval WHAL_SUCCESS Command accepted and executed.
- * @retval WHAL_EINVAL  Null pointer, unknown command, or bad args.
- */
-whal_Error whal_Spi_Cmd(whal_Spi *spiDev, size_t cmd, void *args);
+#endif
 
 #endif /* WHAL_SPI_H */

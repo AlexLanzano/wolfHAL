@@ -47,11 +47,3 @@ inline whal_Error whal_Spi_Recv(whal_Spi *spiDev, void *spiComCfg, uint8_t *data
     return spiDev->driver->Recv(spiDev, spiComCfg, data, dataSz);
 }
 
-inline whal_Error whal_Spi_Cmd(whal_Spi *spiDev, size_t cmd, void *args)
-{
-    if (!spiDev || !spiDev->driver || !spiDev->driver->Cmd) {
-        return WHAL_EINVAL;
-    }
-
-    return spiDev->driver->Cmd(spiDev, cmd, args);
-}

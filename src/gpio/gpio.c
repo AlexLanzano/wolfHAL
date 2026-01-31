@@ -39,11 +39,3 @@ inline whal_Error whal_Gpio_Set(whal_Gpio *gpioDev, size_t pin, size_t value)
     return gpioDev->driver->Set(gpioDev, pin, value);
 }
 
-inline whal_Error whal_Gpio_Cmd(whal_Gpio *gpioDev, size_t cmd, void *args)
-{
-    if (!gpioDev || !gpioDev->driver || !gpioDev->driver->Cmd) {
-        return WHAL_EINVAL;
-    }
-
-    return gpioDev->driver->Cmd(gpioDev, cmd, args);
-}

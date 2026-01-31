@@ -25,8 +25,6 @@ typedef struct {
     whal_Error (*Send)(whal_Uart *uartDev, const uint8_t *data, size_t dataSz);
     /* Receive into a buffer. */
     whal_Error (*Recv)(whal_Uart *uartDev, uint8_t *data, size_t dataSz);
-    /* Issue driver-specific commands. */
-    whal_Error (*Cmd)(whal_Uart *uartDev, size_t cmd, void *args);
 } whal_UartDriver;
 
 /*
@@ -38,6 +36,12 @@ struct whal_Uart {
     void *cfg;
 };
 
+#ifdef WHAL_CFG_NO_CALLBACKS
+#define whal_Uart_Init(uartDev) ((uartDev)->driver->Init((uartDev)))
+#define whal_Uart_Deinit(uartDev) ((uartDev)->driver->Deinit((uartDev)))
+#define whal_Uart_Send(uartDev, data, dataSz) ((uartDev)->driver->Send((uartDev), (data), (dataSz)))
+#define whal_Uart_Recv(uartDev, data, dataSz) ((uartDev)->driver->Recv((uartDev), (data), (dataSz)))
+#else
 /*
  * @brief Initializes a UART device and its driver.
  *
@@ -81,17 +85,6 @@ whal_Error whal_Uart_Send(whal_Uart *uartDev, const uint8_t *data, size_t dataSz
  * @retval WHAL_EINVAL  Null pointer or driver failed to receive.
  */
 whal_Error whal_Uart_Recv(whal_Uart *uartDev, uint8_t *data, size_t dataSz);
-
-/*
- * @brief Issues a driver-specific command to a UART device.
- *
- * @param uartDev Pointer to the UART instance.
- * @param cmd     Numeric command selector defined by the driver.
- * @param args    Optional command arguments, interpreted per cmd.
- *
- * @retval WHAL_SUCCESS Command accepted and executed.
- * @retval WHAL_EINVAL  Null pointer, unknown command, or bad args.
- */
-whal_Error whal_Uart_Cmd(whal_Uart *uartDev, size_t cmd, void *args);
+#endif
 
 #endif /* WHAL_UART_H */

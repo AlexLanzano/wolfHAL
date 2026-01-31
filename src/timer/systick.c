@@ -14,7 +14,6 @@
 
 whal_Error SysTick_Init(whal_Timer *timerDev)
 {
-    whal_Error err;
     whal_SysTick_Cfg *cfg;
     const whal_Regmap *reg = &timerDev->regmap;
     
@@ -24,20 +23,16 @@ whal_Error SysTick_Init(whal_Timer *timerDev)
 
     cfg = (whal_SysTick_Cfg *)timerDev->cfg;
 
-    err = whal_Reg_Update(reg, SYSTICK_CSR_REG,
+    whal_Reg_Update(reg->base, SYSTICK_CSR_REG,
                           SYSTICK_CSR_CLKSOURCE | SYSTICK_CSR_TICKINT,
                           whal_SetBits(SYSTICK_CSR_CLKSOURCE, cfg->clkSrc) |
                           whal_SetBits(SYSTICK_CSR_TICKINT, cfg->tickInt));
 
-    if (err) {
-        return err;
-    }
+    whal_Reg_Update(reg->base, SYSTICK_RVR_REG, 
+                    SYSTICK_RVR_RELOAD,
+                    whal_SetBits(SYSTICK_RVR_RELOAD, cfg->cyclesPerTick));
 
-    err = whal_Reg_Update(reg, SYSTICK_RVR_REG, 
-                          SYSTICK_RVR_RELOAD,
-                          whal_SetBits(SYSTICK_RVR_RELOAD, cfg->cyclesPerTick));
-
-    return err;
+    return WHAL_SUCCESS;
 }
 
 whal_Error SysTick_Deinit(whal_Timer *timerDev)
@@ -47,32 +42,30 @@ whal_Error SysTick_Deinit(whal_Timer *timerDev)
 
 whal_Error SysTick_Start(whal_Timer *timerDev)
 {
-    whal_Error err;
     const whal_Regmap *reg = &timerDev->regmap;
     
     if (!timerDev || !timerDev->cfg) {
         return WHAL_EINVAL;
     }
 
-    err = whal_Reg_Update(reg, SYSTICK_CSR_REG, SYSTICK_CSR_ENABLE,
-                          whal_SetBits(SYSTICK_CSR_ENABLE, 1));
+    whal_Reg_Update(reg->base, SYSTICK_CSR_REG, SYSTICK_CSR_ENABLE,
+                    whal_SetBits(SYSTICK_CSR_ENABLE, 1));
 
-    return err;
+    return WHAL_SUCCESS;
 }
 
 whal_Error SysTick_Stop(whal_Timer *timerDev)
 {
-    whal_Error err;
     const whal_Regmap *reg = &timerDev->regmap;
     
     if (!timerDev || !timerDev->cfg) {
         return WHAL_EINVAL;
     }
 
-    err = whal_Reg_Update(reg, SYSTICK_CSR_REG, SYSTICK_CSR_ENABLE,
-                          whal_SetBits(SYSTICK_CSR_ENABLE, 0));
+    whal_Reg_Update(reg->base, SYSTICK_CSR_REG, SYSTICK_CSR_ENABLE,
+                    whal_SetBits(SYSTICK_CSR_ENABLE, 0));
 
-    return err;
+    return WHAL_SUCCESS;
 }
 
 whal_Error SysTick_Reset(whal_Timer *timerDev)

@@ -91,16 +91,5 @@ whal_Error whal_StSpi_Send(whal_Spi *spiDev, void *spiComCfg, const uint8_t *dat
  */
 whal_Error whal_StSpi_Recv(whal_Spi *spiDev, void *spiComCfg, uint8_t *data,
                            size_t dataSz);
-/*
- * @brief Dispatch a driver-specific SPI command.
- *
- * @param spiDev SPI device instance.
- * @param cmd    Driver-defined command selector.
- * @param args   Optional command arguments.
- *
- * @retval WHAL_SUCCESS Command handled.
- * @retval WHAL_EINVAL  Invalid arguments.
- */
-whal_Error whal_StSpi_Cmd(whal_Spi *spiDev, size_t cmd, void *args);
 
 #endif /* WHAL_ST_SPI_H */

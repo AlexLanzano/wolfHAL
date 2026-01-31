@@ -38,21 +38,8 @@ void WaitMs(size_t ms)
 void main(void)
 {
     whal_Error err;
-    whal_StFlash_SetLatencyArgs args = {
-        .latency = WHAL_ST_FLASH_LATENCY_3
-    };
-
-    err = whal_Flash_Cmd(&flash, WHAL_ST_FLASH_CMD_SET_LATENCY, &args);
-    if (err) {
-        goto loop;
-    }
 
     err = whal_Clock_Init(&rcc); 
-    if (err) {
-        goto loop;
-    }
-
-    err = whal_Clock_Enable(&rcc);
     if (err) {
         goto loop;
     }
@@ -61,8 +48,17 @@ void main(void)
     if (err) {
         goto loop;
     }
+    err = whal_Gpio_Set(&gpio, LED_PIN, 1);
+    if (err) {
+        goto loop;
+    }
 
     err = whal_Uart_Init(&lpuart1);
+    if (err) {
+        goto loop;
+    }
+
+    err = whal_Flash_Init(&flash);
     if (err) {
         goto loop;
     }

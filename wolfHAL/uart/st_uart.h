@@ -15,8 +15,10 @@
  * @brief STM32 UART configuration parameters.
  */
 typedef struct whal_StUart_Cfg {
+    whal_Clock *clkCtrl;
+    void *clk;
+    uint8_t lpuart;
     uint32_t baud;
-    whal_Clock *sysClk;
 } whal_StUart_Cfg;
 
 /*
@@ -64,16 +66,5 @@ whal_Error whal_StUart_Send(whal_Uart *uartDev, const uint8_t *data, size_t data
  * @retval WHAL_EINVAL  Invalid arguments.
  */
 whal_Error whal_StUart_Recv(whal_Uart *uartDev, uint8_t *data, size_t dataSz);
-/*
- * @brief Dispatch a driver-specific UART command.
- *
- * @param uartDev UART device instance.
- * @param cmd     Driver-defined command selector.
- * @param args    Optional command arguments.
- *
- * @retval WHAL_SUCCESS Command handled.
- * @retval WHAL_EINVAL  Invalid arguments.
- */
-whal_Error whal_StUart_Cmd(whal_Uart *uartDev, size_t cmd, void *args);
 
 #endif /* WHAL_ST_UART_H */

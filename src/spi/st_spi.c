@@ -47,19 +47,10 @@ whal_Error whal_StSpi_Recv(whal_Spi *spiDev, void *spiComCfg, uint8_t *data,
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_StSpi_Cmd(whal_Spi *spiDev, size_t cmd, void *args)
-{
-    (void)spiDev;
-    (void)cmd;
-    (void)args;
-    return WHAL_SUCCESS;
-}
-
 whal_SpiDriver whal_StSpi_Driver = {
     .Init = whal_StSpi_Init,
     .Deinit = whal_StSpi_Deinit,
     .SendRecv = whal_StSpi_SendRecv,
     .Send = whal_StSpi_Send,
     .Recv = whal_StSpi_Recv,
-    .Cmd = whal_StSpi_Cmd,
 };

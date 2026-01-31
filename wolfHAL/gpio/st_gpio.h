@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 #include <wolfHAL/gpio/gpio.h>
+#include <wolfHAL/clock/clock.h>
+#include <wolfHAL/clock/st_rcc.h>
 #include <wolfHAL/regmap.h>
 
 /*
@@ -72,12 +74,20 @@ typedef struct {
     whal_StGpio_Speed speed;
     whal_StGpio_Pull pull;
     uint8_t altFn;
+} whal_StGpio_PinCfg;
+
+typedef struct {
+    whal_Clock *clkCtrl;
+    void *clk;
+
+    whal_StGpio_PinCfg *pinCfg;
+    size_t pinCount;
 } whal_StGpio_Cfg;
 
 /*
  * @brief Driver instance for STM32 GPIO.
  */
-extern whal_GpioDriver whal_StGpio_Driver;
+extern const whal_GpioDriver whal_StGpio_Driver;
 
 /*
  * @brief Initialize the STM32 GPIO peripheral and configured pins.
@@ -119,16 +129,5 @@ whal_Error whal_StGpio_Get(whal_Gpio *gpioDev, size_t pin, size_t *value);
  * @retval WHAL_EINVAL  Invalid arguments.
  */
 whal_Error whal_StGpio_Set(whal_Gpio *gpioDev, size_t pin, size_t value);
-/*
- * @brief Dispatch a driver-specific GPIO command.
- *
- * @param gpioDev GPIO device instance.
- * @param cmd     Driver-defined command selector.
- * @param args    Optional command arguments.
- *
- * @retval WHAL_SUCCESS Command handled.
- * @retval WHAL_EINVAL  Invalid arguments.
- */
-whal_Error whal_StGpio_Cmd(whal_Gpio *gpioDev, size_t cmd, void *args);
 
 #endif /* WHAL_STGPIO_H */

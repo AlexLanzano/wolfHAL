@@ -2,16 +2,19 @@
 #define WHAL_ST_FLASH_H
 
 #include <wolfHAL/flash/flash.h>
+#include <wolfHAL/clock/clock.h>
 
 /*
  * @file st_flash.h
- * @brief STM32-specific flash driver configuration and commands.
+ * @brief STM32-specific flash driver configuration and helpers.
  */
 
 /*
  * @brief STM32 flash configuration placeholder. Extend as options are needed.
  */
 typedef struct whal_StFlash_Cfg {
+    whal_Clock *clkCtrl;
+    const void *clk;
     size_t startAddr;
     size_t size;
 } whal_StFlash_Cfg;
@@ -19,26 +22,12 @@ typedef struct whal_StFlash_Cfg {
 /*
  * @brief Latency wait-state settings for STM32 flash.
  */
-enum whal_StFlash_Latency {
+typedef enum whal_StFlash_Latency {
     WHAL_ST_FLASH_LATENCY_0,
     WHAL_ST_FLASH_LATENCY_1,
     WHAL_ST_FLASH_LATENCY_2,
     WHAL_ST_FLASH_LATENCY_3,
-};
-
-/*
- * @brief Command arguments for changing flash latency.
- */
-typedef struct whal_StFlash_SetLatencyArgs {
-    enum whal_StFlash_Latency latency;
-} whal_StFlash_SetLatencyArgs;
-
-/*
- * @brief STM32 flash driver command selectors.
- */
-enum whal_StFlash_Cmd {
-    WHAL_ST_FLASH_CMD_SET_LATENCY,
-};
+} whal_StFlash_Latency;
 
 /*
  * @brief Driver instance for STM32 flash.
@@ -123,15 +112,14 @@ whal_Error whal_StFlash_Write(whal_Flash *flashDev, size_t addr, const uint8_t *
  */
 whal_Error whal_StFlash_Erase(whal_Flash *flashDev, size_t addr, size_t dataSz);
 /*
- * @brief Dispatch a driver-specific flash command.
+ * @brief Update flash latency wait states.
  *
  * @param flashDev Flash device instance.
- * @param cmd      Driver-defined command selector.
- * @param args     Optional command arguments.
+ * @param latency  Latency setting to apply.
  *
- * @retval WHAL_SUCCESS Command handled.
+ * @retval WHAL_SUCCESS Latency updated.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_StFlash_Cmd(whal_Flash *flashDev, size_t cmd, void *args);
+whal_Error whal_StFlash_Ext_SetLatency(whal_Flash *flashDev, enum whal_StFlash_Latency latency);
 
 #endif /* WHAL_ST_FLASH_H */

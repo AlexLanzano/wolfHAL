@@ -19,22 +19,22 @@ inline whal_Error whal_Clock_Deinit(whal_Clock *clkDev)
     return clkDev->driver->Deinit(clkDev);
 }
 
-inline whal_Error whal_Clock_Enable(whal_Clock *clkDev)
+inline whal_Error whal_Clock_Enable(whal_Clock *clkDev, const void *clk)
 {
     if (!clkDev || !clkDev->driver || !clkDev->driver->Enable) {
         return WHAL_EINVAL;
     }
 
-    return clkDev->driver->Enable(clkDev);
+    return clkDev->driver->Enable(clkDev, clk);
 }
 
-inline whal_Error whal_Clock_Disable(whal_Clock *clkDev)
+inline whal_Error whal_Clock_Disable(whal_Clock *clkDev, const void *clk)
 {
     if (!clkDev || !clkDev->driver || !clkDev->driver->Disable) {
         return WHAL_EINVAL;
     }
 
-    return clkDev->driver->Disable(clkDev);
+    return clkDev->driver->Disable(clkDev, clk);
 }
 
 inline whal_Error whal_Clock_GetRate(whal_Clock *clkDev, size_t *rateOut)
@@ -48,11 +48,3 @@ inline whal_Error whal_Clock_GetRate(whal_Clock *clkDev, size_t *rateOut)
     return clkDev->driver->GetRate(clkDev, rateOut);
 }
 
-inline whal_Error whal_Clock_Cmd(whal_Clock *clkDev, size_t cmd, void *args)
-{
-    if (!clkDev || !clkDev->driver || !clkDev->driver->Cmd) {
-        return WHAL_EINVAL;
-    }
-
-    return clkDev->driver->Cmd(clkDev, cmd, args);
-}

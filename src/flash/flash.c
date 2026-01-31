@@ -68,11 +68,3 @@ inline whal_Error whal_Flash_Erase(whal_Flash *flashDev, size_t addr,
     return flashDev->driver->Erase(flashDev, addr, dataSz);
 }
 
-inline whal_Error whal_Flash_Cmd(whal_Flash *flashDev, size_t cmd, void *args)
-{
-    if (!flashDev || !flashDev->driver || !flashDev->driver->Cmd) {
-        return WHAL_EINVAL;
-    }
-
-    return flashDev->driver->Cmd(flashDev, cmd, args);
-}
