@@ -1,5 +1,5 @@
 #include <stdint.h>
-#include <wolfHAL/uart/st_uart.h>
+#include <wolfHAL/uart/stm32wb_uart.h>
 #include <wolfHAL/uart/uart.h>
 #include <wolfHAL/clock/clock.h>
 #include <wolfHAL/error.h>
@@ -25,15 +25,15 @@
 #define STUART_TDR_REG 0x28
 #define STUART_TDR_TDR_MASK WHAL_MASK_RANGE(8, 0)
 
-whal_Error whal_StUart_Init(whal_Uart *uartDev)
+whal_Error whal_Stm32wbUart_Init(whal_Uart *uartDev)
 {
     whal_Error err;
-    whal_StUart_Cfg *cfg;
+    whal_Stm32wbUart_Cfg *cfg;
     const whal_Regmap *reg = &uartDev->regmap;
     size_t clockFreq;
     uint32_t brr;
 
-    cfg = (whal_StUart_Cfg *)uartDev->cfg;
+    cfg = (whal_Stm32wbUart_Cfg *)uartDev->cfg;
 
     err = whal_Clock_Enable(cfg->clkCtrl, cfg->clk);
     if (err != WHAL_SUCCESS) {
@@ -59,15 +59,15 @@ whal_Error whal_StUart_Init(whal_Uart *uartDev)
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_StLpuart_Init(whal_Uart *uartDev)
+whal_Error whal_Stm32wbLpuart_Init(whal_Uart *uartDev)
 {
     whal_Error err;
-    whal_StUart_Cfg *cfg;
+    whal_Stm32wbUart_Cfg *cfg;
     const whal_Regmap *reg = &uartDev->regmap;
     size_t clockFreq;
     uint32_t brr;
 
-    cfg = (whal_StUart_Cfg *)uartDev->cfg;
+    cfg = (whal_Stm32wbUart_Cfg *)uartDev->cfg;
 
     err = whal_Clock_Enable(cfg->clkCtrl, cfg->clk);
     if (err != WHAL_SUCCESS) {
@@ -93,11 +93,11 @@ whal_Error whal_StLpuart_Init(whal_Uart *uartDev)
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_StUart_Deinit(whal_Uart *uartDev)
+whal_Error whal_Stm32wbUart_Deinit(whal_Uart *uartDev)
 {
     whal_Error err;
     const whal_Regmap *reg = &uartDev->regmap;
-    whal_StUart_Cfg *cfg = (whal_StUart_Cfg *)uartDev->cfg;
+    whal_Stm32wbUart_Cfg *cfg = (whal_Stm32wbUart_Cfg *)uartDev->cfg;
 
     whal_Reg_Update(reg->base, STUART_CR1_REG,
                     STUART_CR1_UE | STUART_CR1_RE | STUART_CR1_TE,
@@ -117,7 +117,7 @@ whal_Error whal_StUart_Deinit(whal_Uart *uartDev)
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_StUart_Send(whal_Uart *uartDev, const uint8_t *data, size_t dataSz)
+whal_Error whal_Stm32wbUart_Send(whal_Uart *uartDev, const uint8_t *data, size_t dataSz)
 {
     const whal_Regmap *reg = &uartDev->regmap;
     
@@ -135,7 +135,7 @@ whal_Error whal_StUart_Send(whal_Uart *uartDev, const uint8_t *data, size_t data
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_StUart_Recv(whal_Uart *uartDev, uint8_t *data, size_t dataSz)
+whal_Error whal_Stm32wbUart_Recv(whal_Uart *uartDev, uint8_t *data, size_t dataSz)
 {
     const whal_Regmap *reg = &uartDev->regmap;
     size_t d;
@@ -156,16 +156,16 @@ whal_Error whal_StUart_Recv(whal_Uart *uartDev, uint8_t *data, size_t dataSz)
     return WHAL_SUCCESS;
 }
 
-whal_UartDriver whal_StUart_Driver = {
-    .Init = whal_StUart_Init,
-    .Deinit = whal_StUart_Deinit,
-    .Send = whal_StUart_Send,
-    .Recv = whal_StUart_Recv,
+whal_UartDriver whal_Stm32wbUart_Driver = {
+    .Init = whal_Stm32wbUart_Init,
+    .Deinit = whal_Stm32wbUart_Deinit,
+    .Send = whal_Stm32wbUart_Send,
+    .Recv = whal_Stm32wbUart_Recv,
 };
 
-whal_UartDriver whal_StLpuart_Driver = {
-    .Init = whal_StLpuart_Init,
-    .Deinit = whal_StUart_Deinit,
-    .Send = whal_StUart_Send,
-    .Recv = whal_StUart_Recv,
+whal_UartDriver whal_Stm32wbLpuart_Driver = {
+    .Init = whal_Stm32wbLpuart_Init,
+    .Deinit = whal_Stm32wbUart_Deinit,
+    .Send = whal_Stm32wbUart_Send,
+    .Recv = whal_Stm32wbUart_Recv,
 };

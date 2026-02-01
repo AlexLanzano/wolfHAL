@@ -1,7 +1,7 @@
 #include <stdint.h>
 #include <wolfHAL/clock/clock.h>
-#include <wolfHAL/clock/st_rcc.h>
-#include <wolfHAL/flash/st_flash.h>
+#include <wolfHAL/clock/stm32wb_rcc.h>
+#include <wolfHAL/flash/stm32wb_flash.h>
 #include <wolfHAL/flash/flash.h>
 #include <wolfHAL/error.h>
 #include <wolfHAL/bitops.h>
@@ -40,10 +40,10 @@
 #define ST_FLASH_CR_STRT WHAL_MASK(16)
 #define ST_FLASH_CR_LOCK WHAL_MASK(31)
 
-whal_Error whal_StFlash_Init(whal_Flash *flashDev)
+whal_Error whal_Stm32wbFlash_Init(whal_Flash *flashDev)
 {
     whal_Error err;
-    whal_StFlash_Cfg *cfg = flashDev->cfg;
+    whal_Stm32wbFlash_Cfg *cfg = flashDev->cfg;
 
     err = whal_Clock_Enable(cfg->clkCtrl, cfg->clk); 
     if (err) {
@@ -53,10 +53,10 @@ whal_Error whal_StFlash_Init(whal_Flash *flashDev)
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_StFlash_Deinit(whal_Flash *flashDev)
+whal_Error whal_Stm32wbFlash_Deinit(whal_Flash *flashDev)
 {
     whal_Error err;
-    whal_StFlash_Cfg *cfg = flashDev->cfg;
+    whal_Stm32wbFlash_Cfg *cfg = flashDev->cfg;
 
     err = whal_Clock_Disable(cfg->clkCtrl, cfg->clk); 
     if (err) {
@@ -66,7 +66,7 @@ whal_Error whal_StFlash_Deinit(whal_Flash *flashDev)
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_StFlash_Lock(whal_Flash *flashDev, size_t addr, size_t len)
+whal_Error whal_Stm32wbFlash_Lock(whal_Flash *flashDev, size_t addr, size_t len)
 {
     (void)addr;
     (void)len;
@@ -78,7 +78,7 @@ whal_Error whal_StFlash_Lock(whal_Flash *flashDev, size_t addr, size_t len)
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_StFlash_Unlock(whal_Flash *flashDev, size_t addr, size_t len)
+whal_Error whal_Stm32wbFlash_Unlock(whal_Flash *flashDev, size_t addr, size_t len)
 {
     (void)addr;
     (void)len;
@@ -91,7 +91,7 @@ whal_Error whal_StFlash_Unlock(whal_Flash *flashDev, size_t addr, size_t len)
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_StFlash_Read(whal_Flash *flashDev, size_t addr, uint8_t *data,
+whal_Error whal_Stm32wbFlash_Read(whal_Flash *flashDev, size_t addr, uint8_t *data,
                              size_t dataSz)
 {
     uint8_t *flashAddr = (uint8_t *)addr;
@@ -101,10 +101,10 @@ whal_Error whal_StFlash_Read(whal_Flash *flashDev, size_t addr, uint8_t *data,
     return WHAL_SUCCESS;
 }
 
-static whal_Error whal_StFlash_WriteOrErase(whal_Flash *flashDev, size_t addr, const uint8_t *data,
+static whal_Error whal_Stm32wbFlash_WriteOrErase(whal_Flash *flashDev, size_t addr, const uint8_t *data,
                                             size_t dataSz, uint8_t write)
 {
-    whal_StFlash_Cfg *cfg = flashDev->cfg;
+    whal_Stm32wbFlash_Cfg *cfg = flashDev->cfg;
     const whal_Regmap *regmap = &flashDev->regmap;
     size_t bsy;
     size_t pesd;
@@ -170,19 +170,19 @@ static whal_Error whal_StFlash_WriteOrErase(whal_Flash *flashDev, size_t addr, c
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_StFlash_Write(whal_Flash *flashDev, size_t addr, const uint8_t *data,
+whal_Error whal_Stm32wbFlash_Write(whal_Flash *flashDev, size_t addr, const uint8_t *data,
                                 size_t dataSz)
 {
-    return whal_StFlash_WriteOrErase(flashDev, addr, data, dataSz, 1);
+    return whal_Stm32wbFlash_WriteOrErase(flashDev, addr, data, dataSz, 1);
 }
 
-whal_Error whal_StFlash_Erase(whal_Flash *flashDev, size_t addr,
+whal_Error whal_Stm32wbFlash_Erase(whal_Flash *flashDev, size_t addr,
                                 size_t dataSz)
 {
-    return whal_StFlash_WriteOrErase(flashDev, addr, NULL, dataSz, 0);
+    return whal_Stm32wbFlash_WriteOrErase(flashDev, addr, NULL, dataSz, 0);
 }
 
-whal_Error whal_StFlash_Ext_SetLatency(whal_Flash *flashDev, enum whal_StFlash_Latency latency)
+whal_Error whal_Stm32wbFlash_Ext_SetLatency(whal_Flash *flashDev, enum whal_Stm32wbFlash_Latency latency)
 {
     if (!flashDev) {
         return WHAL_EINVAL;
@@ -193,12 +193,12 @@ whal_Error whal_StFlash_Ext_SetLatency(whal_Flash *flashDev, enum whal_StFlash_L
     return WHAL_SUCCESS;
 }
 
-whal_FlashDriver whal_StFlash_Driver = {
-    .Init = whal_StFlash_Init,
-    .Deinit = whal_StFlash_Deinit,
-    .Lock = whal_StFlash_Lock,
-    .Unlock = whal_StFlash_Unlock,
-    .Read = whal_StFlash_Read,
-    .Write = whal_StFlash_Write,
-    .Erase = whal_StFlash_Erase,
+whal_FlashDriver whal_Stm32wbFlash_Driver = {
+    .Init = whal_Stm32wbFlash_Init,
+    .Deinit = whal_Stm32wbFlash_Deinit,
+    .Lock = whal_Stm32wbFlash_Lock,
+    .Unlock = whal_Stm32wbFlash_Unlock,
+    .Read = whal_Stm32wbFlash_Read,
+    .Write = whal_Stm32wbFlash_Write,
+    .Erase = whal_Stm32wbFlash_Erase,
 };

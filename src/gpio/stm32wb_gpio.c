@@ -1,7 +1,7 @@
 #include <stdint.h>
 #include <wolfHAL/error.h>
 #include <wolfHAL/gpio/gpio.h>
-#include <wolfHAL/gpio/st_gpio.h>
+#include <wolfHAL/gpio/stm32wb_gpio.h>
 #include <wolfHAL/regmap.h>
 #include <wolfHAL/bitops.h>
 
@@ -16,7 +16,7 @@
 #define STGPIO_GPIOx_ALTFNL_REG   0x20
 #define STGPIO_GPIOx_ALTFNH_REG   0x24
 
-static inline void whal_StGpio_InitAltFn(whal_Regmap *portReg, whal_StGpio_PinCfg *pinCfg)
+static inline void whal_Stm32wbGpio_InitAltFn(whal_Regmap *portReg, whal_Stm32wbGpio_PinCfg *pinCfg)
 {
     uint8_t pin = pinCfg->pin;
     uint8_t maskBit;
@@ -30,7 +30,7 @@ static inline void whal_StGpio_InitAltFn(whal_Regmap *portReg, whal_StGpio_PinCf
 }
 
 
-static inline whal_Error whal_StGpio_InitPin(whal_Gpio *gpioDev, whal_StGpio_PinCfg *pinCfg)
+static inline whal_Error whal_Stm32wbGpio_InitPin(whal_Gpio *gpioDev, whal_Stm32wbGpio_PinCfg *pinCfg)
 {
     whal_Regmap portReg;
 
@@ -55,24 +55,24 @@ static inline whal_Error whal_StGpio_InitPin(whal_Gpio *gpioDev, whal_StGpio_Pin
     whal_Reg_Update(portReg.base, STGPIO_GPIOx_OUTTYPE_REG, mask2,
                     whal_SetBits(mask2, pinCfg->outType));
 
-    if (pinCfg->mode == WHAL_STGPIO_MODE_ALTFN) {
-        whal_StGpio_InitAltFn(&portReg, pinCfg);
+    if (pinCfg->mode == WHAL_STM32WB_GPIO_MODE_ALTFN) {
+        whal_Stm32wbGpio_InitAltFn(&portReg, pinCfg);
     }
 
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_StGpio_Init(whal_Gpio *gpioDev)
+whal_Error whal_Stm32wbGpio_Init(whal_Gpio *gpioDev)
 {
     whal_Error err;
-    whal_StGpio_Cfg *cfg;
-    whal_StGpio_PinCfg *pinCfg;
+    whal_Stm32wbGpio_Cfg *cfg;
+    whal_Stm32wbGpio_PinCfg *pinCfg;
 
     if (!gpioDev || !gpioDev->cfg) {
         return WHAL_EINVAL;
     }
 
-    cfg = (whal_StGpio_Cfg *)gpioDev->cfg;
+    cfg = (whal_Stm32wbGpio_Cfg *)gpioDev->cfg;
     pinCfg = cfg->pinCfg;
 
     err = whal_Clock_Enable(cfg->clkCtrl, cfg->clk);
@@ -81,7 +81,7 @@ whal_Error whal_StGpio_Init(whal_Gpio *gpioDev)
     }
     
     for (size_t pin = 0; pin < cfg->pinCount; ++pin) {
-        err = whal_StGpio_InitPin(gpioDev, &pinCfg[pin]);
+        err = whal_Stm32wbGpio_InitPin(gpioDev, &pinCfg[pin]);
         if (err) {
             return err;
         }
@@ -90,11 +90,11 @@ whal_Error whal_StGpio_Init(whal_Gpio *gpioDev)
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_StGpio_Deinit(whal_Gpio *gpioDev)
+whal_Error whal_Stm32wbGpio_Deinit(whal_Gpio *gpioDev)
 {
     whal_Error err;
-    whal_StGpio_Cfg *cfg;
-    cfg = (whal_StGpio_Cfg *)gpioDev->cfg;
+    whal_Stm32wbGpio_Cfg *cfg;
+    cfg = (whal_Stm32wbGpio_Cfg *)gpioDev->cfg;
 
     err = whal_Clock_Disable(cfg->clkCtrl, cfg->clk);
     if (err) {
@@ -104,18 +104,18 @@ whal_Error whal_StGpio_Deinit(whal_Gpio *gpioDev)
     return WHAL_SUCCESS;
 }
 
-static whal_Error whal_StGpio_SetOrGet(whal_Gpio *gpioDev, size_t pin, size_t *value, uint8_t set)
+static whal_Error whal_Stm32wbGpio_SetOrGet(whal_Gpio *gpioDev, size_t pin, size_t *value, uint8_t set)
 {
     whal_Regmap portReg;
-    whal_StGpio_Cfg *cfg;
-    whal_StGpio_PinCfg *pinCfg;
+    whal_Stm32wbGpio_Cfg *cfg;
+    whal_Stm32wbGpio_PinCfg *pinCfg;
     size_t mask;
 
     if (!gpioDev || !gpioDev->cfg) {
         return WHAL_EINVAL;
     }
 
-    cfg = (whal_StGpio_Cfg *)gpioDev->cfg;
+    cfg = (whal_Stm32wbGpio_Cfg *)gpioDev->cfg;
     pinCfg = cfg->pinCfg;
 
     if (pinCfg[pin].pin > 15) {
@@ -137,19 +137,19 @@ static whal_Error whal_StGpio_SetOrGet(whal_Gpio *gpioDev, size_t pin, size_t *v
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_StGpio_Get(whal_Gpio *gpioDev, size_t pin, size_t *value)
+whal_Error whal_Stm32wbGpio_Get(whal_Gpio *gpioDev, size_t pin, size_t *value)
 {
-    return whal_StGpio_SetOrGet(gpioDev, pin, value, 0);
+    return whal_Stm32wbGpio_SetOrGet(gpioDev, pin, value, 0);
 }
 
-whal_Error whal_StGpio_Set(whal_Gpio *gpioDev, size_t pin, size_t value)
+whal_Error whal_Stm32wbGpio_Set(whal_Gpio *gpioDev, size_t pin, size_t value)
 {
-    return whal_StGpio_SetOrGet(gpioDev, pin, &value, 1);
+    return whal_Stm32wbGpio_SetOrGet(gpioDev, pin, &value, 1);
 }
 
-const whal_GpioDriver whal_StGpio_Driver = {
-    .Init = whal_StGpio_Init,
-    .Deinit = whal_StGpio_Deinit,
-    .Get = whal_StGpio_Get,
-    .Set = whal_StGpio_Set,
+const whal_GpioDriver whal_Stm32wbGpio_Driver = {
+    .Init = whal_Stm32wbGpio_Init,
+    .Deinit = whal_Stm32wbGpio_Deinit,
+    .Get = whal_Stm32wbGpio_Get,
+    .Set = whal_Stm32wbGpio_Set,
 };

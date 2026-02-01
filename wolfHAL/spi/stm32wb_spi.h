@@ -1,5 +1,5 @@
-#ifndef WHAL_ST_SPI_H
-#define WHAL_ST_SPI_H
+#ifndef WHAL_STM32WB_SPI_H
+#define WHAL_STM32WB_SPI_H
 
 #include <stdint.h>
 #include <stddef.h>
@@ -7,30 +7,30 @@
 #include <wolfHAL/clock/clock.h>
 
 /*
- * @file st_spi.h
+ * @file stm32wb_spi.h
  * @brief STM32 SPI driver configuration.
  */
 
 /*
  * @brief STM32 SPI configuration parameters.
  */
-typedef struct whal_StSpi_Cfg {
+typedef struct whal_Stm32wbSpi_Cfg {
     whal_Clock *sysClk;
-} whal_StSpi_Cfg;
+} whal_Stm32wbSpi_Cfg;
 
 /*
  * @brief STM32 SPI communication configuration per transaction.
  */
-typedef struct whal_StSpi_ComCfg {
+typedef struct whal_Stm32wbSpi_ComCfg {
     uint32_t mode;
     uint32_t baud;
     uint32_t chipSelect;
-} whal_StSpi_ComCfg;
+} whal_Stm32wbSpi_ComCfg;
 
 /*
  * @brief Driver instance for STM32 SPI peripheral.
  */
-extern whal_SpiDriver whal_StSpi_Driver;
+extern whal_SpiDriver whal_Stm32wbSpi_Driver;
 
 /*
  * @brief Initialize the STM32 SPI peripheral.
@@ -40,7 +40,7 @@ extern whal_SpiDriver whal_StSpi_Driver;
  * @retval WHAL_SUCCESS Initialization completed.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_StSpi_Init(whal_Spi *spiDev);
+whal_Error whal_Stm32wbSpi_Init(whal_Spi *spiDev);
 /*
  * @brief Deinitialize the STM32 SPI peripheral.
  *
@@ -49,7 +49,7 @@ whal_Error whal_StSpi_Init(whal_Spi *spiDev);
  * @retval WHAL_SUCCESS Deinit completed.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_StSpi_Deinit(whal_Spi *spiDev);
+whal_Error whal_Stm32wbSpi_Deinit(whal_Spi *spiDev);
 /*
  * @brief Perform a full-duplex SPI transfer.
  *
@@ -63,7 +63,7 @@ whal_Error whal_StSpi_Deinit(whal_Spi *spiDev);
  * @retval WHAL_SUCCESS Transfer completed.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_StSpi_SendRecv(whal_Spi *spiDev, void *spiComCfg, const uint8_t *tx,
+whal_Error whal_Stm32wbSpi_SendRecv(whal_Spi *spiDev, void *spiComCfg, const uint8_t *tx,
                                size_t txLen, uint8_t *rx, size_t rxLen);
 /*
  * @brief Transmit a buffer over SPI.
@@ -76,7 +76,7 @@ whal_Error whal_StSpi_SendRecv(whal_Spi *spiDev, void *spiComCfg, const uint8_t 
  * @retval WHAL_SUCCESS Transfer completed.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_StSpi_Send(whal_Spi *spiDev, void *spiComCfg, const uint8_t *data,
+whal_Error whal_Stm32wbSpi_Send(whal_Spi *spiDev, void *spiComCfg, const uint8_t *data,
                            size_t dataSz);
 /*
  * @brief Receive a buffer over SPI.
@@ -89,7 +89,7 @@ whal_Error whal_StSpi_Send(whal_Spi *spiDev, void *spiComCfg, const uint8_t *dat
  * @retval WHAL_SUCCESS Transfer completed.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_StSpi_Recv(whal_Spi *spiDev, void *spiComCfg, uint8_t *data,
+whal_Error whal_Stm32wbSpi_Recv(whal_Spi *spiDev, void *spiComCfg, uint8_t *data,
                            size_t dataSz);
 
-#endif /* WHAL_ST_SPI_H */
+#endif /* WHAL_STM32WB_SPI_H */

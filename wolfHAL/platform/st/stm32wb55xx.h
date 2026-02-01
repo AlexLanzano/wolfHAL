@@ -3,10 +3,10 @@
 
 #include <wolfHAL/platform/arm/cortex_m4.h>
 
-#include <wolfHAL/clock/st_rcc.h>
-#include <wolfHAL/gpio/st_gpio.h>
-#include <wolfHAL/uart/st_uart.h>
-#include <wolfHAL/flash/st_flash.h>
+#include <wolfHAL/clock/stm32wb_rcc.h>
+#include <wolfHAL/gpio/stm32wb_gpio.h>
+#include <wolfHAL/uart/stm32wb_uart.h>
+#include <wolfHAL/flash/stm32wb_flash.h>
 
 /*
  * @file stm32wb55xx.h
@@ -18,49 +18,49 @@
         .base = 0x40008000,             \
         .size = 0x400,                  \
     },                                  \
-    .driver = &whal_StLpuart_Driver
+    .driver = &whal_Stm32wbLpuart_Driver
 
 #define WHAL_STM32WB55_SPI1_DEVICE      \
     .regmap = {                         \
         .base = 0x40013000,             \
         .size = 0x400,                  \
     },                                  \
-    .driver = &whal_StSpi_Driver
+    .driver = &whal_Stm32wbSpi_Driver
 
 #define WHAL_STM32WB55_UART1_DEVICE     \
     .regmap = {                         \
         .base = 0x40013800,             \
         .size = 0x400,                  \
     },                                  \
-    .driver = &whal_StUart_Driver
+    .driver = &whal_Stm32wbUart_Driver
 
 #define WHAL_STM32WB55_GPIO_DEVICE      \
     .regmap = {                         \
         .base = 0x48000000,             \
         .size = 0x400,                  \
     },                                  \
-    .driver = &whal_StGpio_Driver
+    .driver = &whal_Stm32wbGpio_Driver
 
 #define WHAL_STM32WB55_RCC_PLL_DEVICE   \
     .regmap = {                         \
         .base = 0x58000000,             \
         .size = 0x400,                  \
     },                                  \
-    .driver = &whal_StRccPll_Driver
+    .driver = &whal_Stm32wbRccPll_Driver
 
 #define WHAL_STM32WB55_RCC_MSI_DEVICE   \
     .regmap = {                         \
         .base = 0x58000000,             \
         .size = 0x400,                  \
     },                                  \
-    .driver = &whal_StRccPll_Driver
+    .driver = &whal_Stm32wbRccPll_Driver
 
 #define WHAL_STM32WB55_FLASH_DEVICE     \
     .regmap = {                         \
         .base = 0x58004000,             \
         .size = 0x400,                  \
     },                                  \
-    .driver = &whal_StFlash_Driver
+    .driver = &whal_Stm32wbFlash_Driver
 
 
 #define WHAL_STM32WB55_PLL_CLOCK    \
