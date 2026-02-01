@@ -57,7 +57,7 @@
 #define ST_RCC_APB1ENR2_LPUART1EN WHAL_MASK(0)
 #define ST_RCC_APB1ENR2_LPTIM2EN  WHAL_MASK(5)
 
-whal_Error whal_StRcc_Init(whal_Clock *clkDev)
+whal_Error whal_StRccPll_Init(whal_Clock *clkDev)
 {
     whal_Error err;
     whal_StRcc_Cfg *cfg;
@@ -67,41 +67,60 @@ whal_Error whal_StRcc_Init(whal_Clock *clkDev)
     }
 
     cfg = (whal_StRcc_Cfg *)clkDev->cfg;
+    whal_StRcc_PllClkCfg *pllCfg = cfg->sysClkCfg;
 
-    switch (cfg->sysClkSrc) {
-    case WHAL_ST_RCC_SYSCLK_SRC_PLL: {
-        whal_StRcc_PllClkCfg *pllCfg = &cfg->sysClkCfg.pll;
-
-        err = whal_StFlash_Ext_SetLatency(cfg->flash, cfg->flashLatency);
-        if (err) {
-            return err;
-        }
-
-        whal_Reg_Update(clkDev->regmap.base, ST_RCC_CFGR_REG, ST_RCC_CFGR_SW,
-                        whal_SetBits(ST_RCC_CFGR_SW, cfg->sysClkSrc));
-
-        whal_Reg_Update(clkDev->regmap.base,
-                        ST_RCC_PLLCFGR_REG, ST_RCC_PLLCFGR_MASK,
-                        whal_SetBits(ST_RCC_PLLCFGR_PLLSRC_MASK, pllCfg->clkSrc) |
-                        whal_SetBits(ST_RCC_PLLCFGR_PLLM_MASK, pllCfg->m) |
-                        whal_SetBits(ST_RCC_PLLCFGR_PLLN_MASK, pllCfg->n) |
-                        whal_SetBits(ST_RCC_PLLCFGR_PLLP_MASK, pllCfg->p) |
-                        whal_SetBits(ST_RCC_PLLCFGR_PLLQ_MASK, pllCfg->q) |
-                        whal_SetBits(ST_RCC_PLLCFGR_PLLREN_MASK, 1) |
-                        whal_SetBits(ST_RCC_PLLCFGR_PLLR_MASK, pllCfg->r));
-
-        whal_Reg_Update(clkDev->regmap.base, ST_RCC_CR_REG,
-                        ST_RCC_CR_PLLON_MASK,
-                        whal_SetBits(ST_RCC_CR_PLLON_MASK, 1));
-    } break;
-    default:
-        return WHAL_EINVAL;
+    err = whal_StFlash_Ext_SetLatency(cfg->flash, cfg->flashLatency);
+    if (err) {
+        return err;
     }
+
+    whal_Reg_Update(clkDev->regmap.base, ST_RCC_CFGR_REG, ST_RCC_CFGR_SW,
+                    whal_SetBits(ST_RCC_CFGR_SW, cfg->sysClkSrc));
+
+    whal_Reg_Update(clkDev->regmap.base,
+                    ST_RCC_PLLCFGR_REG, ST_RCC_PLLCFGR_MASK,
+                    whal_SetBits(ST_RCC_PLLCFGR_PLLSRC_MASK, pllCfg->clkSrc) |
+                    whal_SetBits(ST_RCC_PLLCFGR_PLLM_MASK, pllCfg->m) |
+                    whal_SetBits(ST_RCC_PLLCFGR_PLLN_MASK, pllCfg->n) |
+                    whal_SetBits(ST_RCC_PLLCFGR_PLLP_MASK, pllCfg->p) |
+                    whal_SetBits(ST_RCC_PLLCFGR_PLLQ_MASK, pllCfg->q) |
+                    whal_SetBits(ST_RCC_PLLCFGR_PLLREN_MASK, 1) |
+                    whal_SetBits(ST_RCC_PLLCFGR_PLLR_MASK, pllCfg->r));
+
+    whal_Reg_Update(clkDev->regmap.base, ST_RCC_CR_REG,
+                    ST_RCC_CR_PLLON_MASK,
+                    whal_SetBits(ST_RCC_CR_PLLON_MASK, 1));
 
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_StRcc_Deinit(whal_Clock *clkDev)
+whal_Error whal_StRccMsi_Init(whal_Clock *clkDev)
+{
+    whal_Error err;
+    whal_StRcc_Cfg *cfg;
+
+    if (!clkDev || !clkDev->cfg) {
+        return WHAL_EINVAL;
+    }
+
+    cfg = (whal_StRcc_Cfg *)clkDev->cfg;
+    whal_StRcc_MsiClkCfg *msiCfg = cfg->sysClkCfg;
+
+    err = whal_StFlash_Ext_SetLatency(cfg->flash, cfg->flashLatency);
+    if (err) {
+        return err;
+    }
+
+    whal_Reg_Update(clkDev->regmap.base, ST_RCC_CFGR_REG, ST_RCC_CFGR_SW,
+                    whal_SetBits(ST_RCC_CFGR_SW, WHAL_ST_RCC_SYSCLK_SRC_MSI));
+
+    whal_Reg_Update(clkDev->regmap.base, ST_RCC_CR_REG, ST_RCC_CR_MSIRANGE,
+                    whal_SetBits(ST_RCC_CR_MSIRANGE, msiCfg->freq));
+
+    return WHAL_SUCCESS;
+}
+
+whal_Error whal_StRccPll_Deinit(whal_Clock *clkDev)
 {
     whal_StRcc_Cfg *cfg;
 
@@ -111,20 +130,38 @@ whal_Error whal_StRcc_Deinit(whal_Clock *clkDev)
 
     cfg = (whal_StRcc_Cfg *)clkDev->cfg;
 
-    if (cfg->sysClkSrc == WHAL_ST_RCC_SYSCLK_SRC_PLL) {
+    whal_Reg_Update(clkDev->regmap.base, ST_RCC_CFGR_REG, ST_RCC_CFGR_SW,
+                    whal_SetBits(ST_RCC_CFGR_SW, WHAL_ST_RCC_SYSCLK_SRC_MSI));
 
-        whal_Reg_Update(clkDev->regmap.base, ST_RCC_CFGR_REG, ST_RCC_CFGR_SW,
-                        whal_SetBits(ST_RCC_CFGR_SW, WHAL_ST_RCC_SYSCLK_SRC_MSI));
+    whal_Reg_Update(clkDev->regmap.base, ST_RCC_CR_REG, ST_RCC_CR_MSIRANGE,
+                    whal_SetBits(ST_RCC_CR_MSIRANGE, WHAL_ST_RCC_MSIRANGE_4MHz));
 
-        whal_Reg_Update(clkDev->regmap.base, ST_RCC_CR_REG, ST_RCC_CR_MSIRANGE,
-                        whal_SetBits(ST_RCC_CR_MSIRANGE, WHAL_ST_RCC_MSIRANGE_4MHz));
+    whal_Reg_Update(clkDev->regmap.base, ST_RCC_CR_REG,
+                    ST_RCC_CR_PLLON_MASK,
+                    whal_SetBits(ST_RCC_CR_PLLON_MASK, 0));
 
-        whal_Reg_Update(clkDev->regmap.base, ST_RCC_CR_REG,
-                        ST_RCC_CR_PLLON_MASK,
-                        whal_SetBits(ST_RCC_CR_PLLON_MASK, 0));
+    whal_StFlash_Ext_SetLatency(cfg->flash, WHAL_ST_FLASH_LATENCY_0);
 
-        whal_StFlash_Ext_SetLatency(cfg->flash, WHAL_ST_FLASH_LATENCY_0);
+    return WHAL_SUCCESS;
+}
+
+whal_Error whal_StRccMsi_Deinit(whal_Clock *clkDev)
+{
+    whal_StRcc_Cfg *cfg;
+
+    if (!clkDev || !clkDev->cfg) {
+        return WHAL_EINVAL;
     }
+
+    cfg = (whal_StRcc_Cfg *)clkDev->cfg;
+
+    whal_Reg_Update(clkDev->regmap.base, ST_RCC_CFGR_REG, ST_RCC_CFGR_SW,
+                    whal_SetBits(ST_RCC_CFGR_SW, WHAL_ST_RCC_SYSCLK_SRC_MSI));
+
+    whal_Reg_Update(clkDev->regmap.base, ST_RCC_CR_REG, ST_RCC_CR_MSIRANGE,
+                    whal_SetBits(ST_RCC_CR_MSIRANGE, WHAL_ST_RCC_MSIRANGE_4MHz));
+
+    whal_StFlash_Ext_SetLatency(cfg->flash, WHAL_ST_FLASH_LATENCY_0);
 
     return WHAL_SUCCESS;
 }
@@ -149,7 +186,7 @@ whal_Error whal_StRcc_Disable(whal_Clock *clkDev, const void *clk)
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_StRcc_GetRate(whal_Clock *clkDev, size_t *rateOut)
+whal_Error whal_StRccPll_GetRate(whal_Clock *clkDev, size_t *rateOut)
 {
     
     whal_StRcc_Cfg *cfg;
@@ -159,30 +196,87 @@ whal_Error whal_StRcc_GetRate(whal_Clock *clkDev, size_t *rateOut)
     }
 
     cfg = (whal_StRcc_Cfg *)clkDev->cfg;
-    if (cfg->sysClkSrc == WHAL_ST_RCC_SYSCLK_SRC_PLL) {
-        whal_StRcc_PllClkCfg *pllClkCfg = &cfg->sysClkCfg.pll;
-        /* Sys freq = ((srcFreq / pllm) * plln) / pllr */ 
-        size_t srcFreq;
-        size_t pllm = pllClkCfg->m + 1;
-        size_t plln = pllClkCfg->n;
-        size_t pllr = pllClkCfg->r + 1;
+    whal_StRcc_PllClkCfg *pllClkCfg = cfg->sysClkCfg;
+    /* Sys freq = ((srcFreq / pllm) * plln) / pllr */ 
+    size_t srcFreq;
+    size_t pllm = pllClkCfg->m + 1;
+    size_t plln = pllClkCfg->n;
+    size_t pllr = pllClkCfg->r + 1;
 
-        if (pllClkCfg->clkSrc == WHAL_ST_RCC_PLLCLK_SRC_MSI) {
-            srcFreq = 4000000;
-        }
-        else {
-            return WHAL_EINVAL;
-        }
-
-        *rateOut = ((srcFreq / pllm) * plln) / pllr;
+    if (pllClkCfg->clkSrc == WHAL_ST_RCC_PLLCLK_SRC_MSI) {
+        srcFreq = 4000000;
     }
+    else {
+        return WHAL_EINVAL;
+    }
+
+    *rateOut = ((srcFreq / pllm) * plln) / pllr;
     return WHAL_SUCCESS;
 }
 
-const whal_ClockDriver whal_StRcc_Driver = {
-    .Init = whal_StRcc_Init,
-    .Deinit = whal_StRcc_Deinit,
+whal_Error whal_StRccMsi_GetRate(whal_Clock *clkDev, size_t *rateOut)
+{
+    size_t msiRange;
+
+    if (!clkDev || !rateOut) {
+        return WHAL_EINVAL;
+    }
+
+    whal_Reg_Get(clkDev->regmap.base, ST_RCC_CR_REG, ST_RCC_CR_MSIRANGE, &msiRange);
+    
+    switch (msiRange) {
+    case WHAL_ST_RCC_MSIRANGE_100kHz:
+        *rateOut = 100000;
+        break;
+    case WHAL_ST_RCC_MSIRANGE_200kHz:
+        *rateOut = 200000;
+        break;
+    case WHAL_ST_RCC_MSIRANGE_400kHz:
+        *rateOut = 400000;
+        break;
+    case WHAL_ST_RCC_MSIRANGE_800kHz:
+        *rateOut = 800000;
+        break;
+    case WHAL_ST_RCC_MSIRANGE_1MHz:
+        *rateOut = 1000000;
+        break;
+    case WHAL_ST_RCC_MSIRANGE_2MHz:
+        *rateOut = 2000000;
+        break;
+    case WHAL_ST_RCC_MSIRANGE_4MHz:
+        *rateOut = 4000000;
+        break;
+    case WHAL_ST_RCC_MSIRANGE_8MHz:
+        *rateOut = 8000000;
+        break;
+    case WHAL_ST_RCC_MSIRANGE_16MHz:
+        *rateOut = 16000000;
+        break;
+    case WHAL_ST_RCC_MSIRANGE_24MHz:
+        *rateOut = 24000000;
+        break;
+    case WHAL_ST_RCC_MSIRANGE_32MHz:
+        *rateOut = 32000000;
+        break;
+    case WHAL_ST_RCC_MSIRANGE_48MHz:
+        *rateOut = 48000000;
+        break;
+    }
+
+    return WHAL_SUCCESS;
+}
+const whal_ClockDriver whal_StRccPll_Driver = {
+    .Init = whal_StRccPll_Init,
+    .Deinit = whal_StRccPll_Deinit,
     .Enable = whal_StRcc_Enable,
     .Disable = whal_StRcc_Disable,
-    .GetRate = whal_StRcc_GetRate,
+    .GetRate = whal_StRccPll_GetRate,
+};
+
+const whal_ClockDriver whal_StRccMsi_Driver = {
+    .Init = whal_StRccMsi_Init,
+    .Deinit = whal_StRccMsi_Deinit,
+    .Enable = whal_StRcc_Enable,
+    .Disable = whal_StRcc_Disable,
+    .GetRate = whal_StRccMsi_GetRate,
 };

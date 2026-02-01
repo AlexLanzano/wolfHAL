@@ -5,14 +5,14 @@ whal_Clock rcc;
 whal_Flash flash;
 
 whal_Clock rcc = {
-    WHAL_STM32WB55_RCC_DEVICE,
+    WHAL_STM32WB55_RCC_PLL_DEVICE,
 
     .cfg = &(whal_StRcc_Cfg) {
         .flash = &flash,
         .flashLatency = WHAL_ST_FLASH_LATENCY_3,
 
         .sysClkSrc = WHAL_ST_RCC_SYSCLK_SRC_PLL,
-        .sysClkCfg.pll =
+        .sysClkCfg = &(whal_StRcc_PllClkCfg)
         {
             .clkSrc = WHAL_ST_RCC_PLLCLK_SRC_MSI,
             /* 64 MHz */

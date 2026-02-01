@@ -18,7 +18,7 @@
         .base = 0x40008000,             \
         .size = 0x400,                  \
     },                                  \
-    .driver = &whal_StUart_Driver
+    .driver = &whal_StLpuart_Driver
 
 #define WHAL_STM32WB55_SPI1_DEVICE      \
     .regmap = {                         \
@@ -41,13 +41,19 @@
     },                                  \
     .driver = &whal_StGpio_Driver
 
-#define WHAL_STM32WB55_RCC_DEVICE       \
+#define WHAL_STM32WB55_RCC_PLL_DEVICE   \
     .regmap = {                         \
         .base = 0x58000000,             \
         .size = 0x400,                  \
     },                                  \
-    .driver = &whal_StRcc_Driver
+    .driver = &whal_StRccPll_Driver
 
+#define WHAL_STM32WB55_RCC_MSI_DEVICE   \
+    .regmap = {                         \
+        .base = 0x58000000,             \
+        .size = 0x400,                  \
+    },                                  \
+    .driver = &whal_StRccPll_Driver
 
 #define WHAL_STM32WB55_FLASH_DEVICE     \
     .regmap = {                         \

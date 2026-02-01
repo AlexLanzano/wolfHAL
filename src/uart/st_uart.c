@@ -45,12 +45,41 @@ whal_Error whal_StUart_Init(whal_Uart *uartDev)
         return err;
     }
 
-    if (cfg->lpuart) {
-        brr = (clockFreq / cfg->baud) * 256;
+    brr = (clockFreq / cfg->baud);
+    
+    whal_Reg_Update(reg->base, STUART_BRR_REG,
+                    STUART_BRR_BRR_MASK,
+                    whal_SetBits(STUART_BRR_BRR_MASK, brr));
+    whal_Reg_Update(reg->base, STUART_CR1_REG,
+                    STUART_CR1_UE | STUART_CR1_RE | STUART_CR1_TE,
+                    whal_SetBits(STUART_CR1_UE, 1) |
+                    whal_SetBits(STUART_CR1_RE, 1) |
+                    whal_SetBits(STUART_CR1_TE, 1));
+    
+    return WHAL_SUCCESS;
+}
+
+whal_Error whal_StLpuart_Init(whal_Uart *uartDev)
+{
+    whal_Error err;
+    whal_StUart_Cfg *cfg;
+    const whal_Regmap *reg = &uartDev->regmap;
+    size_t clockFreq;
+    uint32_t brr;
+
+    cfg = (whal_StUart_Cfg *)uartDev->cfg;
+
+    err = whal_Clock_Enable(cfg->clkCtrl, cfg->clk);
+    if (err != WHAL_SUCCESS) {
+        return err;
     }
-    else {
-        brr = (clockFreq / cfg->baud);
+
+    err = whal_Clock_GetRate(cfg->clkCtrl, &clockFreq);
+    if (err != WHAL_SUCCESS) {
+        return err;
     }
+
+    brr = (clockFreq / cfg->baud) * 256;
     
     whal_Reg_Update(reg->base, STUART_BRR_REG,
                     STUART_BRR_BRR_MASK,
@@ -129,6 +158,13 @@ whal_Error whal_StUart_Recv(whal_Uart *uartDev, uint8_t *data, size_t dataSz)
 
 whal_UartDriver whal_StUart_Driver = {
     .Init = whal_StUart_Init,
+    .Deinit = whal_StUart_Deinit,
+    .Send = whal_StUart_Send,
+    .Recv = whal_StUart_Recv,
+};
+
+whal_UartDriver whal_StLpuart_Driver = {
+    .Init = whal_StLpuart_Init,
     .Deinit = whal_StUart_Deinit,
     .Send = whal_StUart_Send,
     .Recv = whal_StUart_Recv,

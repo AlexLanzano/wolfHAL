@@ -61,7 +61,7 @@ typedef struct whal_StRcc_PllClkCfg {
  * @brief MSI clock configuration parameters.
  */
 typedef struct whal_StRcc_MsiClkCfg {
-    size_t freq;
+    whal_StRcc_MsiRange freq;
 } whal_StRcc_MsiClkCfg;
 
 /*
@@ -80,17 +80,14 @@ typedef struct whal_StRcc_Cfg {
     whal_StFlash_Latency flashLatency;
 
     whal_StRcc_SysClockSrc sysClkSrc;
-
-    union {
-        whal_StRcc_PllClkCfg pll;
-        whal_StRcc_MsiClkCfg msi;
-    } sysClkCfg;
+    void *sysClkCfg;
 } whal_StRcc_Cfg;
 
 /*
  * @brief Driver instance for the STM32 RCC clock controller.
  */
-extern const whal_ClockDriver whal_StRcc_Driver;
+extern const whal_ClockDriver whal_StRccPll_Driver;
+extern const whal_ClockDriver whal_StRccMsi_Driver;
 
 /*
  * @brief Initialize the RCC peripheral.
@@ -100,7 +97,7 @@ extern const whal_ClockDriver whal_StRcc_Driver;
  * @retval WHAL_SUCCESS Initialization completed.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_StRcc_Init(whal_Clock *clkDev);
+whal_Error whal_StRccPll_Init(whal_Clock *clkDev);
 /*
  * @brief Deinitialize the RCC peripheral.
  *
@@ -109,7 +106,25 @@ whal_Error whal_StRcc_Init(whal_Clock *clkDev);
  * @retval WHAL_SUCCESS Deinit completed.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_StRcc_Deinit(whal_Clock *clkDev);
+whal_Error whal_StRccPll_Deinit(whal_Clock *clkDev);
+/*
+ * @brief Initialize the RCC peripheral.
+ *
+ * @param clkDev Clock device instance.
+ *
+ * @retval WHAL_SUCCESS Initialization completed.
+ * @retval WHAL_EINVAL  Invalid arguments.
+ */
+whal_Error whal_StRccMsi_Init(whal_Clock *clkDev);
+/*
+ * @brief Deinitialize the RCC peripheral.
+ *
+ * @param clkDev Clock device instance.
+ *
+ * @retval WHAL_SUCCESS Deinit completed.
+ * @retval WHAL_EINVAL  Invalid arguments.
+ */
+whal_Error whal_StRccMsi_Deinit(whal_Clock *clkDev);
 /*
  * @brief Enable a peripheral clock gate.
  *
@@ -139,6 +154,16 @@ whal_Error whal_StRcc_Disable(whal_Clock *clkDev, const void *clk);
  * @retval WHAL_SUCCESS Rate computed.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_StRcc_GetRate(whal_Clock *clkDev, size_t *rateOut);
+whal_Error whal_StRccPll_GetRate(whal_Clock *clkDev, size_t *rateOut);
+/*
+ * @brief Compute the current system clock rate.
+ *
+ * @param clkDev  Clock device instance.
+ * @param rateOut Output for the computed rate in Hz.
+ *
+ * @retval WHAL_SUCCESS Rate computed.
+ * @retval WHAL_EINVAL  Invalid arguments.
+ */
+whal_Error whal_StRccMsi_GetRate(whal_Clock *clkDev, size_t *rateOut);
 
 #endif /* WHAL_ST_RCC_H */

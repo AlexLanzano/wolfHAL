@@ -17,7 +17,6 @@
 typedef struct whal_StUart_Cfg {
     whal_Clock *clkCtrl;
     void *clk;
-    uint8_t lpuart;
     uint32_t baud;
 } whal_StUart_Cfg;
 
@@ -25,6 +24,7 @@ typedef struct whal_StUart_Cfg {
  * @brief Driver instance for STM32 UART peripheral.
  */
 extern whal_UartDriver whal_StUart_Driver;
+extern whal_UartDriver whal_StLpuart_Driver;
 
 /*
  * @brief Initialize the STM32 UART peripheral.
@@ -35,6 +35,15 @@ extern whal_UartDriver whal_StUart_Driver;
  * @retval WHAL_EINVAL  Invalid arguments.
  */
 whal_Error whal_StUart_Init(whal_Uart *uartDev);
+/*
+ * @brief Initialize the STM32 UART peripheral.
+ *
+ * @param uartDev UART device instance to initialize.
+ *
+ * @retval WHAL_SUCCESS Initialization completed.
+ * @retval WHAL_EINVAL  Invalid arguments.
+ */
+whal_Error whal_StLpuart_Init(whal_Uart *uartDev);
 /*
  * @brief Deinitialize the STM32 UART peripheral.
  *
