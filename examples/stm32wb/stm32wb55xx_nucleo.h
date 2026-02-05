@@ -16,19 +16,19 @@ enum {
 };
 
 /* RCC clock controller instance. */
-extern whal_Clock rcc;
+extern whal_Clock g_whalClock;
 
 /* GPIO controller instance. */
-extern whal_Gpio gpio;
+extern whal_Gpio g_whalGpio;
 
 /* SysTick timer instance. */
-extern whal_Timer sysTickTimer;
+extern whal_Timer g_whalTimer;
 
 /* LPUART1 UART instance. */
-extern whal_Uart lpuart1;
+extern whal_Uart g_whalUart;
 
 /* Flash controller instance. */
-extern whal_Flash flash;
+extern whal_Flash g_whalFlash;
 
 
 #endif /* STM32WB55XX_NUCLEO_H */
