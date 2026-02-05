@@ -8,23 +8,25 @@
 
 /*
  * @file stm32wb_spi.h
- * @brief STM32 SPI driver configuration.
+ * @brief STM32WB SPI driver configuration.
+ *
+ * NOTE: This driver is currently a stub. Implementation pending.
  */
 
 /*
- * @brief STM32 SPI configuration parameters.
+ * @brief SPI device configuration.
  */
 typedef struct whal_Stm32wbSpi_Cfg {
-    whal_Clock *sysClk;
+    whal_Clock *sysClk; /* System clock for baud rate calculation */
 } whal_Stm32wbSpi_Cfg;
 
 /*
- * @brief STM32 SPI communication configuration per transaction.
+ * @brief Per-transaction SPI communication parameters.
  */
 typedef struct whal_Stm32wbSpi_ComCfg {
-    uint32_t mode;
-    uint32_t baud;
-    uint32_t chipSelect;
+    uint32_t mode;       /* SPI mode (CPOL/CPHA) */
+    uint32_t baud;       /* Baud rate in Hz */
+    uint32_t chipSelect; /* Chip select configuration */
 } whal_Stm32wbSpi_ComCfg;
 
 /*

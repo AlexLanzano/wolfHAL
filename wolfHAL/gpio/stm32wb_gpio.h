@@ -9,11 +9,23 @@
 
 /*
  * @file stm32wb_gpio.h
- * @brief STM32 GPIO driver configuration types.
+ * @brief STM32WB GPIO driver configuration types.
+ *
+ * The STM32WB GPIO peripheral provides:
+ * - Up to 8 GPIO ports (A-H), each with up to 16 pins
+ * - Configurable pin modes: input, output, alternate function, analog
+ * - Output types: push-pull or open-drain
+ * - Configurable output speed for EMI/power tradeoff
+ * - Internal pull-up and pull-down resistors
+ * - Alternate function mapping for peripheral connections (UART, SPI, etc.)
+ *
+ * Each port occupies 0x400 bytes in the memory map starting from GPIOA base.
  */
 
 /*
- * @brief STM32 GPIO port identifiers.
+ * @brief GPIO port identifiers.
+ *
+ * Port index is used to calculate register offset: base + (port * 0x400)
  */
 typedef enum {
     WHAL_STM32WB_GPIO_PORT_A,
@@ -27,25 +39,30 @@ typedef enum {
 } whal_Stm32wbGpio_Port;
 
 /*
- * @brief GPIO direction and function modes.
+ * @brief GPIO pin mode selection.
+ *
+ * Determines the basic function of the pin.
  */
 typedef enum {
-    WHAL_STM32WB_GPIO_MODE_IN,
-    WHAL_STM32WB_GPIO_MODE_OUT,
-    WHAL_STM32WB_GPIO_MODE_ALTFN,
-    WHAL_STM32WB_GPIO_MODE_ANALOG,
+    WHAL_STM32WB_GPIO_MODE_IN,     /* Digital input */
+    WHAL_STM32WB_GPIO_MODE_OUT,    /* Digital output */
+    WHAL_STM32WB_GPIO_MODE_ALTFN,  /* Alternate function (peripheral control) */
+    WHAL_STM32WB_GPIO_MODE_ANALOG, /* Analog mode (ADC/DAC) */
 } whal_Stm32wbGpio_Mode;
 
 /*
  * @brief Output driver type.
  */
 typedef enum {
-    WHAL_STM32WB_GPIO_OUTTYPE_PUSHPULL,
-    WHAL_STM32WB_GPIO_OUTTYPE_OPENDRAIN,
+    WHAL_STM32WB_GPIO_OUTTYPE_PUSHPULL,  /* Push-pull output */
+    WHAL_STM32WB_GPIO_OUTTYPE_OPENDRAIN, /* Open-drain output */
 } whal_Stm32wbGpio_OutType;
 
 /*
  * @brief Output speed settings.
+ *
+ * Higher speeds allow faster edge transitions but increase EMI and power.
+ * Use the lowest speed that meets timing requirements.
  */
 typedef enum {
     WHAL_STM32WB_GPIO_SPEED_LOW,
@@ -55,33 +72,42 @@ typedef enum {
 } whal_Stm32wbGpio_Speed;
 
 /*
- * @brief Pull resistor configuration.
+ * @brief Internal pull resistor configuration.
  */
 typedef enum {
-    WHAL_STM32WB_GPIO_PULL_NONE,
-    WHAL_STM32WB_GPIO_PULL_UP,
-    WHAL_STM32WB_GPIO_PULL_DOWN,
+    WHAL_STM32WB_GPIO_PULL_NONE, /* No pull resistor (floating) */
+    WHAL_STM32WB_GPIO_PULL_UP,   /* Internal pull-up */
+    WHAL_STM32WB_GPIO_PULL_DOWN, /* Internal pull-down */
 } whal_Stm32wbGpio_Pull;
 
 /*
- * @brief Per-pin STM32 GPIO configuration.
+ * @brief Per-pin GPIO configuration.
+ *
+ * For alternate function mode, consult the datasheet's "Alternate function
+ * mapping" table to find the correct altFn value for your peripheral.
+ * For example, USART1_TX on PA9 uses AF7.
  */
 typedef struct {
-    whal_Stm32wbGpio_Port port;
-    uint8_t pin;
-    whal_Stm32wbGpio_Mode mode;
-    whal_Stm32wbGpio_OutType outType;
-    whal_Stm32wbGpio_Speed speed;
-    whal_Stm32wbGpio_Pull pull;
-    uint8_t altFn;
+    whal_Stm32wbGpio_Port port;      /* GPIO port (A-H) */
+    uint8_t pin;                      /* Pin number (0-15) */
+    whal_Stm32wbGpio_Mode mode;      /* Pin mode */
+    whal_Stm32wbGpio_OutType outType; /* Output type (push-pull/open-drain) */
+    whal_Stm32wbGpio_Speed speed;    /* Output speed */
+    whal_Stm32wbGpio_Pull pull;      /* Pull resistor config */
+    uint8_t altFn;                    /* Alternate function (0-15, AF0-AF15) */
 } whal_Stm32wbGpio_PinCfg;
 
+/*
+ * @brief GPIO device configuration.
+ *
+ * Contains clock control references and an array of pin configurations.
+ */
 typedef struct {
-    whal_Clock *clkCtrl;
-    void *clk;
+    whal_Clock *clkCtrl; /* Clock controller for enabling GPIO clock */
+    void *clk;           /* Clock descriptor (whal_Stm32wbRcc_Clk) */
 
-    whal_Stm32wbGpio_PinCfg *pinCfg;
-    size_t pinCount;
+    whal_Stm32wbGpio_PinCfg *pinCfg; /* Array of pin configurations */
+    size_t pinCount;                  /* Number of pins to configure */
 } whal_Stm32wbGpio_Cfg;
 
 /*
