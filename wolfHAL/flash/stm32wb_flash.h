@@ -6,27 +6,47 @@
 
 /*
  * @file stm32wb_flash.h
- * @brief STM32-specific flash driver configuration and helpers.
+ * @brief STM32WB flash driver configuration and helpers.
+ *
+ * The STM32WB embedded flash provides:
+ * - Up to 1 MB of flash memory organized in 4 KB pages
+ * - Double-word (64-bit) programming
+ * - Page erase and mass erase operations
+ * - Read-while-write capability on different banks
+ * - Configurable wait states based on CPU frequency
+ *
+ * Flash must be unlocked before write/erase operations and locked
+ * afterward for protection. Wait states must be configured appropriately
+ * for the system clock frequency.
  */
 
 /*
- * @brief STM32 flash configuration placeholder. Extend as options are needed.
+ * @brief Flash device configuration.
  */
 typedef struct whal_Stm32wbFlash_Cfg {
-    whal_Clock *clkCtrl;
-    const void *clk;
-    size_t startAddr;
-    size_t size;
+    whal_Clock *clkCtrl;  /* Clock controller for flash interface clock */
+    const void *clk;      /* Clock descriptor */
+    size_t startAddr;     /* Flash base address (typically 0x08000000) */
+    size_t size;          /* Flash size in bytes */
 } whal_Stm32wbFlash_Cfg;
 
 /*
- * @brief Latency wait-state settings for STM32 flash.
+ * @brief Flash access latency (wait states).
+ *
+ * The number of wait states must be configured based on the CPU frequency
+ * and supply voltage. Insufficient wait states will cause flash read errors.
+ *
+ * Typical settings at VOS1 (1.2V):
+ *   - 0 WS: up to 18 MHz
+ *   - 1 WS: up to 36 MHz
+ *   - 2 WS: up to 54 MHz
+ *   - 3 WS: up to 64 MHz
  */
 typedef enum whal_Stm32wbFlash_Latency {
-    WHAL_STM32WB_FLASH_LATENCY_0,
-    WHAL_STM32WB_FLASH_LATENCY_1,
-    WHAL_STM32WB_FLASH_LATENCY_2,
-    WHAL_STM32WB_FLASH_LATENCY_3,
+    WHAL_STM32WB_FLASH_LATENCY_0, /* 0 wait states */
+    WHAL_STM32WB_FLASH_LATENCY_1, /* 1 wait state */
+    WHAL_STM32WB_FLASH_LATENCY_2, /* 2 wait states */
+    WHAL_STM32WB_FLASH_LATENCY_3, /* 3 wait states */
 } whal_Stm32wbFlash_Latency;
 
 /*

@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  sim-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build and run sim tests
+        working-directory: tests/sim
+        run: make run
+
+  cross-compile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install ARM toolchain
+        run: sudo apt-get update && sudo apt-get install -y gcc-arm-none-eabi
+
+      - name: Build STM32WB example
+        working-directory: examples/stm32wb
+        run: make
+
+      - name: Build STM32WB hardware tests
+        working-directory: tests/stm32wb
+        run: make
+
+      - name: Build PIC32CZ example
+        working-directory: examples/pic32cz
+        run: make

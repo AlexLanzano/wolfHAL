@@ -3,6 +3,12 @@
 #include <wolfHAL/spi/spi.h>
 #include <wolfHAL/error.h>
 
+/*
+ * STM32WB SPI Driver - Stub Implementation
+ *
+ * TODO: Implement SPI register configuration and data transfer.
+ */
+
 whal_Error whal_Stm32wbSpi_Init(whal_Spi *spiDev)
 {
     (void)spiDev;

@@ -1,14 +1,14 @@
 #include <wolfHAL/platform/st/stm32wb55xx.h>
 #include "stm32wb55xx_nucleo.h"
 
-whal_Clock rcc;
-whal_Flash flash;
+whal_Clock g_whalClock;
+whal_Flash g_whalFlash;
 
-whal_Clock rcc = {
+whal_Clock g_whalClock = {
     WHAL_STM32WB55_RCC_PLL_DEVICE,
 
     .cfg = &(whal_Stm32wbRcc_Cfg) {
-        .flash = &flash,
+        .flash = &g_whalFlash,
         .flashLatency = WHAL_STM32WB_FLASH_LATENCY_3,
 
         .sysClkSrc = WHAL_STM32WB_RCC_SYSCLK_SRC_PLL,
@@ -25,11 +25,11 @@ whal_Clock rcc = {
     },
 };
 
-whal_Gpio gpio = {
+whal_Gpio g_whalGpio = {
     WHAL_STM32WB55_GPIO_DEVICE,
 
     .cfg = &(whal_Stm32wbGpio_Cfg) {
-        .clkCtrl = &rcc,
+        .clkCtrl = &g_whalClock,
         .clk = &(whal_Stm32wbRcc_Clk) {WHAL_STM32WB55_GPIOB_CLOCK},
 
         .pinCfg = (whal_Stm32wbGpio_PinCfg[3]) {
@@ -65,7 +65,7 @@ whal_Gpio gpio = {
     },
 };
 
-whal_Timer sysTickTimer = {
+whal_Timer g_whalTimer = {
     WHAL_CORTEX_M4_SYSTICK_DEVICE,
 
     .cfg = &(whal_SysTick_Cfg) {
@@ -75,22 +75,22 @@ whal_Timer sysTickTimer = {
     },
 };
 
-whal_Uart lpuart1 = {
+whal_Uart g_whalUart = {
     WHAL_STM32WB55_UART1_DEVICE,
 
     .cfg = &(whal_Stm32wbUart_Cfg) {
-        .clkCtrl = &rcc,
+        .clkCtrl = &g_whalClock,
         .clk = &(whal_Stm32wbRcc_Clk) {WHAL_STM32WB55_UART1_CLOCK},
 
         .baud = 115200,
     },
 };
 
-whal_Flash flash = {
+whal_Flash g_whalFlash = {
     WHAL_STM32WB55_FLASH_DEVICE,
 
     .cfg = &(whal_Stm32wbFlash_Cfg) {
-        .clkCtrl = &rcc,
+        .clkCtrl = &g_whalClock,
         .clk = &(whal_Stm32wbRcc_Clk) {WHAL_STM32WB55_FLASH_CLOCK},
 
         .startAddr = 0x08000000,
