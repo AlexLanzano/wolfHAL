@@ -22,7 +22,7 @@ whal_Error whal_Stm32wbSpi_Deinit(whal_Spi *spiDev)
 }
 
 whal_Error whal_Stm32wbSpi_SendRecv(whal_Spi *spiDev, void *spiComCfg, const uint8_t *tx,
-                                 size_t txLen, uint8_t *rx, size_t rxLen)
+                                    size_t txLen, uint8_t *rx, size_t rxLen)
 {
     (void)spiDev;
     (void)spiComCfg;
@@ -34,7 +34,7 @@ whal_Error whal_Stm32wbSpi_SendRecv(whal_Spi *spiDev, void *spiComCfg, const uin
 }
 
 whal_Error whal_Stm32wbSpi_Send(whal_Spi *spiDev, void *spiComCfg, const uint8_t *data,
-                             size_t dataSz)
+                                size_t dataSz)
 {
     (void)spiDev;
     (void)spiComCfg;
@@ -44,7 +44,7 @@ whal_Error whal_Stm32wbSpi_Send(whal_Spi *spiDev, void *spiComCfg, const uint8_t
 }
 
 whal_Error whal_Stm32wbSpi_Recv(whal_Spi *spiDev, void *spiComCfg, uint8_t *data,
-                             size_t dataSz)
+                                size_t dataSz)
 {
     (void)spiDev;
     (void)spiComCfg;

@@ -18,3 +18,4 @@ void whal_Reg_Get(const size_t base, const size_t offset, const size_t mask, siz
     val = *(volatile size_t *)(base + offset);
     *value = whal_GetBits(mask, val);
 }
+

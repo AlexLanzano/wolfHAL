@@ -26,28 +26,6 @@ void Default_Handler(void)
     }
 }
 
-void Reset_Handler(void)
-{
-    uint32_t* src = &_sidata;
-    uint32_t* dst = &_sdata;
-
-    while (dst < &_edata) {
-        *dst++ = *src++;
-    }
-
-    dst = &_sbss;
-    while (dst < &_ebss) {
-        *dst++ = 0;
-    }
-
-    /* Call main */
-    main();
-
-    /* Never return */
-    while (1) {
-    }
-}
-
 /* Vector table */
 __attribute__((section(".isr_vectors"))) const void* vector_table[] = {
     /* Stack pointer */
@@ -70,3 +48,29 @@ __attribute__((section(".isr_vectors"))) const void* vector_table[] = {
     PendSV_Handler,
     SysTick_Handler,
 };
+
+void Reset_Handler(void)
+{
+    uint32_t* src = &_sidata;
+    uint32_t* dst = &_sdata;
+
+    while (dst < &_edata) {
+        *dst++ = *src++;
+    }
+
+    dst = &_sbss;
+    while (dst < &_ebss) {
+        *dst++ = 0;
+    }
+
+    /* Point VTOR to our vector table (SCB->VTOR = 0xE000ED08) */
+    *(volatile uint32_t *)0xE000ED08 = (uint32_t)vector_table;
+
+    /* Call main */
+    main();
+
+    /* Never return */
+    while (1) {
+    }
+}
+

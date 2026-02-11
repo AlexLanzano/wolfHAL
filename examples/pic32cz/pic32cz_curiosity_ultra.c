@@ -46,8 +46,8 @@ whal_Gpio gpio = {
     .cfg = &(whal_Pic32czGpio_Cfg) {
         .pinCfgCount = 1,
         .pinCfg = &(whal_Pic32czGpio_PinCfg) {
-            .port = 0,
-            .pin = 0,
+            .port = 1,
+            .pin = 21,
             .dir = WHAL_PIC32CZ_DIR_OUTPUT,
             .out = 0,
         },
@@ -59,4 +59,14 @@ whal_Pic32czClock_Clk periphClock = {
     .gclkPeriphSrc = 0,
     .mclkEnableInst = 0,
     .mclkEnableMask = 0,
+};
+
+whal_Timer g_whalTimer = {
+    WHAL_CORTEX_M7_SYSTICK_DEVICE,
+
+    .cfg = &(whal_SysTick_Cfg) {
+        .cyclesPerTick = 300000000 / 1000,
+        .clkSrc = WHAL_SYSTICK_CLKSRC_SYSCLK,
+        .tickInt = WHAL_SYSTICK_TICKINT_ENABLED,
+    },
 };

@@ -4,6 +4,7 @@
 #include <wolfHAL/clock/pic32cz_clock.h>
 #include <wolfHAL/supply/pic32cz_supc.h>
 #include <wolfHAL/gpio/pic32cz_gpio.h>
+#include <wolfHAL/platform/arm/cortex_m7.h>
 
 #define WHAL_PIC32CZ_SUPPLY_DEVICE      \
     .regmap = {                         \
