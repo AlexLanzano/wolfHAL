@@ -1,7 +1,7 @@
 WHAL_DIR = $(PWD)/../../
 INCLUDE = -I$(WHAL_DIR)
 CFLAGS = -Wall -Werror $(INCLUDE) -g3 \
-		 -ffreestanding -nostdlib -mcpu=cortex-m33 \
+		 -ffreestanding -nostdlib -mcpu=cortex-m7 \
          -MMD -MF $(DEPDIR)/$*.d
 LDFLAGS = --omagic -static
 
@@ -12,8 +12,10 @@ SOURCE += $(wildcard $(WHAL_DIR)/src/*.c)
 
 SOURCE += $(wildcard $(WHAL_DIR)/src/*/gpio.c)
 SOURCE += $(wildcard $(WHAL_DIR)/src/*/clock.c)
+SOURCE += $(wildcard $(WHAL_DIR)/src/*/timer.c)
 SOURCE += $(wildcard $(WHAL_DIR)/src/*/supply.c)
 SOURCE += $(wildcard $(WHAL_DIR)/src/*/pic32cz_*.c)
+SOURCE += $(wildcard $(WHAL_DIR)/src/*/systick.c)
 
 OBJECTS = $(patsubst %.c,%.o,$(SOURCE))
 

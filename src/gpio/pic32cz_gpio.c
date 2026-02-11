@@ -27,14 +27,23 @@
  * Each byte contains two 4-bit PMUX fields:
  *   - Lower nibble (bits 3:0): Even pin PMUX
  *   - Upper nibble (bits 7:4): Odd pin PMUX
+ *
+ * The APB bridge only supports 32-bit access, so the offset is word-aligned
+ * and the shift positions the pin's nibble within the 32-bit word.
  */
-#define PIC32CZ_PMUXx_REG(port, pin) ((0x30 + ((pin) / 2)) + (port * 0x80))
+#define PIC32CZ_PMUXx_REG(port, pin) ((0x30 + (((pin) / 8) * 4)) + ((port) * 0x80))
+#define PIC32CZ_PMUXx_MASK(pin) (0xFul << (((pin) % 8) * 4))
 
-/* Pin configuration register - one byte per pin */
-#define PIC32CZ_PINCFGx_REG(port, pin) ((0x40 + (pin)) + (port * 0x80))
-#define PIC32CZ_PINCFGx_PMUXEN WHAL_MASK(0) /* Enable peripheral mux */
-#define PIC32CZ_PINCFGx_INEN WHAL_MASK(1)   /* Enable input buffer */
-#define PIC32CZ_PINCFGx_PULLEN WHAL_MASK(2) /* Enable pull resistor */
+/*
+ * Pin configuration register - one byte per pin.
+ *
+ * Word-aligned for 32-bit access through the APB bridge. The pin argument
+ * positions each field's mask within the 32-bit word.
+ */
+#define PIC32CZ_PINCFGx_REG(port, pin) ((0x40 + ((pin) & ~3)) + ((port) * 0x80))
+#define PIC32CZ_PINCFGx_PMUXEN(pin) (WHAL_MASK(0) << (((pin) & 3) * 8))
+#define PIC32CZ_PINCFGx_INEN(pin)   (WHAL_MASK(1) << (((pin) & 3) * 8))
+#define PIC32CZ_PINCFGx_PULLEN(pin) (WHAL_MASK(2) << (((pin) & 3) * 8))
 
 whal_Error whal_Pic32czGpio_Init(whal_Gpio *gpioDev)
 {
@@ -53,13 +62,9 @@ whal_Error whal_Pic32czGpio_Init(whal_Gpio *gpioDev)
              * Configure pin for peripheral function:
              * 1. Set the PMUX value to select the peripheral function
              * 2. Enable PMUXEN in PINCFG to route pin to peripheral
-             *
-             * PMUX register packs two 4-bit fields per byte:
-             *   - Even pins use bits 3:0
-             *   - Odd pins use bits 7:4
              */
-            uint8_t maskBit = (pinCfg->pin & 1) * 4;
-            size_t pmuxMask = WHAL_MASK_RANGE(maskBit + 3, maskBit);
+            size_t pmuxMask = PIC32CZ_PMUXx_MASK(pinCfg->pin);
+            size_t pmuxenMask = PIC32CZ_PINCFGx_PMUXEN(pinCfg->pin);
 
             whal_Reg_Update(gpioDev->regmap.base,
                             PIC32CZ_PMUXx_REG(pinCfg->port, pinCfg->pin),
@@ -68,8 +73,8 @@ whal_Error whal_Pic32czGpio_Init(whal_Gpio *gpioDev)
 
             whal_Reg_Update(gpioDev->regmap.base,
                             PIC32CZ_PINCFGx_REG(pinCfg->port, pinCfg->pin),
-                            PIC32CZ_PINCFGx_PMUXEN,
-                            whal_SetBits(PIC32CZ_PINCFGx_PMUXEN, 1));
+                            pmuxenMask,
+                            whal_SetBits(pmuxenMask, 1));
 
             continue;
         }
@@ -92,11 +97,16 @@ whal_Error whal_Pic32czGpio_Init(whal_Gpio *gpioDev)
                         whal_SetBits(pinMask, pinCfg->out));
 
         /* Configure input buffer and pull resistor */
-        whal_Reg_Update(gpioDev->regmap.base,
-                        PIC32CZ_PINCFGx_REG(pinCfg->port, pinCfg->pin),
-                        PIC32CZ_PINCFGx_INEN | PIC32CZ_PINCFGx_PULLEN,
-                        whal_SetBits(PIC32CZ_PINCFGx_INEN, pinCfg->inEn) |
-                        whal_SetBits(PIC32CZ_PINCFGx_PULLEN, pinCfg->pullEn));
+        {
+            size_t inenMask = PIC32CZ_PINCFGx_INEN(pinCfg->pin);
+            size_t pullenMask = PIC32CZ_PINCFGx_PULLEN(pinCfg->pin);
+
+            whal_Reg_Update(gpioDev->regmap.base,
+                            PIC32CZ_PINCFGx_REG(pinCfg->port, pinCfg->pin),
+                            inenMask | pullenMask,
+                            whal_SetBits(inenMask, pinCfg->inEn) |
+                            whal_SetBits(pullenMask, pinCfg->pullEn));
+        }
     }
 
     return WHAL_SUCCESS;

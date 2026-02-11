@@ -1,6 +1,38 @@
 #include <wolfHAL/wolfHAL.h>
 #include "pic32cz_curiosity_ultra.h"
 
+volatile size_t g_tick = 0;
+volatile uint8_t g_waiting = 0;
+volatile uint8_t g_tickOverflow = 0;
+
+void SysTick_Handler()
+{
+    size_t tickBefore = g_tick++;
+    if (g_waiting) {
+        if (tickBefore > g_tick)
+            g_tickOverflow = 1;
+    }
+}
+
+void WaitMs(size_t ms)
+{
+    size_t startCount = g_tick;
+    g_waiting = 1;
+    while (1) {
+        size_t currentCount = g_tick;
+        if (g_tickOverflow) {
+            if ((SIZE_MAX - startCount) + currentCount > ms) {
+                break;
+            }
+        } else if (currentCount - startCount > ms) {
+            break;
+        }
+    }
+
+    g_waiting = 0;
+    g_tickOverflow = 0;
+}
+
 void main(void)
 {
     whal_Error err;
@@ -15,7 +47,21 @@ void main(void)
         goto loop;
     }
 
-    whal_Gpio_Set(&gpio, 0, 1);
+    err = whal_Timer_Init(&g_whalTimer);
+    if (err) {
+        goto loop;
+    }
+
+    whal_Timer_Start(&g_whalTimer);
+
+    while (1) {
+        whal_Gpio_Set(&gpio, 0, 1);
+
+        WaitMs(1000);
+        whal_Gpio_Set(&gpio, 0, 0);
+        WaitMs(1000);
+    }
+
 
 loop:
     while (1);
