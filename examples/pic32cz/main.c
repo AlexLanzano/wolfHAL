@@ -36,13 +36,24 @@ void WaitMs(size_t ms)
 void main(void)
 {
     whal_Error err;
+    uint8_t data[] = "Hello world!\r\n";
 
-    err = whal_Clock_Init(&clock);
+    err = whal_Clock_Init(&g_whalClock);
     if (err) {
         goto loop;
     }
 
-    err = whal_Gpio_Init(&gpio);
+    err = whal_Gpio_Init(&g_whalGpio);
+    if (err) {
+        goto loop;
+    }
+
+    err = whal_Uart_Init(&g_whalUart);
+    if (err) {
+        goto loop;
+    }
+
+    err = whal_Uart_Send(&g_whalUart, data, sizeof(data));
     if (err) {
         goto loop;
     }
@@ -55,13 +66,14 @@ void main(void)
     whal_Timer_Start(&g_whalTimer);
 
     while (1) {
-        whal_Gpio_Set(&gpio, 0, 1);
+        whal_Gpio_Set(&g_whalGpio, 0, 1);
 
         WaitMs(1000);
-        whal_Gpio_Set(&gpio, 0, 0);
+
+        whal_Gpio_Set(&g_whalGpio, 0, 0);
+
         WaitMs(1000);
     }
-
 
 loop:
     while (1);

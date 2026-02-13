@@ -12,6 +12,7 @@ SOURCE += $(wildcard $(WHAL_DIR)/src/*.c)
 
 SOURCE += $(wildcard $(WHAL_DIR)/src/*/gpio.c)
 SOURCE += $(wildcard $(WHAL_DIR)/src/*/clock.c)
+SOURCE += $(wildcard $(WHAL_DIR)/src/*/uart.c)
 SOURCE += $(wildcard $(WHAL_DIR)/src/*/timer.c)
 SOURCE += $(wildcard $(WHAL_DIR)/src/*/supply.c)
 SOURCE += $(wildcard $(WHAL_DIR)/src/*/pic32cz_*.c)

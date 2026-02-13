@@ -35,20 +35,21 @@ enum {
  * I/O Multiplexing table for valid assignments.
  */
 enum {
-    WHAL_PIC32CZ_PMUX_A = 0x0,  /* Peripheral function A */
-    WHAL_PIC32CZ_PMUX_B = 0x1,  /* Peripheral function B */
-    WHAL_PIC32CZ_PMUX_C = 0x2,  /* Peripheral function C */
-    WHAL_PIC32CZ_PMUX_D = 0x3,  /* Peripheral function D */
-    WHAL_PIC32CZ_PMUX_E = 0x4,  /* Peripheral function E */
-    WHAL_PIC32CZ_PMUX_F = 0x5,  /* Peripheral function F */
-    WHAL_PIC32CZ_PMUX_G = 0x6,  /* Peripheral function G */
-    WHAL_PIC32CZ_PMUX_H = 0x7,  /* Peripheral function H */
-    WHAL_PIC32CZ_PMUX_I = 0x8,  /* Peripheral function I */
-    WHAL_PIC32CZ_PMUX_J = 0x9,  /* Peripheral function J */
-    WHAL_PIC32CZ_PMUX_K = 0xA,  /* Peripheral function K */
-    WHAL_PIC32CZ_PMUX_L = 0xB,  /* Peripheral function L */
-    WHAL_PIC32CZ_PMUX_M = 0xC,  /* Peripheral function M */
-    WHAL_PIC32CZ_PMUX_N = 0xD,  /* Peripheral function N */
+    WHAL_PIC32CZ_PMUX_EIC = 0x0,  /* External Interrupts */
+    WHAL_PIC32CZ_PMUX_AC = 0x1,  /* ADC and Analog Comparator */
+    WHAL_PIC32CZ_PMUX_SERCOM = 0x2,  /* SERCOMn (UART, I2C, SPI) */
+    WHAL_PIC32CZ_PMUX_SERCOM_ALT = 0x3,  /* SERCOMn (UART, I2C, SPI) */
+    WHAL_PIC32CZ_PMUX_EBI = 0x4,  /* External Bus Interface */
+    WHAL_PIC32CZ_PMUX_TCC = 0x5,  /* Timer/counter controller */
+    WHAL_PIC32CZ_PMUX_TCC_ALT_PDEC = 0x6,  /* Timer/counter controller
+                                              and positional decoder */
+    WHAL_PIC32CZ_PMUX_COM = 0x7,  /* SQI/CAN/USB */
+    WHAL_PIC32CZ_PMUX_SDMMC = 0x8,  /* SD/MMC Host Controller */
+    WHAL_PIC32CZ_PMUX_SPI_IXS = 0x9,  /* SPI_IXS Audio */
+    WHAL_PIC32CZ_PMUX_PCC = 0xA,  /* Parallel Capture Controller */
+    WHAL_PIC32CZ_PMUX_ETH = 0xB,  /* Ethernet */
+    WHAL_PIC32CZ_PMUX_MISC = 0xC,  /* GCLK/CCL/AC Alt */
+    WHAL_PIC32CZ_PMUX_PTC = 0xD,  /* Peripheral Touch Controller */
 };
 
 /*

@@ -4,6 +4,7 @@
 #include <wolfHAL/clock/pic32cz_clock.h>
 #include <wolfHAL/supply/pic32cz_supc.h>
 #include <wolfHAL/gpio/pic32cz_gpio.h>
+#include <wolfHAL/uart/pic32cz_uart.h>
 #include <wolfHAL/platform/arm/cortex_m7.h>
 
 #define WHAL_PIC32CZ_SUPPLY_DEVICE      \
@@ -26,6 +27,13 @@
         .size = 0x2000,                 \
     },                                  \
     .driver = &whal_Pic32czGpio_Driver
+
+#define WHAL_PIC32CZ_SERCOM4_UART_DEVICE        \
+    .regmap = {                         \
+        .base = 0x46004000,             \
+        .size = 0x2000,                 \
+    },                                  \
+    .driver = &whal_Pic32czUart_Driver
 
 #define WHAL_PIC32CZ_SUPPLY_PLL     \
     .enableMask = (1 << 18)
