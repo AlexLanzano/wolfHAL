@@ -11,6 +11,9 @@
  * @brief PIC32CZ SERCOM USART driver configuration.
  */
 
+#define WHAL_PIC32CZ_UART_BAUD(freq_baud, freq_ref) \
+    (65536UL - (65536UL * 16UL * (uint64_t)(freq_baud) / (uint64_t)(freq_ref)))
+
 /*
  * @brief PIC32CZ SERCOM USART TX pad output options.
  */

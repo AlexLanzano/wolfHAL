@@ -97,8 +97,6 @@ whal_Error whal_Pic32czUart_Init(whal_Uart *uartDev)
     whal_Error err;
     whal_Pic32czUart_Cfg *cfg;
     const whal_Regmap *reg;
-    size_t clockFreq;
-    uint16_t baudVal;
 
     if (!uartDev) {
         return WHAL_EINVAL;
@@ -112,27 +110,6 @@ whal_Error whal_Pic32czUart_Init(whal_Uart *uartDev)
     if (err != WHAL_SUCCESS) {
         return err;
     }
-
-    /* Get clock frequency for baud rate calculation */
-    err = whal_Clock_GetRate(cfg->clkCtrl, &clockFreq);
-    if (err != WHAL_SUCCESS) {
-        return err;
-    }
-
-    /* Software reset the SERCOM */
-    whal_Reg_Update(reg->base, SERCOM_USART_CTRLA_REG,
-                    SERCOM_USART_CTRLA_SWRST,
-                    whal_SetBits(SERCOM_USART_CTRLA_SWRST, 1));
-
-    /* Wait for reset to complete */
-    whal_Pic32czUart_WaitSync(reg, SERCOM_USART_SYNCBUSY_SWRST);
-
-    /*
-     * Calculate baud value for 16x oversampling arithmetic mode:
-     * BAUD = 65536 * (1 - 16 * (f_baud / f_ref))
-     *      = 65536 - (65536 * 16 * f_baud) / f_ref
-     */
-    baudVal = (uint16_t)(65536UL - ((65536UL * 16UL * cfg->baud) / clockFreq));
 
     /* Configure CTRLA: internal clock, async mode, LSB first, 16x sampling */
     whal_Reg_Update(reg->base, SERCOM_USART_CTRLA_REG,
@@ -166,7 +143,7 @@ whal_Error whal_Pic32czUart_Init(whal_Uart *uartDev)
     /* Set baud rate */
     whal_Reg_Update(reg->base, SERCOM_USART_BAUD_REG,
                     0xFFFF,
-                    baudVal);
+                    cfg->baud);
 
     /* Enable transmitter and receiver */
     whal_Reg_Update(reg->base, SERCOM_USART_CTRLB_REG,
