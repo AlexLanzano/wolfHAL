@@ -96,3 +96,7 @@ whal_Timer g_whalTimer = {
         .tickInt = WHAL_SYSTICK_TICKINT_ENABLED,
     },
 };
+
+whal_Flash g_whalFlash = {
+    WHAL_PIC32CZ_FLASH_DEVICE,
+};

@@ -5,7 +5,15 @@
 #include <wolfHAL/supply/pic32cz_supc.h>
 #include <wolfHAL/gpio/pic32cz_gpio.h>
 #include <wolfHAL/uart/pic32cz_uart.h>
+#include <wolfHAL/flash/pic32cz_flash.h>
 #include <wolfHAL/platform/arm/cortex_m7.h>
+
+#define WHAL_PIC32CZ_FLASH_DEVICE       \
+    .regmap = {                         \
+        .base = 0x44002000,             \
+        .size = 0x4000,                 \
+    },                                  \
+    .driver = &whal_Pic32czFlash_Driver
 
 #define WHAL_PIC32CZ_SUPPLY_DEVICE      \
     .regmap = {                         \
@@ -28,11 +36,11 @@
     },                                  \
     .driver = &whal_Pic32czGpio_Driver
 
-#define WHAL_PIC32CZ_SERCOM4_UART_DEVICE        \
-    .regmap = {                         \
-        .base = 0x46004000,             \
-        .size = 0x2000,                 \
-    },                                  \
+#define WHAL_PIC32CZ_SERCOM4_UART_DEVICE    \
+    .regmap = {                             \
+        .base = 0x46004000,                 \
+        .size = 0x2000,                     \
+    },                                      \
     .driver = &whal_Pic32czUart_Driver
 
 #define WHAL_PIC32CZ_SUPPLY_PLL     \
