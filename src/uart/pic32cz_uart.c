@@ -275,7 +275,7 @@ whal_Error whal_Pic32czUart_Recv(whal_Uart *uartDev, uint8_t *data, size_t dataS
     return WHAL_SUCCESS;
 }
 
-whal_UartDriver whal_Pic32czUart_Driver = {
+const whal_UartDriver whal_Pic32czUart_Driver = {
     .Init = whal_Pic32czUart_Init,
     .Deinit = whal_Pic32czUart_Deinit,
     .Send = whal_Pic32czUart_Send,

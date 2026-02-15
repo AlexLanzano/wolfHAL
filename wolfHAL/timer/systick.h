@@ -37,7 +37,7 @@ typedef struct {
 /*
  * @brief Driver instance for the Cortex-M SysTick timer.
  */
-extern whal_TimerDriver whal_SysTick_Driver;
+extern const whal_TimerDriver whal_SysTick_Driver;
 
 /*
  * @brief Initialize the SysTick timer with the configured clock and reload values.

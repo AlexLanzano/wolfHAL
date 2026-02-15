@@ -35,3 +35,7 @@ jobs:
       - name: Build PIC32CZ example
         working-directory: examples/pic32cz
         run: make
+
+      - name: Build PIC32CZ hardware tests
+        working-directory: tests/pic32cz
+        run: make

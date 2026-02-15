@@ -47,7 +47,7 @@ typedef struct whal_Pic32czUart_Cfg {
 /*
  * @brief Driver instance for PIC32CZ UART.
  */
-extern whal_UartDriver whal_Pic32czUart_Driver;
+extern const whal_UartDriver whal_Pic32czUart_Driver;
 
 /*
  * @brief Initialize the PIC32CZ UART peripheral.

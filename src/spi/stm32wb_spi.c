@@ -53,7 +53,7 @@ whal_Error whal_Stm32wbSpi_Recv(whal_Spi *spiDev, void *spiComCfg, uint8_t *data
     return WHAL_SUCCESS;
 }
 
-whal_SpiDriver whal_Stm32wbSpi_Driver = {
+const whal_SpiDriver whal_Stm32wbSpi_Driver = {
     .Init = whal_Stm32wbSpi_Init,
     .Deinit = whal_Stm32wbSpi_Deinit,
     .SendRecv = whal_Stm32wbSpi_SendRecv,

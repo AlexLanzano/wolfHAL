@@ -37,6 +37,8 @@ void main(void)
 {
     whal_Error err;
     uint8_t data[] = "Hello world!\r\n";
+    uint8_t test[] = "test1\r\n";
+    uint8_t tmp[sizeof(test)] = {0};
 
     err = whal_Clock_Init(&g_whalClock);
     if (err) {
@@ -54,6 +56,34 @@ void main(void)
     }
 
     err = whal_Uart_Send(&g_whalUart, data, sizeof(data));
+    if (err) {
+        goto loop;
+    }
+
+    err = whal_Flash_Init(&g_whalFlash);
+    if (err) {
+        goto loop;
+    }
+
+    err = whal_Flash_Erase(&g_whalFlash, 0x0C000000, 0x1000);
+    if (err) {
+        goto loop;
+    }
+
+    do {
+        err = whal_Flash_Write(&g_whalFlash, 0x0C000000, test, sizeof(test));
+    } while (err == WHAL_ENOTREADY);
+
+    if (err) {
+        goto loop;
+    }
+
+    err = whal_Flash_Read(&g_whalFlash, 0x0C000000, tmp, sizeof(tmp));
+    if (err) {
+        goto loop;
+    }
+
+    err = whal_Uart_Send(&g_whalUart, tmp, sizeof(tmp));
     if (err) {
         goto loop;
     }

@@ -232,7 +232,7 @@ whal_Error whal_Stm32wbFlash_Ext_SetLatency(whal_Flash *flashDev, enum whal_Stm3
     return WHAL_SUCCESS;
 }
 
-whal_FlashDriver whal_Stm32wbFlash_Driver = {
+const whal_FlashDriver whal_Stm32wbFlash_Driver = {
     .Init = whal_Stm32wbFlash_Init,
     .Deinit = whal_Stm32wbFlash_Deinit,
     .Lock = whal_Stm32wbFlash_Lock,

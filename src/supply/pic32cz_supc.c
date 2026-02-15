@@ -44,7 +44,7 @@ whal_Error whal_Pic32czSupc_Disable(whal_Supply *supplyCtrl, void *supply)
     return WHAL_SUCCESS;
 }
 
-whal_SupplyDriver whal_Pic32czSupc_Driver = {
+const whal_SupplyDriver whal_Pic32czSupc_Driver = {
     .Init = whal_Pic32czSupc_Init,
     .Deinit = whal_Pic32czSupc_Deinit,
     .Enable = whal_Pic32czSupc_Enable,

@@ -74,7 +74,7 @@ whal_Error SysTick_Reset(whal_Timer *timerDev)
     return WHAL_SUCCESS;
 }
 
-whal_TimerDriver whal_SysTick_Driver = {
+const whal_TimerDriver whal_SysTick_Driver = {
     .Init = SysTick_Init,
     .Deinit = SysTick_Deinit,
     .Start = SysTick_Start,

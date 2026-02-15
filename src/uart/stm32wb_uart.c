@@ -156,14 +156,14 @@ whal_Error whal_Stm32wbUart_Recv(whal_Uart *uartDev, uint8_t *data, size_t dataS
     return WHAL_SUCCESS;
 }
 
-whal_UartDriver whal_Stm32wbUart_Driver = {
+const whal_UartDriver whal_Stm32wbUart_Driver = {
     .Init = whal_Stm32wbUart_Init,
     .Deinit = whal_Stm32wbUart_Deinit,
     .Send = whal_Stm32wbUart_Send,
     .Recv = whal_Stm32wbUart_Recv,
 };
 
-whal_UartDriver whal_Stm32wbLpuart_Driver = {
+const whal_UartDriver whal_Stm32wbLpuart_Driver = {
     .Init = whal_Stm32wbLpuart_Init,
     .Deinit = whal_Stm32wbUart_Deinit,
     .Send = whal_Stm32wbUart_Send,

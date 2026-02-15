@@ -269,7 +269,7 @@ whal_Error whal_Pic32czClock_GetRate(whal_Clock *clkDev, size_t *rateOut)
     return WHAL_SUCCESS;
 }
 
-whal_ClockDriver whal_Pic32czClockPll_Driver = {
+const whal_ClockDriver whal_Pic32czClockPll_Driver = {
     .Init = whal_Pic32czClockPll_Init,
     .Deinit = whal_Pic32czClockPll_Deinit,
     .Enable = whal_Pic32czClock_Enable,

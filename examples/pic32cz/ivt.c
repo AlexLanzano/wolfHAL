@@ -54,6 +54,9 @@ void Reset_Handler(void)
     uint32_t* src = &_sidata;
     uint32_t* dst = &_sdata;
 
+    __asm__("ldr r0, =_estack\n\t"
+            "mov sp, r0");
+
     while (dst < &_edata) {
         *dst++ = *src++;
     }
