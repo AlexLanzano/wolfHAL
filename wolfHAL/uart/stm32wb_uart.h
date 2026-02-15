@@ -23,8 +23,8 @@ typedef struct whal_Stm32wbUart_Cfg {
 /*
  * @brief Driver instance for STM32 UART peripheral.
  */
-extern whal_UartDriver whal_Stm32wbUart_Driver;
-extern whal_UartDriver whal_Stm32wbLpuart_Driver;
+extern const whal_UartDriver whal_Stm32wbUart_Driver;
+extern const whal_UartDriver whal_Stm32wbLpuart_Driver;
 
 /*
  * @brief Initialize the STM32 UART peripheral.

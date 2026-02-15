@@ -32,7 +32,7 @@ typedef struct whal_Stm32wbSpi_ComCfg {
 /*
  * @brief Driver instance for STM32 SPI peripheral.
  */
-extern whal_SpiDriver whal_Stm32wbSpi_Driver;
+extern const whal_SpiDriver whal_Stm32wbSpi_Driver;
 
 /*
  * @brief Initialize the STM32 SPI peripheral.

@@ -52,7 +52,7 @@ typedef enum whal_Stm32wbFlash_Latency {
 /*
  * @brief Driver instance for STM32 flash.
  */
-extern whal_FlashDriver whal_Stm32wbFlash_Driver;
+extern const whal_FlashDriver whal_Stm32wbFlash_Driver;
 
 /*
  * @brief Initialize the STM32 flash interface.

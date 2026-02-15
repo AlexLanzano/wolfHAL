@@ -22,7 +22,7 @@ typedef struct whal_Pic32czSupc_Supply {
 /*
  * @brief Driver instance for PIC32CZ SUPC peripheral.
  */
-extern whal_SupplyDriver whal_Pic32czSupc_Driver;
+extern const whal_SupplyDriver whal_Pic32czSupc_Driver;
 
 /*
  * @brief Initialize the PIC32CZ SUPC peripheral.

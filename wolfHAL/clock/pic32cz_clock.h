@@ -195,7 +195,7 @@ typedef struct whal_Pic32czClock_Clk {
 /*
  * @brief Driver instance for PIC32CZ oscillator clock.
  */
-extern whal_ClockDriver whal_Pic32czClockPll_Driver;
+extern const whal_ClockDriver whal_Pic32czClockPll_Driver;
 
 /*
  * @brief Initialize the PIC32CZ oscillator clock.
