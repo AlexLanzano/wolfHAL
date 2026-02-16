@@ -16,6 +16,8 @@ enum {
     /* Invalid argument or unsupported operation. */
     WHAL_EINVAL = -4000,
     WHAL_ENOTREADY = -4001,
+    /* Hardware device error. */
+    WHAL_EHARDWARE = -4002,
 };
 
 #endif /* WHAL_ERROR_H */

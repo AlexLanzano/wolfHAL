@@ -18,6 +18,7 @@
 /* Clock Control Register - oscillator enables and status */
 #define ST_RCC_CR_REG 0x000
 #define ST_RCC_CR_MSIRANGE WHAL_MASK_RANGE(7, 4) /* MSI frequency range */
+#define ST_RCC_CR_HSION_MASK WHAL_MASK(8)        /* HSI enable */
 #define ST_RCC_CR_PLLON_MASK WHAL_MASK(24)       /* PLL enable */
 
 /* Clock Configuration Register - clock source and prescaler selection */
@@ -72,6 +73,11 @@
 #define ST_RCC_APB1ENR2_REG 0x05C
 #define ST_RCC_APB1ENR2_LPUART1EN WHAL_MASK(0) /* LPUART1 clock enable */
 #define ST_RCC_APB1ENR2_LPTIM2EN  WHAL_MASK(5) /* LPTIM2 clock enable */
+
+/* Clock Recovery RC Register - HSI48 oscillator control */
+#define ST_RCC_CRRCR_REG 0x098
+#define ST_RCC_CRRCR_HSI48ON_MASK  WHAL_MASK(0) /* HSI48 oscillator enable */
+#define ST_RCC_CRRCR_HSI48RDY_MASK WHAL_MASK(1) /* HSI48 oscillator ready */
 
 whal_Error whal_Stm32wbRccPll_Init(whal_Clock *clkDev)
 {
@@ -303,6 +309,27 @@ whal_Error whal_Stm32wbRccMsi_GetRate(whal_Clock *clkDev, size_t *rateOut)
 
     return WHAL_SUCCESS;
 }
+
+whal_Error whal_Stm32wbRcc_Ext_EnableHsi48(whal_Clock *clkDev, uint8_t enable)
+{
+    if (!clkDev) {
+        return WHAL_EINVAL;
+    }
+
+    whal_Reg_Update(clkDev->regmap.base, ST_RCC_CRRCR_REG, ST_RCC_CRRCR_HSI48ON_MASK,
+                    whal_SetBits(ST_RCC_CRRCR_HSI48ON_MASK, enable));
+
+    if (enable) {
+        size_t rdy;
+        do {
+            whal_Reg_Get(clkDev->regmap.base, ST_RCC_CRRCR_REG,
+                         ST_RCC_CRRCR_HSI48RDY_MASK, &rdy);
+        } while (!rdy);
+    }
+
+    return WHAL_SUCCESS;
+}
+
 const whal_ClockDriver whal_Stm32wbRccPll_Driver = {
     .Init = whal_Stm32wbRccPll_Init,
     .Deinit = whal_Stm32wbRccPll_Deinit,

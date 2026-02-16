@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <wolfHAL/wolfHAL.h>
 #include <wolfHAL/timer/timer.h>
+#include <wolfHAL/rng/rng.h>
 #include "../test.h"
 
 /*
@@ -76,6 +77,16 @@ static const whal_TimerDriver mockTimerDriver = {
     .Start = mockTimerStart,
     .Stop = mockTimerStop,
     .Reset = mockTimerReset,
+};
+
+static whal_Error mockRngInit(whal_Rng *d) { (void)d; return WHAL_SUCCESS; }
+static whal_Error mockRngDeinit(whal_Rng *d) { (void)d; return WHAL_SUCCESS; }
+static whal_Error mockRngGenerate(whal_Rng *d, uint8_t *data, size_t sz) { (void)d; (void)data; (void)sz; return WHAL_SUCCESS; }
+
+static const whal_RngDriver mockRngDriver = {
+    .Init = mockRngInit,
+    .Deinit = mockRngDeinit,
+    .Generate = mockRngGenerate,
 };
 
 /* --- Clock dispatch tests --- */
@@ -222,6 +233,31 @@ static void test_timer_valid_dispatch(void)
     WHAL_ASSERT_EQ(whal_Timer_Reset(&dev), WHAL_SUCCESS);
 }
 
+/* --- RNG dispatch tests --- */
+
+static void test_rng_null_dev(void)
+{
+    uint8_t buf[1];
+    WHAL_ASSERT_EQ(whal_Rng_Init(NULL), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Rng_Deinit(NULL), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Rng_Generate(NULL, buf, 1), WHAL_EINVAL);
+}
+
+static void test_rng_null_driver(void)
+{
+    whal_Rng dev = { .driver = NULL };
+    WHAL_ASSERT_EQ(whal_Rng_Init(&dev), WHAL_EINVAL);
+}
+
+static void test_rng_valid_dispatch(void)
+{
+    whal_Rng dev = { .driver = &mockRngDriver };
+    WHAL_ASSERT_EQ(whal_Rng_Init(&dev), WHAL_SUCCESS);
+    uint8_t buf[4] = {0};
+    WHAL_ASSERT_EQ(whal_Rng_Generate(&dev, buf, sizeof(buf)), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Rng_Deinit(&dev), WHAL_SUCCESS);
+}
+
 void test_dispatch(void)
 {
     WHAL_TEST_SUITE_START("dispatch");
@@ -241,5 +277,8 @@ void test_dispatch(void)
     WHAL_TEST(test_timer_null_dev);
     WHAL_TEST(test_timer_null_driver);
     WHAL_TEST(test_timer_valid_dispatch);
+    WHAL_TEST(test_rng_null_dev);
+    WHAL_TEST(test_rng_null_driver);
+    WHAL_TEST(test_rng_valid_dispatch);
     WHAL_TEST_SUITE_END();
 }

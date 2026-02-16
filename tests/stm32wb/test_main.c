@@ -40,6 +40,7 @@ void test_clock(void);
 void test_gpio(void);
 void test_flash(void);
 void test_timer(void);
+void test_rng(void);
 
 void main(void)
 {
@@ -84,6 +85,7 @@ void main(void)
     test_gpio();
     test_flash();
     test_timer();
+    test_rng();
 
     WHAL_TEST_SUMMARY();
 

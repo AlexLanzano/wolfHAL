@@ -8,6 +8,7 @@
 #include <wolfHAL/uart/stm32wb_uart.h>
 #include <wolfHAL/spi/stm32wb_spi.h>
 #include <wolfHAL/flash/stm32wb_flash.h>
+#include <wolfHAL/rng/stm32wb_rng.h>
 
 /*
  * @file stm32wb55xx.h
@@ -56,6 +57,13 @@
     },                                  \
     .driver = &whal_Stm32wbRccPll_Driver
 
+#define WHAL_STM32WB55_RNG_DEVICE       \
+    .regmap = {                         \
+        .base = 0x58001000,             \
+        .size = 0x400,                  \
+    },                                  \
+    .driver = &whal_Stm32wbRng_Driver
+
 #define WHAL_STM32WB55_FLASH_DEVICE     \
     .regmap = {                         \
         .base = 0x58004000,             \
@@ -75,6 +83,10 @@
 #define WHAL_STM32WB55_GPIOB_CLOCK  \
     .regOffset = 0x4C,              \
     .enableMask = (1 << 1)
+
+#define WHAL_STM32WB55_RNG_CLOCK    \
+    .regOffset = 0x50,              \
+    .enableMask = (1 << 18)
 
 #define WHAL_STM32WB55_FLASH_CLOCK  \
     .regOffset = 0x50,              \

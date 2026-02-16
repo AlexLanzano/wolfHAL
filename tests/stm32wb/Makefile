@@ -10,7 +10,7 @@ LDFLAGS = --omagic -static
 DEPDIR = .deps/
 
 # Test sources
-TEST_SRC = test_main.c test_clock.c test_gpio.c test_flash.c test_timer.c
+TEST_SRC = test_main.c test_clock.c test_gpio.c test_flash.c test_timer.c test_rng.c
 
 # Board config and IVT from the example
 BOARD_SRC = $(EXAMPLE_DIR)/stm32wb55xx_nucleo.c \
