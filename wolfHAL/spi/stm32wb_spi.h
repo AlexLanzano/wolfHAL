@@ -10,23 +10,39 @@
  * @file stm32wb_spi.h
  * @brief STM32WB SPI driver configuration.
  *
- * NOTE: This driver is currently a stub. Implementation pending.
+ * The STM32WB SPI peripheral provides:
+ * - Full-duplex synchronous serial communication
+ * - Master and slave modes (this driver supports master only)
+ * - Configurable clock polarity and phase (SPI modes 0-3)
+ * - Programmable baud rate prescaler (fPCLK/2 to fPCLK/256)
+ * - 4 to 16-bit data frame (this driver uses 8-bit)
+ * - Software slave management (chip select via GPIO)
  */
+
+/*
+ * @brief SPI clock polarity/phase mode selection.
+ */
+typedef enum {
+    WHAL_STM32WB_SPI_MODE_0, /* CPOL=0, CPHA=0 */
+    WHAL_STM32WB_SPI_MODE_1, /* CPOL=0, CPHA=1 */
+    WHAL_STM32WB_SPI_MODE_2, /* CPOL=1, CPHA=0 */
+    WHAL_STM32WB_SPI_MODE_3, /* CPOL=1, CPHA=1 */
+} whal_Stm32wbSpi_Mode;
 
 /*
  * @brief SPI device configuration.
  */
 typedef struct whal_Stm32wbSpi_Cfg {
-    whal_Clock *sysClk; /* System clock for baud rate calculation */
+    whal_Clock *clkCtrl;  /* Clock controller for SPI peripheral clock */
+    const void *clk;      /* Clock descriptor */
 } whal_Stm32wbSpi_Cfg;
 
 /*
  * @brief Per-transaction SPI communication parameters.
  */
 typedef struct whal_Stm32wbSpi_ComCfg {
-    uint32_t mode;       /* SPI mode (CPOL/CPHA) */
+    uint32_t mode;       /* SPI mode (WHAL_STM32WB_SPI_MODE_x) */
     uint32_t baud;       /* Baud rate in Hz */
-    uint32_t chipSelect; /* Chip select configuration */
 } whal_Stm32wbSpi_ComCfg;
 
 /*

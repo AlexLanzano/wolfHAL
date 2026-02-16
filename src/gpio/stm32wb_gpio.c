@@ -109,10 +109,12 @@ whal_Error whal_Stm32wbGpio_Init(whal_Gpio *gpioDev)
     cfg = (whal_Stm32wbGpio_Cfg *)gpioDev->cfg;
     pinCfg = cfg->pinCfg;
 
-    /* Enable GPIO port clock before accessing registers */
-    err = whal_Clock_Enable(cfg->clkCtrl, cfg->clk);
-    if (err) {
-        return err;
+    for (size_t i = 0; i < cfg->clkCount; ++i) {
+        /* Enable GPIO port clock before accessing registers */
+        err = whal_Clock_Enable(cfg->clkCtrl, cfg->clk[i]);
+        if (err) {
+            return err;
+        }
     }
 
     /* Initialize each pin in the configuration array */
@@ -130,12 +132,15 @@ whal_Error whal_Stm32wbGpio_Deinit(whal_Gpio *gpioDev)
 {
     whal_Error err;
     whal_Stm32wbGpio_Cfg *cfg;
+
     cfg = (whal_Stm32wbGpio_Cfg *)gpioDev->cfg;
 
-    /* Disable GPIO port clock */
-    err = whal_Clock_Disable(cfg->clkCtrl, cfg->clk);
-    if (err) {
-        return err;
+    for (size_t i = 0; i < cfg->clkCount; ++i) {
+        /* Disable GPIO port clock */
+        err = whal_Clock_Disable(cfg->clkCtrl, cfg->clk[i]);
+        if (err) {
+            return err;
+        }
     }
 
     return WHAL_SUCCESS;

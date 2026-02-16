@@ -104,7 +104,8 @@ typedef struct {
  */
 typedef struct {
     whal_Clock *clkCtrl; /* Clock controller for enabling GPIO clock */
-    void *clk;           /* Clock descriptor (whal_Stm32wbRcc_Clk) */
+    const void **clk;    /* Array of clock descriptors */
+    size_t clkCount;     /* Number of clock descriptors */
 
     whal_Stm32wbGpio_PinCfg *pinCfg; /* Array of pin configurations */
     size_t pinCount;                  /* Number of pins to configure */
