@@ -13,6 +13,10 @@ enum {
     LED_PIN,
     LPUART1_TX_PIN,
     LPUART1_RX_PIN,
+    SPI1_SCK_PIN,
+    SPI1_MISO_PIN,
+    SPI1_MOSI_PIN,
+    CS_PIN,
 };
 
 /* RCC clock controller instance. */
@@ -30,5 +34,7 @@ extern whal_Uart g_whalUart;
 /* Flash controller instance. */
 extern whal_Flash g_whalFlash;
 
+/* SPI controller instance. */
+extern whal_Spi g_whalSpi;
 
 #endif /* STM32WB55XX_NUCLEO_H */

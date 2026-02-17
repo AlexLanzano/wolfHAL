@@ -6,6 +6,7 @@
 #include <wolfHAL/clock/stm32wb_rcc.h>
 #include <wolfHAL/gpio/stm32wb_gpio.h>
 #include <wolfHAL/uart/stm32wb_uart.h>
+#include <wolfHAL/spi/stm32wb_spi.h>
 #include <wolfHAL/flash/stm32wb_flash.h>
 
 /*
@@ -86,5 +87,9 @@
 #define WHAL_STM32WB55_UART1_CLOCK  \
     .regOffset = 0x60,              \
     .enableMask = (1 << 14)
+
+#define WHAL_STM32WB55_SPI1_CLOCK   \
+    .regOffset = 0x60,              \
+    .enableMask = (1 << 12)
 
 #endif /* WHAL_STM32WB55XX_H */

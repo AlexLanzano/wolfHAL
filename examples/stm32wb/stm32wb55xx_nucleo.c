@@ -30,9 +30,13 @@ whal_Gpio g_whalGpio = {
 
     .cfg = &(whal_Stm32wbGpio_Cfg) {
         .clkCtrl = &g_whalClock,
-        .clk = &(whal_Stm32wbRcc_Clk) {WHAL_STM32WB55_GPIOB_CLOCK},
+        .clk = (const void *[2]) {
+            &(whal_Stm32wbRcc_Clk){WHAL_STM32WB55_GPIOA_CLOCK},
+            &(whal_Stm32wbRcc_Clk){WHAL_STM32WB55_GPIOB_CLOCK},
+        },
+        .clkCount = 2,
 
-        .pinCfg = (whal_Stm32wbGpio_PinCfg[3]) {
+        .pinCfg = (whal_Stm32wbGpio_PinCfg[7]) {
             [LED_PIN] = { /* LED */
                 .port = WHAL_STM32WB_GPIO_PORT_B,
                 .pin = 5,
@@ -60,8 +64,44 @@ whal_Gpio g_whalGpio = {
                 .pull = WHAL_STM32WB_GPIO_PULL_UP,
                 .altFn = 7,
             },
+            [SPI1_SCK_PIN] = { /* SPI1 SCK */
+                .port = WHAL_STM32WB_GPIO_PORT_A,
+                .pin = 5,
+                .mode = WHAL_STM32WB_GPIO_MODE_ALTFN,
+                .outType = WHAL_STM32WB_GPIO_OUTTYPE_PUSHPULL,
+                .speed = WHAL_STM32WB_GPIO_SPEED_FAST,
+                .pull = WHAL_STM32WB_GPIO_PULL_UP,
+                .altFn = 5,
+            },
+            [SPI1_MISO_PIN] = { /* SPI1 MISO */
+                .port = WHAL_STM32WB_GPIO_PORT_A,
+                .pin = 6,
+                .mode = WHAL_STM32WB_GPIO_MODE_ALTFN,
+                .outType = WHAL_STM32WB_GPIO_OUTTYPE_PUSHPULL,
+                .speed = WHAL_STM32WB_GPIO_SPEED_FAST,
+                .pull = WHAL_STM32WB_GPIO_PULL_UP,
+                .altFn = 5,
+            },
+            [SPI1_MOSI_PIN] = { /* SPI1 MOSI */
+                .port = WHAL_STM32WB_GPIO_PORT_A,
+                .pin = 7,
+                .mode = WHAL_STM32WB_GPIO_MODE_ALTFN,
+                .outType = WHAL_STM32WB_GPIO_OUTTYPE_PUSHPULL,
+                .speed = WHAL_STM32WB_GPIO_SPEED_FAST,
+                .pull = WHAL_STM32WB_GPIO_PULL_UP,
+                .altFn = 5,
+            },
+            [CS_PIN] = { /* SPI1 CS */
+                .port = WHAL_STM32WB_GPIO_PORT_A,
+                .pin = 4,
+                .mode = WHAL_STM32WB_GPIO_MODE_OUT,
+                .outType = WHAL_STM32WB_GPIO_OUTTYPE_PUSHPULL,
+                .speed = WHAL_STM32WB_GPIO_SPEED_LOW,
+                .pull = WHAL_STM32WB_GPIO_PULL_UP,
+                .altFn = 0,
+            },
         },
-        .pinCount = 3,
+        .pinCount = 7,
     },
 };
 
@@ -95,5 +135,14 @@ whal_Flash g_whalFlash = {
 
         .startAddr = 0x08000000,
         .size = 0x100000,
+    },
+};
+
+whal_Spi g_whalSpi = {
+    WHAL_STM32WB55_SPI1_DEVICE,
+
+    .cfg = &(whal_Stm32wbSpi_Cfg) {
+        .clkCtrl = &g_whalClock,
+        .clk = &(whal_Stm32wbRcc_Clk) {WHAL_STM32WB55_SPI1_CLOCK},
     },
 };
