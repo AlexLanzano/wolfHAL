@@ -37,4 +37,7 @@ extern whal_Flash g_whalFlash;
 /* SPI controller instance. */
 extern whal_Spi g_whalSpi;
 
+/* RNG instance. */
+extern whal_Rng g_whalRng;
+
 #endif /* STM32WB55XX_NUCLEO_H */

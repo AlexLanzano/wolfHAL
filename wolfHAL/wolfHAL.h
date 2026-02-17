@@ -13,6 +13,7 @@
 #include <wolfHAL/gpio/gpio.h>
 #include <wolfHAL/uart/uart.h>
 #include <wolfHAL/flash/flash.h>
+#include <wolfHAL/rng/rng.h>
 #include <wolfHAL/supply/supply.h>
 
 #endif /* WOLFHAL_H */

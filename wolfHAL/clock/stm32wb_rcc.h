@@ -212,5 +212,15 @@ whal_Error whal_Stm32wbRccPll_GetRate(whal_Clock *clkDev, size_t *rateOut);
  * @retval WHAL_EINVAL  Invalid arguments.
  */
 whal_Error whal_Stm32wbRccMsi_GetRate(whal_Clock *clkDev, size_t *rateOut);
+/*
+ * @brief Enable or disable the HSI48 oscillator required by the RNG peripheral.
+ *
+ * @param clkDev Clock controller instance.
+ * @param enable 1 to enable, 0 to disable.
+ *
+ * @retval WHAL_SUCCESS HSI48 enabled and ready, or disabled.
+ * @retval WHAL_EINVAL  Invalid arguments.
+ */
+whal_Error whal_Stm32wbRcc_Ext_EnableHsi48(whal_Clock *clkDev, uint8_t enable);
 
 #endif /* WHAL_STM32WB_RCC_H */

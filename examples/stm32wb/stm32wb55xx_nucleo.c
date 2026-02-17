@@ -146,3 +146,12 @@ whal_Spi g_whalSpi = {
         .clk = &(whal_Stm32wbRcc_Clk) {WHAL_STM32WB55_SPI1_CLOCK},
     },
 };
+
+whal_Rng g_whalRng = {
+    WHAL_STM32WB55_RNG_DEVICE,
+
+    .cfg = &(whal_Stm32wbRng_Cfg) {
+        .clkCtrl = &g_whalClock,
+        .clk = &(whal_Stm32wbRcc_Clk) {WHAL_STM32WB55_RNG_CLOCK},
+    },
+};
