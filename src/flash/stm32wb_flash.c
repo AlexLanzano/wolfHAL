@@ -15,49 +15,86 @@
 
 /* Access Control Register - configures latency and caches */
 #define FLASH_ACR_REG 0x00
-#define FLASH_ACR_LATENCY WHAL_MASK_RANGE(2, 0) /* Wait states (0-3) */
+#define FLASH_ACR_LATENCY_Pos 0 /* Wait states (0-3) */
+#define FLASH_ACR_LATENCY_Msk (WHAL_BITMASK(3) << FLASH_ACR_LATENCY_Pos)
 
 /* Key Register - unlock sequence for write operations */
 #define FLASH_KEYR_REG 0x08
-#define FLASH_KEYR_KEY WHAL_MASK_RANGE(31, 0)
+#define FLASH_KEYR_KEY_Msk (~0UL)
 
 /* Status Register - operation status and error flags */
 #define FLASH_SR_REG 0x10
-#define FLASH_SR_EOP WHAL_MASK(0)       /* End of operation */
-#define FLASH_SR_OP_ERR WHAL_MASK(1)    /* Operation error */
-#define FLASH_SR_PROG_ERR WHAL_MASK(3)  /* Programming error */
-#define FLASH_SR_WRP_ERR WHAL_MASK(4)   /* Write protection error */
-#define FLASH_SR_PGA_ERR WHAL_MASK(5)   /* Programming alignment error */
-#define FLASH_SR_SIZ_ERR WHAL_MASK(6)   /* Size error */
-#define FLASH_SR_PGS_ERR WHAL_MASK(7)   /* Programming sequence error */
-#define FLASH_SR_MISS_ERR WHAL_MASK(8)  /* Fast programming miss error */
-#define FLASH_SR_FAST_ERR WHAL_MASK(9)  /* Fast programming error */
-#define FLASH_SR_RD_ERR WHAL_MASK(14)   /* Read protection error */
-#define FLASH_SR_OPTV_ERR WHAL_MASK(15) /* Option validity error */
-#define FLASH_SR_BSY WHAL_MASK(16)      /* Busy flag */
-#define FLASH_SR_CFGBSY WHAL_MASK(18)   /* Configuration busy */
-#define FLASH_SR_PESD WHAL_MASK(19)     /* Programming/erase suspended */
+#define FLASH_SR_EOP_Pos 0       /* End of operation */
+#define FLASH_SR_EOP_Msk (1UL << FLASH_SR_EOP_Pos)
+
+#define FLASH_SR_OP_ERR_Pos 1    /* Operation error */
+#define FLASH_SR_OP_ERR_Msk (1UL << FLASH_SR_OP_ERR_Pos)
+
+#define FLASH_SR_PROG_ERR_Pos 3  /* Programming error */
+#define FLASH_SR_PROG_ERR_Msk (1UL << FLASH_SR_PROG_ERR_Pos)
+
+#define FLASH_SR_WRP_ERR_Pos 4   /* Write protection error */
+#define FLASH_SR_WRP_ERR_Msk (1UL << FLASH_SR_WRP_ERR_Pos)
+
+#define FLASH_SR_PGA_ERR_Pos 5   /* Programming alignment error */
+#define FLASH_SR_PGA_ERR_Msk (1UL << FLASH_SR_PGA_ERR_Pos)
+
+#define FLASH_SR_SIZ_ERR_Pos 6   /* Size error */
+#define FLASH_SR_SIZ_ERR_Msk (1UL << FLASH_SR_SIZ_ERR_Pos)
+
+#define FLASH_SR_PGS_ERR_Pos 7   /* Programming sequence error */
+#define FLASH_SR_PGS_ERR_Msk (1UL << FLASH_SR_PGS_ERR_Pos)
+
+#define FLASH_SR_MISS_ERR_Pos 8  /* Fast programming miss error */
+#define FLASH_SR_MISS_ERR_Msk (1UL << FLASH_SR_MISS_ERR_Pos)
+
+#define FLASH_SR_FAST_ERR_Pos 9  /* Fast programming error */
+#define FLASH_SR_FAST_ERR_Msk (1UL << FLASH_SR_FAST_ERR_Pos)
+
+#define FLASH_SR_RD_ERR_Pos 14   /* Read protection error */
+#define FLASH_SR_RD_ERR_Msk (1UL << FLASH_SR_RD_ERR_Pos)
+
+#define FLASH_SR_OPTV_ERR_Pos 15 /* Option validity error */
+#define FLASH_SR_OPTV_ERR_Msk (1UL << FLASH_SR_OPTV_ERR_Pos)
+
+#define FLASH_SR_BSY_Pos 16      /* Busy flag */
+#define FLASH_SR_BSY_Msk (1UL << FLASH_SR_BSY_Pos)
+
+#define FLASH_SR_CFGBSY_Pos 18   /* Configuration busy */
+#define FLASH_SR_CFGBSY_Msk (1UL << FLASH_SR_CFGBSY_Pos)
+
+#define FLASH_SR_PESD_Pos 19     /* Programming/erase suspended */
+#define FLASH_SR_PESD_Msk (1UL << FLASH_SR_PESD_Pos)
 
 /* Combined mask for all error flags */
-#define FLASH_SR_ALL_ERR (FLASH_SR_OP_ERR | FLASH_SR_PROG_ERR | FLASH_SR_WRP_ERR | \
-                             FLASH_SR_PGA_ERR | FLASH_SR_SIZ_ERR | FLASH_SR_PGS_ERR | \
-                             FLASH_SR_MISS_ERR | FLASH_SR_FAST_ERR | FLASH_SR_RD_ERR | \
-                             FLASH_SR_OPTV_ERR)
+#define FLASH_SR_ALL_ERR (FLASH_SR_OP_ERR_Msk | FLASH_SR_PROG_ERR_Msk | FLASH_SR_WRP_ERR_Msk | \
+                             FLASH_SR_PGA_ERR_Msk | FLASH_SR_SIZ_ERR_Msk | FLASH_SR_PGS_ERR_Msk | \
+                             FLASH_SR_MISS_ERR_Msk | FLASH_SR_FAST_ERR_Msk | FLASH_SR_RD_ERR_Msk | \
+                             FLASH_SR_OPTV_ERR_Msk)
 
 /* Control Register - enables operations and selects pages */
 #define FLASH_CR_REG 0x14
-#define FLASH_CR_PG WHAL_MASK(0)            /* Programming enable */
-#define FLASH_CR_PER WHAL_MASK(1)           /* Page erase enable */
-#define FLASH_CR_PNB WHAL_MASK_RANGE(10, 3) /* Page number for erase */
-#define FLASH_CR_STRT WHAL_MASK(16)         /* Start erase operation */
-#define FLASH_CR_LOCK WHAL_MASK(31)         /* Lock flash control */
+#define FLASH_CR_PG_Pos 0            /* Programming enable */
+#define FLASH_CR_PG_Msk (1UL << FLASH_CR_PG_Pos)
+
+#define FLASH_CR_PER_Pos 1           /* Page erase enable */
+#define FLASH_CR_PER_Msk (1UL << FLASH_CR_PER_Pos)
+
+#define FLASH_CR_PNB_Pos 3 /* Page number for erase */
+#define FLASH_CR_PNB_Msk (WHAL_BITMASK(8) << FLASH_CR_PNB_Pos)
+
+#define FLASH_CR_STRT_Pos 16         /* Start erase operation */
+#define FLASH_CR_STRT_Msk (1UL << FLASH_CR_STRT_Pos)
+
+#define FLASH_CR_LOCK_Pos 31         /* Lock flash control */
+#define FLASH_CR_LOCK_Msk (1UL << FLASH_CR_LOCK_Pos)
 
 whal_Error whal_Stm32wbFlash_Init(whal_Flash *flashDev)
 {
     whal_Error err;
     whal_Stm32wbFlash_Cfg *cfg = flashDev->cfg;
 
-    err = whal_Clock_Enable(cfg->clkCtrl, cfg->clk); 
+    err = whal_Clock_Enable(cfg->clkCtrl, cfg->clk);
     if (err) {
         return err;
     }
@@ -70,7 +107,7 @@ whal_Error whal_Stm32wbFlash_Deinit(whal_Flash *flashDev)
     whal_Error err;
     whal_Stm32wbFlash_Cfg *cfg = flashDev->cfg;
 
-    err = whal_Clock_Disable(cfg->clkCtrl, cfg->clk); 
+    err = whal_Clock_Disable(cfg->clkCtrl, cfg->clk);
     if (err) {
         return err;
     }
@@ -86,8 +123,8 @@ whal_Error whal_Stm32wbFlash_Lock(whal_Flash *flashDev, size_t addr, size_t len)
     const whal_Regmap *regmap = &flashDev->regmap;
 
     /* Setting LOCK bit prevents further flash modifications until next unlock */
-    whal_Reg_Update(regmap->base, FLASH_CR_REG, FLASH_CR_LOCK,
-                    whal_SetBits(FLASH_CR_LOCK, 1));
+    whal_Reg_Update(regmap->base, FLASH_CR_REG, FLASH_CR_LOCK_Msk,
+                    whal_SetBits(FLASH_CR_LOCK_Msk, FLASH_CR_LOCK_Pos, 1));
 
     return WHAL_SUCCESS;
 }
@@ -103,8 +140,8 @@ whal_Error whal_Stm32wbFlash_Unlock(whal_Flash *flashDev, size_t addr, size_t le
      * Unlock sequence: write KEY1 then KEY2 to KEYR register.
      * Incorrect sequence or order will trigger a bus error.
      */
-    whal_Reg_Update(regmap->base, FLASH_KEYR_REG, FLASH_KEYR_KEY, 0x45670123);
-    whal_Reg_Update(regmap->base, FLASH_KEYR_REG, FLASH_KEYR_KEY, 0xCDEF89AB);
+    whal_Reg_Update(regmap->base, FLASH_KEYR_REG, FLASH_KEYR_KEY_Msk, 0x45670123);
+    whal_Reg_Update(regmap->base, FLASH_KEYR_REG, FLASH_KEYR_KEY_Msk, 0xCDEF89AB);
 
     return WHAL_SUCCESS;
 }
@@ -143,8 +180,8 @@ static whal_Error whal_Stm32wbFlash_WriteOrErase(whal_Flash *flashDev, size_t ad
     }
 
     /* Check if flash is busy or suspended */
-    whal_Reg_Get(regmap->base, FLASH_SR_REG, FLASH_SR_BSY, &bsy);
-    whal_Reg_Get(regmap->base, FLASH_SR_REG, FLASH_SR_PESD, &pesd);
+    whal_Reg_Get(regmap->base, FLASH_SR_REG, FLASH_SR_BSY_Msk, FLASH_SR_BSY_Pos, &bsy);
+    whal_Reg_Get(regmap->base, FLASH_SR_REG, FLASH_SR_PESD_Msk, FLASH_SR_PESD_Pos, &pesd);
 
     if (bsy || pesd) {
         return WHAL_ENOTREADY;
@@ -155,7 +192,7 @@ static whal_Error whal_Stm32wbFlash_WriteOrErase(whal_Flash *flashDev, size_t ad
 
     if (write) {
         /* Enable flash programming mode */
-        whal_Reg_Update(regmap->base, FLASH_CR_REG, FLASH_CR_PG, 1);
+        whal_Reg_Update(regmap->base, FLASH_CR_REG, FLASH_CR_PG_Msk, 1);
 
         /* Program data in 64-bit (8 byte) double-word chunks */
         for (size_t i = 0; i < dataSz; i += 8) {
@@ -168,7 +205,7 @@ static whal_Error whal_Stm32wbFlash_WriteOrErase(whal_Flash *flashDev, size_t ad
 
             /* Wait for programming to complete */
             do {
-                whal_Reg_Get(regmap->base, FLASH_SR_REG, FLASH_SR_CFGBSY, &cfgbsy);
+                whal_Reg_Get(regmap->base, FLASH_SR_REG, FLASH_SR_CFGBSY_Msk, FLASH_SR_CFGBSY_Pos, &cfgbsy);
             } while (cfgbsy);
         }
     }
@@ -179,32 +216,32 @@ static whal_Error whal_Stm32wbFlash_WriteOrErase(whal_Flash *flashDev, size_t ad
         endPage = ((addr - cfg->startAddr) + dataSz) >> 12;
 
         /* Enable page erase mode */
-        whal_Reg_Update(regmap->base, FLASH_CR_REG, FLASH_CR_PER,
-                        whal_SetBits(FLASH_CR_PER, 1));
+        whal_Reg_Update(regmap->base, FLASH_CR_REG, FLASH_CR_PER_Msk,
+                        whal_SetBits(FLASH_CR_PER_Msk, FLASH_CR_PER_Pos, 1));
 
         /* Erase each page in the range */
         for (size_t page = startPage; page <= endPage; ++page) {
             /* Select page number */
-            whal_Reg_Update(regmap->base, FLASH_CR_REG, FLASH_CR_PNB,
-                            whal_SetBits(FLASH_CR_PNB, page));
+            whal_Reg_Update(regmap->base, FLASH_CR_REG, FLASH_CR_PNB_Msk,
+                            whal_SetBits(FLASH_CR_PNB_Msk, FLASH_CR_PNB_Pos, page));
 
             /* Start erase operation */
-            whal_Reg_Update(regmap->base, FLASH_CR_REG, FLASH_CR_STRT,
-                            whal_SetBits(FLASH_CR_STRT, 1));
+            whal_Reg_Update(regmap->base, FLASH_CR_REG, FLASH_CR_STRT_Msk,
+                            whal_SetBits(FLASH_CR_STRT_Msk, FLASH_CR_STRT_Pos, 1));
 
             /* Wait for erase to complete */
             do {
-                whal_Reg_Get(regmap->base, FLASH_SR_REG, FLASH_SR_CFGBSY, &cfgbsy);
+                whal_Reg_Get(regmap->base, FLASH_SR_REG, FLASH_SR_CFGBSY_Msk, FLASH_SR_CFGBSY_Pos, &cfgbsy);
             } while (cfgbsy);
         }
 
         /* Disable page erase mode */
-        whal_Reg_Update(regmap->base, FLASH_CR_REG, FLASH_CR_PER,
-                        whal_SetBits(FLASH_CR_PER, 0));
+        whal_Reg_Update(regmap->base, FLASH_CR_REG, FLASH_CR_PER_Msk,
+                        whal_SetBits(FLASH_CR_PER_Msk, FLASH_CR_PER_Pos, 0));
     }
 
     /* Disable flash programming mode */
-    whal_Reg_Update(regmap->base, FLASH_CR_REG, FLASH_CR_PG, 0);
+    whal_Reg_Update(regmap->base, FLASH_CR_REG, FLASH_CR_PG_Msk, 0);
 
     return WHAL_SUCCESS;
 }
@@ -228,7 +265,7 @@ whal_Error whal_Stm32wbFlash_Ext_SetLatency(whal_Flash *flashDev, enum whal_Stm3
     }
 
     const whal_Regmap *reg = &flashDev->regmap;
-    whal_Reg_Update(reg->base, FLASH_ACR_REG, FLASH_ACR_LATENCY, latency);
+    whal_Reg_Update(reg->base, FLASH_ACR_REG, FLASH_ACR_LATENCY_Msk, latency);
     return WHAL_SUCCESS;
 }
 

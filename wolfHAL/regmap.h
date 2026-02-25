@@ -36,11 +36,12 @@ void whal_Reg_Update(size_t base, size_t offset, size_t mask, size_t value);
  *
  * @param base   Base address of the register block.
  * @param offset Byte offset from @p base to the register.
- * @param mask   Bit mask selecting the field to extract.
+ * @param msk    Bit mask selecting the field to extract.
+ * @param pos    Bit position of the field's LSB.
  * @param value  Output storage for the decoded field.
  *
  * @note No return value. Callers are responsible for passing valid inputs.
  */
-void whal_Reg_Get(size_t base, size_t offset, size_t mask, size_t *value);
+void whal_Reg_Get(size_t base, size_t offset, size_t msk, size_t pos, size_t *value);
 
 #endif /* WHAL_REGMAP_H */

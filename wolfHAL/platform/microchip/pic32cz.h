@@ -44,6 +44,7 @@
     .driver = &whal_Pic32czUart_Driver
 
 #define WHAL_PIC32CZ_SUPPLY_PLL     \
-    .enableMask = (1 << 18)
+    .enableMask = (1UL << 18),        \
+    .enablePos = 18
 
 #endif /* WHAL_PIC32CZ_H */

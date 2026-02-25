@@ -3,7 +3,8 @@
 #include <wolfHAL/error.h>
 
 #define VREGCTRL_REG 0x1C
-#define VREGCTRL_AVREGEN WHAL_MASK_RANGE(18, 16)
+#define VREGCTRL_AVREGEN_Pos 16
+#define VREGCTRL_AVREGEN_Msk (WHAL_BITMASK(3) << VREGCTRL_AVREGEN_Pos)
 
 
 whal_Error whal_Pic32czSupc_Init(whal_Supply *supplyCtrl)
@@ -25,7 +26,7 @@ whal_Error whal_Pic32czSupc_Enable(whal_Supply *supplyCtrl, void *supply)
     whal_Pic32czSupc_Supply *picSupply = supply;
 
     whal_Reg_Update(supplyCtrl->regmap.base, VREGCTRL_REG, picSupply->enableMask,
-                    whal_SetBits(picSupply->enableMask, 1));
+                    whal_SetBits(picSupply->enableMask, picSupply->enablePos, 1));
 
     return WHAL_SUCCESS;
 }
@@ -39,7 +40,7 @@ whal_Error whal_Pic32czSupc_Disable(whal_Supply *supplyCtrl, void *supply)
     whal_Pic32czSupc_Supply *picSupply = supply;
 
     whal_Reg_Update(supplyCtrl->regmap.base, VREGCTRL_REG, picSupply->enableMask,
-                    whal_SetBits(picSupply->enableMask, 0));
+                    whal_SetBits(picSupply->enableMask, picSupply->enablePos, 0));
 
     return WHAL_SUCCESS;
 }

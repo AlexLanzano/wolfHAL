@@ -8,41 +8,24 @@
 
 #include <stdint.h>
 
-#if defined(__GNUC__)
-/* Count trailing zeros in a mask. */
-#define whal_CountTrailingZeros(mask) __builtin_ctz(mask)
-#else
-static size_t whal_CountTrailingZeros(mask)
-{
-    size_t cnt = 0;
-    while ((mask & 1ul) == 0ul) {
-        mask >>= 1;
-        n++;
-    }
-
-    return n;
-}
-#endif
+/*
+ * @brief Create a bitmask of @p width bits starting at bit 0.
+ *
+ * Example: WHAL_BITMASK(4) = 0xF
+ */
+#define WHAL_BITMASK(width) \
+    ((1UL << (width)) - 1)
 
 /*
- * @brief Encode a value into a bit field described by @p mask.
+ * @brief Encode a value into a bit field described by @p msk and @p pos.
  */
-#define whal_SetBits(mask, value) \
-    (((value) << whal_CountTrailingZeros(mask)) & (mask))
+#define whal_SetBits(msk, pos, val) \
+    (((val) << (pos)) & (msk))
 
 /*
- * @brief Extract a bit field value from a register using @p mask.
+ * @brief Extract a bit field value from a register using @p msk and @p pos.
  */
-#define whal_GetBits(mask, reg) \
-    (((reg) & (mask)) >> whal_CountTrailingZeros(mask))
-
-/* Create a single-bit mask for bit @p bit. */
-#define WHAL_MASK(bit) \
-    (1ul << bit)
-
-/* Create a mask covering bits @p high_bit down to @p low_bit (inclusive). */
-#define WHAL_MASK_RANGE(high_bit, low_bit) \
-    ((~0UL >> ((sizeof(uintptr_t) * 8) - 1 - (high_bit))) & \
-     (~0UL << (low_bit)))
+#define whal_GetBits(msk, pos, reg) \
+    (((reg) & (msk)) >> (pos))
 
 #endif /* WHAL_BITOPS_H */

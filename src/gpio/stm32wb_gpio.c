@@ -47,11 +47,11 @@ static inline void whal_Stm32wbGpio_InitAltFn(whal_Regmap *portReg, whal_Stm32wb
 
     /* Each pin uses 4 bits: pin 0 = bits 0-3, pin 1 = bits 4-7, etc. */
     maskBit = pin << 2;
-    mask = WHAL_MASK_RANGE(maskBit + 3, maskBit);
+    mask = (WHAL_BITMASK(4) << maskBit);
 
     /* Access AFRL and AFRH as a single 64-bit register */
     uint64_t *reg = (uint64_t *)(portReg->base + GPIO_ALTFNL_REG);
-    *reg = (*reg & ~mask) | (whal_SetBits(mask, pinCfg->altFn) & mask);
+    *reg = (*reg & ~mask) | (whal_SetBits(mask, maskBit, pinCfg->altFn) & mask);
 }
 
 /*
@@ -72,21 +72,21 @@ static inline whal_Error whal_Stm32wbGpio_InitPin(whal_Gpio *gpioDev, whal_Stm32
     uint8_t pin = pinCfg->pin;
     /* 2-bit field mask for MODE, SPEED, PULL registers */
     uint8_t maskBit = pin << 1;
-    size_t mask1 = WHAL_MASK_RANGE(maskBit + 1, maskBit);
+    size_t mask1 = (WHAL_BITMASK(2) << maskBit);
     /* 1-bit mask for OUTTYPE register */
-    size_t mask2 = WHAL_MASK(pin);
+    size_t mask2 = (1UL << pin);
 
     /* Configure pin mode (input/output/altfn/analog) */
     whal_Reg_Update(portReg.base, GPIO_MODE_REG, mask1,
-                    whal_SetBits(mask1, pinCfg->mode));
+                    whal_SetBits(mask1, maskBit, pinCfg->mode));
 
     /* Configure output speed */
     whal_Reg_Update(portReg.base, GPIO_SPEED_REG, mask1,
-                    whal_SetBits(mask1, pinCfg->speed));
+                    whal_SetBits(mask1, maskBit, pinCfg->speed));
 
     /* Configure output type (push-pull or open-drain) */
     whal_Reg_Update(portReg.base, GPIO_OUTTYPE_REG, mask2,
-                    whal_SetBits(mask2, pinCfg->outType));
+                    whal_SetBits(mask2, pin, pinCfg->outType));
 
     /* Configure alternate function if in ALTFN mode */
     if (pinCfg->mode == WHAL_STM32WB_GPIO_MODE_ALTFN) {
@@ -174,15 +174,15 @@ static whal_Error whal_Stm32wbGpio_SetOrGet(whal_Gpio *gpioDev, size_t pin, size
     portReg.size = GPIO_PORT_SIZE;
     portReg.base = (size_t)(gpioDev->regmap.base + (pinCfg[pin].port * GPIO_PORT_SIZE));
 
-    mask = WHAL_MASK(pinCfg[pin].pin);
+    mask = (1UL << (pinCfg[pin].pin));
     if (set) {
         /* Write to output data register */
         whal_Reg_Update(portReg.base, GPIO_ODR_REG, mask,
-                        whal_SetBits(mask, *value));
+                        whal_SetBits(mask, pinCfg[pin].pin, *value));
     }
     else {
         /* Read from input data register */
-        whal_Reg_Get(portReg.base, GPIO_IDR_REG, mask, value);
+        whal_Reg_Get(portReg.base, GPIO_IDR_REG, mask, pinCfg[pin].pin, value);
     }
 
     return WHAL_SUCCESS;

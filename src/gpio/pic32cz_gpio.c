@@ -32,7 +32,8 @@
  * and the shift positions the pin's nibble within the 32-bit word.
  */
 #define PMUXx_REG(port, pin) ((0x30 + (((pin) / 8) * 4)) + ((port) * 0x80))
-#define PMUXx_MASK(pin) (0xFul << (((pin) % 8) * 4))
+#define PMUXx_Pos(pin) (((pin) % 8) * 4)
+#define PMUXx_Msk(pin) (WHAL_BITMASK(4) << (PMUXx_Pos(pin)))
 
 /*
  * Pin configuration register - one byte per pin.
@@ -41,9 +42,14 @@
  * positions each field's mask within the 32-bit word.
  */
 #define PINCFGx_REG(port, pin) ((0x40 + ((pin) & ~3)) + ((port) * 0x80))
-#define PINCFGx_PMUXEN(pin) (WHAL_MASK(0) << (((pin) & 3) * 8))
-#define PINCFGx_INEN(pin)   (WHAL_MASK(1) << (((pin) & 3) * 8))
-#define PINCFGx_PULLEN(pin) (WHAL_MASK(2) << (((pin) & 3) * 8))
+#define PINCFGx_PMUXEN_Pos(pin) (((pin) & 3) * 8)
+#define PINCFGx_PMUXEN_Msk(pin) (1UL << (PINCFGx_PMUXEN_Pos(pin)))
+
+#define PINCFGx_INEN_Pos(pin)   (1 + (((pin) & 3) * 8))
+#define PINCFGx_INEN_Msk(pin)   (1UL << (PINCFGx_INEN_Pos(pin)))
+
+#define PINCFGx_PULLEN_Pos(pin) (2 + (((pin) & 3) * 8))
+#define PINCFGx_PULLEN_Msk(pin) (1UL << (PINCFGx_PULLEN_Pos(pin)))
 
 whal_Error whal_Pic32czGpio_Init(whal_Gpio *gpioDev)
 {
@@ -55,7 +61,7 @@ whal_Error whal_Pic32czGpio_Init(whal_Gpio *gpioDev)
 
     for (size_t i = 0; i < cfg->pinCfgCount; ++i) {
         whal_Pic32czGpio_PinCfg *pinCfg = &cfg->pinCfg[i];
-        size_t pinMask = WHAL_MASK(pinCfg->pin);
+        size_t pinMask = (1UL << (pinCfg->pin));
 
         if (pinCfg->pmuxEn) {
             /*
@@ -63,18 +69,20 @@ whal_Error whal_Pic32czGpio_Init(whal_Gpio *gpioDev)
              * 1. Set the PMUX value to select the peripheral function
              * 2. Enable PMUXEN in PINCFG to route pin to peripheral
              */
-            size_t pmuxMask = PMUXx_MASK(pinCfg->pin);
-            size_t pmuxenMask = PINCFGx_PMUXEN(pinCfg->pin);
+            size_t pmuxMask = PMUXx_Msk(pinCfg->pin);
+            size_t pmuxPos = PMUXx_Pos(pinCfg->pin);
+            size_t pmuxenMask = PINCFGx_PMUXEN_Msk(pinCfg->pin);
+            size_t pmuxenPos = PINCFGx_PMUXEN_Pos(pinCfg->pin);
 
             whal_Reg_Update(gpioDev->regmap.base,
                             PMUXx_REG(pinCfg->port, pinCfg->pin),
                             pmuxMask,
-                            whal_SetBits(pmuxMask, pinCfg->pmux));
+                            whal_SetBits(pmuxMask, pmuxPos, pinCfg->pmux));
 
             whal_Reg_Update(gpioDev->regmap.base,
                             PINCFGx_REG(pinCfg->port, pinCfg->pin),
                             pmuxenMask,
-                            whal_SetBits(pmuxenMask, 1));
+                            whal_SetBits(pmuxenMask, pmuxenPos, 1));
 
             continue;
         }
@@ -89,23 +97,25 @@ whal_Error whal_Pic32czGpio_Init(whal_Gpio *gpioDev)
         /* Set pin direction */
         whal_Reg_Update(gpioDev->regmap.base, DIR_REG(pinCfg->port),
                         pinMask,
-                        whal_SetBits(pinMask, pinCfg->dir));
+                        whal_SetBits(pinMask, pinCfg->pin, pinCfg->dir));
 
         /* Set initial output value */
         whal_Reg_Update(gpioDev->regmap.base, OUT_REG(pinCfg->port),
                         pinMask,
-                        whal_SetBits(pinMask, pinCfg->out));
+                        whal_SetBits(pinMask, pinCfg->pin, pinCfg->out));
 
         /* Configure input buffer and pull resistor */
         {
-            size_t inenMask = PINCFGx_INEN(pinCfg->pin);
-            size_t pullenMask = PINCFGx_PULLEN(pinCfg->pin);
+            size_t inenMask = PINCFGx_INEN_Msk(pinCfg->pin);
+            size_t inenPos = PINCFGx_INEN_Pos(pinCfg->pin);
+            size_t pullenMask = PINCFGx_PULLEN_Msk(pinCfg->pin);
+            size_t pullenPos = PINCFGx_PULLEN_Pos(pinCfg->pin);
 
             whal_Reg_Update(gpioDev->regmap.base,
                             PINCFGx_REG(pinCfg->port, pinCfg->pin),
                             inenMask | pullenMask,
-                            whal_SetBits(inenMask, pinCfg->inEn) |
-                            whal_SetBits(pullenMask, pinCfg->pullEn));
+                            whal_SetBits(inenMask, inenPos, pinCfg->inEn) |
+                            whal_SetBits(pullenMask, pullenPos, pinCfg->pullEn));
         }
     }
 
@@ -129,7 +139,7 @@ whal_Error whal_Pic32czGpio_Get(whal_Gpio *gpioDev, size_t pin, size_t *value)
 
     const whal_Pic32czGpio_Cfg *cfg = gpioDev->cfg;
     whal_Pic32czGpio_PinCfg *pinCfg = &cfg->pinCfg[pin];
-    size_t pinMask = WHAL_MASK(pinCfg->pin);
+    size_t pinMask = (1UL << (pinCfg->pin));
     size_t reg;
 
     /*
@@ -144,7 +154,7 @@ whal_Error whal_Pic32czGpio_Get(whal_Gpio *gpioDev, size_t pin, size_t *value)
         reg = IN_REG(pinCfg->port);
     }
 
-    whal_Reg_Get(gpioDev->regmap.base, reg, pinMask, value);
+    whal_Reg_Get(gpioDev->regmap.base, reg, pinMask, pinCfg->pin, value);
 
     return WHAL_SUCCESS;
 }
@@ -157,12 +167,12 @@ whal_Error whal_Pic32czGpio_Set(whal_Gpio *gpioDev, size_t pin, size_t value)
 
     const whal_Pic32czGpio_Cfg *cfg = gpioDev->cfg;
     whal_Pic32czGpio_PinCfg *pinCfg = &cfg->pinCfg[pin];
-    size_t pinMask = WHAL_MASK(pinCfg->pin);
+    size_t pinMask = (1UL << (pinCfg->pin));
 
     /* Update the output register to drive the new value */
     whal_Reg_Update(gpioDev->regmap.base, OUT_REG(pinCfg->port),
                     pinMask,
-                    whal_SetBits(pinMask, value));
+                    whal_SetBits(pinMask, pinCfg->pin, value));
 
     return WHAL_SUCCESS;
 }
