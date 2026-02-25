@@ -17,6 +17,7 @@ typedef struct whal_Pic32czSupc_Cfg {
 
 typedef struct whal_Pic32czSupc_Supply {
     size_t enableMask;
+    size_t enablePos;
 } whal_Pic32czSupc_Supply;
 
 /*

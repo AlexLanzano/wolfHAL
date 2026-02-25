@@ -74,34 +74,42 @@
 
 #define WHAL_STM32WB55_PLL_CLOCK    \
     .regOffset = 0x00,              \
-    .enableMask = (1 << 24)
+    .enableMask = (1UL << 24),      \
+    .enablePos = 24
 
 #define WHAL_STM32WB55_GPIOA_CLOCK  \
     .regOffset = 0x4C,              \
-    .enableMask = (1 << 0)
+    .enableMask = (1UL << 0),       \
+    .enablePos = 0
 
 #define WHAL_STM32WB55_GPIOB_CLOCK  \
     .regOffset = 0x4C,              \
-    .enableMask = (1 << 1)
+    .enableMask = (1UL << 1),       \
+    .enablePos = 1
 
 #define WHAL_STM32WB55_RNG_CLOCK    \
     .regOffset = 0x50,              \
-    .enableMask = (1 << 18)
+    .enableMask = (1UL << 18),      \
+    .enablePos = 18
 
 #define WHAL_STM32WB55_FLASH_CLOCK  \
     .regOffset = 0x50,              \
-    .enableMask = (1 << 25)
+    .enableMask = (1UL << 25),      \
+    .enablePos = 25
 
 #define WHAL_STM32WB55_LPUART1_CLOCK    \
     .regOffset = 0x5C,                  \
-    .enableMask = (1 << 0)
+    .enableMask = (1UL << 0),           \
+    .enablePos = 0
 
 #define WHAL_STM32WB55_UART1_CLOCK  \
     .regOffset = 0x60,              \
-    .enableMask = (1 << 14)
+    .enableMask = (1UL << 14),      \
+    .enablePos = 14
 
 #define WHAL_STM32WB55_SPI1_CLOCK   \
     .regOffset = 0x60,              \
-    .enableMask = (1 << 12)
+    .enableMask = (1UL << 12),      \
+    .enablePos = 12
 
 #endif /* WHAL_STM32WB55XX_H */

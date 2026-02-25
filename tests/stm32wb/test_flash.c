@@ -7,7 +7,8 @@
 
 /* Flash CR register offset and LOCK bit */
 #define FLASH_CR_REG  0x14
-#define FLASH_CR_LOCK WHAL_MASK(31)
+#define FLASH_CR_LOCK_Pos 31
+#define FLASH_CR_LOCK_Msk (1UL << FLASH_CR_LOCK_Pos)
 
 /* Test address in the data flash area (OTP/data, not code flash) */
 #define TEST_FLASH_ADDR 0x08080000
@@ -45,7 +46,7 @@ static void test_flash_lock_readback(void)
     WHAL_ASSERT_EQ(whal_Flash_Lock(&g_whalFlash, 0, 0), WHAL_SUCCESS);
 
     size_t val = 0;
-    whal_Reg_Get(g_whalFlash.regmap.base, FLASH_CR_REG, FLASH_CR_LOCK, &val);
+    whal_Reg_Get(g_whalFlash.regmap.base, FLASH_CR_REG, FLASH_CR_LOCK_Msk, FLASH_CR_LOCK_Pos, &val);
     WHAL_ASSERT_EQ(val, 1);
 }
 

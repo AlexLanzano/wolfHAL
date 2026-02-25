@@ -23,39 +23,67 @@
 #define FCW_DATA_REG(n)     (0x28 + ((n) * 4))
 
 /* CTRLA: NVM operation command and pre-program bit */
-#define FCW_CTRLA_NVMOP_MASK               WHAL_MASK_RANGE(3, 0)
+#define FCW_CTRLA_NVMOP_Pos               0
+#define FCW_CTRLA_NVMOP_Msk               (WHAL_BITMASK(4) << FCW_CTRLA_NVMOP_Pos)
 #define FCW_CTRLA_NVMOP_SINGLE_DWORD       0x1
 #define FCW_CTRLA_NVMOP_QUAD_DWORD         0x2
 #define FCW_CTRLA_NVMOP_PAGE_ERASE         0x4
-#define FCW_CTRLA_PREPG                     WHAL_MASK(7)
+
+#define FCW_CTRLA_PREPG_Pos                     7
+#define FCW_CTRLA_PREPG_Msk                     (1UL << FCW_CTRLA_PREPG_Pos)
 
 /* MUTEX: NVM locking and ownership values */
-#define FCW_MUTEX_LOCK WHAL_MASK(0)
-#define FCW_MUTEX_OWNER WHAL_MASK_RANGE(2, 1)
+#define FCW_MUTEX_LOCK_Pos 0
+#define FCW_MUTEX_LOCK_Msk (1UL << FCW_MUTEX_LOCK_Pos)
+
+#define FCW_MUTEX_OWNER_Pos 1
+#define FCW_MUTEX_OWNER_Msk (WHAL_BITMASK(2) << FCW_MUTEX_OWNER_Pos)
 
 /* INTFLAG: operation completion and error flags (write-1-to-clear) */
-#define FCW_INTFLAG_DONE        WHAL_MASK(0)
-#define FCW_INTFLAG_KEYERR      WHAL_MASK(1)
-#define FCW_INTFLAG_CFGERR      WHAL_MASK(2)
-#define FCW_INTFLAG_FIFOERR     WHAL_MASK(3)
-#define FCW_INTFLAG_BUSERR      WHAL_MASK(4)
-#define FCW_INTFLAG_WPERR       WHAL_MASK(5)
-#define FCW_INTFLAG_OPERR       WHAL_MASK(6)
-#define FCW_INTFLAG_SECERR      WHAL_MASK(7)
-#define FCW_INTFLAG_HTDPGM      WHAL_MASK(8)
-#define FCW_INTFLAG_BORERR      WHAL_MASK(12)
-#define FCW_INTFLAG_WRERR       WHAL_MASK(13)
+#define FCW_INTFLAG_DONE_Pos        0
+#define FCW_INTFLAG_DONE_Msk        (1UL << FCW_INTFLAG_DONE_Pos)
 
-#define FCW_INTFLAG_ALL_ERR     (FCW_INTFLAG_KEYERR | FCW_INTFLAG_CFGERR | \
-                                 FCW_INTFLAG_FIFOERR | FCW_INTFLAG_BUSERR | \
-                                 FCW_INTFLAG_WPERR | FCW_INTFLAG_OPERR | \
-                                 FCW_INTFLAG_SECERR | FCW_INTFLAG_HTDPGM | \
-                                 FCW_INTFLAG_BORERR | FCW_INTFLAG_WRERR)
+#define FCW_INTFLAG_KEYERR_Pos      1
+#define FCW_INTFLAG_KEYERR_Msk      (1UL << FCW_INTFLAG_KEYERR_Pos)
 
-#define FCW_INTFLAG_ALL         (FCW_INTFLAG_DONE | FCW_INTFLAG_ALL_ERR)
+#define FCW_INTFLAG_CFGERR_Pos      2
+#define FCW_INTFLAG_CFGERR_Msk      (1UL << FCW_INTFLAG_CFGERR_Pos)
+
+#define FCW_INTFLAG_FIFOERR_Pos     3
+#define FCW_INTFLAG_FIFOERR_Msk     (1UL << FCW_INTFLAG_FIFOERR_Pos)
+
+#define FCW_INTFLAG_BUSERR_Pos      4
+#define FCW_INTFLAG_BUSERR_Msk      (1UL << FCW_INTFLAG_BUSERR_Pos)
+
+#define FCW_INTFLAG_WPERR_Pos       5
+#define FCW_INTFLAG_WPERR_Msk       (1UL << FCW_INTFLAG_WPERR_Pos)
+
+#define FCW_INTFLAG_OPERR_Pos       6
+#define FCW_INTFLAG_OPERR_Msk       (1UL << FCW_INTFLAG_OPERR_Pos)
+
+#define FCW_INTFLAG_SECERR_Pos      7
+#define FCW_INTFLAG_SECERR_Msk      (1UL << FCW_INTFLAG_SECERR_Pos)
+
+#define FCW_INTFLAG_HTDPGM_Pos      8
+#define FCW_INTFLAG_HTDPGM_Msk      (1UL << FCW_INTFLAG_HTDPGM_Pos)
+
+#define FCW_INTFLAG_BORERR_Pos      12
+#define FCW_INTFLAG_BORERR_Msk      (1UL << FCW_INTFLAG_BORERR_Pos)
+
+#define FCW_INTFLAG_WRERR_Pos       13
+#define FCW_INTFLAG_WRERR_Msk       (1UL << FCW_INTFLAG_WRERR_Pos)
+
+#define FCW_INTFLAG_ALL_ERR     (FCW_INTFLAG_KEYERR_Msk | FCW_INTFLAG_CFGERR_Msk | \
+                                 FCW_INTFLAG_FIFOERR_Msk | FCW_INTFLAG_BUSERR_Msk | \
+                                 FCW_INTFLAG_WPERR_Msk | FCW_INTFLAG_OPERR_Msk | \
+                                 FCW_INTFLAG_SECERR_Msk | FCW_INTFLAG_HTDPGM_Msk | \
+                                 FCW_INTFLAG_BORERR_Msk | FCW_INTFLAG_WRERR_Msk)
+
+#define FCW_INTFLAG_ALL         (FCW_INTFLAG_DONE_Msk | FCW_INTFLAG_ALL_ERR)
 
 /* STATUS: busy flag */
-#define FCW_STATUS_BUSY         WHAL_MASK(0)
+#define FCW_STATUS_BUSY_Pos         0
+#define FCW_STATUS_BUSY_Msk         (1UL << FCW_STATUS_BUSY_Pos)
 
 /* KEY: unlock value for write/erase operations */
 #define FCW_UNLOCK_WRKEY        0x91C32C01
@@ -69,26 +97,26 @@ static void whal_Pic32czFlash_MutexLock(const whal_Regmap *reg)
 {
     size_t locked = 1;
     while (locked) {
-        whal_Reg_Get(reg->base, FCW_MUTEX_REG, FCW_MUTEX_LOCK, &locked);
+        whal_Reg_Get(reg->base, FCW_MUTEX_REG, FCW_MUTEX_LOCK_Msk, FCW_MUTEX_LOCK_Pos, &locked);
     }
 
-    whal_Reg_Update(reg->base, FCW_MUTEX_REG, FCW_MUTEX_LOCK | FCW_MUTEX_OWNER,
-                    whal_SetBits(FCW_MUTEX_LOCK, 1) |
-                    whal_SetBits(FCW_MUTEX_OWNER, 1));
+    whal_Reg_Update(reg->base, FCW_MUTEX_REG, FCW_MUTEX_LOCK_Msk | FCW_MUTEX_OWNER_Msk,
+                    whal_SetBits(FCW_MUTEX_LOCK_Msk, FCW_MUTEX_LOCK_Pos, 1) |
+                    whal_SetBits(FCW_MUTEX_OWNER_Msk, FCW_MUTEX_OWNER_Pos, 1));
 }
 
 static void whal_Pic32czFlash_MutexUnlock(const whal_Regmap *reg)
 {
-    whal_Reg_Update(reg->base, FCW_MUTEX_REG, FCW_MUTEX_LOCK | FCW_MUTEX_OWNER,
-                    whal_SetBits(FCW_MUTEX_LOCK, 0) |
-                    whal_SetBits(FCW_MUTEX_OWNER, 1));
+    whal_Reg_Update(reg->base, FCW_MUTEX_REG, FCW_MUTEX_LOCK_Msk | FCW_MUTEX_OWNER_Msk,
+                    whal_SetBits(FCW_MUTEX_LOCK_Msk, FCW_MUTEX_LOCK_Pos, 0) |
+                    whal_SetBits(FCW_MUTEX_OWNER_Msk, FCW_MUTEX_OWNER_Pos, 1));
 }
 
 static void whal_Pic32czFlash_WaitBusy(const whal_Regmap *reg)
 {
     size_t busy = 1;
     while (busy) {
-        whal_Reg_Get(reg->base, FCW_STATUS_REG, FCW_STATUS_BUSY, &busy);
+        whal_Reg_Get(reg->base, FCW_STATUS_REG, FCW_STATUS_BUSY_Msk, FCW_STATUS_BUSY_Pos, &busy);
     }
 }
 
@@ -105,18 +133,18 @@ static whal_Error whal_Pic32czFlash_ExecCmd(const whal_Regmap *reg, size_t cmd)
 
     /* Trigger operation with pre-program enabled */
     whal_Reg_Update(reg->base, FCW_CTRLA_REG,
-                    FCW_CTRLA_NVMOP_MASK | FCW_CTRLA_PREPG,
-                    whal_SetBits(FCW_CTRLA_NVMOP_MASK, cmd) | FCW_CTRLA_PREPG);
+                    FCW_CTRLA_NVMOP_Msk | FCW_CTRLA_PREPG_Msk,
+                    whal_SetBits(FCW_CTRLA_NVMOP_Msk, FCW_CTRLA_NVMOP_Pos, cmd) | FCW_CTRLA_PREPG_Msk);
 
     /* Wait for completion */
     whal_Pic32czFlash_WaitBusy(reg);
 
     /* Check for errors */
-    whal_Reg_Get(reg->base, FCW_INTFLAG_REG, FCW_INTFLAG_ALL_ERR, &errFlags);
+    whal_Reg_Get(reg->base, FCW_INTFLAG_REG, FCW_INTFLAG_ALL_ERR, 0, &errFlags);
 
     /* Clear DONE flag */
-    whal_Reg_Update(reg->base, FCW_INTFLAG_REG, FCW_INTFLAG_DONE,
-                    FCW_INTFLAG_DONE);
+    whal_Reg_Update(reg->base, FCW_INTFLAG_REG, FCW_INTFLAG_DONE_Msk,
+                    FCW_INTFLAG_DONE_Msk);
 
     if (errFlags) {
         /* Clear error flags */

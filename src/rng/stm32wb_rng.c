@@ -15,20 +15,32 @@
  */
 
 /* Control Register */
-#define SRNG_CR_REG   0x00
-#define SRNG_CR_RNGEN WHAL_MASK(2) /* RNG enable */
-#define SRNG_CR_CED   WHAL_MASK(5) /* Clock error detection disable */
+#define RNG_CR_REG   0x00
+#define RNG_CR_RNGEN_Pos 2                                              /* RNG enable */
+#define RNG_CR_RNGEN_Msk (1UL << RNG_CR_RNGEN_Pos)
+
+#define RNG_CR_CED_Pos   5                                              /* Clock error detection disable */
+#define RNG_CR_CED_Msk   (1UL << RNG_CR_CED_Pos)
 
 /* Status Register */
-#define SRNG_SR_REG  0x04
-#define SRNG_SR_DRDY WHAL_MASK(0) /* Data ready */
-#define SRNG_SR_CECS WHAL_MASK(1) /* Clock error current status */
-#define SRNG_SR_SECS WHAL_MASK(2) /* Seed error current status */
-#define SRNG_SR_CEIS WHAL_MASK(5) /* Clock error interrupt status */
-#define SRNG_SR_SEIS WHAL_MASK(6) /* Seed error interrupt status */
+#define RNG_SR_REG  0x04
+#define RNG_SR_DRDY_Pos 0                                               /* Data ready */
+#define RNG_SR_DRDY_Msk (1UL << RNG_SR_DRDY_Pos)
+
+#define RNG_SR_CECS_Pos 1                                               /* Clock error current status */
+#define RNG_SR_CECS_Msk (1UL << RNG_SR_CECS_Pos)
+
+#define RNG_SR_SECS_Pos 2                                               /* Seed error current status */
+#define RNG_SR_SECS_Msk (1UL << RNG_SR_SECS_Pos)
+
+#define RNG_SR_CEIS_Pos 5                                               /* Clock error interrupt status */
+#define RNG_SR_CEIS_Msk (1UL << RNG_SR_CEIS_Pos)
+
+#define RNG_SR_SEIS_Pos 6                                               /* Seed error interrupt status */
+#define RNG_SR_SEIS_Msk (1UL << RNG_SR_SEIS_Pos)
 
 /* Data Register - 32-bit random value */
-#define SRNG_DR_REG  0x08
+#define RNG_DR_REG  0x08
 
 whal_Error whal_Stm32wbRng_Init(whal_Rng *rngDev)
 {
@@ -79,29 +91,29 @@ whal_Error whal_Stm32wbRng_Generate(whal_Rng *rngDev, uint8_t *rngData, size_t r
     size_t offset = 0;
 
     /* Enable the RNG peripheral */
-    whal_Reg_Update(reg->base, SRNG_CR_REG, SRNG_CR_RNGEN,
-                    whal_SetBits(SRNG_CR_RNGEN, 1));
+    whal_Reg_Update(reg->base, RNG_CR_REG, RNG_CR_RNGEN_Msk,
+                    whal_SetBits(RNG_CR_RNGEN_Msk, RNG_CR_RNGEN_Pos, 1));
 
     while (offset < rngDataSz) {
         /* Wait for a random value to be ready */
         do {
             /* Check for seed or clock error */
-            whal_Reg_Get(reg->base, SRNG_SR_REG, SRNG_SR_SECS, &status);
+            whal_Reg_Get(reg->base, RNG_SR_REG, RNG_SR_SECS_Msk, RNG_SR_SECS_Pos, &status);
             if (status) {
                 err = WHAL_EHARDWARE;
                 goto exit;
             }
-            whal_Reg_Get(reg->base, SRNG_SR_REG, SRNG_SR_CECS, &status);
+            whal_Reg_Get(reg->base, RNG_SR_REG, RNG_SR_CECS_Msk, RNG_SR_CECS_Pos, &status);
             if (status) {
                 err = WHAL_EHARDWARE;
                 goto exit;
             }
 
-            whal_Reg_Get(reg->base, SRNG_SR_REG, SRNG_SR_DRDY, &status);
+            whal_Reg_Get(reg->base, RNG_SR_REG, RNG_SR_DRDY_Msk, RNG_SR_DRDY_Pos, &status);
         } while (!status);
 
         /* Read 32-bit random value */
-        uint32_t rnd = *(volatile uint32_t *)(reg->base + SRNG_DR_REG);
+        uint32_t rnd = *(volatile uint32_t *)(reg->base + RNG_DR_REG);
 
         /* Copy bytes into output buffer */
         for (size_t i = 0; i < 4 && offset < rngDataSz; i++, offset++) {
@@ -111,8 +123,8 @@ whal_Error whal_Stm32wbRng_Generate(whal_Rng *rngDev, uint8_t *rngData, size_t r
 
 exit:
     /* Disable the RNG peripheral */
-    whal_Reg_Update(reg->base, SRNG_CR_REG, SRNG_CR_RNGEN,
-                    whal_SetBits(SRNG_CR_RNGEN, 0));
+    whal_Reg_Update(reg->base, RNG_CR_REG, RNG_CR_RNGEN_Msk,
+                    whal_SetBits(RNG_CR_RNGEN_Msk, RNG_CR_RNGEN_Pos, 0));
 
     return err;
 }

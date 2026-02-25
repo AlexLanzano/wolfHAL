@@ -23,8 +23,10 @@ whal_Clock g_whalClock = {
 
             .outCfgCount = 1,
             .outCfg = &(whal_Pic32czClockPll_OutCfg) {
-                .postDivMask = WHAL_PIC32CZ_POSTDIVMASK0,
-                .outEnMask = WHAL_PIC32CZ_OUTENMASK0,
+                .postDivMask = WHAL_PIC32CZ_POSTDIV0_Msk,
+                .postDivPos = WHAL_PIC32CZ_POSTDIV0_Pos,
+                .outEnMask = WHAL_PIC32CZ_OUTEN0_Msk,
+                .outEnPos = WHAL_PIC32CZ_OUTEN0_Pos,
                 .postDiv = 3,
             },
         },
@@ -72,7 +74,8 @@ static whal_Pic32czClock_Clk uartClk = {
     .gclkPeriphChannel = 25, /* SERCOM 4 */
     .gclkPeriphSrc = 0, /* GEN 0 */
     .mclkEnableInst = 1, /* Peripheral BUS Clock Enable Mask1 Register */
-    .mclkEnableMask = WHAL_MASK(3), /* SERCOM 4 enable mask */
+    .mclkEnableMask = (1UL << 3), /* SERCOM 4 enable mask */
+    .mclkEnablePos = 3,
 };
 
 whal_Uart g_whalUart = {

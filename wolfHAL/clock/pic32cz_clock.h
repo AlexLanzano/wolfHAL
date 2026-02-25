@@ -79,16 +79,30 @@ typedef enum whal_Pic32czClock_GenSrc {
 } whal_Pic32czClock_GenSrc;
 
 /* PLL output post-divider masks for PLLxPOSTDIVA register */
-#define WHAL_PIC32CZ_POSTDIVMASK0 WHAL_MASK_RANGE(5, 0)   /* POSTDIV0[5:0] */
-#define WHAL_PIC32CZ_POSTDIVMASK1 WHAL_MASK_RANGE(13, 8)  /* POSTDIV1[5:0] */
-#define WHAL_PIC32CZ_POSTDIVMASK2 WHAL_MASK_RANGE(21, 16) /* POSTDIV2[5:0] */
-#define WHAL_PIC32CZ_POSTDIVMASK3 WHAL_MASK_RANGE(29, 24) /* POSTDIV3[5:0] */
+#define WHAL_PIC32CZ_POSTDIV0_Pos (0)  /* POSTDIV0[5:0] */
+#define WHAL_PIC32CZ_POSTDIV0_Msk (WHAL_BITMASK(6) << 0)
+
+#define WHAL_PIC32CZ_POSTDIV1_Pos (8)  /* POSTDIV1[5:0] */
+#define WHAL_PIC32CZ_POSTDIV1_Msk (WHAL_BITMASK(6) << 8)
+
+#define WHAL_PIC32CZ_POSTDIV2_Pos (16)  /* POSTDIV2[5:0] */
+#define WHAL_PIC32CZ_POSTDIV2_Msk (WHAL_BITMASK(6) << 16)
+
+#define WHAL_PIC32CZ_POSTDIV3_Pos (24)  /* POSTDIV3[5:0] */
+#define WHAL_PIC32CZ_POSTDIV3_Msk (WHAL_BITMASK(6) << 24)
 
 /* PLL output enable masks for PLLxPOSTDIVA register */
-#define WHAL_PIC32CZ_OUTENMASK0 WHAL_MASK(7)  /* OUTEN0 */
-#define WHAL_PIC32CZ_OUTENMASK1 WHAL_MASK(15) /* OUTEN1 */
-#define WHAL_PIC32CZ_OUTENMASK2 WHAL_MASK(23) /* OUTEN2 */
-#define WHAL_PIC32CZ_OUTENMASK3 WHAL_MASK(31) /* OUTEN3 */
+#define WHAL_PIC32CZ_OUTEN0_Pos (7)  /* OUTEN0 */
+#define WHAL_PIC32CZ_OUTEN0_Msk (1UL << 7)
+
+#define WHAL_PIC32CZ_OUTEN1_Pos (15)  /* OUTEN1 */
+#define WHAL_PIC32CZ_OUTEN1_Msk (1UL << 15)
+
+#define WHAL_PIC32CZ_OUTEN2_Pos (23)  /* OUTEN2 */
+#define WHAL_PIC32CZ_OUTEN2_Msk (1UL << 23)
+
+#define WHAL_PIC32CZ_OUTEN3_Pos (31)  /* OUTEN3 */
+#define WHAL_PIC32CZ_OUTEN3_Msk (1UL << 31)
 
 /*
  * @brief PLL output configuration.
@@ -97,8 +111,10 @@ typedef enum whal_Pic32czClock_GenSrc {
  * Output frequency = VCO frequency / postDiv
  */
 typedef struct whal_Pic32czClockPll_OutCfg {
-    size_t postDivMask; /* Use WHAL_PIC32CZ_POSTDIVMASKx */
-    size_t outEnMask;   /* Use WHAL_PIC32CZ_OUTENMASKx */
+    size_t postDivMask; /* Use WHAL_PIC32CZ_POSTDIVx_Msk */
+    size_t postDivPos; /* Use WHAL_PIC32CZ_POSTDIVx_Pos */
+    size_t outEnMask;   /* Use WHAL_PIC32CZ_OUTENx_Msk */
+    size_t outEnPos;   /* Use WHAL_PIC32CZ_OUTENx_Pos */
     uint8_t postDiv;    /* Post-divider value (1-63) */
 } whal_Pic32czClockPll_OutCfg;
 
@@ -190,6 +206,7 @@ typedef struct whal_Pic32czClock_Clk {
     uint8_t gclkPeriphSrc;    /* GCLK generator to use as source */
     size_t mclkEnableInst;    /* MCLK mask register instance */
     size_t mclkEnableMask;    /* Bit mask within the MCLK mask register */
+    size_t mclkEnablePos;     /* Bit position within the MCLK mask register */
 } whal_Pic32czClock_Clk;
 
 /*

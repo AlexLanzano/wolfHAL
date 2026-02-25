@@ -109,11 +109,12 @@ typedef struct whal_Stm32wbRcc_MsiClkCfg {
  * a peripheral's bus clock. Used with whal_Stm32wbRcc_Enable/Disable.
  *
  * Example for GPIOA:
- *   { .regOffset = 0x04C, .enableMask = (1 << 0) }  // AHB2ENR.GPIOAEN
+ *   { .regOffset = 0x04C, .enableMask = (1 << 0), .enablePos = 0 }  // AHB2ENR.GPIOAEN
  */
 typedef struct whal_Stm32wbRcc_Clk {
     size_t regOffset;   /* Offset from RCC base to enable register */
     size_t enableMask;  /* Bit mask for the peripheral enable bit */
+    size_t enablePos;   /* Bit position for the peripheral enable bit */
 } whal_Stm32wbRcc_Clk;
 
 /*

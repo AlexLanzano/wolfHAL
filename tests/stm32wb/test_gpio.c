@@ -16,10 +16,10 @@ static void test_gpio_mode_register(void)
 {
     /* PB5 should be configured as output (mode = 0x01) in bits [11:10] */
     size_t portBase = g_whalGpio.regmap.base + GPIOB_BASE_OFFSET;
-    size_t mask = WHAL_MASK_RANGE(11, 10);
+    size_t mask = (WHAL_BITMASK(2) << 10);
     size_t val = 0;
 
-    whal_Reg_Get(portBase, GPIOx_MODE_REG, mask, &val);
+    whal_Reg_Get(portBase, GPIOx_MODE_REG, mask, 10, &val);
     WHAL_ASSERT_EQ(val, WHAL_STM32WB_GPIO_MODE_OUT);
 }
 
@@ -30,7 +30,7 @@ static void test_gpio_set_high(void)
     /* Readback ODR bit 5 */
     size_t portBase = g_whalGpio.regmap.base + GPIOB_BASE_OFFSET;
     size_t val = 0;
-    whal_Reg_Get(portBase, GPIOx_ODR_REG, WHAL_MASK(5), &val);
+    whal_Reg_Get(portBase, GPIOx_ODR_REG, (1UL << 5), 5, &val);
     WHAL_ASSERT_EQ(val, 1);
 }
 
@@ -40,7 +40,7 @@ static void test_gpio_set_low(void)
 
     size_t portBase = g_whalGpio.regmap.base + GPIOB_BASE_OFFSET;
     size_t val = 0;
-    whal_Reg_Get(portBase, GPIOx_ODR_REG, WHAL_MASK(5), &val);
+    whal_Reg_Get(portBase, GPIOx_ODR_REG, (1UL << 5), 5, &val);
     WHAL_ASSERT_EQ(val, 0);
 }
 

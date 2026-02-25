@@ -19,12 +19,12 @@ static void test_clock_enable_disable(void)
 
     /* Readback: GPIOA enable bit should be set in AHB2ENR (offset 0x4C, bit 0) */
     size_t val = 0;
-    whal_Reg_Get(g_whalClock.regmap.base, 0x4C, (1 << 0), &val);
+    whal_Reg_Get(g_whalClock.regmap.base, 0x4C, (1 << 0), 0, &val);
     WHAL_ASSERT_EQ(val, 1);
 
     WHAL_ASSERT_EQ(whal_Clock_Disable(&g_whalClock, &testClk), WHAL_SUCCESS);
 
-    whal_Reg_Get(g_whalClock.regmap.base, 0x4C, (1 << 0), &val);
+    whal_Reg_Get(g_whalClock.regmap.base, 0x4C, (1 << 0), 0, &val);
     WHAL_ASSERT_EQ(val, 0);
 }
 
