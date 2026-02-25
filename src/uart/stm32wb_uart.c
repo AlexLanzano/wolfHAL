@@ -6,24 +6,24 @@
 #include <wolfHAL/regmap.h>
 #include <wolfHAL/bitops.h>
 
-#define STUART_CR1_REG 0x00
-#define STUART_CR1_UE WHAL_MASK(0)
-#define STUART_CR1_RE WHAL_MASK(2)
-#define STUART_CR1_TE WHAL_MASK(3)
+#define UART_CR1_REG 0x00
+#define UART_CR1_UE WHAL_MASK(0)
+#define UART_CR1_RE WHAL_MASK(2)
+#define UART_CR1_TE WHAL_MASK(3)
 
-#define STUART_BRR_REG 0x0C
-#define STUART_BRR_BRR_MASK WHAL_MASK_RANGE(19, 0)
+#define UART_BRR_REG 0x0C
+#define UART_BRR_BRR_MASK WHAL_MASK_RANGE(19, 0)
 
-#define STUART_ISR_REG 0x1C
-#define STUART_ISR_RXFNE_MASK WHAL_MASK(5)
-#define STUART_ISR_TC_MASK WHAL_MASK(6)
-#define STUART_ISR_TXE_MASK WHAL_MASK(7)
+#define UART_ISR_REG 0x1C
+#define UART_ISR_RXFNE_MASK WHAL_MASK(5)
+#define UART_ISR_TC_MASK WHAL_MASK(6)
+#define UART_ISR_TXE_MASK WHAL_MASK(7)
 
-#define STUART_RDR_REG 0x24
-#define STUART_RDR_RDR_MASK WHAL_MASK_RANGE(8, 0)
+#define UART_RDR_REG 0x24
+#define UART_RDR_RDR_MASK WHAL_MASK_RANGE(8, 0)
 
-#define STUART_TDR_REG 0x28
-#define STUART_TDR_TDR_MASK WHAL_MASK_RANGE(8, 0)
+#define UART_TDR_REG 0x28
+#define UART_TDR_TDR_MASK WHAL_MASK_RANGE(8, 0)
 
 whal_Error whal_Stm32wbUart_Init(whal_Uart *uartDev)
 {
@@ -47,14 +47,14 @@ whal_Error whal_Stm32wbUart_Init(whal_Uart *uartDev)
 
     brr = (clockFreq / cfg->baud);
     
-    whal_Reg_Update(reg->base, STUART_BRR_REG,
-                    STUART_BRR_BRR_MASK,
-                    whal_SetBits(STUART_BRR_BRR_MASK, brr));
-    whal_Reg_Update(reg->base, STUART_CR1_REG,
-                    STUART_CR1_UE | STUART_CR1_RE | STUART_CR1_TE,
-                    whal_SetBits(STUART_CR1_UE, 1) |
-                    whal_SetBits(STUART_CR1_RE, 1) |
-                    whal_SetBits(STUART_CR1_TE, 1));
+    whal_Reg_Update(reg->base, UART_BRR_REG,
+                    UART_BRR_BRR_MASK,
+                    whal_SetBits(UART_BRR_BRR_MASK, brr));
+    whal_Reg_Update(reg->base, UART_CR1_REG,
+                    UART_CR1_UE | UART_CR1_RE | UART_CR1_TE,
+                    whal_SetBits(UART_CR1_UE, 1) |
+                    whal_SetBits(UART_CR1_RE, 1) |
+                    whal_SetBits(UART_CR1_TE, 1));
     
     return WHAL_SUCCESS;
 }
@@ -81,14 +81,14 @@ whal_Error whal_Stm32wbLpuart_Init(whal_Uart *uartDev)
 
     brr = (clockFreq / cfg->baud) * 256;
     
-    whal_Reg_Update(reg->base, STUART_BRR_REG,
-                    STUART_BRR_BRR_MASK,
-                    whal_SetBits(STUART_BRR_BRR_MASK, brr));
-    whal_Reg_Update(reg->base, STUART_CR1_REG,
-                    STUART_CR1_UE | STUART_CR1_RE | STUART_CR1_TE,
-                    whal_SetBits(STUART_CR1_UE, 1) |
-                    whal_SetBits(STUART_CR1_RE, 1) |
-                    whal_SetBits(STUART_CR1_TE, 1));
+    whal_Reg_Update(reg->base, UART_BRR_REG,
+                    UART_BRR_BRR_MASK,
+                    whal_SetBits(UART_BRR_BRR_MASK, brr));
+    whal_Reg_Update(reg->base, UART_CR1_REG,
+                    UART_CR1_UE | UART_CR1_RE | UART_CR1_TE,
+                    whal_SetBits(UART_CR1_UE, 1) |
+                    whal_SetBits(UART_CR1_RE, 1) |
+                    whal_SetBits(UART_CR1_TE, 1));
     
     return WHAL_SUCCESS;
 }
@@ -99,15 +99,15 @@ whal_Error whal_Stm32wbUart_Deinit(whal_Uart *uartDev)
     const whal_Regmap *reg = &uartDev->regmap;
     whal_Stm32wbUart_Cfg *cfg = (whal_Stm32wbUart_Cfg *)uartDev->cfg;
 
-    whal_Reg_Update(reg->base, STUART_CR1_REG,
-                    STUART_CR1_UE | STUART_CR1_RE | STUART_CR1_TE,
-                    whal_SetBits(STUART_CR1_UE, 0) |
-                    whal_SetBits(STUART_CR1_RE, 0) |
-                    whal_SetBits(STUART_CR1_TE, 0));
+    whal_Reg_Update(reg->base, UART_CR1_REG,
+                    UART_CR1_UE | UART_CR1_RE | UART_CR1_TE,
+                    whal_SetBits(UART_CR1_UE, 0) |
+                    whal_SetBits(UART_CR1_RE, 0) |
+                    whal_SetBits(UART_CR1_TE, 0));
 
-    whal_Reg_Update(reg->base, STUART_BRR_REG,
-                          STUART_BRR_BRR_MASK,
-                          whal_SetBits(STUART_BRR_BRR_MASK, 0));
+    whal_Reg_Update(reg->base, UART_BRR_REG,
+                          UART_BRR_BRR_MASK,
+                          whal_SetBits(UART_BRR_BRR_MASK, 0));
 
     err = whal_Clock_Disable(cfg->clkCtrl, cfg->clk);
     if (err) {
@@ -124,11 +124,11 @@ whal_Error whal_Stm32wbUart_Send(whal_Uart *uartDev, const uint8_t *data, size_t
     for (size_t i = 0; i < dataSz; ++i) {
         size_t txComplete = 0;
 
-        whal_Reg_Update(reg->base, STUART_TDR_REG, STUART_TDR_TDR_MASK, 
-                        whal_SetBits(STUART_TDR_TDR_MASK, data[i]));
+        whal_Reg_Update(reg->base, UART_TDR_REG, UART_TDR_TDR_MASK, 
+                        whal_SetBits(UART_TDR_TDR_MASK, data[i]));
 
         while (!txComplete) {
-            whal_Reg_Get(reg->base, STUART_ISR_REG, STUART_ISR_TC_MASK, &txComplete);
+            whal_Reg_Get(reg->base, UART_ISR_REG, UART_ISR_TC_MASK, &txComplete);
         }
     }
 
@@ -144,11 +144,11 @@ whal_Error whal_Stm32wbUart_Recv(whal_Uart *uartDev, uint8_t *data, size_t dataS
         size_t dataReceived = 0;
 
         while (!dataReceived) {
-            whal_Reg_Get(reg->base, STUART_ISR_REG, STUART_ISR_RXFNE_MASK, &dataReceived);
+            whal_Reg_Get(reg->base, UART_ISR_REG, UART_ISR_RXFNE_MASK, &dataReceived);
         }
 
-        whal_Reg_Get(reg->base, STUART_RDR_REG, 
-                     STUART_RDR_RDR_MASK, &d);
+        whal_Reg_Get(reg->base, UART_RDR_REG, 
+                     UART_RDR_RDR_MASK, &d);
 
         data[i] = d;
     }

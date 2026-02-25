@@ -13,62 +13,62 @@
  */
 
 /* OSCCTRL - Oscillator Controller (base offset 0x00000) */
-#define PIC32CZ_OSCCTRL 0x00000
+#define OSCCTRL 0x00000
 
 /* PLL Control Register - enables PLL and selects reference/bandwidth */
-#define PIC32CZ_OSCCTRL_PLLxCTRL_REG(pllInst) (0x40 + (pllInst * 20))
-#define PIC32CZ_OSCCTRL_PLLxCTRL_ENABLE WHAL_MASK(1)         /* PLL enable */
-#define PIC32CZ_OSCCTRL_PLLxCTRL_REFSEL WHAL_MASK_RANGE(10, 8) /* Reference select */
-#define PIC32CZ_OSCCTRL_PLLxCTRL_BWSEL WHAL_MASK_RANGE(13, 11) /* Bandwidth select */
+#define OSCCTRL_PLLxCTRL_REG(pllInst) (0x40 + (pllInst * 20))
+#define OSCCTRL_PLLxCTRL_ENABLE WHAL_MASK(1)         /* PLL enable */
+#define OSCCTRL_PLLxCTRL_REFSEL WHAL_MASK_RANGE(10, 8) /* Reference select */
+#define OSCCTRL_PLLxCTRL_BWSEL WHAL_MASK_RANGE(13, 11) /* Bandwidth select */
 
 /* PLL Feedback Divider Register - sets VCO multiplication factor */
-#define PIC32CZ_OSCCTRL_PLLxFBDIV_REG(pllInst) (0x44 + (pllInst * 20))
-#define PIC32CZ_OSCCTRL_PLLxFBDIV WHAL_MASK_RANGE(9, 0) /* Feedback divider (16-1023) */
+#define OSCCTRL_PLLxFBDIV_REG(pllInst) (0x44 + (pllInst * 20))
+#define OSCCTRL_PLLxFBDIV WHAL_MASK_RANGE(9, 0) /* Feedback divider (16-1023) */
 
 /* PLL Reference Divider Register - divides input reference clock */
-#define PIC32CZ_OSCCTRL_PLLxREFDIV_REG(pllInst) (0x48 + (pllInst * 20))
-#define PIC32CZ_OSCCTRL_PLLxREFDIV WHAL_MASK_RANGE(5, 0) /* Reference divider (1-63) */
+#define OSCCTRL_PLLxREFDIV_REG(pllInst) (0x48 + (pllInst * 20))
+#define OSCCTRL_PLLxREFDIV WHAL_MASK_RANGE(5, 0) /* Reference divider (1-63) */
 
 /* PLL Post-Divider A Register - divides VCO for each output */
-#define PIC32CZ_OSCCTRL_PLLxPOSTDIVA_REG(pllInst) (0x4C + (pllInst * 20))
-#define PIC32CZ_OSCCTRL_PLLxPOSTDIVA_POSTDIV0 WHAL_MASK_RANGE(5, 0) /* Output 0 divider */
-#define PIC32CZ_OSCCTRL_PLLxPOSTDIVA_OUTEN0 WHAL_MASK(7)            /* Output 0 enable */
+#define OSCCTRL_PLLxPOSTDIVA_REG(pllInst) (0x4C + (pllInst * 20))
+#define OSCCTRL_PLLxPOSTDIVA_POSTDIV0 WHAL_MASK_RANGE(5, 0) /* Output 0 divider */
+#define OSCCTRL_PLLxPOSTDIVA_OUTEN0 WHAL_MASK(7)            /* Output 0 enable */
 
 /* OSCCTRL Status Register - PLL lock and oscillator ready flags */
-#define PIC32CZ_OSCCTRL_STATUS_REG (PIC32CZ_OSCCTRL + 0x10)
-#define PIC32CZ_OSCCTRL_STATUS_PLLxLOCK(pllInst) WHAL_MASK((24 + (pllInst)))
+#define OSCCTRL_STATUS_REG (OSCCTRL + 0x10)
+#define OSCCTRL_STATUS_PLLxLOCK(pllInst) WHAL_MASK((24 + (pllInst)))
 
 /* GCLK - Generic Clock Controller (base offset 0x10000) */
-#define PIC32CZ_GCLK 0x10000
+#define GCLK 0x10000
 
 /* Generator Control Register - configures clock source and divider per generator */
-#define PIC32CZ_GCLK_GENCTRLx_REG(gclkInst) ((PIC32CZ_GCLK + 0x20 + (gclkInst * 0x4)))
-#define PIC32CZ_GCLK_GENCTRLx_SRC WHAL_MASK_RANGE(4, 0)   /* Source selection */
-#define PIC32CZ_GCLK_GENCTRLx_GENEN WHAL_MASK(8)          /* Generator enable */
-#define PIC32CZ_GCLK_GENCTRLx_DIV WHAL_MASK_RANGE(31, 16) /* Division factor */
+#define GCLK_GENCTRLx_REG(gclkInst) ((GCLK + 0x20 + (gclkInst * 0x4)))
+#define GCLK_GENCTRLx_SRC WHAL_MASK_RANGE(4, 0)   /* Source selection */
+#define GCLK_GENCTRLx_GENEN WHAL_MASK(8)          /* Generator enable */
+#define GCLK_GENCTRLx_DIV WHAL_MASK_RANGE(31, 16) /* Division factor */
 
 /* Peripheral Channel Control Register - connects generator to peripheral */
-#define PIC32CZ_GCLK_PCHCTRLx_REG(periphChannel) (PIC32CZ_GCLK + 0x80 + (periphChannel * 0x4))
-#define PIC32CZ_GCLK_PCHCTRLx_GEN WHAL_MASK_RANGE(3, 0) /* Generator selection */
-#define PIC32CZ_GCLK_PCHCTRLx_CHEN WHAL_MASK(6)         /* Channel enable */
+#define GCLK_PCHCTRLx_REG(periphChannel) (GCLK + 0x80 + (periphChannel * 0x4))
+#define GCLK_PCHCTRLx_GEN WHAL_MASK_RANGE(3, 0) /* Generator selection */
+#define GCLK_PCHCTRLx_CHEN WHAL_MASK(6)         /* Channel enable */
 
 /* GCLK Synchronization Busy Register - poll after writing GENCTRLx */
-#define PIC32CZ_GCLK_SYNCBUSY_REG (PIC32CZ_GCLK + 0x04)
-#define PIC32CZ_GCLK_SYNCBUSY_GENCTRLx(gclkInst) WHAL_MASK((2 + (gclkInst)))
+#define GCLK_SYNCBUSY_REG (GCLK + 0x04)
+#define GCLK_SYNCBUSY_GENCTRLx(gclkInst) WHAL_MASK((2 + (gclkInst)))
 
 /* MCLK - Main Clock Controller (base offset 0x12000) */
-#define PIC32CZ_MCLK 0x12000
+#define MCLK 0x12000
 
 /* MCLK Interrupt Flag Register - clock ready status */
-#define PIC32CZ_MCLK_INTFLAG_REG (PIC32CZ_MCLK + 0x08)
-#define PIC32CZ_MCLK_INTFLAG_CKRDY WHAL_MASK(0) /* Clock ready */
+#define MCLK_INTFLAG_REG (MCLK + 0x08)
+#define MCLK_INTFLAG_CKRDY WHAL_MASK(0) /* Clock ready */
 
 /* CPU Clock Divider Register */
-#define PIC32CZ_MCLK_DIV1_REG (PIC32CZ_MCLK + 0x10)
-#define PIC32CZ_MCLK_DIV1 WHAL_MASK_RANGE(7, 0) /* CPU clock divider */
+#define MCLK_DIV1_REG (MCLK + 0x10)
+#define MCLK_DIV1 WHAL_MASK_RANGE(7, 0) /* CPU clock divider */
 
 /* Peripheral Clock Mask Registers - enable/disable bus clocks to peripherals */
-#define PIC32CZ_MCLK_CLKxMSK_REG(enableInst) (PIC32CZ_MCLK + 0x3C + (enableInst * 0x4))
+#define MCLK_CLKxMSK_REG(enableInst) (MCLK + 0x3C + (enableInst * 0x4))
 
 /*
  * Example configuration for 150MHz CPU clock from DFLL48M:
@@ -132,21 +132,21 @@ whal_Error whal_Pic32czClockPll_Init(whal_Clock *clkDev)
     mclkCfg = cfg->mclkCfg;
 
     /* Calculate register addresses for the selected PLL instance */
-    PLLxCTRL_REG = PIC32CZ_OSCCTRL_PLLxCTRL_REG(oscCtrlCfg->pllInst);
-    PLLxFBDIV_REG = PIC32CZ_OSCCTRL_PLLxFBDIV_REG(oscCtrlCfg->pllInst);
-    PLLxREFDIV_REG = PIC32CZ_OSCCTRL_PLLxREFDIV_REG(oscCtrlCfg->pllInst);
-    PLLxPOSTDIVA_REG = PIC32CZ_OSCCTRL_PLLxPOSTDIVA_REG(oscCtrlCfg->pllInst);
+    PLLxCTRL_REG = OSCCTRL_PLLxCTRL_REG(oscCtrlCfg->pllInst);
+    PLLxFBDIV_REG = OSCCTRL_PLLxFBDIV_REG(oscCtrlCfg->pllInst);
+    PLLxREFDIV_REG = OSCCTRL_PLLxREFDIV_REG(oscCtrlCfg->pllInst);
+    PLLxPOSTDIVA_REG = OSCCTRL_PLLxPOSTDIVA_REG(oscCtrlCfg->pllInst);
 
     /* Enable power supply for the PLL */
     whal_Supply_Enable(oscCtrlCfg->supplyCtrl, oscCtrlCfg->supply);
 
     /* Configure PLL feedback divider (sets VCO multiplication factor) */
-    whal_Reg_Update(clkDev->regmap.base, PLLxFBDIV_REG, PIC32CZ_OSCCTRL_PLLxFBDIV,
-                    whal_SetBits(PIC32CZ_OSCCTRL_PLLxFBDIV, oscCtrlCfg->fbDiv));
+    whal_Reg_Update(clkDev->regmap.base, PLLxFBDIV_REG, OSCCTRL_PLLxFBDIV,
+                    whal_SetBits(OSCCTRL_PLLxFBDIV, oscCtrlCfg->fbDiv));
 
     /* Configure PLL reference divider (divides input clock before PLL) */
-    whal_Reg_Update(clkDev->regmap.base, PLLxREFDIV_REG, PIC32CZ_OSCCTRL_PLLxREFDIV,
-                    whal_SetBits(PIC32CZ_OSCCTRL_PLLxREFDIV, oscCtrlCfg->refDiv));
+    whal_Reg_Update(clkDev->regmap.base, PLLxREFDIV_REG, OSCCTRL_PLLxREFDIV,
+                    whal_SetBits(OSCCTRL_PLLxREFDIV, oscCtrlCfg->refDiv));
 
     /* Configure each PLL output with its post-divider and enable it */
     for (uint8_t i = 0; i < oscCtrlCfg->outCfgCount; ++i) {
@@ -159,40 +159,40 @@ whal_Error whal_Pic32czClockPll_Init(whal_Clock *clkDev)
 
     /* Enable PLL with selected reference source and loop filter bandwidth */
     whal_Reg_Update(clkDev->regmap.base, PLLxCTRL_REG,
-                    PIC32CZ_OSCCTRL_PLLxCTRL_ENABLE | PIC32CZ_OSCCTRL_PLLxCTRL_REFSEL | PIC32CZ_OSCCTRL_PLLxCTRL_BWSEL,
-                    whal_SetBits(PIC32CZ_OSCCTRL_PLLxCTRL_ENABLE, 1) |
-                    whal_SetBits(PIC32CZ_OSCCTRL_PLLxCTRL_REFSEL, oscCtrlCfg->refSel) |
-                    whal_SetBits(PIC32CZ_OSCCTRL_PLLxCTRL_BWSEL, oscCtrlCfg->bwSel));
+                    OSCCTRL_PLLxCTRL_ENABLE | OSCCTRL_PLLxCTRL_REFSEL | OSCCTRL_PLLxCTRL_BWSEL,
+                    whal_SetBits(OSCCTRL_PLLxCTRL_ENABLE, 1) |
+                    whal_SetBits(OSCCTRL_PLLxCTRL_REFSEL, oscCtrlCfg->refSel) |
+                    whal_SetBits(OSCCTRL_PLLxCTRL_BWSEL, oscCtrlCfg->bwSel));
 
     /* Wait for PLL to lock */
     do {
-        whal_Reg_Get(clkDev->regmap.base, PIC32CZ_OSCCTRL_STATUS_REG,
-                     PIC32CZ_OSCCTRL_STATUS_PLLxLOCK(oscCtrlCfg->pllInst), &status);
+        whal_Reg_Get(clkDev->regmap.base, OSCCTRL_STATUS_REG,
+                     OSCCTRL_STATUS_PLLxLOCK(oscCtrlCfg->pllInst), &status);
     } while (!status);
 
     /* Configure CPU clock divider in MCLK */
-    whal_Reg_Update(clkDev->regmap.base, PIC32CZ_MCLK_DIV1_REG, PIC32CZ_MCLK_DIV1,
-                    whal_SetBits(PIC32CZ_MCLK_DIV1, mclkCfg->div));
+    whal_Reg_Update(clkDev->regmap.base, MCLK_DIV1_REG, MCLK_DIV1,
+                    whal_SetBits(MCLK_DIV1, mclkCfg->div));
 
     /* Wait for clock divider change to take effect */
     do {
-        whal_Reg_Get(clkDev->regmap.base, PIC32CZ_MCLK_INTFLAG_REG,
-                     PIC32CZ_MCLK_INTFLAG_CKRDY, &status);
+        whal_Reg_Get(clkDev->regmap.base, MCLK_INTFLAG_REG,
+                     MCLK_INTFLAG_CKRDY, &status);
     } while (!status);
 
     /* Configure each GCLK generator with its source and divider */
     for (uint8_t i = 0; i < cfg->gclkCfgCount; ++i) {
         whal_Pic32czClock_GclkCfg *gclkCfg = &cfg->gclkCfg[i];
-        whal_Reg_Update(clkDev->regmap.base, PIC32CZ_GCLK_GENCTRLx_REG(gclkCfg->gen),
-                        PIC32CZ_GCLK_GENCTRLx_SRC | PIC32CZ_GCLK_GENCTRLx_GENEN | PIC32CZ_GCLK_GENCTRLx_DIV,
-                        whal_SetBits(PIC32CZ_GCLK_GENCTRLx_SRC, gclkCfg->genSrc) |
-                        whal_SetBits(PIC32CZ_GCLK_GENCTRLx_GENEN, 1) |
-                        whal_SetBits(PIC32CZ_GCLK_GENCTRLx_DIV, gclkCfg->genDiv));
+        whal_Reg_Update(clkDev->regmap.base, GCLK_GENCTRLx_REG(gclkCfg->gen),
+                        GCLK_GENCTRLx_SRC | GCLK_GENCTRLx_GENEN | GCLK_GENCTRLx_DIV,
+                        whal_SetBits(GCLK_GENCTRLx_SRC, gclkCfg->genSrc) |
+                        whal_SetBits(GCLK_GENCTRLx_GENEN, 1) |
+                        whal_SetBits(GCLK_GENCTRLx_DIV, gclkCfg->genDiv));
 
         /* Wait for generator synchronization */
         do {
-            whal_Reg_Get(clkDev->regmap.base, PIC32CZ_GCLK_SYNCBUSY_REG,
-                         PIC32CZ_GCLK_SYNCBUSY_GENCTRLx(gclkCfg->gen), &status);
+            whal_Reg_Get(clkDev->regmap.base, GCLK_SYNCBUSY_REG,
+                         GCLK_SYNCBUSY_GENCTRLx(gclkCfg->gen), &status);
         } while (status);
     }
 
@@ -223,13 +223,13 @@ whal_Error whal_Pic32czClock_Enable(whal_Clock *clkDev, const void *clk)
      */
 
     /* Enable GCLK peripheral channel and connect to specified generator */
-    whal_Reg_Update(clkDev->regmap.base, PIC32CZ_GCLK_PCHCTRLx_REG(pic32Clk->gclkPeriphChannel),
-                    PIC32CZ_GCLK_PCHCTRLx_GEN | PIC32CZ_GCLK_PCHCTRLx_CHEN,
-                    whal_SetBits(PIC32CZ_GCLK_PCHCTRLx_GEN, pic32Clk->gclkPeriphSrc) |
-                    whal_SetBits(PIC32CZ_GCLK_PCHCTRLx_CHEN, 1));
+    whal_Reg_Update(clkDev->regmap.base, GCLK_PCHCTRLx_REG(pic32Clk->gclkPeriphChannel),
+                    GCLK_PCHCTRLx_GEN | GCLK_PCHCTRLx_CHEN,
+                    whal_SetBits(GCLK_PCHCTRLx_GEN, pic32Clk->gclkPeriphSrc) |
+                    whal_SetBits(GCLK_PCHCTRLx_CHEN, 1));
 
     /* Enable bus clock for peripheral in MCLK mask register */
-    whal_Reg_Update(clkDev->regmap.base, PIC32CZ_MCLK_CLKxMSK_REG(pic32Clk->mclkEnableInst),
+    whal_Reg_Update(clkDev->regmap.base, MCLK_CLKxMSK_REG(pic32Clk->mclkEnableInst),
                     pic32Clk->mclkEnableMask,
                     whal_SetBits(pic32Clk->mclkEnableMask, 1));
 
@@ -245,15 +245,15 @@ whal_Error whal_Pic32czClock_Disable(whal_Clock *clkDev, const void *clk)
     }
 
     /* Disable bus clock for peripheral in MCLK mask register */
-    whal_Reg_Update(clkDev->regmap.base, PIC32CZ_MCLK_CLKxMSK_REG(pic32Clk->mclkEnableInst),
+    whal_Reg_Update(clkDev->regmap.base, MCLK_CLKxMSK_REG(pic32Clk->mclkEnableInst),
                     pic32Clk->mclkEnableMask,
                     whal_SetBits(pic32Clk->mclkEnableMask, 0));
 
     /* Disable GCLK peripheral channel */
-    whal_Reg_Update(clkDev->regmap.base, PIC32CZ_GCLK_PCHCTRLx_REG(pic32Clk->gclkPeriphChannel),
-                    PIC32CZ_GCLK_PCHCTRLx_GEN | PIC32CZ_GCLK_PCHCTRLx_CHEN,
-                    whal_SetBits(PIC32CZ_GCLK_PCHCTRLx_GEN, pic32Clk->gclkPeriphSrc) |
-                    whal_SetBits(PIC32CZ_GCLK_PCHCTRLx_CHEN, 0));
+    whal_Reg_Update(clkDev->regmap.base, GCLK_PCHCTRLx_REG(pic32Clk->gclkPeriphChannel),
+                    GCLK_PCHCTRLx_GEN | GCLK_PCHCTRLx_CHEN,
+                    whal_SetBits(GCLK_PCHCTRLx_GEN, pic32Clk->gclkPeriphSrc) |
+                    whal_SetBits(GCLK_PCHCTRLx_CHEN, 0));
 
     return WHAL_SUCCESS;
 }

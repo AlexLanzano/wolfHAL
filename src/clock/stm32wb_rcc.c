@@ -16,68 +16,68 @@
  */
 
 /* Clock Control Register - oscillator enables and status */
-#define ST_RCC_CR_REG 0x000
-#define ST_RCC_CR_MSIRANGE WHAL_MASK_RANGE(7, 4) /* MSI frequency range */
-#define ST_RCC_CR_HSION_MASK WHAL_MASK(8)        /* HSI enable */
-#define ST_RCC_CR_PLLON_MASK WHAL_MASK(24)       /* PLL enable */
+#define RCC_CR_REG 0x000
+#define RCC_CR_MSIRANGE WHAL_MASK_RANGE(7, 4) /* MSI frequency range */
+#define RCC_CR_HSION_MASK WHAL_MASK(8)        /* HSI enable */
+#define RCC_CR_PLLON_MASK WHAL_MASK(24)       /* PLL enable */
 
 /* Clock Configuration Register - clock source and prescaler selection */
-#define ST_RCC_CFGR_REG 0x008
-#define ST_RCC_CFGR_SW WHAL_MASK_RANGE(1, 0)       /* System clock switch */
-#define ST_RCC_CFGR_SWS WHAL_MASK_RANGE(3, 2)      /* System clock switch status */
-#define ST_RCC_CFGR_HPRE WHAL_MASK_RANGE(7, 4)     /* AHB prescaler */
-#define ST_RCC_CFGR_PPRE1 WHAL_MASK_RANGE(10, 8)   /* APB1 prescaler */
-#define ST_RCC_CFGR_PPRE2 WHAL_MASK_RANGE(13, 11)  /* APB2 prescaler */
-#define ST_RCC_CFGR_STOPWUCK WHAL_MASK(15)         /* Wakeup clock after stop */
-#define ST_RCC_CFGR_HPREF WHAL_MASK(16)            /* AHB prescaler flag */
-#define ST_RCC_CFGR_PPRE1F WHAL_MASK(17)           /* APB1 prescaler flag */
-#define ST_RCC_CFGR_PPRE2F WHAL_MASK(18)           /* APB2 prescaler flag */
-#define ST_RCC_CFGR_MCOSEL WHAL_MASK_RANGE(27, 24) /* MCO source selection */
-#define ST_RCC_CFGR_MCOPRE WHAL_MASK_RANGE(30, 28) /* MCO prescaler */
+#define RCC_CFGR_REG 0x008
+#define RCC_CFGR_SW WHAL_MASK_RANGE(1, 0)       /* System clock switch */
+#define RCC_CFGR_SWS WHAL_MASK_RANGE(3, 2)      /* System clock switch status */
+#define RCC_CFGR_HPRE WHAL_MASK_RANGE(7, 4)     /* AHB prescaler */
+#define RCC_CFGR_PPRE1 WHAL_MASK_RANGE(10, 8)   /* APB1 prescaler */
+#define RCC_CFGR_PPRE2 WHAL_MASK_RANGE(13, 11)  /* APB2 prescaler */
+#define RCC_CFGR_STOPWUCK WHAL_MASK(15)         /* Wakeup clock after stop */
+#define RCC_CFGR_HPREF WHAL_MASK(16)            /* AHB prescaler flag */
+#define RCC_CFGR_PPRE1F WHAL_MASK(17)           /* APB1 prescaler flag */
+#define RCC_CFGR_PPRE2F WHAL_MASK(18)           /* APB2 prescaler flag */
+#define RCC_CFGR_MCOSEL WHAL_MASK_RANGE(27, 24) /* MCO source selection */
+#define RCC_CFGR_MCOPRE WHAL_MASK_RANGE(30, 28) /* MCO prescaler */
 
 /* PLL Configuration Register */
-#define ST_RCC_PLLCFGR_REG 0x00C
-#define ST_RCC_PLLCFGR_PLLSRC_MASK WHAL_MASK_RANGE(1, 0)   /* PLL input source */
-#define ST_RCC_PLLCFGR_PLLM_MASK   WHAL_MASK_RANGE(6, 4)   /* PLL input divider */
-#define ST_RCC_PLLCFGR_PLLN_MASK   WHAL_MASK_RANGE(14, 8)  /* PLL VCO multiplier */
-#define ST_RCC_PLLCFGR_PLLP_MASK   WHAL_MASK_RANGE(21, 17) /* PLLP output divider */
-#define ST_RCC_PLLCFGR_PLLQ_MASK   WHAL_MASK_RANGE(27, 25) /* PLLQ output divider */
-#define ST_RCC_PLLCFGR_PLLREN_MASK WHAL_MASK(28)           /* PLLR output enable */
-#define ST_RCC_PLLCFGR_PLLR_MASK   WHAL_MASK_RANGE(31, 29) /* PLLR output divider */
+#define RCC_PLLCFGR_REG 0x00C
+#define RCC_PLLCFGR_PLLSRC_MASK WHAL_MASK_RANGE(1, 0)   /* PLL input source */
+#define RCC_PLLCFGR_PLLM_MASK   WHAL_MASK_RANGE(6, 4)   /* PLL input divider */
+#define RCC_PLLCFGR_PLLN_MASK   WHAL_MASK_RANGE(14, 8)  /* PLL VCO multiplier */
+#define RCC_PLLCFGR_PLLP_MASK   WHAL_MASK_RANGE(21, 17) /* PLLP output divider */
+#define RCC_PLLCFGR_PLLQ_MASK   WHAL_MASK_RANGE(27, 25) /* PLLQ output divider */
+#define RCC_PLLCFGR_PLLREN_MASK WHAL_MASK(28)           /* PLLR output enable */
+#define RCC_PLLCFGR_PLLR_MASK   WHAL_MASK_RANGE(31, 29) /* PLLR output divider */
 
-#define ST_RCC_PLLCFGR_MASK \
-        ST_RCC_PLLCFGR_PLLSRC_MASK | \
-        ST_RCC_PLLCFGR_PLLM_MASK | \
-        ST_RCC_PLLCFGR_PLLN_MASK | \
-        ST_RCC_PLLCFGR_PLLP_MASK | \
-        ST_RCC_PLLCFGR_PLLQ_MASK | \
-        ST_RCC_PLLCFGR_PLLREN_MASK | \
-        ST_RCC_PLLCFGR_PLLR_MASK
+#define RCC_PLLCFGR_MASK \
+        RCC_PLLCFGR_PLLSRC_MASK | \
+        RCC_PLLCFGR_PLLM_MASK | \
+        RCC_PLLCFGR_PLLN_MASK | \
+        RCC_PLLCFGR_PLLP_MASK | \
+        RCC_PLLCFGR_PLLQ_MASK | \
+        RCC_PLLCFGR_PLLREN_MASK | \
+        RCC_PLLCFGR_PLLR_MASK
 
 /* AHB2 Peripheral Clock Enable Register */
-#define ST_RCC_AHB2ENR_REG 0x04C
-#define ST_RCC_AHB2ENR_GPIOAEN WHAL_MASK(0)  /* GPIOA clock enable */
-#define ST_RCC_AHB2ENR_GPIOBEN WHAL_MASK(1)  /* GPIOB clock enable */
-#define ST_RCC_AHB2ENR_GPIOCEN WHAL_MASK(2)  /* GPIOC clock enable */
-#define ST_RCC_AHB2ENR_GPIODEN WHAL_MASK(3)  /* GPIOD clock enable */
-#define ST_RCC_AHB2ENR_GPIOEEN WHAL_MASK(4)  /* GPIOE clock enable */
-#define ST_RCC_AHB2ENR_GPIOHEN WHAL_MASK(7)  /* GPIOH clock enable */
-#define ST_RCC_AHB2ENR_ADCEN   WHAL_MASK(13) /* ADC clock enable */
-#define ST_RCC_AHB2ENR_AES1EN  WHAL_MASK(16) /* AES1 clock enable */
+#define RCC_AHB2ENR_REG 0x04C
+#define RCC_AHB2ENR_GPIOAEN WHAL_MASK(0)  /* GPIOA clock enable */
+#define RCC_AHB2ENR_GPIOBEN WHAL_MASK(1)  /* GPIOB clock enable */
+#define RCC_AHB2ENR_GPIOCEN WHAL_MASK(2)  /* GPIOC clock enable */
+#define RCC_AHB2ENR_GPIODEN WHAL_MASK(3)  /* GPIOD clock enable */
+#define RCC_AHB2ENR_GPIOEEN WHAL_MASK(4)  /* GPIOE clock enable */
+#define RCC_AHB2ENR_GPIOHEN WHAL_MASK(7)  /* GPIOH clock enable */
+#define RCC_AHB2ENR_ADCEN   WHAL_MASK(13) /* ADC clock enable */
+#define RCC_AHB2ENR_AES1EN  WHAL_MASK(16) /* AES1 clock enable */
 
 /* AHB3 Peripheral Clock Enable Register */
-#define ST_RCC_AHB3ENR_REG 0x50
-#define ST_RCC_AHB3ENR_FLASHEN WHAL_MASK(25) /* Flash interface clock enable */
+#define RCC_AHB3ENR_REG 0x50
+#define RCC_AHB3ENR_FLASHEN WHAL_MASK(25) /* Flash interface clock enable */
 
 /* APB1 Peripheral Clock Enable Register 2 */
-#define ST_RCC_APB1ENR2_REG 0x05C
-#define ST_RCC_APB1ENR2_LPUART1EN WHAL_MASK(0) /* LPUART1 clock enable */
-#define ST_RCC_APB1ENR2_LPTIM2EN  WHAL_MASK(5) /* LPTIM2 clock enable */
+#define RCC_APB1ENR2_REG 0x05C
+#define RCC_APB1ENR2_LPUART1EN WHAL_MASK(0) /* LPUART1 clock enable */
+#define RCC_APB1ENR2_LPTIM2EN  WHAL_MASK(5) /* LPTIM2 clock enable */
 
 /* Clock Recovery RC Register - HSI48 oscillator control */
-#define ST_RCC_CRRCR_REG 0x098
-#define ST_RCC_CRRCR_HSI48ON_MASK  WHAL_MASK(0) /* HSI48 oscillator enable */
-#define ST_RCC_CRRCR_HSI48RDY_MASK WHAL_MASK(1) /* HSI48 oscillator ready */
+#define RCC_CRRCR_REG 0x098
+#define RCC_CRRCR_HSI48ON_MASK  WHAL_MASK(0) /* HSI48 oscillator enable */
+#define RCC_CRRCR_HSI48RDY_MASK WHAL_MASK(1) /* HSI48 oscillator ready */
 
 whal_Error whal_Stm32wbRccPll_Init(whal_Clock *clkDev)
 {
@@ -101,24 +101,24 @@ whal_Error whal_Stm32wbRccPll_Init(whal_Clock *clkDev)
     }
 
     /* Select system clock source (PLL in this case) */
-    whal_Reg_Update(clkDev->regmap.base, ST_RCC_CFGR_REG, ST_RCC_CFGR_SW,
-                    whal_SetBits(ST_RCC_CFGR_SW, cfg->sysClkSrc));
+    whal_Reg_Update(clkDev->regmap.base, RCC_CFGR_REG, RCC_CFGR_SW,
+                    whal_SetBits(RCC_CFGR_SW, cfg->sysClkSrc));
 
     /* Configure PLL: source, dividers, and multiplier */
     whal_Reg_Update(clkDev->regmap.base,
-                    ST_RCC_PLLCFGR_REG, ST_RCC_PLLCFGR_MASK,
-                    whal_SetBits(ST_RCC_PLLCFGR_PLLSRC_MASK, pllCfg->clkSrc) |
-                    whal_SetBits(ST_RCC_PLLCFGR_PLLM_MASK, pllCfg->m) |
-                    whal_SetBits(ST_RCC_PLLCFGR_PLLN_MASK, pllCfg->n) |
-                    whal_SetBits(ST_RCC_PLLCFGR_PLLP_MASK, pllCfg->p) |
-                    whal_SetBits(ST_RCC_PLLCFGR_PLLQ_MASK, pllCfg->q) |
-                    whal_SetBits(ST_RCC_PLLCFGR_PLLREN_MASK, 1) |
-                    whal_SetBits(ST_RCC_PLLCFGR_PLLR_MASK, pllCfg->r));
+                    RCC_PLLCFGR_REG, RCC_PLLCFGR_MASK,
+                    whal_SetBits(RCC_PLLCFGR_PLLSRC_MASK, pllCfg->clkSrc) |
+                    whal_SetBits(RCC_PLLCFGR_PLLM_MASK, pllCfg->m) |
+                    whal_SetBits(RCC_PLLCFGR_PLLN_MASK, pllCfg->n) |
+                    whal_SetBits(RCC_PLLCFGR_PLLP_MASK, pllCfg->p) |
+                    whal_SetBits(RCC_PLLCFGR_PLLQ_MASK, pllCfg->q) |
+                    whal_SetBits(RCC_PLLCFGR_PLLREN_MASK, 1) |
+                    whal_SetBits(RCC_PLLCFGR_PLLR_MASK, pllCfg->r));
 
     /* Enable the PLL */
-    whal_Reg_Update(clkDev->regmap.base, ST_RCC_CR_REG,
-                    ST_RCC_CR_PLLON_MASK,
-                    whal_SetBits(ST_RCC_CR_PLLON_MASK, 1));
+    whal_Reg_Update(clkDev->regmap.base, RCC_CR_REG,
+                    RCC_CR_PLLON_MASK,
+                    whal_SetBits(RCC_CR_PLLON_MASK, 1));
 
     return WHAL_SUCCESS;
 }
@@ -142,12 +142,12 @@ whal_Error whal_Stm32wbRccMsi_Init(whal_Clock *clkDev)
     }
 
     /* Select MSI as system clock source */
-    whal_Reg_Update(clkDev->regmap.base, ST_RCC_CFGR_REG, ST_RCC_CFGR_SW,
-                    whal_SetBits(ST_RCC_CFGR_SW, WHAL_STM32WB_RCC_SYSCLK_SRC_MSI));
+    whal_Reg_Update(clkDev->regmap.base, RCC_CFGR_REG, RCC_CFGR_SW,
+                    whal_SetBits(RCC_CFGR_SW, WHAL_STM32WB_RCC_SYSCLK_SRC_MSI));
 
     /* Set MSI frequency range */
-    whal_Reg_Update(clkDev->regmap.base, ST_RCC_CR_REG, ST_RCC_CR_MSIRANGE,
-                    whal_SetBits(ST_RCC_CR_MSIRANGE, msiCfg->freq));
+    whal_Reg_Update(clkDev->regmap.base, RCC_CR_REG, RCC_CR_MSIRANGE,
+                    whal_SetBits(RCC_CR_MSIRANGE, msiCfg->freq));
 
     return WHAL_SUCCESS;
 }
@@ -163,17 +163,17 @@ whal_Error whal_Stm32wbRccPll_Deinit(whal_Clock *clkDev)
     cfg = (whal_Stm32wbRcc_Cfg *)clkDev->cfg;
 
     /* Switch back to MSI before disabling PLL */
-    whal_Reg_Update(clkDev->regmap.base, ST_RCC_CFGR_REG, ST_RCC_CFGR_SW,
-                    whal_SetBits(ST_RCC_CFGR_SW, WHAL_STM32WB_RCC_SYSCLK_SRC_MSI));
+    whal_Reg_Update(clkDev->regmap.base, RCC_CFGR_REG, RCC_CFGR_SW,
+                    whal_SetBits(RCC_CFGR_SW, WHAL_STM32WB_RCC_SYSCLK_SRC_MSI));
 
     /* Reset MSI to default 4 MHz */
-    whal_Reg_Update(clkDev->regmap.base, ST_RCC_CR_REG, ST_RCC_CR_MSIRANGE,
-                    whal_SetBits(ST_RCC_CR_MSIRANGE, WHAL_STM32WB_RCC_MSIRANGE_4MHz));
+    whal_Reg_Update(clkDev->regmap.base, RCC_CR_REG, RCC_CR_MSIRANGE,
+                    whal_SetBits(RCC_CR_MSIRANGE, WHAL_STM32WB_RCC_MSIRANGE_4MHz));
 
     /* Disable the PLL */
-    whal_Reg_Update(clkDev->regmap.base, ST_RCC_CR_REG,
-                    ST_RCC_CR_PLLON_MASK,
-                    whal_SetBits(ST_RCC_CR_PLLON_MASK, 0));
+    whal_Reg_Update(clkDev->regmap.base, RCC_CR_REG,
+                    RCC_CR_PLLON_MASK,
+                    whal_SetBits(RCC_CR_PLLON_MASK, 0));
 
     /* Reduce flash latency now that clock is slower */
     whal_Stm32wbFlash_Ext_SetLatency(cfg->flash, WHAL_STM32WB_FLASH_LATENCY_0);
@@ -191,11 +191,11 @@ whal_Error whal_Stm32wbRccMsi_Deinit(whal_Clock *clkDev)
 
     cfg = (whal_Stm32wbRcc_Cfg *)clkDev->cfg;
 
-    whal_Reg_Update(clkDev->regmap.base, ST_RCC_CFGR_REG, ST_RCC_CFGR_SW,
-                    whal_SetBits(ST_RCC_CFGR_SW, WHAL_STM32WB_RCC_SYSCLK_SRC_MSI));
+    whal_Reg_Update(clkDev->regmap.base, RCC_CFGR_REG, RCC_CFGR_SW,
+                    whal_SetBits(RCC_CFGR_SW, WHAL_STM32WB_RCC_SYSCLK_SRC_MSI));
 
-    whal_Reg_Update(clkDev->regmap.base, ST_RCC_CR_REG, ST_RCC_CR_MSIRANGE,
-                    whal_SetBits(ST_RCC_CR_MSIRANGE, WHAL_STM32WB_RCC_MSIRANGE_4MHz));
+    whal_Reg_Update(clkDev->regmap.base, RCC_CR_REG, RCC_CR_MSIRANGE,
+                    whal_SetBits(RCC_CR_MSIRANGE, WHAL_STM32WB_RCC_MSIRANGE_4MHz));
 
     whal_Stm32wbFlash_Ext_SetLatency(cfg->flash, WHAL_STM32WB_FLASH_LATENCY_0);
 
@@ -265,7 +265,7 @@ whal_Error whal_Stm32wbRccMsi_GetRate(whal_Clock *clkDev, size_t *rateOut)
     }
 
     /* Read current MSI range from hardware */
-    whal_Reg_Get(clkDev->regmap.base, ST_RCC_CR_REG, ST_RCC_CR_MSIRANGE, &msiRange);
+    whal_Reg_Get(clkDev->regmap.base, RCC_CR_REG, RCC_CR_MSIRANGE, &msiRange);
 
     /* Map range setting to frequency in Hz */
     switch (msiRange) {
@@ -316,14 +316,14 @@ whal_Error whal_Stm32wbRcc_Ext_EnableHsi48(whal_Clock *clkDev, uint8_t enable)
         return WHAL_EINVAL;
     }
 
-    whal_Reg_Update(clkDev->regmap.base, ST_RCC_CRRCR_REG, ST_RCC_CRRCR_HSI48ON_MASK,
-                    whal_SetBits(ST_RCC_CRRCR_HSI48ON_MASK, enable));
+    whal_Reg_Update(clkDev->regmap.base, RCC_CRRCR_REG, RCC_CRRCR_HSI48ON_MASK,
+                    whal_SetBits(RCC_CRRCR_HSI48ON_MASK, enable));
 
     if (enable) {
         size_t rdy;
         do {
-            whal_Reg_Get(clkDev->regmap.base, ST_RCC_CRRCR_REG,
-                         ST_RCC_CRRCR_HSI48RDY_MASK, &rdy);
+            whal_Reg_Get(clkDev->regmap.base, RCC_CRRCR_REG,
+                         RCC_CRRCR_HSI48RDY_MASK, &rdy);
         } while (!rdy);
     }
 
