@@ -1,0 +1,284 @@
+#include <stdint.h>
+#include <wolfHAL/wolfHAL.h>
+#include <wolfHAL/timer/timer.h>
+#include <wolfHAL/rng/rng.h>
+#include "../test.h"
+
+/*
+ * Mock drivers that return SUCCESS for all operations.
+ * Used to verify the generic dispatch layer.
+ */
+
+static whal_Error MockClockInit(whal_Clock *d) { (void)d; return WHAL_SUCCESS; }
+static whal_Error MockClockDeinit(whal_Clock *d) { (void)d; return WHAL_SUCCESS; }
+static whal_Error MockClockEnable(whal_Clock *d, const void *c) { (void)d; (void)c; return WHAL_SUCCESS; }
+static whal_Error MockClockDisable(whal_Clock *d, const void *c) { (void)d; (void)c; return WHAL_SUCCESS; }
+static whal_Error MockClockGetRate(whal_Clock *d, size_t *r) { (void)d; *r = 64000000; return WHAL_SUCCESS; }
+
+static const whal_ClockDriver mockClockDriver = {
+    .Init = MockClockInit,
+    .Deinit = MockClockDeinit,
+    .Enable = MockClockEnable,
+    .Disable = MockClockDisable,
+    .GetRate = MockClockGetRate,
+};
+
+static whal_Error MockGpioInit(whal_Gpio *d) { (void)d; return WHAL_SUCCESS; }
+static whal_Error MockGpioDeinit(whal_Gpio *d) { (void)d; return WHAL_SUCCESS; }
+static whal_Error MockGpioGet(whal_Gpio *d, size_t p, size_t *v) { (void)d; (void)p; *v = 1; return WHAL_SUCCESS; }
+static whal_Error MockGpioSet(whal_Gpio *d, size_t p, size_t v) { (void)d; (void)p; (void)v; return WHAL_SUCCESS; }
+
+static const whal_GpioDriver mockGpioDriver = {
+    .Init = MockGpioInit,
+    .Deinit = MockGpioDeinit,
+    .Get = MockGpioGet,
+    .Set = MockGpioSet,
+};
+
+static whal_Error MockUartInit(whal_Uart *d) { (void)d; return WHAL_SUCCESS; }
+static whal_Error MockUartDeinit(whal_Uart *d) { (void)d; return WHAL_SUCCESS; }
+static whal_Error MockUartSend(whal_Uart *d, const uint8_t *data, size_t sz) { (void)d; (void)data; (void)sz; return WHAL_SUCCESS; }
+static whal_Error MockUartRecv(whal_Uart *d, uint8_t *data, size_t sz) { (void)d; (void)data; (void)sz; return WHAL_SUCCESS; }
+
+static const whal_UartDriver mockUartDriver = {
+    .Init = MockUartInit,
+    .Deinit = MockUartDeinit,
+    .Send = MockUartSend,
+    .Recv = MockUartRecv,
+};
+
+static whal_Error MockFlashInit(whal_Flash *d) { (void)d; return WHAL_SUCCESS; }
+static whal_Error MockFlashDeinit(whal_Flash *d) { (void)d; return WHAL_SUCCESS; }
+static whal_Error MockFlashLock(whal_Flash *d, size_t a, size_t l) { (void)d; (void)a; (void)l; return WHAL_SUCCESS; }
+static whal_Error MockFlashUnlock(whal_Flash *d, size_t a, size_t l) { (void)d; (void)a; (void)l; return WHAL_SUCCESS; }
+static whal_Error MockFlashRead(whal_Flash *d, size_t a, uint8_t *data, size_t sz) { (void)d; (void)a; (void)data; (void)sz; return WHAL_SUCCESS; }
+static whal_Error MockFlashWrite(whal_Flash *d, size_t a, const uint8_t *data, size_t sz) { (void)d; (void)a; (void)data; (void)sz; return WHAL_SUCCESS; }
+static whal_Error MockFlashErase(whal_Flash *d, size_t a, size_t sz) { (void)d; (void)a; (void)sz; return WHAL_SUCCESS; }
+
+static const whal_FlashDriver mockFlashDriver = {
+    .Init = MockFlashInit,
+    .Deinit = MockFlashDeinit,
+    .Lock = MockFlashLock,
+    .Unlock = MockFlashUnlock,
+    .Read = MockFlashRead,
+    .Write = MockFlashWrite,
+    .Erase = MockFlashErase,
+};
+
+static whal_Error MockTimerInit(whal_Timer *d) { (void)d; return WHAL_SUCCESS; }
+static whal_Error MockTimerDeinit(whal_Timer *d) { (void)d; return WHAL_SUCCESS; }
+static whal_Error MockTimerStart(whal_Timer *d) { (void)d; return WHAL_SUCCESS; }
+static whal_Error MockTimerStop(whal_Timer *d) { (void)d; return WHAL_SUCCESS; }
+static whal_Error MockTimerReset(whal_Timer *d) { (void)d; return WHAL_SUCCESS; }
+
+static const whal_TimerDriver mockTimerDriver = {
+    .Init = MockTimerInit,
+    .Deinit = MockTimerDeinit,
+    .Start = MockTimerStart,
+    .Stop = MockTimerStop,
+    .Reset = MockTimerReset,
+};
+
+static whal_Error MockRngInit(whal_Rng *d) { (void)d; return WHAL_SUCCESS; }
+static whal_Error MockRngDeinit(whal_Rng *d) { (void)d; return WHAL_SUCCESS; }
+static whal_Error MockRngGenerate(whal_Rng *d, uint8_t *data, size_t sz) { (void)d; (void)data; (void)sz; return WHAL_SUCCESS; }
+
+static const whal_RngDriver mockRngDriver = {
+    .Init = MockRngInit,
+    .Deinit = MockRngDeinit,
+    .Generate = MockRngGenerate,
+};
+
+/* --- Clock dispatch tests --- */
+
+static void Test_Clock_NullDev(void)
+{
+    WHAL_ASSERT_EQ(whal_Clock_Init(NULL), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Clock_Deinit(NULL), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Clock_Enable(NULL, NULL), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Clock_Disable(NULL, NULL), WHAL_EINVAL);
+    size_t rate;
+    WHAL_ASSERT_EQ(whal_Clock_GetRate(NULL, &rate), WHAL_EINVAL);
+}
+
+static void Test_Clock_NullDriver(void)
+{
+    whal_Clock dev = { .driver = NULL };
+    WHAL_ASSERT_EQ(whal_Clock_Init(&dev), WHAL_EINVAL);
+}
+
+static void Test_Clock_NullVtableEntry(void)
+{
+    static const whal_ClockDriver emptyDriver = { 0 };
+    whal_Clock dev = { .driver = &emptyDriver };
+    WHAL_ASSERT_EQ(whal_Clock_Init(&dev), WHAL_EINVAL);
+}
+
+static void Test_Clock_ValidDispatch(void)
+{
+    whal_Clock dev = { .driver = &mockClockDriver };
+    WHAL_ASSERT_EQ(whal_Clock_Init(&dev), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Clock_Deinit(&dev), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Clock_Enable(&dev, NULL), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Clock_Disable(&dev, NULL), WHAL_SUCCESS);
+    size_t rate;
+    WHAL_ASSERT_EQ(whal_Clock_GetRate(&dev, &rate), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(rate, 64000000);
+}
+
+/* --- GPIO dispatch tests --- */
+
+static void Test_Gpio_NullDev(void)
+{
+    WHAL_ASSERT_EQ(whal_Gpio_Init(NULL), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Gpio_Set(NULL, 0, 0), WHAL_EINVAL);
+    size_t val;
+    WHAL_ASSERT_EQ(whal_Gpio_Get(NULL, 0, &val), WHAL_EINVAL);
+}
+
+static void Test_Gpio_NullDriver(void)
+{
+    whal_Gpio dev = { .driver = NULL };
+    WHAL_ASSERT_EQ(whal_Gpio_Init(&dev), WHAL_EINVAL);
+}
+
+static void Test_Gpio_ValidDispatch(void)
+{
+    whal_Gpio dev = { .driver = &mockGpioDriver };
+    WHAL_ASSERT_EQ(whal_Gpio_Init(&dev), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Gpio_Set(&dev, 0, 1), WHAL_SUCCESS);
+    size_t val;
+    WHAL_ASSERT_EQ(whal_Gpio_Get(&dev, 0, &val), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(val, 1);
+}
+
+/* --- UART dispatch tests --- */
+
+static void Test_Uart_NullDev(void)
+{
+    WHAL_ASSERT_EQ(whal_Uart_Init(NULL), WHAL_EINVAL);
+    uint8_t buf[1];
+    WHAL_ASSERT_EQ(whal_Uart_Send(NULL, buf, 1), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Uart_Recv(NULL, buf, 1), WHAL_EINVAL);
+}
+
+static void Test_Uart_NullDriver(void)
+{
+    whal_Uart dev = { .driver = NULL };
+    WHAL_ASSERT_EQ(whal_Uart_Init(&dev), WHAL_EINVAL);
+}
+
+static void Test_Uart_ValidDispatch(void)
+{
+    whal_Uart dev = { .driver = &mockUartDriver };
+    WHAL_ASSERT_EQ(whal_Uart_Init(&dev), WHAL_SUCCESS);
+    uint8_t buf[4] = {0};
+    WHAL_ASSERT_EQ(whal_Uart_Send(&dev, buf, sizeof(buf)), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Uart_Recv(&dev, buf, sizeof(buf)), WHAL_SUCCESS);
+}
+
+/* --- Flash dispatch tests --- */
+
+static void Test_Flash_NullDev(void)
+{
+    WHAL_ASSERT_EQ(whal_Flash_Init(NULL), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Flash_Lock(NULL, 0, 0), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Flash_Unlock(NULL, 0, 0), WHAL_EINVAL);
+    uint8_t buf[1];
+    WHAL_ASSERT_EQ(whal_Flash_Read(NULL, 0, buf, 1), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Flash_Write(NULL, 0, buf, 1), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Flash_Erase(NULL, 0, 1), WHAL_EINVAL);
+}
+
+static void Test_Flash_NullDriver(void)
+{
+    whal_Flash dev = { .driver = NULL };
+    WHAL_ASSERT_EQ(whal_Flash_Init(&dev), WHAL_EINVAL);
+}
+
+static void Test_Flash_ValidDispatch(void)
+{
+    whal_Flash dev = { .driver = &mockFlashDriver };
+    WHAL_ASSERT_EQ(whal_Flash_Init(&dev), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Flash_Lock(&dev, 0, 0), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Flash_Unlock(&dev, 0, 0), WHAL_SUCCESS);
+    uint8_t buf[4] = {0};
+    WHAL_ASSERT_EQ(whal_Flash_Read(&dev, 0, buf, sizeof(buf)), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Flash_Write(&dev, 0, buf, sizeof(buf)), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Flash_Erase(&dev, 0, sizeof(buf)), WHAL_SUCCESS);
+}
+
+/* --- Timer dispatch tests --- */
+
+static void Test_Timer_NullDev(void)
+{
+    WHAL_ASSERT_EQ(whal_Timer_Init(NULL), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Timer_Start(NULL), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Timer_Stop(NULL), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Timer_Reset(NULL), WHAL_EINVAL);
+}
+
+static void Test_Timer_NullDriver(void)
+{
+    whal_Timer dev = { .driver = NULL };
+    WHAL_ASSERT_EQ(whal_Timer_Init(&dev), WHAL_EINVAL);
+}
+
+static void Test_Timer_ValidDispatch(void)
+{
+    whal_Timer dev = { .driver = &mockTimerDriver };
+    WHAL_ASSERT_EQ(whal_Timer_Init(&dev), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Timer_Start(&dev), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Timer_Stop(&dev), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Timer_Reset(&dev), WHAL_SUCCESS);
+}
+
+/* --- RNG dispatch tests --- */
+
+static void Test_Rng_NullDev(void)
+{
+    uint8_t buf[1];
+    WHAL_ASSERT_EQ(whal_Rng_Init(NULL), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Rng_Deinit(NULL), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Rng_Generate(NULL, buf, 1), WHAL_EINVAL);
+}
+
+static void Test_Rng_NullDriver(void)
+{
+    whal_Rng dev = { .driver = NULL };
+    WHAL_ASSERT_EQ(whal_Rng_Init(&dev), WHAL_EINVAL);
+}
+
+static void Test_Rng_ValidDispatch(void)
+{
+    whal_Rng dev = { .driver = &mockRngDriver };
+    WHAL_ASSERT_EQ(whal_Rng_Init(&dev), WHAL_SUCCESS);
+    uint8_t buf[4] = {0};
+    WHAL_ASSERT_EQ(whal_Rng_Generate(&dev, buf, sizeof(buf)), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Rng_Deinit(&dev), WHAL_SUCCESS);
+}
+
+void whal_Test_Dispatch(void)
+{
+    WHAL_TEST_SUITE_START("dispatch");
+    WHAL_TEST(Test_Clock_NullDev);
+    WHAL_TEST(Test_Clock_NullDriver);
+    WHAL_TEST(Test_Clock_NullVtableEntry);
+    WHAL_TEST(Test_Clock_ValidDispatch);
+    WHAL_TEST(Test_Gpio_NullDev);
+    WHAL_TEST(Test_Gpio_NullDriver);
+    WHAL_TEST(Test_Gpio_ValidDispatch);
+    WHAL_TEST(Test_Uart_NullDev);
+    WHAL_TEST(Test_Uart_NullDriver);
+    WHAL_TEST(Test_Uart_ValidDispatch);
+    WHAL_TEST(Test_Flash_NullDev);
+    WHAL_TEST(Test_Flash_NullDriver);
+    WHAL_TEST(Test_Flash_ValidDispatch);
+    WHAL_TEST(Test_Timer_NullDev);
+    WHAL_TEST(Test_Timer_NullDriver);
+    WHAL_TEST(Test_Timer_ValidDispatch);
+    WHAL_TEST(Test_Rng_NullDev);
+    WHAL_TEST(Test_Rng_NullDriver);
+    WHAL_TEST(Test_Rng_ValidDispatch);
+    WHAL_TEST_SUITE_END();
+}

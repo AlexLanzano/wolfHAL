@@ -8,16 +8,16 @@
  * Minimal test framework for wolfHAL.
  *
  * Provides test runner macros, assertions, and pass/fail tracking.
- * The print backend (whalTest_Puts) is implemented per-harness:
- *   - sim: libc puts
+ * The print backend (whal_Test_Puts) is implemented per-harness:
+ *   - core: libc puts
  *   - hw:  UART send
  */
 
 /* Provided by each harness */
-void whalTest_Puts(const char *s);
+void whal_Test_Puts(const char *s);
 
 /* Convert an integer to decimal in a static buffer (no libc dependency) */
-static inline const char *whalTest_Itoa(int val)
+static inline const char *whal_Test_Itoa(int val)
 {
     static char buf[16];
     char *p = buf + sizeof(buf) - 1;
@@ -40,8 +40,8 @@ static inline const char *whalTest_Itoa(int val)
     return p;
 }
 
-/* Minimal printf: supports %d, %s, and %%. Calls whalTest_Puts once. */
-static inline void whalTest_Printf(const char *fmt, ...)
+/* Minimal printf: supports %d, %s, and %%. Calls whal_Test_Puts once. */
+static inline void whal_Test_Printf(const char *fmt, ...)
 {
     static char buf[128];
     char *out = buf;
@@ -56,7 +56,7 @@ static inline void whalTest_Printf(const char *fmt, ...)
         }
         fmt++;
         if (*fmt == 'd') {
-            const char *s = whalTest_Itoa(va_arg(ap, int));
+            const char *s = whal_Test_Itoa(va_arg(ap, int));
             while (*s && out < end)
                 *out++ = *s++;
         }
@@ -73,7 +73,7 @@ static inline void whalTest_Printf(const char *fmt, ...)
     va_end(ap);
 
     *out = '\0';
-    whalTest_Puts(buf);
+    whal_Test_Puts(buf);
 }
 
 extern int g_whalTestPassed;
@@ -82,7 +82,7 @@ extern int g_whalTestCurFailed;
 
 #define WHAL_TEST_SUITE_START(name)                  \
     do {                                        \
-        whalTest_Printf("\n=== " name " ===\n"); \
+        whal_Test_Printf("\n=== " name " ===\n"); \
     } while (0)
 
 #define WHAL_TEST_SUITE_END() \
@@ -93,11 +93,11 @@ extern int g_whalTestCurFailed;
         g_whalTestCurFailed = 0;               \
         fn();                               \
         if (g_whalTestCurFailed) {              \
-            whalTest_Printf(#fn ": FAIL\n");    \
+            whal_Test_Printf(#fn ": FAIL\n");    \
             g_whalTestFailed++;                 \
         }                                   \
         else {                              \
-            whalTest_Printf(#fn ": PASS\n");    \
+            whal_Test_Printf(#fn ": PASS\n");    \
             g_whalTestPassed++;                 \
         }                                   \
     } while (0)
@@ -105,8 +105,8 @@ extern int g_whalTestCurFailed;
 #define WHAL_ASSERT_EQ(a, b)                                         \
     do {                                                        \
         if ((a) != (b)) {                                       \
-            whalTest_Printf("  ASSERT_EQ failed at line %d\n", __LINE__); \
-            whalTest_Printf("  got: %d, expected: %d\n",              \
+            whal_Test_Printf("  ASSERT_EQ failed at line %d\n", __LINE__); \
+            whal_Test_Printf("  got: %d, expected: %d\n",              \
                             (int)(a), (int)(b));                \
             g_whalTestCurFailed = 1;                                \
             return;                                             \
@@ -116,7 +116,7 @@ extern int g_whalTestCurFailed;
 #define WHAL_ASSERT_NEQ(a, b)                                        \
     do {                                                        \
         if ((a) == (b)) {                                       \
-            whalTest_Printf("  ASSERT_NEQ failed at line %d\n", __LINE__);\
+            whal_Test_Printf("  ASSERT_NEQ failed at line %d\n", __LINE__);\
             g_whalTestCurFailed = 1;                                \
             return;                                             \
         }                                                       \
@@ -128,7 +128,7 @@ extern int g_whalTestCurFailed;
         const unsigned char *_b = (const unsigned char *)(b);   \
         for (size_t _i = 0; _i < (len); _i++) {                \
             if (_a[_i] != _b[_i]) {                             \
-                whalTest_Printf("  ASSERT_MEM_EQ failed at line %d, " \
+                whal_Test_Printf("  ASSERT_MEM_EQ failed at line %d, " \
                                 "byte offset: %d\n", __LINE__, (int)_i); \
                 g_whalTestCurFailed = 1;                            \
                 return;                                         \
@@ -138,10 +138,10 @@ extern int g_whalTestCurFailed;
 
 #define WHAL_TEST_SUMMARY()                                  \
     do {                                                \
-        whalTest_Printf("\n");                                  \
-        whalTest_Printf("--- Results ---\n");                   \
-        whalTest_Printf("Passed: %d\n", g_whalTestPassed);     \
-        whalTest_Printf("Failed: %d\n", g_whalTestFailed);     \
+        whal_Test_Printf("\n");                                  \
+        whal_Test_Printf("--- Results ---\n");                   \
+        whal_Test_Printf("Passed: %d\n", g_whalTestPassed);     \
+        whal_Test_Printf("Failed: %d\n", g_whalTestFailed);     \
     } while (0)
 
 #endif /* WHAL_TEST_H */

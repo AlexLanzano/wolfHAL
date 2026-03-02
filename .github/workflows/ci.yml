@@ -7,13 +7,13 @@ on:
     branches: [main]
 
 jobs:
-  sim-tests:
+  core-tests:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build and run sim tests
-        working-directory: tests/sim
+      - name: Build and run core tests
+        working-directory: tests/core
         run: make run
 
   cross-compile:
@@ -24,18 +24,18 @@ jobs:
       - name: Install ARM toolchain
         run: sudo apt-get update && sudo apt-get install -y gcc-arm-none-eabi
 
-      - name: Build STM32WB example
-        working-directory: examples/stm32wb
-        run: make
+      - name: Build blinky (STM32WB)
+        working-directory: examples/blinky
+        run: make BOARD=stm32wb55xx_nucleo
 
-      - name: Build STM32WB hardware tests
-        working-directory: tests/stm32wb
-        run: make
+      - name: Build blinky (PIC32CZ)
+        working-directory: examples/blinky
+        run: make BOARD=pic32cz_curiosity_ultra
 
-      - name: Build PIC32CZ example
-        working-directory: examples/pic32cz
-        run: make
+      - name: Build tests (STM32WB)
+        working-directory: tests
+        run: make BOARD=stm32wb55xx_nucleo
 
-      - name: Build PIC32CZ hardware tests
-        working-directory: tests/pic32cz
-        run: make
+      - name: Build tests (PIC32CZ)
+        working-directory: tests
+        run: make BOARD=pic32cz_curiosity_ultra
