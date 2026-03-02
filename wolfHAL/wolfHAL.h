@@ -14,6 +14,8 @@
 #include <wolfHAL/uart/uart.h>
 #include <wolfHAL/flash/flash.h>
 #include <wolfHAL/rng/rng.h>
+#include <wolfHAL/spi/spi.h>
+#include <wolfHAL/timer/timer.h>
 #include <wolfHAL/ipc/ipc.h>
 #include <wolfHAL/supply/supply.h>
 
