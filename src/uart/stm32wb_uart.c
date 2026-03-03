@@ -130,15 +130,16 @@ whal_Error whal_Stm32wbUart_Deinit(whal_Uart *uartDev)
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_Stm32wbUart_Send(whal_Uart *uartDev, const uint8_t *data, size_t dataSz)
+whal_Error whal_Stm32wbUart_Send(whal_Uart *uartDev, const void *data, size_t dataSz)
 {
     const whal_Regmap *reg = &uartDev->regmap;
+    const uint8_t *buf = data;
 
     for (size_t i = 0; i < dataSz; ++i) {
         size_t txComplete = 0;
 
         whal_Reg_Update(reg->base, UART_TDR_REG, UART_TDR_Msk,
-                        whal_SetBits(UART_TDR_Msk, UART_TDR_Pos, data[i]));
+                        whal_SetBits(UART_TDR_Msk, UART_TDR_Pos, buf[i]));
 
         while (!txComplete) {
             whal_Reg_Get(reg->base, UART_ISR_REG, UART_ISR_TC_Msk, UART_ISR_TC_Pos, &txComplete);
@@ -148,9 +149,10 @@ whal_Error whal_Stm32wbUart_Send(whal_Uart *uartDev, const uint8_t *data, size_t
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_Stm32wbUart_Recv(whal_Uart *uartDev, uint8_t *data, size_t dataSz)
+whal_Error whal_Stm32wbUart_Recv(whal_Uart *uartDev, void *data, size_t dataSz)
 {
     const whal_Regmap *reg = &uartDev->regmap;
+    uint8_t *buf = data;
     size_t d;
 
     for (size_t i = 0; i < dataSz; ++i) {
@@ -163,7 +165,7 @@ whal_Error whal_Stm32wbUart_Recv(whal_Uart *uartDev, uint8_t *data, size_t dataS
         whal_Reg_Get(reg->base, UART_RDR_REG,
                      UART_RDR_Msk, UART_RDR_Pos, &d);
 
-        data[i] = d;
+        buf[i] = d;
     }
 
     return WHAL_SUCCESS;

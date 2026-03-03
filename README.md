@@ -9,8 +9,8 @@ platforms.
 
 | Platform | Board | Drivers |
 |----------|-------|---------|
-| STM32WB55 | Nucleo | RCC (PLL + MSI), GPIO, UART, LPUART, SPI, Flash, SysTick |
-| PIC32CZ | Curiosity Ultra | Clock (dual PLL), GPIO, UART, Supply (SUPC), SysTick |
+| STM32WB55 | Nucleo | RCC (PLL + MSI), GPIO, UART, LPUART, SPI, Flash, RNG, SysTick |
+| PIC32CZ | Curiosity Ultra | Clock (dual PLL), GPIO, UART, Flash, Supply (SUPC), SysTick |
 
 ## Architecture
 
@@ -48,6 +48,7 @@ whal_Gpio g_whalGpio = {
 | Flash  | `wolfHAL/flash/flash.h` | Init, Deinit, Lock, Unlock, Read, Write, Erase |
 | SPI    | `wolfHAL/spi/spi.h` | Init, Deinit, SendRecv, Send, Recv |
 | Timer  | `wolfHAL/timer/timer.h` | Init, Deinit, Start, Stop, Reset |
+| RNG    | `wolfHAL/rng/rng.h` | Init, Deinit, Generate |
 | Supply | `wolfHAL/supply/supply.h` | Init, Deinit, Enable, Disable |
 
 Utilities: `wolfHAL/regmap.h` (masked register access), `wolfHAL/bitops.h`
@@ -61,13 +62,15 @@ wolfHAL/                    Public headers (API surface)
   platform/st/              STM32WB55 device macros
   platform/microchip/       PIC32CZ device macros
 src/                        Driver implementations (generic + platform)
+boards/
+  stm32wb55xx_nucleo/       STM32WB55 Nucleo board support
+  pic32cz_curiosity_ultra/  PIC32CZ Curiosity Ultra board support
 examples/
-  stm32wb/                  STM32WB55 Nucleo board bring-up and UART echo
-  pic32cz/                  PIC32CZ Curiosity Ultra board bring-up
+  blinky/                   LED blink + UART echo (multi-board)
 tests/
   test.h                    Minimal test framework (no libc dependency)
-  sim/                      Host-compiled tests (bitops, dispatch validation)
-  hw/stm32wb/               On-target tests (clock, GPIO, flash, timer)
+  core/                     Host-compiled tests (bitops, dispatch validation)
+  clock/ gpio/ flash/ ...   On-target per-module tests
 ```
 
 ## Getting started
@@ -82,7 +85,7 @@ src/reg.c
 # Generic dispatch (include all, or just the modules you use)
 src/clock/clock.c  src/gpio/gpio.c  src/uart/uart.c
 src/flash/flash.c  src/spi/spi.c    src/timer/timer.c
-src/supply/supply.c
+src/supply/supply.c  src/rng/rng.c
 
 # Platform drivers (pick your target)
 src/clock/stm32wb_rcc.c  src/gpio/stm32wb_gpio.c  ...
@@ -91,43 +94,50 @@ src/timer/systick.c
 ```
 
 Create a board config file that instantiates devices with your pin assignments,
-clock settings, and peripheral configs. See `examples/stm32wb/stm32wb55xx_nucleo.c`
-or `examples/pic32cz/pic32cz_curiosity_ultra.c` for reference.
+clock settings, and peripheral configs. See `boards/stm32wb55xx_nucleo/board.c`
+or `boards/pic32cz_curiosity_ultra/board.c` for reference.
 
 To write a driver for a new platform, implement the functions in the relevant
 `*Driver` vtable and provide device macros in a platform header.
 
 ## Building the examples
 
-Both examples use `arm-none-eabi-gcc` and produce a `.bin` suitable for flashing:
+Examples use `arm-none-eabi-gcc` and produce a `.bin` suitable for flashing.
+Select a board with `BOARD=`:
 
 ```sh
-cd examples/stm32wb && make    # -> boot.bin (Cortex-M4)
-cd examples/pic32cz && make    # -> boot.bin (Cortex-M33)
+cd examples/blinky
+make BOARD=stm32wb55xx_nucleo       # -> build/stm32wb55xx_nucleo/blinky.bin
+make BOARD=pic32cz_curiosity_ultra  # -> build/pic32cz_curiosity_ultra/blinky.bin
 ```
 
 ## Tests
 
-**Simulation tests** run on the host and validate the abstraction layer without
-any hardware:
+**Core tests** run on the host and validate the abstraction layer without any
+hardware:
 
 ```sh
-cd tests/sim && make run
+cd tests/core && make run
 ```
 
-**Hardware tests** cross-compile and run on an STM32WB55 Nucleo. They boot the
-board, report results over UART, and signal pass/fail via LED:
+**Hardware tests** cross-compile for a target board. They boot the board, report
+results over UART, and signal pass/fail via LED:
 
 ```sh
-cd tests/stm32wb && make    # -> test_hw.bin
+cd tests
+make BOARD=stm32wb55xx_nucleo       # -> build/stm32wb55xx_nucleo/test_hw.bin
+make BOARD=pic32cz_curiosity_ultra  # -> build/pic32cz_curiosity_ultra/test_hw.bin
 ```
+
+Each board's `Makefile.inc` defines a default `TESTS` list (e.g. `clock gpio
+flash timer rng`). Override it on the command line to run a subset.
 
 ## CI
 
 GitHub Actions runs on every push and PR to `main`:
-- **sim-tests** -- builds and runs the host test suite
+- **core-tests** -- builds and runs the host test suite
 - **cross-compile** -- verifies all examples and hardware tests compile cleanly
-  with `arm-none-eabi-gcc`
+  with `arm-none-eabi-gcc` for every supported board
 
 ## Documentation
 

@@ -35,6 +35,13 @@ void whal_Test_Rng_Platform(void);
 #endif
 #endif
 
+#ifdef WHAL_TEST_ENABLE_IPC
+void whal_Test_Ipc(void);
+#ifdef WHAL_TEST_ENABLE_IPC_PLATFORM
+void whal_Test_Ipc_Platform(void);
+#endif
+#endif
+
 int g_whalTestPassed;
 int g_whalTestFailed;
 int g_whalTestCurFailed;
@@ -43,9 +50,9 @@ void whal_Test_Puts(const char *s)
 {
     while (*s) {
         if (*s == '\n')
-            whal_Uart_Send(&g_whalUart, (const uint8_t *)"\r\n", 2);
+            whal_Uart_Send(&g_whalUart, "\r\n", 2);
         else
-            whal_Uart_Send(&g_whalUart, (const uint8_t *)s, 1);
+            whal_Uart_Send(&g_whalUart, s, 1);
         s++;
     }
 }
@@ -92,6 +99,13 @@ void main(void)
     whal_Test_Rng();
 #ifdef WHAL_TEST_ENABLE_RNG_PLATFORM
     whal_Test_Rng_Platform();
+#endif
+#endif
+
+#ifdef WHAL_TEST_ENABLE_IPC
+    whal_Test_Ipc();
+#ifdef WHAL_TEST_ENABLE_IPC_PLATFORM
+    whal_Test_Ipc_Platform();
 #endif
 #endif
 

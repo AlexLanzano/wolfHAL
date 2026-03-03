@@ -63,7 +63,7 @@ whal_Error whal_Stm32wbUart_Deinit(whal_Uart *uartDev);
  * @retval WHAL_SUCCESS Transfer completed.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_Stm32wbUart_Send(whal_Uart *uartDev, const uint8_t *data, size_t dataSz);
+whal_Error whal_Stm32wbUart_Send(whal_Uart *uartDev, const void *data, size_t dataSz);
 /*
  * @brief Receive a buffer over UART.
  *
@@ -74,6 +74,6 @@ whal_Error whal_Stm32wbUart_Send(whal_Uart *uartDev, const uint8_t *data, size_t
  * @retval WHAL_SUCCESS Transfer completed.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_Stm32wbUart_Recv(whal_Uart *uartDev, uint8_t *data, size_t dataSz);
+whal_Error whal_Stm32wbUart_Recv(whal_Uart *uartDev, void *data, size_t dataSz);
 
 #endif /* WHAL_STM32WB_UART_H */
