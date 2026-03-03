@@ -9,10 +9,10 @@ void main(void)
 
     while (1) {
         whal_Gpio_Set(&g_whalGpio, BOARD_LED_PIN, 1);
-        whal_Uart_Send(&g_whalUart, (const uint8_t *)"Blink!\r\n", 8);
+        whal_Uart_Send(&g_whalUart, "Blink!\r\n", 8);
         Board_WaitMs(1000);
         whal_Gpio_Set(&g_whalGpio, BOARD_LED_PIN, 0);
-        whal_Uart_Send(&g_whalUart, (const uint8_t *)"Blink!\r\n", 8);
+        whal_Uart_Send(&g_whalUart, "Blink!\r\n", 8);
         Board_WaitMs(1000);
     }
 

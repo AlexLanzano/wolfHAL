@@ -1,17 +1,23 @@
-PLATFORM = pic32cz
-TESTS = clock gpio flash timer
+_BOARD_DIR := $(patsubst %/,%,$(dir $(lastword $(MAKEFILE_LIST))))
+
+PLATFORM = stm32wb
+TESTS ?= clock gpio flash timer rng
 
 GCC = $(GCC_PATH)arm-none-eabi-gcc
 LD = $(GCC_PATH)arm-none-eabi-ld
 OBJCOPY = $(GCC_PATH)arm-none-eabi-objcopy
 
 CFLAGS += -Wall -Werror $(INCLUDE) -g3 \
-          -ffreestanding -nostdlib -mcpu=cortex-m7 \
-          -DPLATFORM_PIC32CZ -MMD -MP
+          -ffreestanding -nostdlib -mcpu=cortex-m4 \
+          -DPLATFORM_STM32WB -MMD -MP
 LDFLAGS = --omagic -static
 
-BOARD_SOURCE = $(BOARD_DIR)/ivt.c
-BOARD_SOURCE += $(BOARD_DIR)/board.c
+LINKER_SCRIPT ?= $(_BOARD_DIR)/linker.ld
+
+INCLUDE += -I$(_BOARD_DIR)
+
+BOARD_SOURCE = $(_BOARD_DIR)/ivt.c
+BOARD_SOURCE += $(_BOARD_DIR)/board.c
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/gpio.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/clock.c)
@@ -19,5 +25,6 @@ BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/uart.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/timer.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/supply.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/flash.c)
-BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/pic32cz_*.c)
+BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/rng.c)
+BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/stm32wb_*.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/systick.c)

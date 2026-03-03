@@ -280,9 +280,10 @@ whal_Error whal_Pic32czUart_Deinit(whal_Uart *uartDev)
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_Pic32czUart_Send(whal_Uart *uartDev, const uint8_t *data, size_t dataSz)
+whal_Error whal_Pic32czUart_Send(whal_Uart *uartDev, const void *data, size_t dataSz)
 {
     const whal_Regmap *reg;
+    const uint8_t *buf = data;
 
     if (!uartDev || !data) {
         return WHAL_EINVAL;
@@ -302,7 +303,7 @@ whal_Error whal_Pic32czUart_Send(whal_Uart *uartDev, const uint8_t *data, size_t
         /* Write data to transmit register */
         whal_Reg_Update(reg->base, USART_DATA_REG,
                         USART_DATA_Msk,
-                        whal_SetBits(USART_DATA_Msk, USART_DATA_Pos, data[i]));
+                        whal_SetBits(USART_DATA_Msk, USART_DATA_Pos, buf[i]));
     }
 
     /* Wait for transmission complete */
@@ -321,9 +322,10 @@ whal_Error whal_Pic32czUart_Send(whal_Uart *uartDev, const uint8_t *data, size_t
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_Pic32czUart_Recv(whal_Uart *uartDev, uint8_t *data, size_t dataSz)
+whal_Error whal_Pic32czUart_Recv(whal_Uart *uartDev, void *data, size_t dataSz)
 {
     const whal_Regmap *reg;
+    uint8_t *buf = data;
 
     if (!uartDev || !data) {
         return WHAL_EINVAL;
@@ -345,7 +347,7 @@ whal_Error whal_Pic32czUart_Recv(whal_Uart *uartDev, uint8_t *data, size_t dataS
         whal_Reg_Get(reg->base, USART_DATA_REG,
                      USART_DATA_Msk, USART_DATA_Pos, &rxData);
 
-        data[i] = (uint8_t)rxData;
+        buf[i] = (uint8_t)rxData;
     }
 
     return WHAL_SUCCESS;

@@ -60,4 +60,4 @@ compile_commands.json
 
 docs/
 
-tests/sim/test_sim
+tests/core/test_core

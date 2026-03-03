@@ -37,8 +37,8 @@ static const whal_GpioDriver mockGpioDriver = {
 
 static whal_Error MockUartInit(whal_Uart *d) { (void)d; return WHAL_SUCCESS; }
 static whal_Error MockUartDeinit(whal_Uart *d) { (void)d; return WHAL_SUCCESS; }
-static whal_Error MockUartSend(whal_Uart *d, const uint8_t *data, size_t sz) { (void)d; (void)data; (void)sz; return WHAL_SUCCESS; }
-static whal_Error MockUartRecv(whal_Uart *d, uint8_t *data, size_t sz) { (void)d; (void)data; (void)sz; return WHAL_SUCCESS; }
+static whal_Error MockUartSend(whal_Uart *d, const void *data, size_t sz) { (void)d; (void)data; (void)sz; return WHAL_SUCCESS; }
+static whal_Error MockUartRecv(whal_Uart *d, void *data, size_t sz) { (void)d; (void)data; (void)sz; return WHAL_SUCCESS; }
 
 static const whal_UartDriver mockUartDriver = {
     .Init = MockUartInit,

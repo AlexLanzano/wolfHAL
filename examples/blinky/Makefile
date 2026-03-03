@@ -1,10 +1,10 @@
 WHAL_DIR = $(CURDIR)/../..
 
 BOARD ?= stm32wb55xx_nucleo
-BOARD_DIR = boards/$(BOARD)
+BOARD_DIR = $(WHAL_DIR)/boards/$(BOARD)
 BUILD_DIR = build/$(BOARD)
 
-INCLUDE = -I$(WHAL_DIR) -I$(BOARD_DIR)
+INCLUDE = -I$(WHAL_DIR)
 
 include $(BOARD_DIR)/Makefile.inc
 
@@ -13,8 +13,6 @@ SOURCE += $(BOARD_SOURCE)
 
 OBJECTS = $(patsubst %.c,$(BUILD_DIR)/%.o,$(SOURCE))
 DEPENDS = $(OBJECTS:.o=.d)
-
-LINKER_SCRIPT = $(BOARD_DIR)/linker.ld
 
 all: $(BUILD_DIR)/$(notdir $(CURDIR)).bin
 
