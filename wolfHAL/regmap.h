@@ -3,6 +3,7 @@
 
 #include <stddef.h>
 #include <wolfHAL/error.h>
+#include <wolfHAL/bitops.h>
 
 /*
  * @file regmap.h
@@ -30,7 +31,13 @@ typedef struct whal_Regmap {
  *
  * @note No return value. Callers are responsible for passing valid inputs.
  */
-void whal_Reg_Update(size_t base, size_t offset, size_t mask, size_t value);
+static inline void whal_Reg_Update(size_t base, size_t offset, size_t mask,
+                                   size_t value)
+{
+    volatile size_t *reg = (size_t *)(base + offset);
+    *reg = (*reg & ~mask) | (value & mask);
+}
+
 /*
  * @brief Read a masked field from a memory-mapped register.
  *
@@ -42,6 +49,11 @@ void whal_Reg_Update(size_t base, size_t offset, size_t mask, size_t value);
  *
  * @note No return value. Callers are responsible for passing valid inputs.
  */
-void whal_Reg_Get(size_t base, size_t offset, size_t msk, size_t pos, size_t *value);
+static inline void whal_Reg_Get(size_t base, size_t offset, size_t msk,
+                                size_t pos, size_t *value)
+{
+    size_t val = *(volatile size_t *)(base + offset);
+    *value = whal_GetBits(msk, pos, val);
+}
 
 #endif /* WHAL_REGMAP_H */

@@ -79,9 +79,6 @@ Add the repository root to your include path (`-I/path/to/wolfHAL`) and compile
 the sources you need:
 
 ```
-# Always needed
-src/reg.c
-
 # Generic dispatch (include all, or just the modules you use)
 src/clock/clock.c  src/gpio/gpio.c  src/uart/uart.c
 src/flash/flash.c  src/spi/spi.c    src/timer/timer.c
