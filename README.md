@@ -26,7 +26,7 @@ typedef struct {
 ```
 
 Public API functions validate the device, driver, and vtable entry before
-dispatching. When `WHAL_CFG_NO_CALLBACKS` is defined, dispatch compiles down to
+dispatching. When `WHAL_CFG_DIRECT_CALLBACKS` is defined, dispatch compiles down to
 direct calls with zero overhead.
 
 Board configs instantiate devices using platform macros:

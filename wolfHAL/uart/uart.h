@@ -36,7 +36,7 @@ struct whal_Uart {
     void *cfg;
 };
 
-#ifdef WHAL_CFG_NO_CALLBACKS
+#ifdef WHAL_CFG_DIRECT_CALLBACKS
 #define whal_Uart_Init(uartDev) ((uartDev)->driver->Init((uartDev)))
 #define whal_Uart_Deinit(uartDev) ((uartDev)->driver->Deinit((uartDev)))
 #define whal_Uart_Send(uartDev, data, dataSz) ((uartDev)->driver->Send((uartDev), (data), (dataSz)))

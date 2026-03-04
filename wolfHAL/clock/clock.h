@@ -45,7 +45,7 @@ struct whal_Clock {
  * @retval WHAL_SUCCESS Driver-specific init routine ran successfully.
  * @retval WHAL_EINVAL  Null pointer or driver rejected the configuration.
  */
-#ifdef WHAL_CFG_NO_CALLBACKS
+#ifdef WHAL_CFG_DIRECT_CALLBACKS
 #define whal_Clock_Init(clkDev) ((clkDev)->driver->Init((clkDev)))
 #define whal_Clock_Deinit(clkDev) ((clkDev)->driver->Deinit((clkDev)))
 #define whal_Clock_Enable(clkDev, clk) ((clkDev)->driver->Enable((clkDev), (clk)))

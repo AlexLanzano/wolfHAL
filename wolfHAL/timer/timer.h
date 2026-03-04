@@ -45,7 +45,7 @@ struct whal_Timer{
  * @retval WHAL_SUCCESS Driver-specific init completed.
  * @retval WHAL_EINVAL  Null pointer or missing driver function.
  */
-#ifdef WHAL_CFG_NO_CALLBACKS
+#ifdef WHAL_CFG_DIRECT_CALLBACKS
 #define whal_Timer_Init(timerDev) ((timerDev)->driver->Init((timerDev)))
 #define whal_Timer_Deinit(timerDev) ((timerDev)->driver->Deinit((timerDev)))
 #define whal_Timer_Start(timerDev) ((timerDev)->driver->Start((timerDev)))

@@ -42,7 +42,7 @@ struct whal_Rng {
  * @retval WHAL_SUCCESS Driver-specific init completed.
  * @retval WHAL_EINVAL  Null pointer or missing driver function.
  */
-#ifdef WHAL_CFG_NO_CALLBACKS
+#ifdef WHAL_CFG_DIRECT_CALLBACKS
 #define whal_Rng_Init(rngDev) ((rngDev)->driver->Init((rngDev)))
 #define whal_Rng_Deinit(rngDev) ((rngDev)->driver->Deinit((rngDev)))
 #define whal_Rng_Generate(rngDev, rngData, rngDataSz) \

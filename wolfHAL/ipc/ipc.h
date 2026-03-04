@@ -36,7 +36,7 @@ struct whal_Ipc {
     void *cfg;
 };
 
-#ifdef WHAL_CFG_NO_CALLBACKS
+#ifdef WHAL_CFG_DIRECT_CALLBACKS
 #define whal_Ipc_Init(ipcDev) ((ipcDev)->driver->Init((ipcDev)))
 #define whal_Ipc_Deinit(ipcDev) ((ipcDev)->driver->Deinit((ipcDev)))
 #define whal_Ipc_Send(ipcDev, data, dataSz) ((ipcDev)->driver->Send((ipcDev), (data), (dataSz)))

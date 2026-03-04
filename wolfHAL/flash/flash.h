@@ -50,7 +50,7 @@ struct whal_Flash {
  * @retval WHAL_SUCCESS Driver-specific init completed.
  * @retval WHAL_EINVAL  Null pointer or missing driver function.
  */
-#ifdef WHAL_CFG_NO_CALLBACKS
+#ifdef WHAL_CFG_DIRECT_CALLBACKS
 #define whal_Flash_Init(flashDev) ((flashDev)->driver->Init((flashDev)))
 #define whal_Flash_Deinit(flashDev) ((flashDev)->driver->Deinit((flashDev)))
 #define whal_Flash_Lock(flashDev, addr, len) ((flashDev)->driver->Lock((flashDev), (addr), (len)))

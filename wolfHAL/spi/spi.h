@@ -46,7 +46,7 @@ struct whal_Spi {
  * @retval WHAL_SUCCESS Driver-specific init completed.
  * @retval WHAL_EINVAL  Null pointer or driver rejected configuration.
  */
-#ifdef WHAL_CFG_NO_CALLBACKS
+#ifdef WHAL_CFG_DIRECT_CALLBACKS
 #define whal_Spi_Init(spiDev) ((spiDev)->driver->Init((spiDev)))
 #define whal_Spi_Deinit(spiDev) ((spiDev)->driver->Deinit((spiDev)))
 #define whal_Spi_SendRecv(spiDev, spiComCfg, tx, txLen, rx, rxLen) \

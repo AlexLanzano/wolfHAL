@@ -43,7 +43,7 @@ struct whal_Supply {
  * @retval WHAL_SUCCESS Driver-specific init completed.
  * @retval WHAL_EINVAL  Null pointer or missing driver function.
  */
-#ifdef WHAL_CFG_NO_CALLBACKS
+#ifdef WHAL_CFG_DIRECT_CALLBACKS
 #define whal_Supply_Init(supplyDev) ((supplyDev)->driver->Init((supplyDev)))
 #define whal_Supply_Deinit(supplyDev) ((supplyDev)->driver->Deinit((supplyDev)))
 #define whal_Supply_Enable(supplyDev, supply) ((supplyDev)->driver->Enable((supplyDev), (supply)))
