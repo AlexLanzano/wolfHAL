@@ -123,6 +123,28 @@ whal_Rng g_whalRng = {
     },
 };
 
+/* Crypto */
+static const whal_Crypto_OpFunc cryptoOps[BOARD_CRYPTO_OP_COUNT] = {
+    [BOARD_CRYPTO_AES_ECB]  = whal_Stm32wbAes_AesEcb,
+    [BOARD_CRYPTO_AES_CBC]  = whal_Stm32wbAes_AesCbc,
+    [BOARD_CRYPTO_AES_CTR]  = whal_Stm32wbAes_AesCtr,
+    [BOARD_CRYPTO_AES_GCM]  = whal_Stm32wbAes_AesGcm,
+    [BOARD_CRYPTO_AES_GMAC] = whal_Stm32wbAes_AesGmac,
+    [BOARD_CRYPTO_AES_CCM]  = whal_Stm32wbAes_AesCcm,
+};
+
+whal_Crypto g_whalCrypto = {
+    WHAL_STM32WB55_AES1_DEVICE,
+
+    .ops = cryptoOps,
+    .opsCount = BOARD_CRYPTO_OP_COUNT,
+
+    .cfg = &(whal_Stm32wbAes_Cfg) {
+        .clkCtrl = &g_whalClock,
+        .clk = &(whal_Stm32wbRcc_Clk) {WHAL_STM32WB55_AES1_CLOCK},
+    },
+};
+
 /* SysTick timing */
 volatile size_t g_tick = 0;
 volatile uint8_t g_waiting = 0;
@@ -191,6 +213,11 @@ whal_Error Board_Init(void)
         return err;
     }
 
+    err = whal_Crypto_Init(&g_whalCrypto);
+    if (err) {
+        return err;
+    }
+
     err = whal_Timer_Init(&g_whalTimer);
     if (err) {
         return err;
@@ -214,6 +241,11 @@ whal_Error Board_Deinit(void)
     }
 
     err = whal_Timer_Deinit(&g_whalTimer);
+    if (err) {
+        return err;
+    }
+
+    err = whal_Crypto_Deinit(&g_whalCrypto);
     if (err) {
         return err;
     }

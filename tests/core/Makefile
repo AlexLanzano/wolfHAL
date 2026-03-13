@@ -3,7 +3,7 @@ WHAL_DIR = $(CURDIR)/../..
 INCLUDE = -I$(WHAL_DIR)
 CFLAGS = -Wall -Werror $(INCLUDE) -g3
 
-TEST_SRC = main.c test_bitops.c test_dispatch.c
+TEST_SRC = main.c test_bitops.c test_dispatch.c test_endian.c
 
 WHAL_SRC = $(WHAL_DIR)/src/clock/clock.c \
            $(WHAL_DIR)/src/gpio/gpio.c \

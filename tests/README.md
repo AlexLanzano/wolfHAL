@@ -48,8 +48,8 @@ Board support (device instances, linker scripts, etc.) lives in the top-level
 
 ## Core Tests
 
-Host-side unit tests (bitops, dispatch) live in `core/` and build with the
-native compiler:
+Host-side unit tests (bitops, dispatch, endian) live in `core/` and build with
+the native compiler:
 
 ```
 cd core && make && make run

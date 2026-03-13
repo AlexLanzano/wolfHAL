@@ -9,6 +9,7 @@
 #include <wolfHAL/spi/stm32wb_spi.h>
 #include <wolfHAL/flash/stm32wb_flash.h>
 #include <wolfHAL/rng/stm32wb_rng.h>
+#include <wolfHAL/crypto/stm32wb_aes.h>
 
 /*
  * @file stm32wb55xx.h
@@ -64,6 +65,13 @@
     },                                  \
     .driver = &whal_Stm32wbRng_Driver
 
+#define WHAL_STM32WB55_AES1_DEVICE      \
+    .regmap = {                         \
+        .base = 0x50060000,             \
+        .size = 0x400,                  \
+    },                                  \
+    .driver = &whal_Stm32wbAes_Driver
+
 #define WHAL_STM32WB55_FLASH_DEVICE     \
     .regmap = {                         \
         .base = 0x58004000,             \
@@ -86,6 +94,11 @@
     .regOffset = 0x4C,              \
     .enableMask = (1UL << 1),       \
     .enablePos = 1
+
+#define WHAL_STM32WB55_AES1_CLOCK    \
+    .regOffset = 0x4C,               \
+    .enableMask = (1UL << 16),       \
+    .enablePos = 16
 
 #define WHAL_STM32WB55_RNG_CLOCK    \
     .regOffset = 0x50,              \
@@ -111,5 +124,6 @@
     .regOffset = 0x60,              \
     .enableMask = (1UL << 12),      \
     .enablePos = 12
+
 
 #endif /* WHAL_STM32WB55XX_H */

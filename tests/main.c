@@ -42,9 +42,15 @@ void whal_Test_Ipc_Platform(void);
 #endif
 #endif
 
+#ifdef WHAL_TEST_ENABLE_CRYPTO
+void whal_Test_Crypto(void);
+#endif
+
 int g_whalTestPassed;
 int g_whalTestFailed;
+int g_whalTestSkipped;
 int g_whalTestCurFailed;
+int g_whalTestCurSkipped;
 
 void whal_Test_Puts(const char *s)
 {
@@ -61,6 +67,7 @@ void main(void)
 {
     g_whalTestPassed = 0;
     g_whalTestFailed = 0;
+    g_whalTestSkipped = 0;
 
     if (Board_Init() != WHAL_SUCCESS)
         while (1);
@@ -107,6 +114,10 @@ void main(void)
 #ifdef WHAL_TEST_ENABLE_IPC_PLATFORM
     whal_Test_Ipc_Platform();
 #endif
+#endif
+
+#ifdef WHAL_TEST_ENABLE_CRYPTO
+    whal_Test_Crypto();
 #endif
 
     WHAL_TEST_SUMMARY();

@@ -1,7 +1,7 @@
 _BOARD_DIR := $(patsubst %/,%,$(dir $(lastword $(MAKEFILE_LIST))))
 
 PLATFORM = stm32wb
-TESTS ?= clock gpio flash timer rng
+TESTS ?= clock gpio flash timer rng crypto
 
 GCC = $(GCC_PATH)arm-none-eabi-gcc
 LD = $(GCC_PATH)arm-none-eabi-ld
@@ -26,5 +26,6 @@ BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/timer.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/supply.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/flash.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/rng.c)
+BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/crypto.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/stm32wb_*.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/systick.c)

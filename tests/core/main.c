@@ -3,7 +3,9 @@
 
 int g_whalTestPassed;
 int g_whalTestFailed;
+int g_whalTestSkipped;
 int g_whalTestCurFailed;
+int g_whalTestCurSkipped;
 
 void whal_Test_Puts(const char *s)
 {
@@ -12,14 +14,17 @@ void whal_Test_Puts(const char *s)
 
 void whal_Test_Bitops(void);
 void whal_Test_Dispatch(void);
+void whal_Test_Endian(void);
 
 int main(void)
 {
     g_whalTestPassed = 0;
     g_whalTestFailed = 0;
+    g_whalTestSkipped = 0;
 
     whal_Test_Bitops();
     whal_Test_Dispatch();
+    whal_Test_Endian();
 
     WHAL_TEST_SUMMARY();
 

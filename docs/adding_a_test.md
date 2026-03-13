@@ -14,6 +14,8 @@ Tests use the macros defined in `tests/test.h`:
 - `WHAL_ASSERT_NEQ(a, b)` — assert not equal
 - `WHAL_ASSERT_MEM_EQ(a, b, len)` — assert memory regions are equal, reports
   the byte offset of the first mismatch
+- `WHAL_SKIP()` — skip the current test (marks it as SKIP instead of
+  PASS/FAIL and returns early)
 
 Test functions take no arguments and return void. On assertion failure the
 function returns early and the test is marked as failed.

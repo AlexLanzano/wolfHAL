@@ -78,7 +78,9 @@ static inline void whal_Test_Printf(const char *fmt, ...)
 
 extern int g_whalTestPassed;
 extern int g_whalTestFailed;
+extern int g_whalTestSkipped;
 extern int g_whalTestCurFailed;
+extern int g_whalTestCurSkipped;
 
 #define WHAL_TEST_SUITE_START(name)                  \
     do {                                        \
@@ -88,11 +90,22 @@ extern int g_whalTestCurFailed;
 #define WHAL_TEST_SUITE_END() \
     do { } while (0)
 
+#define WHAL_SKIP()                              \
+    do {                                    \
+        g_whalTestCurSkipped = 1;              \
+        return;                             \
+    } while (0)
+
 #define WHAL_TEST(fn)                            \
     do {                                    \
         g_whalTestCurFailed = 0;               \
+        g_whalTestCurSkipped = 0;              \
         fn();                               \
-        if (g_whalTestCurFailed) {              \
+        if (g_whalTestCurSkipped) {             \
+            whal_Test_Printf(#fn ": SKIP\n");    \
+            g_whalTestSkipped++;                \
+        }                                   \
+        else if (g_whalTestCurFailed) {         \
             whal_Test_Printf(#fn ": FAIL\n");    \
             g_whalTestFailed++;                 \
         }                                   \
@@ -140,6 +153,7 @@ extern int g_whalTestCurFailed;
     do {                                                \
         whal_Test_Printf("\n");                                  \
         whal_Test_Printf("--- Results ---\n");                   \
+        whal_Test_Printf("Skipped: %d\n", g_whalTestSkipped);   \
         whal_Test_Printf("Passed: %d\n", g_whalTestPassed);     \
         whal_Test_Printf("Failed: %d\n", g_whalTestFailed);     \
     } while (0)
