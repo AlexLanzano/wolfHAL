@@ -58,6 +58,4 @@ dkms.conf
 *.cache
 compile_commands.json
 
-docs/
-
 tests/core/test_core
