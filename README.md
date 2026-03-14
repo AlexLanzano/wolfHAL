@@ -17,6 +17,7 @@ tests/                      Test framework and test suites
 
 ## Further reading
 
+- [Getting Started](docs/getting_started.md) — Integrating wolfHAL into your project
 - [Boards](boards/README.md) — Example board configurations
 - [Examples](examples/README.md) — Example applications
 - [Tests](tests/README.md) — Test framework and test suites
