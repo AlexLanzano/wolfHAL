@@ -447,6 +447,75 @@ consumption and avoid unnecessary entropy source wear.
 
 ---
 
+## Crypto
+
+Header: `wolfHAL/crypto/crypto.h`
+
+The crypto driver provides access to hardware cryptographic accelerators. Unlike
+other device types, the crypto driver uses an **ops table** dispatch model
+instead of a fixed vtable — each supported algorithm is a function pointer in a
+board-defined ops table, indexed by a board-defined enum. This allows different
+platforms to expose different subsets of algorithms without changing the generic
+interface.
+
+### Device Struct
+
+The crypto device struct extends the standard model with an ops table:
+
+```c
+struct whal_Crypto {
+    const whal_Regmap regmap;
+    const whal_CryptoDriver *driver;
+    const whal_Crypto_OpFunc *ops;
+    size_t opsCount;
+    const void *cfg;
+};
+```
+
+The `driver` vtable handles Init/Deinit. The `ops` table maps algorithm indices
+to operation functions. The board defines the enum values and populates the ops
+table.
+
+### Init / Deinit
+
+Init should enable the peripheral clock. Deinit should disable the AES
+peripheral and its clock.
+
+### Operations
+
+Each operation function has the signature:
+
+```c
+whal_Error myOp(whal_Crypto *cryptoDev, void *opArgs);
+```
+
+The `opArgs` parameter is a pointer to an algorithm-specific argument struct
+(e.g., `whal_Crypto_AesEcbArgs`, `whal_Crypto_AesGcmArgs`). The operation
+function casts it to the correct type. See `wolfHAL/crypto/crypto.h` for the
+full set of argument structs.
+
+### Board Integration
+
+The board defines an enum of supported operations and a corresponding ops table:
+
+```c
+enum {
+    BOARD_CRYPTO_AES_ECB,
+    BOARD_CRYPTO_AES_CBC,
+    BOARD_CRYPTO_OP_COUNT,
+};
+
+static const whal_Crypto_OpFunc cryptoOps[BOARD_CRYPTO_OP_COUNT] = {
+    [BOARD_CRYPTO_AES_ECB] = whal_Stm32wbAes_AesEcb,
+    [BOARD_CRYPTO_AES_CBC] = whal_Stm32wbAes_AesCbc,
+};
+```
+
+Callers use `whal_Crypto_Op(&g_whalCrypto, BOARD_CRYPTO_AES_ECB, &args)` to
+invoke an operation.
+
+---
+
 ## Supply
 
 Header: `wolfHAL/supply/supply.h`

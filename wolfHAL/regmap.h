@@ -56,4 +56,29 @@ static inline void whal_Reg_Get(size_t base, size_t offset, size_t msk,
     *value = whal_GetBits(msk, pos, val);
 }
 
+/*
+ * @brief Write a 32-bit value to a memory-mapped register.
+ *
+ * @param base   Base address of the register block.
+ * @param offset Byte offset from @p base to the register.
+ * @param value  Value to write.
+ */
+static inline void whal_Reg_Write(size_t base, size_t offset, size_t value)
+{
+    *(volatile size_t *)(base + offset) = value;
+}
+
+/*
+ * @brief Read a 32-bit value from a memory-mapped register.
+ *
+ * @param base   Base address of the register block.
+ * @param offset Byte offset from @p base to the register.
+ *
+ * @return The register value.
+ */
+static inline size_t whal_Reg_Read(size_t base, size_t offset)
+{
+    return *(volatile size_t *)(base + offset);
+}
+
 #endif /* WHAL_REGMAP_H */
