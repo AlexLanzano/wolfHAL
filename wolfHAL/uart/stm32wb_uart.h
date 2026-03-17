@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <wolfHAL/clock/clock.h>
 #include <wolfHAL/uart/uart.h>
+#include <wolfHAL/timeout.h>
 #include <stddef.h>
 
 /*
@@ -18,6 +19,7 @@ typedef struct whal_Stm32wbUart_Cfg {
     whal_Clock *clkCtrl;
     void *clk;
     uint32_t baud;
+    whal_Timeout *timeout;
 } whal_Stm32wbUart_Cfg;
 
 /*

@@ -5,6 +5,7 @@
 #include <wolfHAL/flash/flash.h>
 #include <wolfHAL/error.h>
 #include <wolfHAL/bitops.h>
+#include <wolfHAL/timeout.h>
 
 /*
  * STM32WB Flash Register Definitions
@@ -172,7 +173,6 @@ static whal_Error whal_Stm32wbFlash_WriteOrErase(whal_Flash *flashDev, size_t ad
     const whal_Regmap *regmap = &flashDev->regmap;
     size_t bsy;
     size_t pesd;
-    size_t cfgbsy = 0;
 
     /* Validate address alignment and bounds */
     if (addr & 0xf || addr < cfg->startAddr || addr + dataSz > cfg->startAddr + cfg->size) {
@@ -190,6 +190,8 @@ static whal_Error whal_Stm32wbFlash_WriteOrErase(whal_Flash *flashDev, size_t ad
     /* Clear all error flags by writing 1 to each */
     whal_Reg_Update(regmap->base, FLASH_SR_REG, FLASH_SR_ALL_ERR, 0xffffffff);
 
+    whal_Error err = WHAL_SUCCESS;
+
     if (write) {
         /* Enable flash programming mode */
         whal_Reg_Update(regmap->base, FLASH_CR_REG, FLASH_CR_PG_Msk, 1);
@@ -204,9 +206,10 @@ static whal_Error whal_Stm32wbFlash_WriteOrErase(whal_Flash *flashDev, size_t ad
             flashAddr[1] = dataAddr[1];
 
             /* Wait for programming to complete */
-            do {
-                whal_Reg_Get(regmap->base, FLASH_SR_REG, FLASH_SR_CFGBSY_Msk, FLASH_SR_CFGBSY_Pos, &cfgbsy);
-            } while (cfgbsy);
+            err = whal_Reg_ReadPoll(regmap->base, FLASH_SR_REG,
+                                    FLASH_SR_CFGBSY_Msk, 0, cfg->timeout);
+            if (err)
+                goto cleanup;
         }
     }
     else {
@@ -230,9 +233,10 @@ static whal_Error whal_Stm32wbFlash_WriteOrErase(whal_Flash *flashDev, size_t ad
                             whal_SetBits(FLASH_CR_STRT_Msk, FLASH_CR_STRT_Pos, 1));
 
             /* Wait for erase to complete */
-            do {
-                whal_Reg_Get(regmap->base, FLASH_SR_REG, FLASH_SR_CFGBSY_Msk, FLASH_SR_CFGBSY_Pos, &cfgbsy);
-            } while (cfgbsy);
+            err = whal_Reg_ReadPoll(regmap->base, FLASH_SR_REG,
+                                    FLASH_SR_CFGBSY_Msk, 0, cfg->timeout);
+            if (err)
+                goto cleanup;
         }
 
         /* Disable page erase mode */
@@ -240,10 +244,11 @@ static whal_Error whal_Stm32wbFlash_WriteOrErase(whal_Flash *flashDev, size_t ad
                         whal_SetBits(FLASH_CR_PER_Msk, FLASH_CR_PER_Pos, 0));
     }
 
+cleanup:
     /* Disable flash programming mode */
     whal_Reg_Update(regmap->base, FLASH_CR_REG, FLASH_CR_PG_Msk, 0);
 
-    return WHAL_SUCCESS;
+    return err;
 }
 
 whal_Error whal_Stm32wbFlash_Write(whal_Flash *flashDev, size_t addr, const uint8_t *data,

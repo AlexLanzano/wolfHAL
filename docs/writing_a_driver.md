@@ -62,6 +62,124 @@ Use `Write` and `Read` for whole-register access. Use `Update` and `Get` when
 you need to modify or read individual fields within a register without
 disturbing other bits.
 
+### Timeouts
+
+Most drivers poll hardware status registers in busy-wait loops (e.g., waiting
+for a DMA transfer to complete, a flash erase to finish, or an AES computation
+to produce a result). wolfHAL provides an optional timeout mechanism to bound
+these waits and prevent infinite hangs if hardware misbehaves.
+
+#### Timeout Struct
+
+The board creates a `whal_Timeout` instance with a tick source and a timeout
+duration. Drivers receive a pointer to it through their configuration struct:
+
+```c
+typedef struct {
+    uint32_t timeoutTicks;     /* max ticks before timeout */
+    uint32_t startTick;        /* snapshot, set by START */
+    uint32_t (*GetTick)(void); /* board-provided tick source */
+} whal_Timeout;
+```
+
+The tick units are determined by the board's `GetTick` implementation. A 1 kHz
+SysTick gives millisecond ticks; a 1 MHz timer gives microsecond ticks. Drivers
+do not need to know the tick rate.
+
+#### whal_Reg_ReadPoll
+
+For the common case of polling a register bit, use `whal_Reg_ReadPoll` from
+`wolfHAL/regmap.h`:
+
+```c
+whal_Error whal_Reg_ReadPoll(size_t base, size_t offset,
+                              size_t mask, size_t value,
+                              whal_Timeout *timeout);
+```
+
+This polls until `(reg & mask) == value` or the timeout expires. Pass the mask
+as the value to wait for bits to be set, or `0` to wait for bits to be clear:
+
+```c
+/* Wait for TXE flag to be set */
+err = whal_Reg_ReadPoll(base, SPI_SR_REG, SPI_SR_TXE_Msk,
+                        SPI_SR_TXE_Msk, cfg->timeout);
+
+/* Wait for BSY flag to be clear */
+err = whal_Reg_ReadPoll(base, SPI_SR_REG, SPI_SR_BSY_Msk,
+                        0, cfg->timeout);
+```
+
+A NULL timeout pointer means unbounded wait (poll forever).
+
+#### Driver-Specific Helpers
+
+When a driver has many polling sites that also need post-poll cleanup (e.g.,
+clearing a flag), wrap the pattern in a local helper to avoid code duplication:
+
+```c
+static whal_Error WaitForCCF(size_t base, whal_Timeout *timeout)
+{
+    whal_Error err;
+    err = whal_Reg_ReadPoll(base, AES_SR_REG, AES_SR_CCF_Msk,
+                            AES_SR_CCF_Msk, timeout);
+    if (err)
+        return err;
+    whal_Reg_Update(base, AES_CR_REG, AES_CR_CCFC_Msk, AES_CR_CCFC_Msk);
+    return WHAL_SUCCESS;
+}
+```
+
+This keeps code size small — one function body shared across all call sites
+instead of inlined polling loops at each location.
+
+#### Cleanup on Timeout
+
+When a timeout occurs during an operation that has enabled a hardware mode
+(e.g., flash programming mode, AES enable), the driver must still clean up
+before returning. Use a `goto cleanup` pattern:
+
+```c
+whal_Error err = WHAL_SUCCESS;
+
+whal_Reg_Update(base, CR_REG, PG_Msk, 1);   /* enable programming mode */
+
+for (...) {
+    err = whal_Reg_ReadPoll(base, SR_REG, BSY_Msk, 0, cfg->timeout);
+    if (err)
+        goto cleanup;
+}
+
+cleanup:
+    whal_Reg_Update(base, CR_REG, PG_Msk, 0);   /* always disable */
+    return err;
+```
+
+Never return directly from inside a polling loop if the peripheral is in a
+mode that requires cleanup.
+
+#### Compile-Time Disable
+
+Define `WHAL_CFG_NO_TIMEOUT` to remove all timeout logic from the binary.
+When defined, `WHAL_TIMEOUT_START` becomes a no-op and `WHAL_TIMEOUT_EXPIRED`
+always evaluates to `0`, so polling loops run until the hardware condition is
+met with no overhead.
+
+#### Adding Timeout to a Config Struct
+
+Driver config structs that use polling should include an optional timeout
+pointer:
+
+```c
+typedef struct {
+    /* ... other config fields ... */
+    whal_Timeout *timeout;
+} whal_MyplatformFoo_Cfg;
+```
+
+The timeout is optional — if the board does not set it (NULL), all waits are
+unbounded.
+
 ### Avoiding Bloat
 
 When a peripheral has multiple distinct operating modes or configurations,

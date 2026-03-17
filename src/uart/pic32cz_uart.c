@@ -160,14 +160,6 @@
 #define USART_DATA_Pos              0
 #define USART_DATA_Msk              (WHAL_BITMASK(9) << USART_DATA_Pos)
 
-static void whal_Pic32czUart_WaitSync(const whal_Regmap *reg, size_t mask, size_t pos)
-{
-    size_t busy = 1;
-    while (busy) {
-        whal_Reg_Get(reg->base, USART_SYNCBUSY_REG, mask, pos, &busy);
-    }
-}
-
 whal_Error whal_Pic32czUart_Init(whal_Uart *uartDev)
 {
     whal_Error err;
@@ -214,7 +206,10 @@ whal_Error whal_Pic32czUart_Init(whal_Uart *uartDev)
                     whal_SetBits(USART_CTRLB_PMODE_Msk, USART_CTRLB_PMODE_Pos, 0));
 
     /* Wait for CTRLB sync */
-    whal_Pic32czUart_WaitSync(reg, USART_SYNCBUSY_CTRLB_Msk, USART_SYNCBUSY_CTRLB_Pos);
+    err = whal_Reg_ReadPoll(reg->base, USART_SYNCBUSY_REG,
+                                    USART_SYNCBUSY_CTRLB_Msk, 0, cfg->timeout);
+    if (err != WHAL_SUCCESS)
+        return err;
 
     /* Set baud rate */
     whal_Reg_Update(reg->base, USART_BAUD_REG,
@@ -228,7 +223,10 @@ whal_Error whal_Pic32czUart_Init(whal_Uart *uartDev)
                     whal_SetBits(USART_CTRLB_RXEN_Msk, USART_CTRLB_RXEN_Pos, 1));
 
     /* Wait for CTRLB sync */
-    whal_Pic32czUart_WaitSync(reg, USART_SYNCBUSY_CTRLB_Msk, USART_SYNCBUSY_CTRLB_Pos);
+    err = whal_Reg_ReadPoll(reg->base, USART_SYNCBUSY_REG,
+                                    USART_SYNCBUSY_CTRLB_Msk, 0, cfg->timeout);
+    if (err != WHAL_SUCCESS)
+        return err;
 
     /* Enable SERCOM USART */
     whal_Reg_Update(reg->base, USART_CTRLA_REG,
@@ -236,7 +234,10 @@ whal_Error whal_Pic32czUart_Init(whal_Uart *uartDev)
                     whal_SetBits(USART_CTRLA_ENABLE_Msk, USART_CTRLA_ENABLE_Pos, 1));
 
     /* Wait for enable sync */
-    whal_Pic32czUart_WaitSync(reg, USART_SYNCBUSY_ENABLE_Msk, USART_SYNCBUSY_ENABLE_Pos);
+    err = whal_Reg_ReadPoll(reg->base, USART_SYNCBUSY_REG,
+                                    USART_SYNCBUSY_ENABLE_Msk, 0, cfg->timeout);
+    if (err != WHAL_SUCCESS)
+        return err;
 
     return WHAL_SUCCESS;
 }
@@ -260,7 +261,10 @@ whal_Error whal_Pic32czUart_Deinit(whal_Uart *uartDev)
                     whal_SetBits(USART_CTRLA_ENABLE_Msk, USART_CTRLA_ENABLE_Pos, 0));
 
     /* Wait for disable sync */
-    whal_Pic32czUart_WaitSync(reg, USART_SYNCBUSY_ENABLE_Msk, USART_SYNCBUSY_ENABLE_Pos);
+    err = whal_Reg_ReadPoll(reg->base, USART_SYNCBUSY_REG,
+                                    USART_SYNCBUSY_ENABLE_Msk, 0, cfg->timeout);
+    if (err != WHAL_SUCCESS)
+        return err;
 
     /* Disable transmitter and receiver */
     whal_Reg_Update(reg->base, USART_CTRLB_REG,
@@ -269,7 +273,10 @@ whal_Error whal_Pic32czUart_Deinit(whal_Uart *uartDev)
                     whal_SetBits(USART_CTRLB_RXEN_Msk, USART_CTRLB_RXEN_Pos, 0));
 
     /* Wait for CTRLB sync */
-    whal_Pic32czUart_WaitSync(reg, USART_SYNCBUSY_CTRLB_Msk, USART_SYNCBUSY_CTRLB_Pos);
+    err = whal_Reg_ReadPoll(reg->base, USART_SYNCBUSY_REG,
+                                    USART_SYNCBUSY_CTRLB_Msk, 0, cfg->timeout);
+    if (err != WHAL_SUCCESS)
+        return err;
 
     /* Disable peripheral clock */
     err = whal_Clock_Disable(cfg->clkCtrl, cfg->clk);
@@ -283,22 +290,24 @@ whal_Error whal_Pic32czUart_Deinit(whal_Uart *uartDev)
 whal_Error whal_Pic32czUart_Send(whal_Uart *uartDev, const void *data, size_t dataSz)
 {
     const whal_Regmap *reg;
+    whal_Pic32czUart_Cfg *cfg;
     const uint8_t *buf = data;
+    whal_Error err;
 
     if (!uartDev || !data) {
         return WHAL_EINVAL;
     }
 
     reg = &uartDev->regmap;
+    cfg = (whal_Pic32czUart_Cfg *)uartDev->cfg;
 
     for (size_t i = 0; i < dataSz; ++i) {
-        size_t dataRegEmpty = 0;
-
         /* Wait for data register to be empty */
-        while (!dataRegEmpty) {
-            whal_Reg_Get(reg->base, USART_INTFLAG_REG,
-                         USART_INTFLAG_DRE_Msk, USART_INTFLAG_DRE_Pos, &dataRegEmpty);
-        }
+        err = whal_Reg_ReadPoll(reg->base, USART_INTFLAG_REG,
+                                USART_INTFLAG_DRE_Msk, USART_INTFLAG_DRE_Msk,
+                                cfg->timeout);
+        if (err)
+            return err;
 
         /* Write data to transmit register */
         whal_Reg_Update(reg->base, USART_DATA_REG,
@@ -307,17 +316,16 @@ whal_Error whal_Pic32czUart_Send(whal_Uart *uartDev, const void *data, size_t da
     }
 
     /* Wait for transmission complete */
-    {
-        size_t txComplete = 0;
-        while (!txComplete) {
-            whal_Reg_Get(reg->base, USART_INTFLAG_REG,
-                         USART_INTFLAG_TXC_Msk, USART_INTFLAG_TXC_Pos, &txComplete);
-        }
-        /* Clear TXC flag by writing 1 */
-        whal_Reg_Update(reg->base, USART_INTFLAG_REG,
-                        USART_INTFLAG_TXC_Msk,
-                        whal_SetBits(USART_INTFLAG_TXC_Msk, USART_INTFLAG_TXC_Pos, 1));
-    }
+    err = whal_Reg_ReadPoll(reg->base, USART_INTFLAG_REG,
+                            USART_INTFLAG_TXC_Msk, USART_INTFLAG_TXC_Msk,
+                            cfg->timeout);
+    if (err)
+        return err;
+
+    /* Clear TXC flag by writing 1 */
+    whal_Reg_Update(reg->base, USART_INTFLAG_REG,
+                    USART_INTFLAG_TXC_Msk,
+                    whal_SetBits(USART_INTFLAG_TXC_Msk, USART_INTFLAG_TXC_Pos, 1));
 
     return WHAL_SUCCESS;
 }
@@ -325,6 +333,7 @@ whal_Error whal_Pic32czUart_Send(whal_Uart *uartDev, const void *data, size_t da
 whal_Error whal_Pic32czUart_Recv(whal_Uart *uartDev, void *data, size_t dataSz)
 {
     const whal_Regmap *reg;
+    whal_Pic32czUart_Cfg *cfg;
     uint8_t *buf = data;
 
     if (!uartDev || !data) {
@@ -332,16 +341,18 @@ whal_Error whal_Pic32czUart_Recv(whal_Uart *uartDev, void *data, size_t dataSz)
     }
 
     reg = &uartDev->regmap;
+    cfg = (whal_Pic32czUart_Cfg *)uartDev->cfg;
 
     for (size_t i = 0; i < dataSz; ++i) {
-        size_t dataReceived = 0;
         size_t rxData;
+        whal_Error err;
 
         /* Wait for receive complete */
-        while (!dataReceived) {
-            whal_Reg_Get(reg->base, USART_INTFLAG_REG,
-                         USART_INTFLAG_RXC_Msk, USART_INTFLAG_RXC_Pos, &dataReceived);
-        }
+        err = whal_Reg_ReadPoll(reg->base, USART_INTFLAG_REG,
+                                USART_INTFLAG_RXC_Msk, USART_INTFLAG_RXC_Msk,
+                                cfg->timeout);
+        if (err)
+            return err;
 
         /* Read received data */
         whal_Reg_Get(reg->base, USART_DATA_REG,

@@ -18,6 +18,7 @@
 #include <wolfHAL/timer/timer.h>
 #include <wolfHAL/ipc/ipc.h>
 #include <wolfHAL/supply/supply.h>
+#include <wolfHAL/timeout.h>
 #include <wolfHAL/crypto/crypto.h>
 
 #endif /* WOLFHAL_H */

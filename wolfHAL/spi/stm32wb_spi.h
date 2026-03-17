@@ -5,6 +5,7 @@
 #include <stddef.h>
 #include <wolfHAL/spi/spi.h>
 #include <wolfHAL/clock/clock.h>
+#include <wolfHAL/timeout.h>
 
 /*
  * @file stm32wb_spi.h
@@ -35,6 +36,7 @@ typedef enum {
 typedef struct whal_Stm32wbSpi_Cfg {
     whal_Clock *clkCtrl;  /* Clock controller for SPI peripheral clock */
     const void *clk;      /* Clock descriptor */
+    whal_Timeout *timeout;
 } whal_Stm32wbSpi_Cfg;
 
 /*

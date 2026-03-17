@@ -18,6 +18,8 @@ enum {
     WHAL_ENOTREADY = -4001,
     /* Hardware device error. */
     WHAL_EHARDWARE = -4002,
+    /* Operation timed out. */
+    WHAL_ETIMEOUT = -4003,
 };
 
 #endif /* WHAL_ERROR_H */

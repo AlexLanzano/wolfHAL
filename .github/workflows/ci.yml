@@ -9,33 +9,32 @@ on:
 jobs:
   core-tests:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        extra_cflags: ["", "-DWHAL_CFG_NO_TIMEOUT"]
     steps:
       - uses: actions/checkout@v4
 
       - name: Build and run core tests
         working-directory: tests/core
-        run: make run
+        run: CFLAGS="${{ matrix.extra_cflags }}" make run
 
   cross-compile:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        board: [stm32wb55xx_nucleo, pic32cz_curiosity_ultra]
+        extra_cflags: ["", "-DWHAL_CFG_NO_TIMEOUT"]
     steps:
       - uses: actions/checkout@v4
 
       - name: Install ARM toolchain
         run: sudo apt-get update && sudo apt-get install -y gcc-arm-none-eabi
 
-      - name: Build blinky (STM32WB)
+      - name: Build blinky
         working-directory: examples/blinky
-        run: make BOARD=stm32wb55xx_nucleo
+        run: CFLAGS="${{ matrix.extra_cflags }}" make BOARD=${{ matrix.board }}
 
-      - name: Build blinky (PIC32CZ)
-        working-directory: examples/blinky
-        run: make BOARD=pic32cz_curiosity_ultra
-
-      - name: Build tests (STM32WB)
+      - name: Build tests
         working-directory: tests
-        run: make BOARD=stm32wb55xx_nucleo
-
-      - name: Build tests (PIC32CZ)
-        working-directory: tests
-        run: make BOARD=pic32cz_curiosity_ultra
+        run: CFLAGS="${{ matrix.extra_cflags }}" make BOARD=${{ matrix.board }}

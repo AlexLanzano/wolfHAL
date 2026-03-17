@@ -115,13 +115,13 @@ whal_Flash g_whalFlash = {
 };
 
 /* SysTick timing */
-volatile size_t g_tick = 0;
+volatile uint32_t g_tick = 0;
 volatile uint8_t g_waiting = 0;
 volatile uint8_t g_tickOverflow = 0;
 
 void SysTick_Handler()
 {
-    size_t tickBefore = g_tick++;
+    uint32_t tickBefore = g_tick++;
     if (g_waiting) {
         if (tickBefore > g_tick)
             g_tickOverflow = 1;
@@ -130,12 +130,12 @@ void SysTick_Handler()
 
 void Board_WaitMs(size_t ms)
 {
-    size_t startCount = g_tick;
+    uint32_t startCount = g_tick;
     g_waiting = 1;
     while (1) {
-        size_t currentCount = g_tick;
+        uint32_t currentCount = g_tick;
         if (g_tickOverflow) {
-            if ((SIZE_MAX - startCount) + currentCount > ms) {
+            if ((UINT32_MAX - startCount) + currentCount > ms) {
                 break;
             }
         } else if (currentCount - startCount > ms) {

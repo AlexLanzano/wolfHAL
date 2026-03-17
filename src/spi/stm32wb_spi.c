@@ -197,7 +197,6 @@ whal_Error whal_Stm32wbSpi_SendRecv(whal_Spi *spiDev, void *spiComCfg, const uin
     cfg = (whal_Stm32wbSpi_Cfg *)spiDev->cfg;
     comCfg = (whal_Stm32wbSpi_ComCfg *)spiComCfg;
     size_t totalLen = txLen > rxLen ? txLen : rxLen;
-    size_t status;
     size_t d;
 
     whal_Stm32wbSpi_ApplyComCfg(reg, cfg, comCfg);
@@ -205,9 +204,12 @@ whal_Error whal_Stm32wbSpi_SendRecv(whal_Spi *spiDev, void *spiComCfg, const uin
     for (size_t i = 0; i < totalLen; i++) {
         if (txLen && tx) {
             /* Wait for TX buffer empty */
-            do {
-                whal_Reg_Get(reg->base, SPI_SR_REG, SPI_SR_TXE_Msk, SPI_SR_TXE_Pos, &status);
-            } while (!status);
+            whal_Error txErr = whal_Reg_ReadPoll(reg->base, SPI_SR_REG,
+                                                  SPI_SR_TXE_Msk,
+                                                  SPI_SR_TXE_Msk,
+                                                  cfg->timeout);
+            if (txErr)
+                return txErr;
 
             /* Write data or dummy byte */
             uint8_t txByte = (i >= txLen) ? tx[txLen-1] : tx[i];
@@ -216,9 +218,12 @@ whal_Error whal_Stm32wbSpi_SendRecv(whal_Spi *spiDev, void *spiComCfg, const uin
 
         if (rxLen && rx) {
             /* Wait for RX buffer not empty */
-            do {
-                whal_Reg_Get(reg->base, SPI_SR_REG, SPI_SR_RXNE_Msk, SPI_SR_RXNE_Pos, &status);
-            } while (!status);
+            whal_Error rxErr = whal_Reg_ReadPoll(reg->base, SPI_SR_REG,
+                                                  SPI_SR_RXNE_Msk,
+                                                  SPI_SR_RXNE_Msk,
+                                                  cfg->timeout);
+            if (rxErr)
+                return rxErr;
 
             /* Read received byte */
             d = *(volatile uint8_t *)(reg->base + SPI_DR_REG);
@@ -229,11 +234,8 @@ whal_Error whal_Stm32wbSpi_SendRecv(whal_Spi *spiDev, void *spiComCfg, const uin
     }
 
     /* Wait for not busy */
-    do {
-        whal_Reg_Get(reg->base, SPI_SR_REG, SPI_SR_BSY_Msk, SPI_SR_BSY_Pos, &status);
-    } while (status);
-
-    return WHAL_SUCCESS;
+    return whal_Reg_ReadPoll(reg->base, SPI_SR_REG, SPI_SR_BSY_Msk, 0,
+                             cfg->timeout);
 }
 
 whal_Error whal_Stm32wbSpi_Send(whal_Spi *spiDev, void *spiComCfg, const uint8_t *data,

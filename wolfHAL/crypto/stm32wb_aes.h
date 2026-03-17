@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <wolfHAL/crypto/crypto.h>
 #include <wolfHAL/clock/clock.h>
+#include <wolfHAL/timeout.h>
 
 /*
  * @file stm32wb_aes.h
@@ -20,7 +21,7 @@
 typedef struct {
     whal_Clock *clkCtrl;
     const void *clk;
-
+    whal_Timeout *timeout;
 } whal_Stm32wbAes_Cfg;
 
 /*

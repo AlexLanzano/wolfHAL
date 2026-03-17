@@ -81,14 +81,19 @@ whal_Error whal_Stm32wbRng_Deinit(whal_Rng *rngDev)
 
 whal_Error whal_Stm32wbRng_Generate(whal_Rng *rngDev, uint8_t *rngData, size_t rngDataSz)
 {
+
+    whal_Error err = WHAL_SUCCESS;
+    whal_Stm32wbRng_Cfg *cfg = (whal_Stm32wbRng_Cfg *)rngDev->cfg;
+    const whal_Regmap *reg = &rngDev->regmap;
+    size_t sr;
+    size_t offset = 0;
+#ifdef WHAL_CFG_NO_TIMEOUT
+    (void)(cfg);
+#endif
+
     if (!rngDev || !rngData) {
         return WHAL_EINVAL;
     }
-
-    whal_Error err = WHAL_SUCCESS;
-    const whal_Regmap *reg = &rngDev->regmap;
-    size_t status;
-    size_t offset = 0;
 
     /* Enable the RNG peripheral */
     whal_Reg_Update(reg->base, RNG_CR_REG, RNG_CR_RNGEN_Msk,
@@ -96,21 +101,28 @@ whal_Error whal_Stm32wbRng_Generate(whal_Rng *rngDev, uint8_t *rngData, size_t r
 
     while (offset < rngDataSz) {
         /* Wait for a random value to be ready */
-        do {
+        WHAL_TIMEOUT_START(cfg->timeout);
+        while (1) {
+            if (WHAL_TIMEOUT_EXPIRED(cfg->timeout)) {
+                err = WHAL_ETIMEOUT;
+                goto exit;
+            }
+
+            sr = whal_Reg_Read(reg->base, RNG_SR_REG);
+
             /* Check for seed or clock error */
-            whal_Reg_Get(reg->base, RNG_SR_REG, RNG_SR_SECS_Msk, RNG_SR_SECS_Pos, &status);
-            if (status) {
+            if (sr & RNG_SR_SECS_Msk) {
                 err = WHAL_EHARDWARE;
                 goto exit;
             }
-            whal_Reg_Get(reg->base, RNG_SR_REG, RNG_SR_CECS_Msk, RNG_SR_CECS_Pos, &status);
-            if (status) {
+            if (sr & RNG_SR_CECS_Msk) {
                 err = WHAL_EHARDWARE;
                 goto exit;
             }
 
-            whal_Reg_Get(reg->base, RNG_SR_REG, RNG_SR_DRDY_Msk, RNG_SR_DRDY_Pos, &status);
-        } while (!status);
+            if (sr & RNG_SR_DRDY_Msk)
+                break;
+        }
 
         /* Read 32-bit random value */
         uint32_t rnd = *(volatile uint32_t *)(reg->base + RNG_DR_REG);
