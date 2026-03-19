@@ -51,7 +51,7 @@ whal_Error whal_Stm32wbUart_Init(whal_Uart *uartDev)
     reg = &uartDev->regmap;
     cfg = (whal_Stm32wbUart_Cfg *)uartDev->cfg;
 
-    brr = cfg->baud;
+    brr = cfg->brr;
 
     whal_Reg_Update(reg->base, UART_BRR_REG,
                     UART_BRR_Msk,

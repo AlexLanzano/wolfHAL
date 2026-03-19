@@ -119,7 +119,7 @@ whal_Uart g_whalUart = {
     .cfg = &(whal_Stm32wbUart_Cfg) {
         .timeout = &g_whalTimeout,
 
-        .baud = WHAL_STM32WB_UART_BRR(64000000, 115200),
+        .brr = WHAL_STM32WB_UART_BRR(64000000, 115200),
     },
 };
 

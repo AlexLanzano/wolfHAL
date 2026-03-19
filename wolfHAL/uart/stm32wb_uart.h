@@ -25,7 +25,7 @@
  * @brief STM32 UART configuration parameters.
  */
 typedef struct whal_Stm32wbUart_Cfg {
-    uint32_t baud;
+    uint32_t brr;
     whal_Timeout *timeout;
 } whal_Stm32wbUart_Cfg;
 
