@@ -5,6 +5,7 @@
 #include <stddef.h>
 #include <wolfHAL/clock/clock.h>
 #include <wolfHAL/uart/uart.h>
+#include <wolfHAL/timeout.h>
 
 /*
  * @file pic32cz_uart.h
@@ -42,6 +43,7 @@ typedef struct whal_Pic32czUart_Cfg {
     uint32_t baud;
     whal_Pic32czUart_TxPad txPad;
     whal_Pic32czUart_RxPad rxPad;
+    whal_Timeout *timeout;
 } whal_Pic32czUart_Cfg;
 
 /*

@@ -5,6 +5,30 @@
 #include "board.h"
 #include <wolfHAL/platform/st/stm32wb55xx.h>
 
+/* SysTick timing */
+volatile uint32_t g_tick = 0;
+volatile uint8_t g_waiting = 0;
+volatile uint8_t g_tickOverflow = 0;
+
+void SysTick_Handler()
+{
+    uint32_t tickBefore = g_tick++;
+    if (g_waiting) {
+        if (tickBefore > g_tick)
+            g_tickOverflow = 1;
+    }
+}
+
+uint32_t Board_GetTick(void)
+{
+    return g_tick;
+}
+
+whal_Timeout g_whalTimeout = {
+    .timeoutTicks = 5, /* 5ms timeout */
+    .GetTick = Board_GetTick,
+};
+
 /* Clock */
 whal_Clock g_whalClock = {
     WHAL_STM32WB55_RCC_PLL_DEVICE,
@@ -95,6 +119,7 @@ whal_Uart g_whalUart = {
     .cfg = &(whal_Stm32wbUart_Cfg) {
         .clkCtrl = &g_whalClock,
         .clk = &(whal_Stm32wbRcc_Clk) {WHAL_STM32WB55_UART1_CLOCK},
+        .timeout = &g_whalTimeout,
 
         .baud = 115200,
     },
@@ -107,6 +132,7 @@ whal_Flash g_whalFlash = {
     .cfg = &(whal_Stm32wbFlash_Cfg) {
         .clkCtrl = &g_whalClock,
         .clk = &(whal_Stm32wbRcc_Clk) {WHAL_STM32WB55_FLASH_CLOCK},
+        .timeout = &g_whalTimeout,
 
         .startAddr = 0x08000000,
         .size = 0x100000,
@@ -120,6 +146,7 @@ whal_Rng g_whalRng = {
     .cfg = &(whal_Stm32wbRng_Cfg) {
         .clkCtrl = &g_whalClock,
         .clk = &(whal_Stm32wbRcc_Clk) {WHAL_STM32WB55_RNG_CLOCK},
+        .timeout = &g_whalTimeout,
     },
 };
 
@@ -142,31 +169,18 @@ whal_Crypto g_whalCrypto = {
     .cfg = &(whal_Stm32wbAes_Cfg) {
         .clkCtrl = &g_whalClock,
         .clk = &(whal_Stm32wbRcc_Clk) {WHAL_STM32WB55_AES1_CLOCK},
+        .timeout = &g_whalTimeout,
     },
 };
 
-/* SysTick timing */
-volatile size_t g_tick = 0;
-volatile uint8_t g_waiting = 0;
-volatile uint8_t g_tickOverflow = 0;
-
-void SysTick_Handler()
-{
-    size_t tickBefore = g_tick++;
-    if (g_waiting) {
-        if (tickBefore > g_tick)
-            g_tickOverflow = 1;
-    }
-}
-
 void Board_WaitMs(size_t ms)
 {
-    size_t startCount = g_tick;
+    uint32_t startCount = g_tick;
     g_waiting = 1;
     while (1) {
-        size_t currentCount = g_tick;
+        uint32_t currentCount = g_tick;
         if (g_tickOverflow) {
-            if ((SIZE_MAX - startCount) + currentCount > ms) {
+            if ((UINT32_MAX - startCount) + currentCount > ms) {
                 break;
             }
         } else if (currentCount - startCount > ms) {

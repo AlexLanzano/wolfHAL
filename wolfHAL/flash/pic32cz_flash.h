@@ -3,6 +3,7 @@
 
 #include <wolfHAL/flash/flash.h>
 #include <wolfHAL/clock/clock.h>
+#include <wolfHAL/timeout.h>
 
 /*
  * @file pic32cz_flash.h
@@ -29,6 +30,7 @@
 typedef struct whal_Pic32czFlash_Cfg {
     size_t startAddr;
     size_t size;
+    whal_Timeout *timeout;
 } whal_Pic32czFlash_Cfg;
 
 /*

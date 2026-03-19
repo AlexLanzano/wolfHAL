@@ -5,6 +5,7 @@
 #include <wolfHAL/error.h>
 #include <wolfHAL/regmap.h>
 #include <wolfHAL/bitops.h>
+#include <wolfHAL/timeout.h>
 
 #define UART_CR1_REG 0x00
 #define UART_CR1_UE_Pos 0
@@ -133,17 +134,18 @@ whal_Error whal_Stm32wbUart_Deinit(whal_Uart *uartDev)
 whal_Error whal_Stm32wbUart_Send(whal_Uart *uartDev, const void *data, size_t dataSz)
 {
     const whal_Regmap *reg = &uartDev->regmap;
+    whal_Stm32wbUart_Cfg *cfg = (whal_Stm32wbUart_Cfg *)uartDev->cfg;
     const uint8_t *buf = data;
 
     for (size_t i = 0; i < dataSz; ++i) {
-        size_t txComplete = 0;
-
+        whal_Error err;
         whal_Reg_Update(reg->base, UART_TDR_REG, UART_TDR_Msk,
                         whal_SetBits(UART_TDR_Msk, UART_TDR_Pos, buf[i]));
 
-        while (!txComplete) {
-            whal_Reg_Get(reg->base, UART_ISR_REG, UART_ISR_TC_Msk, UART_ISR_TC_Pos, &txComplete);
-        }
+        err = whal_Reg_ReadPoll(reg->base, UART_ISR_REG, UART_ISR_TC_Msk,
+                                UART_ISR_TC_Msk, cfg->timeout);
+        if (err)
+            return err;
     }
 
     return WHAL_SUCCESS;
@@ -152,15 +154,16 @@ whal_Error whal_Stm32wbUart_Send(whal_Uart *uartDev, const void *data, size_t da
 whal_Error whal_Stm32wbUart_Recv(whal_Uart *uartDev, void *data, size_t dataSz)
 {
     const whal_Regmap *reg = &uartDev->regmap;
+    whal_Stm32wbUart_Cfg *cfg = (whal_Stm32wbUart_Cfg *)uartDev->cfg;
     uint8_t *buf = data;
     size_t d;
 
     for (size_t i = 0; i < dataSz; ++i) {
-        size_t dataReceived = 0;
-
-        while (!dataReceived) {
-            whal_Reg_Get(reg->base, UART_ISR_REG, UART_ISR_RXFNE_Msk, UART_ISR_RXFNE_Pos, &dataReceived);
-        }
+        whal_Error err = whal_Reg_ReadPoll(reg->base, UART_ISR_REG,
+                                           UART_ISR_RXFNE_Msk,
+                                           UART_ISR_RXFNE_Msk, cfg->timeout);
+        if (err)
+            return err;
 
         whal_Reg_Get(reg->base, UART_RDR_REG,
                      UART_RDR_Msk, UART_RDR_Pos, &d);

@@ -3,6 +3,7 @@
 
 #include <wolfHAL/flash/flash.h>
 #include <wolfHAL/clock/clock.h>
+#include <wolfHAL/timeout.h>
 
 /*
  * @file stm32wb_flash.h
@@ -28,6 +29,7 @@ typedef struct whal_Stm32wbFlash_Cfg {
     const void *clk;      /* Clock descriptor */
     size_t startAddr;     /* Flash base address (typically 0x08000000) */
     size_t size;          /* Flash size in bytes */
+    whal_Timeout *timeout;
 } whal_Stm32wbFlash_Cfg;
 
 /*

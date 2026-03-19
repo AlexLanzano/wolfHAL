@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <wolfHAL/rng/rng.h>
 #include <wolfHAL/clock/clock.h>
+#include <wolfHAL/timeout.h>
 
 /*
  * @file stm32wb_rng.h
@@ -20,6 +21,7 @@
 typedef struct whal_Stm32wbRng_Cfg {
     whal_Clock *clkCtrl; /* Clock controller for RNG peripheral clock */
     const void *clk;     /* Clock descriptor */
+    whal_Timeout *timeout;
 } whal_Stm32wbRng_Cfg;
 
 /*

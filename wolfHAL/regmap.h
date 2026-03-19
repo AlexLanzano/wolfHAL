@@ -4,6 +4,7 @@
 #include <stddef.h>
 #include <wolfHAL/error.h>
 #include <wolfHAL/bitops.h>
+#include <wolfHAL/timeout.h>
 
 /*
  * @file regmap.h
@@ -79,6 +80,30 @@ static inline void whal_Reg_Write(size_t base, size_t offset, size_t value)
 static inline size_t whal_Reg_Read(size_t base, size_t offset)
 {
     return *(volatile size_t *)(base + offset);
+}
+
+/*
+ * @brief Poll a register until (reg & mask) == value, or timeout.
+ *
+ * @param base    Register block base address.
+ * @param offset  Register offset.
+ * @param mask    Bit mask to extract the field.
+ * @param value   Expected value of the masked field.
+ * @param timeout Timeout instance (NULL for unbounded wait).
+ */
+static inline whal_Error whal_Reg_ReadPoll(size_t base, size_t offset,
+                                            size_t mask, size_t value,
+                                            whal_Timeout *timeout)
+{
+#ifdef WHAL_CFG_NO_TIMEOUT
+    (void)(timeout);
+#endif
+    WHAL_TIMEOUT_START(timeout);
+    while ((whal_Reg_Read(base, offset) & mask) != value) {
+        if (WHAL_TIMEOUT_EXPIRED(timeout))
+            return WHAL_ETIMEOUT;
+    }
+    return WHAL_SUCCESS;
 }
 
 #endif /* WHAL_REGMAP_H */

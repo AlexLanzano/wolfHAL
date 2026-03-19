@@ -11,7 +11,7 @@ extern whal_Timer g_whalTimer;
 extern whal_Uart g_whalUart;
 extern whal_Flash g_whalFlash;
 
-extern volatile size_t g_tick;
+extern volatile uint32_t g_tick;
 
 #define BOARD_LED_PIN         0
 #define BOARD_FLASH_TEST_ADDR 0x0C000000

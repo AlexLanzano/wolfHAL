@@ -126,6 +126,7 @@ whal_Uart g_whalUart = {
     .cfg = &(whal_Stm32wbUart_Cfg) {
         .clkCtrl = &g_whalClock,
         .clk = &(whal_Stm32wbRcc_Clk){WHAL_STM32WB55_UART1_CLOCK},
+        .timeout = &g_whalTimeout,
         .baud = 115200,
     },
 };
@@ -202,6 +203,7 @@ operation completed. The error codes are:
 | `WHAL_EINVAL` | Invalid argument or unsupported operation |
 | `WHAL_ENOTREADY` | Resource is busy or not yet available |
 | `WHAL_EHARDWARE` | Hardware error (e.g., RNG entropy failure) |
+| `WHAL_ETIMEOUT` | Operation timed out waiting for hardware |
 
 ## Optimizing for Size
 

@@ -19,11 +19,12 @@ Exports global peripheral instances and board-specific constants:
 
 #include <wolfHAL/wolfHAL.h>
 
-extern whal_Clock g_whalClock;
-extern whal_Gpio  g_whalGpio;
-extern whal_Uart  g_whalUart;
-extern whal_Timer g_whalTimer;
-extern whal_Flash g_whalFlash;
+extern whal_Clock   g_whalClock;
+extern whal_Gpio    g_whalGpio;
+extern whal_Uart    g_whalUart;
+extern whal_Timer   g_whalTimer;
+extern whal_Flash   g_whalFlash;
+extern whal_Timeout g_whalTimeout;
 
 #define BOARD_LED_PIN 0
 
