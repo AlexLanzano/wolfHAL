@@ -4,7 +4,6 @@
 #include <stdint.h>
 #include <wolfHAL/bitops.h>
 #include <wolfHAL/clock/clock.h>
-#include <wolfHAL/supply/supply.h>
 
 /*
  * @file pic32cz_clock.h
@@ -138,9 +137,6 @@ typedef struct whal_Pic32czClockPll_OutCfg {
  *   f_out = 900MHz / 3 = 300MHz
  */
 typedef struct whal_Pic32czClockPll_OscCtrlCfg {
-    whal_Supply *supplyCtrl; /* Supply controller for PLL power */
-    void *supply;            /* Supply instance handle */
-
     whal_Pic32czClockPll_Inst pllInst;   /* PLL0 or PLL1 */
     whal_Pic32czClockPll_RefSel refSel;  /* Reference clock source */
     whal_Pic32czClockPll_BwSel bwSel;    /* Loop filter bandwidth */

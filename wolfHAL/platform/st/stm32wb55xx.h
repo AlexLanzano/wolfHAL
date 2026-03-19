@@ -21,7 +21,7 @@
         .base = 0x40008000,             \
         .size = 0x400,                  \
     },                                  \
-    .driver = &whal_Stm32wbLpuart_Driver
+    .driver = &whal_Stm32wbUart_Driver
 
 #define WHAL_STM32WB55_SPI1_DEVICE      \
     .regmap = {                         \

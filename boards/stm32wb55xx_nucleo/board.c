@@ -34,9 +34,6 @@ whal_Clock g_whalClock = {
     WHAL_STM32WB55_RCC_PLL_DEVICE,
 
     .cfg = &(whal_Stm32wbRcc_Cfg) {
-        .flash = &g_whalFlash,
-        .flashLatency = WHAL_STM32WB_FLASH_LATENCY_3,
-
         .sysClkSrc = WHAL_STM32WB_RCC_SYSCLK_SRC_PLL,
         .sysClkCfg = &(whal_Stm32wbRcc_PllClkCfg)
         {
@@ -51,6 +48,16 @@ whal_Clock g_whalClock = {
     },
 };
 
+static const whal_Stm32wbRcc_Clk g_flashClock = {WHAL_STM32WB55_FLASH_CLOCK};
+
+static const whal_Stm32wbRcc_Clk g_peripheralClocks[] = {
+    {WHAL_STM32WB55_GPIOB_CLOCK},
+    {WHAL_STM32WB55_UART1_CLOCK},
+    {WHAL_STM32WB55_RNG_CLOCK},
+    {WHAL_STM32WB55_AES1_CLOCK},
+};
+#define PERIPHERAL_CLOCK_COUNT (sizeof(g_peripheralClocks) / sizeof(g_peripheralClocks[0]))
+
 /* GPIO */
 enum {
     LED_PIN,
@@ -62,12 +69,6 @@ whal_Gpio g_whalGpio = {
     WHAL_STM32WB55_GPIO_DEVICE,
 
     .cfg = &(whal_Stm32wbGpio_Cfg) {
-        .clkCtrl = &g_whalClock,
-        .clk = (const void *[1]) {
-            &(whal_Stm32wbRcc_Clk){WHAL_STM32WB55_GPIOB_CLOCK},
-        },
-        .clkCount = 1,
-
         .pinCfg = (whal_Stm32wbGpio_PinCfg[3]) {
             [LED_PIN] = { /* LED */
                 .port = WHAL_STM32WB_GPIO_PORT_B,
@@ -117,11 +118,9 @@ whal_Uart g_whalUart = {
     WHAL_STM32WB55_UART1_DEVICE,
 
     .cfg = &(whal_Stm32wbUart_Cfg) {
-        .clkCtrl = &g_whalClock,
-        .clk = &(whal_Stm32wbRcc_Clk) {WHAL_STM32WB55_UART1_CLOCK},
         .timeout = &g_whalTimeout,
 
-        .baud = 115200,
+        .brr = WHAL_STM32WB_UART_BRR(64000000, 115200),
     },
 };
 
@@ -130,8 +129,6 @@ whal_Flash g_whalFlash = {
     WHAL_STM32WB55_FLASH_DEVICE,
 
     .cfg = &(whal_Stm32wbFlash_Cfg) {
-        .clkCtrl = &g_whalClock,
-        .clk = &(whal_Stm32wbRcc_Clk) {WHAL_STM32WB55_FLASH_CLOCK},
         .timeout = &g_whalTimeout,
 
         .startAddr = 0x08000000,
@@ -144,8 +141,6 @@ whal_Rng g_whalRng = {
     WHAL_STM32WB55_RNG_DEVICE,
 
     .cfg = &(whal_Stm32wbRng_Cfg) {
-        .clkCtrl = &g_whalClock,
-        .clk = &(whal_Stm32wbRcc_Clk) {WHAL_STM32WB55_RNG_CLOCK},
         .timeout = &g_whalTimeout,
     },
 };
@@ -167,8 +162,6 @@ whal_Crypto g_whalCrypto = {
     .opsCount = BOARD_CRYPTO_OP_COUNT,
 
     .cfg = &(whal_Stm32wbAes_Cfg) {
-        .clkCtrl = &g_whalClock,
-        .clk = &(whal_Stm32wbRcc_Clk) {WHAL_STM32WB55_AES1_CLOCK},
         .timeout = &g_whalTimeout,
     },
 };
@@ -196,6 +189,17 @@ whal_Error Board_Init(void)
 {
     whal_Error err;
 
+    /* Enable flash clock and set latency before increasing clock speed */
+    err = whal_Clock_Enable(&g_whalClock, &g_flashClock);
+    if (err) {
+        return err;
+    }
+
+    err = whal_Stm32wbFlash_Ext_SetLatency(&g_whalFlash, WHAL_STM32WB_FLASH_LATENCY_3);
+    if (err) {
+        return err;
+    }
+
     err = whal_Clock_Init(&g_whalClock);
     if (err) {
         return err;
@@ -205,6 +209,13 @@ whal_Error Board_Init(void)
     err = whal_Stm32wbRcc_Ext_EnableHsi48(&g_whalClock, 1);
     if (err) {
         return err;
+    }
+
+    /* Enable peripheral clocks */
+    for (size_t i = 0; i < PERIPHERAL_CLOCK_COUNT; i++) {
+        err = whal_Clock_Enable(&g_whalClock, &g_peripheralClocks[i]);
+        if (err)
+            return err;
     }
 
     err = whal_Gpio_Init(&g_whalGpio);
@@ -284,12 +295,30 @@ whal_Error Board_Deinit(void)
         return err;
     }
 
+    /* Disable peripheral clocks */
+    for (size_t i = 0; i < PERIPHERAL_CLOCK_COUNT; i++) {
+        err = whal_Clock_Disable(&g_whalClock, &g_peripheralClocks[i]);
+        if (err)
+            return err;
+    }
+
     err = whal_Stm32wbRcc_Ext_EnableHsi48(&g_whalClock, 0);
     if (err) {
         return err;
     }
 
     err = whal_Clock_Deinit(&g_whalClock);
+    if (err) {
+        return err;
+    }
+
+    /* Reduce flash latency then disable flash clock */
+    err = whal_Stm32wbFlash_Ext_SetLatency(&g_whalFlash, WHAL_STM32WB_FLASH_LATENCY_0);
+    if (err) {
+        return err;
+    }
+
+    err = whal_Clock_Disable(&g_whalClock, &g_flashClock);
     if (err) {
         return err;
     }

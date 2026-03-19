@@ -2,7 +2,6 @@
 #define WHAL_PIC32CZ_FLASH_H
 
 #include <wolfHAL/flash/flash.h>
-#include <wolfHAL/clock/clock.h>
 #include <wolfHAL/timeout.h>
 
 /*

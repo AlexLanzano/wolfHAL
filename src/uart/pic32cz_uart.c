@@ -1,7 +1,6 @@
 #include <stdint.h>
 #include <wolfHAL/uart/pic32cz_uart.h>
 #include <wolfHAL/uart/uart.h>
-#include <wolfHAL/clock/clock.h>
 #include <wolfHAL/error.h>
 #include <wolfHAL/regmap.h>
 #include <wolfHAL/bitops.h>
@@ -166,18 +165,12 @@ whal_Error whal_Pic32czUart_Init(whal_Uart *uartDev)
     whal_Pic32czUart_Cfg *cfg;
     const whal_Regmap *reg;
 
-    if (!uartDev) {
+    if (!uartDev || !uartDev->cfg) {
         return WHAL_EINVAL;
     }
 
     reg = &uartDev->regmap;
     cfg = (whal_Pic32czUart_Cfg *)uartDev->cfg;
-
-    /* Enable peripheral clock */
-    err = whal_Clock_Enable(cfg->clkCtrl, cfg->clk);
-    if (err != WHAL_SUCCESS) {
-        return err;
-    }
 
     /* Configure CTRLA: internal clock, async mode, LSB first, 16x sampling */
     whal_Reg_Update(reg->base, USART_CTRLA_REG,
@@ -248,7 +241,7 @@ whal_Error whal_Pic32czUart_Deinit(whal_Uart *uartDev)
     const whal_Regmap *reg;
     whal_Pic32czUart_Cfg *cfg;
 
-    if (!uartDev) {
+    if (!uartDev || !uartDev->cfg) {
         return WHAL_EINVAL;
     }
 
@@ -278,12 +271,6 @@ whal_Error whal_Pic32czUart_Deinit(whal_Uart *uartDev)
     if (err != WHAL_SUCCESS)
         return err;
 
-    /* Disable peripheral clock */
-    err = whal_Clock_Disable(cfg->clkCtrl, cfg->clk);
-    if (err != WHAL_SUCCESS) {
-        return err;
-    }
-
     return WHAL_SUCCESS;
 }
 
@@ -294,7 +281,7 @@ whal_Error whal_Pic32czUart_Send(whal_Uart *uartDev, const void *data, size_t da
     const uint8_t *buf = data;
     whal_Error err;
 
-    if (!uartDev || !data) {
+    if (!uartDev || !uartDev->cfg || !data) {
         return WHAL_EINVAL;
     }
 
@@ -336,7 +323,7 @@ whal_Error whal_Pic32czUart_Recv(whal_Uart *uartDev, void *data, size_t dataSz)
     whal_Pic32czUart_Cfg *cfg;
     uint8_t *buf = data;
 
-    if (!uartDev || !data) {
+    if (!uartDev || !uartDev->cfg || !data) {
         return WHAL_EINVAL;
     }
 

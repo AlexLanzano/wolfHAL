@@ -1,6 +1,4 @@
 #include <stdint.h>
-#include <wolfHAL/clock/clock.h>
-#include <wolfHAL/clock/stm32wb_rcc.h>
 #include <wolfHAL/flash/stm32wb_flash.h>
 #include <wolfHAL/flash/flash.h>
 #include <wolfHAL/error.h>
@@ -92,36 +90,30 @@
 
 whal_Error whal_Stm32wbFlash_Init(whal_Flash *flashDev)
 {
-    whal_Error err;
-    whal_Stm32wbFlash_Cfg *cfg = flashDev->cfg;
-
-    err = whal_Clock_Enable(cfg->clkCtrl, cfg->clk);
-    if (err) {
-        return err;
-    }
+    (void)flashDev;
 
     return WHAL_SUCCESS;
 }
 
 whal_Error whal_Stm32wbFlash_Deinit(whal_Flash *flashDev)
 {
-    whal_Error err;
-    whal_Stm32wbFlash_Cfg *cfg = flashDev->cfg;
-
-    err = whal_Clock_Disable(cfg->clkCtrl, cfg->clk);
-    if (err) {
-        return err;
-    }
+    (void)flashDev;
 
     return WHAL_SUCCESS;
 }
 
 whal_Error whal_Stm32wbFlash_Lock(whal_Flash *flashDev, size_t addr, size_t len)
 {
+    const whal_Regmap *regmap;
+
     (void)addr;
     (void)len;
 
-    const whal_Regmap *regmap = &flashDev->regmap;
+    if (!flashDev) {
+        return WHAL_EINVAL;
+    }
+
+    regmap = &flashDev->regmap;
 
     /* Setting LOCK bit prevents further flash modifications until next unlock */
     whal_Reg_Update(regmap->base, FLASH_CR_REG, FLASH_CR_LOCK_Msk,
@@ -132,10 +124,16 @@ whal_Error whal_Stm32wbFlash_Lock(whal_Flash *flashDev, size_t addr, size_t len)
 
 whal_Error whal_Stm32wbFlash_Unlock(whal_Flash *flashDev, size_t addr, size_t len)
 {
+    const whal_Regmap *regmap;
+
     (void)addr;
     (void)len;
 
-    const whal_Regmap *regmap = &flashDev->regmap;
+    if (!flashDev) {
+        return WHAL_EINVAL;
+    }
+
+    regmap = &flashDev->regmap;
 
     /*
      * Unlock sequence: write KEY1 then KEY2 to KEYR register.
@@ -169,10 +167,17 @@ whal_Error whal_Stm32wbFlash_Read(whal_Flash *flashDev, size_t addr, uint8_t *da
 static whal_Error whal_Stm32wbFlash_WriteOrErase(whal_Flash *flashDev, size_t addr, const uint8_t *data,
                                             size_t dataSz, uint8_t write)
 {
-    whal_Stm32wbFlash_Cfg *cfg = flashDev->cfg;
-    const whal_Regmap *regmap = &flashDev->regmap;
+    whal_Stm32wbFlash_Cfg *cfg;
+    const whal_Regmap *regmap;
     size_t bsy;
     size_t pesd;
+
+    if (!flashDev || !flashDev->cfg) {
+        return WHAL_EINVAL;
+    }
+
+    cfg = flashDev->cfg;
+    regmap = &flashDev->regmap;
 
     /* Validate address alignment and bounds */
     if (addr & 0xf || addr < cfg->startAddr || addr + dataSz > cfg->startAddr + cfg->size) {

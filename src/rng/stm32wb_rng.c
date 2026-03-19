@@ -1,7 +1,6 @@
 #include <stdint.h>
 #include <wolfHAL/rng/stm32wb_rng.h>
 #include <wolfHAL/rng/rng.h>
-#include <wolfHAL/clock/clock.h>
 #include <wolfHAL/error.h>
 #include <wolfHAL/regmap.h>
 #include <wolfHAL/bitops.h>
@@ -44,18 +43,8 @@
 
 whal_Error whal_Stm32wbRng_Init(whal_Rng *rngDev)
 {
-    whal_Error err;
-    whal_Stm32wbRng_Cfg *cfg;
-
     if (!rngDev || !rngDev->cfg) {
         return WHAL_EINVAL;
-    }
-
-    cfg = (whal_Stm32wbRng_Cfg *)rngDev->cfg;
-
-    err = whal_Clock_Enable(cfg->clkCtrl, cfg->clk);
-    if (err != WHAL_SUCCESS) {
-        return err;
     }
 
     return WHAL_SUCCESS;
@@ -63,17 +52,8 @@ whal_Error whal_Stm32wbRng_Init(whal_Rng *rngDev)
 
 whal_Error whal_Stm32wbRng_Deinit(whal_Rng *rngDev)
 {
-    whal_Error err;
-
     if (!rngDev || !rngDev->cfg) {
         return WHAL_EINVAL;
-    }
-
-    whal_Stm32wbRng_Cfg *cfg = (whal_Stm32wbRng_Cfg *)rngDev->cfg;
-
-    err = whal_Clock_Disable(cfg->clkCtrl, cfg->clk);
-    if (err) {
-        return err;
     }
 
     return WHAL_SUCCESS;
@@ -81,19 +61,21 @@ whal_Error whal_Stm32wbRng_Deinit(whal_Rng *rngDev)
 
 whal_Error whal_Stm32wbRng_Generate(whal_Rng *rngDev, uint8_t *rngData, size_t rngDataSz)
 {
-
     whal_Error err = WHAL_SUCCESS;
-    whal_Stm32wbRng_Cfg *cfg = (whal_Stm32wbRng_Cfg *)rngDev->cfg;
-    const whal_Regmap *reg = &rngDev->regmap;
+    whal_Stm32wbRng_Cfg *cfg;
+    const whal_Regmap *reg;
     size_t sr;
     size_t offset = 0;
+
+    if (!rngDev || !rngDev->cfg || !rngData) {
+        return WHAL_EINVAL;
+    }
+
+    cfg = (whal_Stm32wbRng_Cfg *)rngDev->cfg;
+    reg = &rngDev->regmap;
 #ifdef WHAL_CFG_NO_TIMEOUT
     (void)(cfg);
 #endif
-
-    if (!rngDev || !rngData) {
-        return WHAL_EINVAL;
-    }
 
     /* Enable the RNG peripheral */
     whal_Reg_Update(reg->base, RNG_CR_REG, RNG_CR_RNGEN_Msk,

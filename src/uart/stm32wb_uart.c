@@ -1,7 +1,6 @@
 #include <stdint.h>
 #include <wolfHAL/uart/stm32wb_uart.h>
 #include <wolfHAL/uart/uart.h>
-#include <wolfHAL/clock/clock.h>
 #include <wolfHAL/error.h>
 #include <wolfHAL/regmap.h>
 #include <wolfHAL/bitops.h>
@@ -41,59 +40,18 @@
 
 whal_Error whal_Stm32wbUart_Init(whal_Uart *uartDev)
 {
-    whal_Error err;
     whal_Stm32wbUart_Cfg *cfg;
-    const whal_Regmap *reg = &uartDev->regmap;
-    size_t clockFreq;
+    const whal_Regmap *reg;
     uint32_t brr;
 
+    if (!uartDev || !uartDev->cfg) {
+        return WHAL_EINVAL;
+    }
+
+    reg = &uartDev->regmap;
     cfg = (whal_Stm32wbUart_Cfg *)uartDev->cfg;
 
-    err = whal_Clock_Enable(cfg->clkCtrl, cfg->clk);
-    if (err != WHAL_SUCCESS) {
-        return err;
-    }
-
-    err = whal_Clock_GetRate(cfg->clkCtrl, &clockFreq);
-    if (err != WHAL_SUCCESS) {
-        return err;
-    }
-
-    brr = (clockFreq / cfg->baud);
-
-    whal_Reg_Update(reg->base, UART_BRR_REG,
-                    UART_BRR_Msk,
-                    whal_SetBits(UART_BRR_Msk, UART_BRR_Pos, brr));
-    whal_Reg_Update(reg->base, UART_CR1_REG,
-                    UART_CR1_UE_Msk | UART_CR1_RE_Msk | UART_CR1_TE_Msk,
-                    whal_SetBits(UART_CR1_UE_Msk, UART_CR1_UE_Pos, 1) |
-                    whal_SetBits(UART_CR1_RE_Msk, UART_CR1_RE_Pos, 1) |
-                    whal_SetBits(UART_CR1_TE_Msk, UART_CR1_TE_Pos, 1));
-
-    return WHAL_SUCCESS;
-}
-
-whal_Error whal_Stm32wbLpuart_Init(whal_Uart *uartDev)
-{
-    whal_Error err;
-    whal_Stm32wbUart_Cfg *cfg;
-    const whal_Regmap *reg = &uartDev->regmap;
-    size_t clockFreq;
-    uint32_t brr;
-
-    cfg = (whal_Stm32wbUart_Cfg *)uartDev->cfg;
-
-    err = whal_Clock_Enable(cfg->clkCtrl, cfg->clk);
-    if (err != WHAL_SUCCESS) {
-        return err;
-    }
-
-    err = whal_Clock_GetRate(cfg->clkCtrl, &clockFreq);
-    if (err != WHAL_SUCCESS) {
-        return err;
-    }
-
-    brr = (clockFreq / cfg->baud) * 256;
+    brr = cfg->brr;
 
     whal_Reg_Update(reg->base, UART_BRR_REG,
                     UART_BRR_Msk,
@@ -109,9 +67,13 @@ whal_Error whal_Stm32wbLpuart_Init(whal_Uart *uartDev)
 
 whal_Error whal_Stm32wbUart_Deinit(whal_Uart *uartDev)
 {
-    whal_Error err;
-    const whal_Regmap *reg = &uartDev->regmap;
-    whal_Stm32wbUart_Cfg *cfg = (whal_Stm32wbUart_Cfg *)uartDev->cfg;
+    const whal_Regmap *reg;
+
+    if (!uartDev) {
+        return WHAL_EINVAL;
+    }
+
+    reg = &uartDev->regmap;
 
     whal_Reg_Update(reg->base, UART_CR1_REG,
                     UART_CR1_UE_Msk | UART_CR1_RE_Msk | UART_CR1_TE_Msk,
@@ -123,19 +85,21 @@ whal_Error whal_Stm32wbUart_Deinit(whal_Uart *uartDev)
                           UART_BRR_Msk,
                           whal_SetBits(UART_BRR_Msk, UART_BRR_Pos, 0));
 
-    err = whal_Clock_Disable(cfg->clkCtrl, cfg->clk);
-    if (err) {
-        return err;
-    }
-
     return WHAL_SUCCESS;
 }
 
 whal_Error whal_Stm32wbUart_Send(whal_Uart *uartDev, const void *data, size_t dataSz)
 {
-    const whal_Regmap *reg = &uartDev->regmap;
-    whal_Stm32wbUart_Cfg *cfg = (whal_Stm32wbUart_Cfg *)uartDev->cfg;
+    const whal_Regmap *reg;
+    whal_Stm32wbUart_Cfg *cfg;
     const uint8_t *buf = data;
+
+    if (!uartDev || !uartDev->cfg || !data) {
+        return WHAL_EINVAL;
+    }
+
+    reg = &uartDev->regmap;
+    cfg = (whal_Stm32wbUart_Cfg *)uartDev->cfg;
 
     for (size_t i = 0; i < dataSz; ++i) {
         whal_Error err;
@@ -153,9 +117,16 @@ whal_Error whal_Stm32wbUart_Send(whal_Uart *uartDev, const void *data, size_t da
 
 whal_Error whal_Stm32wbUart_Recv(whal_Uart *uartDev, void *data, size_t dataSz)
 {
-    const whal_Regmap *reg = &uartDev->regmap;
-    whal_Stm32wbUart_Cfg *cfg = (whal_Stm32wbUart_Cfg *)uartDev->cfg;
+    const whal_Regmap *reg;
+    whal_Stm32wbUart_Cfg *cfg;
     uint8_t *buf = data;
+
+    if (!uartDev || !uartDev->cfg || !data) {
+        return WHAL_EINVAL;
+    }
+
+    reg = &uartDev->regmap;
+    cfg = (whal_Stm32wbUart_Cfg *)uartDev->cfg;
     size_t d;
 
     for (size_t i = 0; i < dataSz; ++i) {
@@ -181,9 +152,3 @@ const whal_UartDriver whal_Stm32wbUart_Driver = {
     .Recv = whal_Stm32wbUart_Recv,
 };
 
-const whal_UartDriver whal_Stm32wbLpuart_Driver = {
-    .Init = whal_Stm32wbLpuart_Init,
-    .Deinit = whal_Stm32wbUart_Deinit,
-    .Send = whal_Stm32wbUart_Send,
-    .Recv = whal_Stm32wbUart_Recv,
-};

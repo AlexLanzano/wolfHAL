@@ -3,7 +3,6 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#include <wolfHAL/clock/clock.h>
 #include <wolfHAL/uart/uart.h>
 #include <wolfHAL/timeout.h>
 
@@ -38,8 +37,6 @@ typedef enum {
  * @brief PIC32CZ SERCOM USART configuration parameters.
  */
 typedef struct whal_Pic32czUart_Cfg {
-    whal_Clock *clkCtrl;
-    void *clk;
     uint32_t baud;
     whal_Pic32czUart_TxPad txPad;
     whal_Pic32czUart_RxPad rxPad;

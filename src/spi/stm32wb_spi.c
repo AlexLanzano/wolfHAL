@@ -1,7 +1,6 @@
 #include <stdint.h>
 #include <wolfHAL/spi/stm32wb_spi.h>
 #include <wolfHAL/spi/spi.h>
-#include <wolfHAL/clock/clock.h>
 #include <wolfHAL/error.h>
 #include <wolfHAL/regmap.h>
 #include <wolfHAL/bitops.h>
@@ -93,16 +92,9 @@ static void whal_Stm32wbSpi_ApplyComCfg(const whal_Regmap *reg,
                                         whal_Stm32wbSpi_Cfg *cfg,
                                         whal_Stm32wbSpi_ComCfg *comCfg)
 {
-    whal_Error err;
-    size_t pclk;
     uint32_t cpol, cpha, br;
 
-    err = whal_Clock_GetRate(cfg->clkCtrl, &pclk);
-    if (err) {
-        return;
-    }
-
-    br = whal_Stm32wbSpi_CalcBr(pclk, comCfg->baud);
+    br = whal_Stm32wbSpi_CalcBr(cfg->pclk, comCfg->baud);
 
     cpol = (comCfg->mode >> 1) & 1;
     cpha = comCfg->mode & 1;
@@ -125,8 +117,6 @@ static void whal_Stm32wbSpi_ApplyComCfg(const whal_Regmap *reg,
 
 whal_Error whal_Stm32wbSpi_Init(whal_Spi *spiDev)
 {
-    whal_Error err;
-    whal_Stm32wbSpi_Cfg *cfg;
     const whal_Regmap *reg;
 
     if (!spiDev || !spiDev->cfg) {
@@ -134,12 +124,6 @@ whal_Error whal_Stm32wbSpi_Init(whal_Spi *spiDev)
     }
 
     reg = &spiDev->regmap;
-    cfg = (whal_Stm32wbSpi_Cfg *)spiDev->cfg;
-
-    err = whal_Clock_Enable(cfg->clkCtrl, cfg->clk);
-    if (err != WHAL_SUCCESS) {
-        return err;
-    }
 
     /* Master mode with software slave management */
     whal_Reg_Update(reg->base, SPI_CR1_REG,
@@ -159,25 +143,17 @@ whal_Error whal_Stm32wbSpi_Init(whal_Spi *spiDev)
 
 whal_Error whal_Stm32wbSpi_Deinit(whal_Spi *spiDev)
 {
-    whal_Error err;
     const whal_Regmap *reg;
-    whal_Stm32wbSpi_Cfg *cfg;
 
     if (!spiDev || !spiDev->cfg) {
         return WHAL_EINVAL;
     }
 
     reg = &spiDev->regmap;
-    cfg = (whal_Stm32wbSpi_Cfg *)spiDev->cfg;
 
     /* Disable SPI */
     whal_Reg_Update(reg->base, SPI_CR1_REG, SPI_CR1_SPE_Msk,
                     whal_SetBits(SPI_CR1_SPE_Msk, SPI_CR1_SPE_Pos, 0));
-
-    err = whal_Clock_Disable(cfg->clkCtrl, cfg->clk);
-    if (err) {
-        return err;
-    }
 
     return WHAL_SUCCESS;
 }

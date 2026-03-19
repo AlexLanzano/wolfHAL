@@ -17,9 +17,6 @@ whal_Clock g_whalClock = {
     .cfg = &(whal_Pic32czClock_Cfg) {
         /* 300MHz clock */
         .oscCtrlCfg = &(whal_Pic32czClockPll_OscCtrlCfg) {
-            .supplyCtrl = &g_whalSupply,
-            .supply = &(whal_Pic32czSupc_Supply){WHAL_PIC32CZ_SUPPLY_PLL},
-
             .pllInst = WHAL_PIC32CZ_PLL0,
             .refSel = WHAL_PIC32CZ_REFSEL_DFLL48M,
             .bwSel = WHAL_PIC32CZ_BWSEL_10MHz_TO_20MHz,
@@ -47,6 +44,18 @@ whal_Clock g_whalClock = {
         },
     },
 };
+
+/* Peripheral clocks */
+static const whal_Pic32czClock_Clk g_peripheralClocks[] = {
+    { /* SERCOM 4 (UART) */
+        .gclkPeriphChannel = 25,
+        .gclkPeriphSrc = 0, /* GEN 0 */
+        .mclkEnableInst = 1,
+        .mclkEnableMask = (1UL << 3),
+        .mclkEnablePos = 3,
+    },
+};
+#define PERIPHERAL_CLOCK_COUNT (sizeof(g_peripheralClocks) / sizeof(g_peripheralClocks[0]))
 
 /* GPIO */
 whal_Gpio g_whalGpio = {
@@ -78,20 +87,10 @@ whal_Gpio g_whalGpio = {
 };
 
 /* UART */
-static whal_Pic32czClock_Clk uartClk = {
-    .gclkPeriphChannel = 25, /* SERCOM 4 */
-    .gclkPeriphSrc = 0, /* GEN 0 */
-    .mclkEnableInst = 1, /* Peripheral BUS Clock Enable Mask1 Register */
-    .mclkEnableMask = (1UL << 3), /* SERCOM 4 enable mask */
-    .mclkEnablePos = 3,
-};
-
 whal_Uart g_whalUart = {
     WHAL_PIC32CZ_SERCOM4_UART_DEVICE,
 
     .cfg = &(whal_Pic32czUart_Cfg) {
-        .clkCtrl = &g_whalClock,
-        .clk = &uartClk,
         .baud = WHAL_PIC32CZ_UART_BAUD(115200, 300000000),
         .txPad = WHAL_PIC32CZ_UART_TXPO_PAD0,
         .rxPad = WHAL_PIC32CZ_UART_RXPO_PAD1,
@@ -156,9 +155,23 @@ whal_Error Board_Init(void)
         return err;
     }
 
+    /* Enable PLL power supply before clock init */
+    err = whal_Supply_Enable(&g_whalSupply,
+                             &(whal_Pic32czSupc_Supply){WHAL_PIC32CZ_SUPPLY_PLL});
+    if (err) {
+        return err;
+    }
+
     err = whal_Clock_Init(&g_whalClock);
     if (err) {
         return err;
+    }
+
+    /* Enable peripheral clocks */
+    for (size_t i = 0; i < PERIPHERAL_CLOCK_COUNT; i++) {
+        err = whal_Clock_Enable(&g_whalClock, &g_peripheralClocks[i]);
+        if (err)
+            return err;
     }
 
     err = whal_Gpio_Init(&g_whalGpio);
@@ -216,6 +229,13 @@ whal_Error Board_Deinit(void)
     err = whal_Gpio_Deinit(&g_whalGpio);
     if (err) {
         return err;
+    }
+
+    /* Disable peripheral clocks */
+    for (size_t i = 0; i < PERIPHERAL_CLOCK_COUNT; i++) {
+        err = whal_Clock_Disable(&g_whalClock, &g_peripheralClocks[i]);
+        if (err)
+            return err;
     }
 
     err = whal_Clock_Deinit(&g_whalClock);

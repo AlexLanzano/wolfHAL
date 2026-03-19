@@ -53,7 +53,6 @@ on failure.
 static whal_MyplatformGpio_PinCfg pinCfg[] = { /* ... */ };
 
 static whal_MyplatformGpio_Cfg gpioConfig = {
-    .clkCtrl = &g_whalClock,
     .pinCfg  = pinCfg,
     .pinCount = sizeof(pinCfg) / sizeof(pinCfg[0]),
 };
@@ -63,34 +62,61 @@ whal_Gpio g_whalGpio = {
     .cfg = &gpioConfig,
 };
 
+static const MyPlatformClk g_peripheralClocks[] = {
+    {MY_PLATFORM_GPIO_CLOCK},
+    {MY_PLATFORM_UART_CLOCK},
+};
+#define PERIPHERAL_CLOCK_COUNT \
+    (sizeof(g_peripheralClocks) / sizeof(g_peripheralClocks[0]))
+
 whal_Error Board_Init(void)
 {
     whal_Error err;
 
     err = whal_Clock_Init(&g_whalClock);
-    if (err != WHAL_SUCCESS) return err;
+    if (err)
+        return err;
+
+    for (size_t i = 0; i < PERIPHERAL_CLOCK_COUNT; i++) {
+        err = whal_Clock_Enable(&g_whalClock, &g_peripheralClocks[i]);
+        if (err)
+            return err;
+    }
 
     err = whal_Gpio_Init(&g_whalGpio);
-    if (err != WHAL_SUCCESS) return err;
+    if (err)
+        return err;
 
     err = whal_Uart_Init(&g_whalUart);
-    if (err != WHAL_SUCCESS) return err;
+    if (err)
+        return err;
 
     err = whal_Timer_Init(&g_whalTimer);
-    if (err != WHAL_SUCCESS) return err;
+    if (err)
+        return err;
 
     err = whal_Timer_Start(&g_whalTimer);
-    if (err != WHAL_SUCCESS) return err;
+    if (err)
+        return err;
 
     return WHAL_SUCCESS;
 }
 
 whal_Error Board_Deinit(void)
 {
+    whal_Error err;
+
     whal_Timer_Stop(&g_whalTimer);
     whal_Timer_Deinit(&g_whalTimer);
     whal_Uart_Deinit(&g_whalUart);
     whal_Gpio_Deinit(&g_whalGpio);
+
+    for (size_t i = 0; i < PERIPHERAL_CLOCK_COUNT; i++) {
+        err = whal_Clock_Disable(&g_whalClock, &g_peripheralClocks[i]);
+        if (err)
+            return err;
+    }
+
     whal_Clock_Deinit(&g_whalClock);
     return WHAL_SUCCESS;
 }
