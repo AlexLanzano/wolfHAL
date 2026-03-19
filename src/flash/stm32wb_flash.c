@@ -1,6 +1,4 @@
 #include <stdint.h>
-#include <wolfHAL/clock/clock.h>
-#include <wolfHAL/clock/stm32wb_rcc.h>
 #include <wolfHAL/flash/stm32wb_flash.h>
 #include <wolfHAL/flash/flash.h>
 #include <wolfHAL/error.h>
@@ -92,26 +90,14 @@
 
 whal_Error whal_Stm32wbFlash_Init(whal_Flash *flashDev)
 {
-    whal_Error err;
-    whal_Stm32wbFlash_Cfg *cfg = flashDev->cfg;
-
-    err = whal_Clock_Enable(cfg->clkCtrl, cfg->clk);
-    if (err) {
-        return err;
-    }
+    (void)flashDev;
 
     return WHAL_SUCCESS;
 }
 
 whal_Error whal_Stm32wbFlash_Deinit(whal_Flash *flashDev)
 {
-    whal_Error err;
-    whal_Stm32wbFlash_Cfg *cfg = flashDev->cfg;
-
-    err = whal_Clock_Disable(cfg->clkCtrl, cfg->clk);
-    if (err) {
-        return err;
-    }
+    (void)flashDev;
 
     return WHAL_SUCCESS;
 }

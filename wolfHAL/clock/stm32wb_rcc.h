@@ -3,7 +3,6 @@
 
 #include <stdint.h>
 #include <wolfHAL/clock/clock.h>
-#include <wolfHAL/flash/stm32wb_flash.h>
 #include <stddef.h>
 
 /*
@@ -121,12 +120,8 @@ typedef struct whal_Stm32wbRcc_Clk {
  * @brief RCC driver configuration.
  *
  * Contains all parameters needed to configure the system clock.
- * Flash latency must be set appropriately for the target frequency.
  */
 typedef struct whal_Stm32wbRcc_Cfg {
-    whal_Flash *flash;                       /* Flash device for latency config */
-    whal_Stm32wbFlash_Latency flashLatency;  /* Required flash wait states */
-
     whal_Stm32wbRcc_SysClockSrc sysClkSrc;   /* System clock source */
     void *sysClkCfg; /* Pointer to PllClkCfg or MsiClkCfg based on driver */
 } whal_Stm32wbRcc_Cfg;

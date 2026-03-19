@@ -1,7 +1,6 @@
 #include <stdint.h>
 #include <wolfHAL/rng/stm32wb_rng.h>
 #include <wolfHAL/rng/rng.h>
-#include <wolfHAL/clock/clock.h>
 #include <wolfHAL/error.h>
 #include <wolfHAL/regmap.h>
 #include <wolfHAL/bitops.h>
@@ -44,18 +43,8 @@
 
 whal_Error whal_Stm32wbRng_Init(whal_Rng *rngDev)
 {
-    whal_Error err;
-    whal_Stm32wbRng_Cfg *cfg;
-
     if (!rngDev || !rngDev->cfg) {
         return WHAL_EINVAL;
-    }
-
-    cfg = (whal_Stm32wbRng_Cfg *)rngDev->cfg;
-
-    err = whal_Clock_Enable(cfg->clkCtrl, cfg->clk);
-    if (err != WHAL_SUCCESS) {
-        return err;
     }
 
     return WHAL_SUCCESS;
@@ -63,17 +52,8 @@ whal_Error whal_Stm32wbRng_Init(whal_Rng *rngDev)
 
 whal_Error whal_Stm32wbRng_Deinit(whal_Rng *rngDev)
 {
-    whal_Error err;
-
     if (!rngDev || !rngDev->cfg) {
         return WHAL_EINVAL;
-    }
-
-    whal_Stm32wbRng_Cfg *cfg = (whal_Stm32wbRng_Cfg *)rngDev->cfg;
-
-    err = whal_Clock_Disable(cfg->clkCtrl, cfg->clk);
-    if (err) {
-        return err;
     }
 
     return WHAL_SUCCESS;

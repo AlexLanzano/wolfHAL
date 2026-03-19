@@ -2,7 +2,6 @@
 #define WHAL_STM32WB_UART_H
 
 #include <stdint.h>
-#include <wolfHAL/clock/clock.h>
 #include <wolfHAL/uart/uart.h>
 #include <wolfHAL/timeout.h>
 #include <stddef.h>
@@ -13,11 +12,19 @@
  */
 
 /*
+ * @brief Compute UART BRR register value.
+ */
+#define WHAL_STM32WB_UART_BRR(clk, baud)   ((clk) / (baud))
+
+/*
+ * @brief Compute LPUART BRR register value.
+ */
+#define WHAL_STM32WB_LPUART_BRR(clk, baud) (((clk) / (baud)) * 256)
+
+/*
  * @brief STM32 UART configuration parameters.
  */
 typedef struct whal_Stm32wbUart_Cfg {
-    whal_Clock *clkCtrl;
-    void *clk;
     uint32_t baud;
     whal_Timeout *timeout;
 } whal_Stm32wbUart_Cfg;
@@ -26,7 +33,6 @@ typedef struct whal_Stm32wbUart_Cfg {
  * @brief Driver instance for STM32 UART peripheral.
  */
 extern const whal_UartDriver whal_Stm32wbUart_Driver;
-extern const whal_UartDriver whal_Stm32wbLpuart_Driver;
 
 /*
  * @brief Initialize the STM32 UART peripheral.
@@ -37,15 +43,6 @@ extern const whal_UartDriver whal_Stm32wbLpuart_Driver;
  * @retval WHAL_EINVAL  Invalid arguments.
  */
 whal_Error whal_Stm32wbUart_Init(whal_Uart *uartDev);
-/*
- * @brief Initialize the STM32 UART peripheral.
- *
- * @param uartDev UART device instance to initialize.
- *
- * @retval WHAL_SUCCESS Initialization completed.
- * @retval WHAL_EINVAL  Invalid arguments.
- */
-whal_Error whal_Stm32wbLpuart_Init(whal_Uart *uartDev);
 /*
  * @brief Deinitialize the STM32 UART peripheral.
  *

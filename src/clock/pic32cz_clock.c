@@ -118,9 +118,6 @@ whal_Error whal_Pic32czClockPll_Init(whal_Clock *clkDev)
     PLLxREFDIV_REG = OSCCTRL_PLLxREFDIV_REG(oscCtrlCfg->pllInst);
     PLLxPOSTDIVA_REG = OSCCTRL_PLLxPOSTDIVA_REG(oscCtrlCfg->pllInst);
 
-    /* Enable power supply for the PLL */
-    whal_Supply_Enable(oscCtrlCfg->supplyCtrl, oscCtrlCfg->supply);
-
     /* Configure PLL feedback divider (sets VCO multiplication factor) */
     whal_Reg_Update(clkDev->regmap.base, PLLxFBDIV_REG, OSCCTRL_PLLxFBDIV_Msk,
                     whal_SetBits(OSCCTRL_PLLxFBDIV_Msk, OSCCTRL_PLLxFBDIV_Pos, oscCtrlCfg->fbDiv));

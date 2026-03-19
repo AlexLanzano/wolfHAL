@@ -97,12 +97,6 @@ whal_Gpio g_whalGpio = {
     WHAL_STM32WB55_GPIO_DEVICE,
 
     .cfg = &(whal_Stm32wbGpio_Cfg) {
-        .clkCtrl = &g_whalClock,
-        .clk = (const void *[1]) {
-            &(whal_Stm32wbRcc_Clk){WHAL_STM32WB55_GPIOB_CLOCK},
-        },
-        .clkCount = 1,
-
         .pinCfg = (whal_Stm32wbGpio_PinCfg[]) {
             { /* LED */
                 .port = WHAL_STM32WB_GPIO_PORT_B,
@@ -117,17 +111,15 @@ whal_Gpio g_whalGpio = {
 };
 ```
 
-A UART driver might need just a clock reference and baud rate:
+A UART driver might need a pre-computed baud rate register value and a timeout:
 
 ```c
 whal_Uart g_whalUart = {
     WHAL_STM32WB55_UART1_DEVICE,
 
     .cfg = &(whal_Stm32wbUart_Cfg) {
-        .clkCtrl = &g_whalClock,
-        .clk = &(whal_Stm32wbRcc_Clk){WHAL_STM32WB55_UART1_CLOCK},
         .timeout = &g_whalTimeout,
-        .baud = 115200,
+        .baud = 64000000 / 115200,  /* BRR = clockFreq / desiredBaud */
     },
 };
 ```
@@ -137,38 +129,65 @@ of configuration options for each driver.
 
 ## Initialization
 
-Peripherals must be initialized in dependency order. The clock controller comes
-first since other peripherals need it to enable their clocks. A typical
-initialization sequence:
+The board is responsible for initializing peripherals in dependency order.
+Drivers do not enable their own clocks or power supplies — the board must
+handle these prerequisites explicitly before calling a driver's Init.
+
+A typical initialization sequence:
+
+1. Do any pre-clock-controller initialization (e.g., flash wait states,
+   power supplies)
+2. Initialize the clock controller
+3. Enable peripheral clocks
+4. Initialize peripheral drivers
+5. Start timers
 
 ```c
-#include <wolfHAL/wolfHAL.h>
+static const MyPlatformClk g_peripheralClocks[] = {
+    {MY_PLATFORM_GPIOB_CLOCK},
+    {MY_PLATFORM_UART1_CLOCK},
+};
+#define PERIPHERAL_CLOCK_COUNT \
+    (sizeof(g_peripheralClocks) / sizeof(g_peripheralClocks[0]))
 
 whal_Error Board_Init(void)
 {
     whal_Error err;
 
     err = whal_Clock_Init(&g_whalClock);
-    if (err != WHAL_SUCCESS) return err;
+    if (err)
+        return err;
 
+    /* Enable peripheral clocks */
+    for (size_t i = 0; i < PERIPHERAL_CLOCK_COUNT; i++) {
+        err = whal_Clock_Enable(&g_whalClock, &g_peripheralClocks[i]);
+        if (err)
+            return err;
+    }
+
+    /* Initialize peripherals */
     err = whal_Gpio_Init(&g_whalGpio);
-    if (err != WHAL_SUCCESS) return err;
+    if (err)
+        return err;
 
     err = whal_Uart_Init(&g_whalUart);
-    if (err != WHAL_SUCCESS) return err;
+    if (err)
+        return err;
 
     err = whal_Timer_Init(&g_whalTimer);
-    if (err != WHAL_SUCCESS) return err;
+    if (err)
+        return err;
 
     err = whal_Timer_Start(&g_whalTimer);
-    if (err != WHAL_SUCCESS) return err;
+    if (err)
+        return err;
 
     return WHAL_SUCCESS;
 }
 ```
 
-On platforms with a supply controller (e.g., PIC32CZ), the supply must be
-initialized before the clock if the PLL depends on it.
+See the board examples in `boards/` for complete initialization sequences
+including platform-specific steps.
 
 ## Using the API
 
@@ -256,13 +275,9 @@ whal_Stm32wbGpio_Set(&g_whalGpio, BOARD_LED_PIN, 1);
 This eliminates the vtable indirection and lets the compiler inline or optimize
 the calls more aggressively.
 
-**Be careful with this approach:** some drivers call other drivers internally
-through the wolfHAL API. For example, a GPIO driver's Init may call
-`whal_Clock_Enable()` to gate the peripheral clock. If you bypass the vtable
-for the clock driver, those internal calls will still go through the vtable
-unless you also modify the driver source. Make sure the drivers your code
-depends on still have a working dispatch path for any functions they call
-internally.
+Register-level drivers do not call other drivers internally, so this works
+without any caveats. Bus-device drivers (e.g., SPI flash) still call their
+bus driver through the vtable.
 
 ## Next Steps
 

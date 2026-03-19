@@ -49,6 +49,21 @@ static whal_Error whal_MyplatformFoo_Init(whal_Foo *fooDev)
 }
 ```
 
+### No Cross-Driver Calls
+
+Register-level drivers must not call other wolfHAL drivers. A UART driver
+must not call the clock driver to enable its own clock, and a clock driver
+must not call the flash driver to set wait states. The board is responsible
+for all cross-peripheral dependencies — enabling clocks, configuring power
+supplies, and setting flash latency — before calling a driver's Init.
+
+This ensures drivers are pure register-level abstractions with no hidden
+dependencies, making them usable with or without the vtable dispatch layer.
+
+Bus-device drivers (e.g., SPI flash) are the exception — they inherently
+need to call their underlying bus driver (SPI, I2C) to communicate with the
+device.
+
 ### Register Access
 
 wolfHAL provides register access helpers in `wolfHAL/regmap.h`:
@@ -216,15 +231,16 @@ ordering requirements.
 
 Configure and start the system clock source. This usually involves:
 
-- Setting flash wait states **before** increasing the clock frequency (critical
-  for correct operation — the CPU will fault if flash is too slow for the new
-  clock speed)
 - Configuring the clock source (oscillator parameters, PLL multipliers and
   dividers, etc.)
 - Enabling the clock source and waiting for it to stabilize (e.g., polling a
   PLL lock bit or oscillator ready flag)
 - Switching the system clock mux to the new source
 - Configuring any required clock dividers (CPU, bus, peripheral)
+
+The board is responsible for setting flash wait states and enabling power
+supplies before calling Init. The clock driver should only touch clock
+registers.
 
 The configuration struct should contain all parameters needed to fully describe
 the desired clock tree (source selection, divider values, PLL coefficients,
@@ -237,7 +253,8 @@ Shut down the clock source safely. This typically means:
 - Switching back to a safe default clock source (e.g., an internal RC
   oscillator) before disabling the active source
 - Disabling PLLs or high-speed oscillators
-- Reducing flash wait states to match the slower clock
+
+The board is responsible for reducing flash wait states after Deinit returns.
 
 ### Enable
 
@@ -276,19 +293,20 @@ index in that table (not raw hardware pin/port numbers).
 Configure all pins described in the device's configuration. For each pin this
 typically involves:
 
-- Enabling the clock for the pin's GPIO port (via the clock driver)
 - Setting the pin mode (input, output, alternate function, analog)
 - Configuring output type (push-pull or open-drain), speed, and pull
   resistors as applicable
 - Setting the alternate function mux if the pin is in alternate function mode
   (e.g., for UART TX/RX or SPI signals)
 
+The board must enable GPIO port clocks before calling Init.
+
 If any pin configuration fails, Init should stop and return an error.
 
 ### Deinit
 
-Disable GPIO port clocks. Pin registers do not need to be explicitly reset
-since disabling the clock effectively resets the port.
+Reset GPIO pin configurations as needed. The board is responsible for
+disabling GPIO port clocks after Deinit.
 
 ### Get
 
@@ -320,13 +338,14 @@ does not return until all requested bytes have been received.
 
 Configure and enable the UART peripheral:
 
-- Enable the peripheral clock (via the clock driver)
-- Query the clock frequency to calculate the baud rate register value. Some
-  platforms require a simple division (e.g., BRR = clock / baud), while others
-  use a more complex formula involving oversampling ratios
+- Write the baud rate register value from the configuration. The board
+  pre-computes this value from the clock frequency and desired baud rate
+  (e.g., `BRR = clockFreq / baud`)
 - Configure word length, stop bits, and parity as needed
 - Enable the transmitter and receiver
 - Enable the UART peripheral
+
+The board must enable the peripheral clock before calling Init.
 
 On platforms with synchronization requirements (e.g., Microchip SERCOM), the
 driver must poll synchronization busy flags after writing to certain registers
@@ -338,7 +357,6 @@ Disable the UART peripheral:
 
 - Disable the transmitter and receiver
 - Clear the baud rate register
-- Disable the peripheral clock
 
 ### Send
 
@@ -375,16 +393,19 @@ peripheral.
 
 Configure and enable the SPI peripheral:
 
-- Enable the peripheral clock
 - Set master mode and configure slave select management (typically software-
   managed via GPIO)
 - Set the data frame size (usually 8-bit)
 - Do not configure mode or baud rate here — these are applied per-transfer via
   `spiComCfg`
 
+The board must enable the peripheral clock before calling Init. The
+configuration struct should include the peripheral clock frequency so the
+driver can compute baud rate prescalers during transfers.
+
 ### Deinit
 
-Disable the SPI peripheral and its clock.
+Disable the SPI peripheral.
 
 ### SendRecv
 
@@ -423,13 +444,13 @@ protection that the driver must handle.
 
 ### Init
 
-Initialize the flash controller. This typically just enables the flash
-interface clock. Some platforms may also need to clear error flags or release
-hardware mutex locks.
+Initialize the flash controller. This may involve clearing error flags or
+releasing hardware mutex locks. The board must enable the flash interface clock
+before calling Init.
 
 ### Deinit
 
-Release flash controller resources and disable the clock.
+Release flash controller resources.
 
 ### Lock
 
@@ -539,13 +560,13 @@ hardware typically uses an analog entropy source to produce true random numbers.
 
 ### Init
 
-Initialize the RNG hardware. This usually involves enabling the peripheral
-clock. Some platforms may require enabling additional clock sources that feed
-the RNG's entropy source (e.g., a dedicated internal oscillator).
+Initialize the RNG hardware. The board must enable the peripheral clock (and
+any additional clock sources the RNG's entropy source requires) before calling
+Init.
 
 ### Deinit
 
-Shut down the RNG hardware and disable its clock.
+Shut down the RNG hardware.
 
 ### Generate
 
@@ -596,8 +617,8 @@ table.
 
 ### Init / Deinit
 
-Init should enable the peripheral clock. Deinit should disable the AES
-peripheral and its clock.
+The board must enable the peripheral clock before calling Init. Deinit should
+disable the crypto accelerator peripheral.
 
 ### Operations
 
@@ -658,9 +679,9 @@ pointer to a supply descriptor (typically containing a register offset and bit
 mask). The driver sets the appropriate enable bit in the supply control
 register.
 
-Supply enable is often a prerequisite for other driver initialization — for
-example, a PLL's analog voltage regulator must be enabled before the PLL can be
-configured and locked.
+The board calls Supply Enable before initializing peripherals that depend on
+the supply — for example, enabling a PLL's analog voltage regulator before
+calling Clock Init.
 
 ### Disable
 

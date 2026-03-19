@@ -3,8 +3,6 @@
 
 #include <stdint.h>
 #include <wolfHAL/gpio/gpio.h>
-#include <wolfHAL/clock/clock.h>
-#include <wolfHAL/clock/stm32wb_rcc.h>
 #include <wolfHAL/regmap.h>
 
 /*
@@ -103,10 +101,6 @@ typedef struct {
  * Contains clock control references and an array of pin configurations.
  */
 typedef struct {
-    whal_Clock *clkCtrl; /* Clock controller for enabling GPIO clock */
-    const void **clk;    /* Array of clock descriptors */
-    size_t clkCount;     /* Number of clock descriptors */
-
     whal_Stm32wbGpio_PinCfg *pinCfg; /* Array of pin configurations */
     size_t pinCount;                  /* Number of pins to configure */
 } whal_Stm32wbGpio_Cfg;

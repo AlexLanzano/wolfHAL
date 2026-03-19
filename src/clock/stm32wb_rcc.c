@@ -1,7 +1,6 @@
 #include <wolfHAL/error.h>
 #include <wolfHAL/clock/clock.h>
 #include <wolfHAL/clock/stm32wb_rcc.h>
-#include <wolfHAL/flash/stm32wb_flash.h>
 #include <wolfHAL/regmap.h>
 #include <wolfHAL/bitops.h>
 
@@ -142,7 +141,6 @@
 
 whal_Error whal_Stm32wbRccPll_Init(whal_Clock *clkDev)
 {
-    whal_Error err;
     whal_Stm32wbRcc_Cfg *cfg;
 
     if (!clkDev || !clkDev->cfg) {
@@ -151,15 +149,6 @@ whal_Error whal_Stm32wbRccPll_Init(whal_Clock *clkDev)
 
     cfg = (whal_Stm32wbRcc_Cfg *)clkDev->cfg;
     whal_Stm32wbRcc_PllClkCfg *pllCfg = cfg->sysClkCfg;
-
-    /*
-     * Flash latency must be set BEFORE increasing clock speed to ensure
-     * the flash can keep up with the new frequency.
-     */
-    err = whal_Stm32wbFlash_Ext_SetLatency(cfg->flash, cfg->flashLatency);
-    if (err) {
-        return err;
-    }
 
     /* Select system clock source (PLL in this case) */
     whal_Reg_Update(clkDev->regmap.base, RCC_CFGR_REG, RCC_CFGR_SW_Msk,
@@ -186,7 +175,6 @@ whal_Error whal_Stm32wbRccPll_Init(whal_Clock *clkDev)
 
 whal_Error whal_Stm32wbRccMsi_Init(whal_Clock *clkDev)
 {
-    whal_Error err;
     whal_Stm32wbRcc_Cfg *cfg;
 
     if (!clkDev || !clkDev->cfg) {
@@ -195,12 +183,6 @@ whal_Error whal_Stm32wbRccMsi_Init(whal_Clock *clkDev)
 
     cfg = (whal_Stm32wbRcc_Cfg *)clkDev->cfg;
     whal_Stm32wbRcc_MsiClkCfg *msiCfg = cfg->sysClkCfg;
-
-    /* Set flash latency for target MSI frequency */
-    err = whal_Stm32wbFlash_Ext_SetLatency(cfg->flash, cfg->flashLatency);
-    if (err) {
-        return err;
-    }
 
     /* Select MSI as system clock source */
     whal_Reg_Update(clkDev->regmap.base, RCC_CFGR_REG, RCC_CFGR_SW_Msk,
@@ -215,13 +197,9 @@ whal_Error whal_Stm32wbRccMsi_Init(whal_Clock *clkDev)
 
 whal_Error whal_Stm32wbRccPll_Deinit(whal_Clock *clkDev)
 {
-    whal_Stm32wbRcc_Cfg *cfg;
-
-    if (!clkDev || !clkDev->cfg) {
+    if (!clkDev) {
         return WHAL_EINVAL;
     }
-
-    cfg = (whal_Stm32wbRcc_Cfg *)clkDev->cfg;
 
     /* Switch back to MSI before disabling PLL */
     whal_Reg_Update(clkDev->regmap.base, RCC_CFGR_REG, RCC_CFGR_SW_Msk,
@@ -236,29 +214,20 @@ whal_Error whal_Stm32wbRccPll_Deinit(whal_Clock *clkDev)
                     RCC_CR_PLLON_Msk,
                     whal_SetBits(RCC_CR_PLLON_Msk, RCC_CR_PLLON_Pos, 0));
 
-    /* Reduce flash latency now that clock is slower */
-    whal_Stm32wbFlash_Ext_SetLatency(cfg->flash, WHAL_STM32WB_FLASH_LATENCY_0);
-
     return WHAL_SUCCESS;
 }
 
 whal_Error whal_Stm32wbRccMsi_Deinit(whal_Clock *clkDev)
 {
-    whal_Stm32wbRcc_Cfg *cfg;
-
-    if (!clkDev || !clkDev->cfg) {
+    if (!clkDev) {
         return WHAL_EINVAL;
     }
-
-    cfg = (whal_Stm32wbRcc_Cfg *)clkDev->cfg;
 
     whal_Reg_Update(clkDev->regmap.base, RCC_CFGR_REG, RCC_CFGR_SW_Msk,
                     whal_SetBits(RCC_CFGR_SW_Msk, RCC_CFGR_SW_Pos, WHAL_STM32WB_RCC_SYSCLK_SRC_MSI));
 
     whal_Reg_Update(clkDev->regmap.base, RCC_CR_REG, RCC_CR_MSIRANGE_Msk,
                     whal_SetBits(RCC_CR_MSIRANGE_Msk, RCC_CR_MSIRANGE_Pos, WHAL_STM32WB_RCC_MSIRANGE_4MHz));
-
-    whal_Stm32wbFlash_Ext_SetLatency(cfg->flash, WHAL_STM32WB_FLASH_LATENCY_0);
 
     return WHAL_SUCCESS;
 }

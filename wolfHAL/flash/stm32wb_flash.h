@@ -2,7 +2,6 @@
 #define WHAL_STM32WB_FLASH_H
 
 #include <wolfHAL/flash/flash.h>
-#include <wolfHAL/clock/clock.h>
 #include <wolfHAL/timeout.h>
 
 /*
@@ -25,8 +24,6 @@
  * @brief Flash device configuration.
  */
 typedef struct whal_Stm32wbFlash_Cfg {
-    whal_Clock *clkCtrl;  /* Clock controller for flash interface clock */
-    const void *clk;      /* Clock descriptor */
     size_t startAddr;     /* Flash base address (typically 0x08000000) */
     size_t size;          /* Flash size in bytes */
     whal_Timeout *timeout;

@@ -1,7 +1,6 @@
 #include <stdint.h>
 #include <wolfHAL/crypto/stm32wb_aes.h>
 #include <wolfHAL/crypto/crypto.h>
-#include <wolfHAL/clock/clock.h>
 #include <wolfHAL/error.h>
 #include <wolfHAL/regmap.h>
 #include <wolfHAL/bitops.h>
@@ -152,18 +151,8 @@ static whal_Error WaitForCCF(size_t base, whal_Timeout *timeout)
 
 whal_Error whal_Stm32wbAes_Init(whal_Crypto *cryptoDev)
 {
-    whal_Error err;
-    const whal_Stm32wbAes_Cfg *cfg;
-
     if (!cryptoDev || !cryptoDev->cfg) {
         return WHAL_EINVAL;
-    }
-
-    cfg = (const whal_Stm32wbAes_Cfg *)cryptoDev->cfg;
-
-    err = whal_Clock_Enable(cfg->clkCtrl, cfg->clk);
-    if (err != WHAL_SUCCESS) {
-        return err;
     }
 
     return WHAL_SUCCESS;
@@ -171,23 +160,13 @@ whal_Error whal_Stm32wbAes_Init(whal_Crypto *cryptoDev)
 
 whal_Error whal_Stm32wbAes_Deinit(whal_Crypto *cryptoDev)
 {
-    whal_Error err;
-    const whal_Stm32wbAes_Cfg *cfg;
-
     if (!cryptoDev || !cryptoDev->cfg) {
         return WHAL_EINVAL;
     }
 
-    cfg = (const whal_Stm32wbAes_Cfg *)cryptoDev->cfg;
-
     /* Disable AES peripheral */
     whal_Reg_Update(cryptoDev->regmap.base, AES_CR_REG, AES_CR_EN_Msk,
                     whal_SetBits(AES_CR_EN_Msk, AES_CR_EN_Pos, 0));
-
-    err = whal_Clock_Disable(cfg->clkCtrl, cfg->clk);
-    if (err != WHAL_SUCCESS) {
-        return err;
-    }
 
     return WHAL_SUCCESS;
 }
