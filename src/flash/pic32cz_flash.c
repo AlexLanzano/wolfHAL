@@ -246,16 +246,17 @@ whal_Error whal_Pic32czFlash_Read(whal_Flash *flashDev, size_t addr, uint8_t *da
                              size_t dataSz)
 {
     const whal_Regmap *reg;
-    whal_Pic32czFlash_Cfg *cfg = flashDev->cfg;
+    whal_Pic32czFlash_Cfg *cfg;
     uint8_t *flashAddr = (uint8_t *)addr;
     whal_Error err;
     size_t i;
 
-    if (!flashDev || !data) {
+    if (!flashDev || !flashDev->cfg || !data) {
         return WHAL_EINVAL;
     }
 
     reg = &flashDev->regmap;
+    cfg = flashDev->cfg;
 
 
     err = whal_Pic32czFlash_MutexLock(reg, cfg->timeout);
@@ -276,14 +277,16 @@ whal_Error whal_Pic32czFlash_Write(whal_Flash *flashDev, size_t addr, const uint
                               size_t dataSz)
 {
     const whal_Regmap *reg;
-    whal_Pic32czFlash_Cfg *cfg = flashDev->cfg;
+    whal_Pic32czFlash_Cfg *cfg;
     const uint32_t *src;
     whal_Error err;
     size_t offset = 0;
 
-    if (!flashDev || !data) {
+    if (!flashDev || !flashDev->cfg || !data) {
         return WHAL_EINVAL;
     }
+
+    cfg = flashDev->cfg;
 
     /* Require double-word alignment */
     if ((addr & 0x7) || (dataSz & 0x7)) {
@@ -353,15 +356,16 @@ whal_Error whal_Pic32czFlash_Write(whal_Flash *flashDev, size_t addr, const uint
 whal_Error whal_Pic32czFlash_Erase(whal_Flash *flashDev, size_t addr, size_t dataSz)
 {
     const whal_Regmap *reg;
-    whal_Pic32czFlash_Cfg *cfg = flashDev->cfg;
+    whal_Pic32czFlash_Cfg *cfg;
     whal_Error err;
     size_t pageAddr;
     size_t endAddr;
 
-    if (!flashDev) {
+    if (!flashDev || !flashDev->cfg) {
         return WHAL_EINVAL;
     }
 
+    cfg = flashDev->cfg;
     reg = &flashDev->regmap;
 
     /* Align down to page boundary */

@@ -104,7 +104,7 @@ whal_Error whal_Pic32czClockPll_Init(whal_Clock *clkDev)
     size_t PLLxPOSTDIVA_REG;
     size_t status;
 
-    if (!clkDev) {
+    if (!clkDev || !clkDev->cfg) {
         return WHAL_EINVAL;
     }
 

@@ -61,19 +61,21 @@ whal_Error whal_Stm32wbRng_Deinit(whal_Rng *rngDev)
 
 whal_Error whal_Stm32wbRng_Generate(whal_Rng *rngDev, uint8_t *rngData, size_t rngDataSz)
 {
-
     whal_Error err = WHAL_SUCCESS;
-    whal_Stm32wbRng_Cfg *cfg = (whal_Stm32wbRng_Cfg *)rngDev->cfg;
-    const whal_Regmap *reg = &rngDev->regmap;
+    whal_Stm32wbRng_Cfg *cfg;
+    const whal_Regmap *reg;
     size_t sr;
     size_t offset = 0;
+
+    if (!rngDev || !rngDev->cfg || !rngData) {
+        return WHAL_EINVAL;
+    }
+
+    cfg = (whal_Stm32wbRng_Cfg *)rngDev->cfg;
+    reg = &rngDev->regmap;
 #ifdef WHAL_CFG_NO_TIMEOUT
     (void)(cfg);
 #endif
-
-    if (!rngDev || !rngData) {
-        return WHAL_EINVAL;
-    }
 
     /* Enable the RNG peripheral */
     whal_Reg_Update(reg->base, RNG_CR_REG, RNG_CR_RNGEN_Msk,

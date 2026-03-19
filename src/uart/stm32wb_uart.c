@@ -41,9 +41,14 @@
 whal_Error whal_Stm32wbUart_Init(whal_Uart *uartDev)
 {
     whal_Stm32wbUart_Cfg *cfg;
-    const whal_Regmap *reg = &uartDev->regmap;
+    const whal_Regmap *reg;
     uint32_t brr;
 
+    if (!uartDev || !uartDev->cfg) {
+        return WHAL_EINVAL;
+    }
+
+    reg = &uartDev->regmap;
     cfg = (whal_Stm32wbUart_Cfg *)uartDev->cfg;
 
     brr = cfg->baud;
@@ -62,7 +67,13 @@ whal_Error whal_Stm32wbUart_Init(whal_Uart *uartDev)
 
 whal_Error whal_Stm32wbUart_Deinit(whal_Uart *uartDev)
 {
-    const whal_Regmap *reg = &uartDev->regmap;
+    const whal_Regmap *reg;
+
+    if (!uartDev) {
+        return WHAL_EINVAL;
+    }
+
+    reg = &uartDev->regmap;
 
     whal_Reg_Update(reg->base, UART_CR1_REG,
                     UART_CR1_UE_Msk | UART_CR1_RE_Msk | UART_CR1_TE_Msk,
@@ -79,9 +90,16 @@ whal_Error whal_Stm32wbUart_Deinit(whal_Uart *uartDev)
 
 whal_Error whal_Stm32wbUart_Send(whal_Uart *uartDev, const void *data, size_t dataSz)
 {
-    const whal_Regmap *reg = &uartDev->regmap;
-    whal_Stm32wbUart_Cfg *cfg = (whal_Stm32wbUart_Cfg *)uartDev->cfg;
+    const whal_Regmap *reg;
+    whal_Stm32wbUart_Cfg *cfg;
     const uint8_t *buf = data;
+
+    if (!uartDev || !uartDev->cfg || !data) {
+        return WHAL_EINVAL;
+    }
+
+    reg = &uartDev->regmap;
+    cfg = (whal_Stm32wbUart_Cfg *)uartDev->cfg;
 
     for (size_t i = 0; i < dataSz; ++i) {
         whal_Error err;
@@ -99,9 +117,16 @@ whal_Error whal_Stm32wbUart_Send(whal_Uart *uartDev, const void *data, size_t da
 
 whal_Error whal_Stm32wbUart_Recv(whal_Uart *uartDev, void *data, size_t dataSz)
 {
-    const whal_Regmap *reg = &uartDev->regmap;
-    whal_Stm32wbUart_Cfg *cfg = (whal_Stm32wbUart_Cfg *)uartDev->cfg;
+    const whal_Regmap *reg;
+    whal_Stm32wbUart_Cfg *cfg;
     uint8_t *buf = data;
+
+    if (!uartDev || !uartDev->cfg || !data) {
+        return WHAL_EINVAL;
+    }
+
+    reg = &uartDev->regmap;
+    cfg = (whal_Stm32wbUart_Cfg *)uartDev->cfg;
     size_t d;
 
     for (size_t i = 0; i < dataSz; ++i) {
