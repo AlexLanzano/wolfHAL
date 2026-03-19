@@ -51,8 +51,10 @@ whal_Clock g_whalClock = {
 static const whal_Stm32wbRcc_Clk g_flashClock = {WHAL_STM32WB55_FLASH_CLOCK};
 
 static const whal_Stm32wbRcc_Clk g_peripheralClocks[] = {
+    {WHAL_STM32WB55_GPIOA_CLOCK},
     {WHAL_STM32WB55_GPIOB_CLOCK},
     {WHAL_STM32WB55_UART1_CLOCK},
+    {WHAL_STM32WB55_SPI1_CLOCK},
     {WHAL_STM32WB55_RNG_CLOCK},
     {WHAL_STM32WB55_AES1_CLOCK},
 };
@@ -63,13 +65,16 @@ enum {
     LED_PIN,
     UART_TX_PIN,
     UART_RX_PIN,
+    SPI_SCK_PIN,
+    SPI_MISO_PIN,
+    SPI_MOSI_PIN,
 };
 
 whal_Gpio g_whalGpio = {
     WHAL_STM32WB55_GPIO_DEVICE,
 
     .cfg = &(whal_Stm32wbGpio_Cfg) {
-        .pinCfg = (whal_Stm32wbGpio_PinCfg[3]) {
+        .pinCfg = (whal_Stm32wbGpio_PinCfg[6]) {
             [LED_PIN] = { /* LED */
                 .port = WHAL_STM32WB_GPIO_PORT_B,
                 .pin = 5,
@@ -97,9 +102,51 @@ whal_Gpio g_whalGpio = {
                 .pull = WHAL_STM32WB_GPIO_PULL_UP,
                 .altFn = 7,
             },
+            [SPI_SCK_PIN] = { /* SPI1 SCK */
+                .port = WHAL_STM32WB_GPIO_PORT_A,
+                .pin = 5,
+                .mode = WHAL_STM32WB_GPIO_MODE_ALTFN,
+                .outType = WHAL_STM32WB_GPIO_OUTTYPE_PUSHPULL,
+                .speed = WHAL_STM32WB_GPIO_SPEED_FAST,
+                .pull = WHAL_STM32WB_GPIO_PULL_NONE,
+                .altFn = 5,
+            },
+            [SPI_MISO_PIN] = { /* SPI1 MISO */
+                .port = WHAL_STM32WB_GPIO_PORT_A,
+                .pin = 6,
+                .mode = WHAL_STM32WB_GPIO_MODE_ALTFN,
+                .outType = WHAL_STM32WB_GPIO_OUTTYPE_PUSHPULL,
+                .speed = WHAL_STM32WB_GPIO_SPEED_FAST,
+                .pull = WHAL_STM32WB_GPIO_PULL_NONE,
+                .altFn = 5,
+            },
+            [SPI_MOSI_PIN] = { /* SPI1 MOSI */
+                .port = WHAL_STM32WB_GPIO_PORT_A,
+                .pin = 7,
+                .mode = WHAL_STM32WB_GPIO_MODE_ALTFN,
+                .outType = WHAL_STM32WB_GPIO_OUTTYPE_PUSHPULL,
+                .speed = WHAL_STM32WB_GPIO_SPEED_FAST,
+                .pull = WHAL_STM32WB_GPIO_PULL_NONE,
+                .altFn = 5,
+            },
         },
-        .pinCount = 3,
+        .pinCount = 6,
     },
+};
+
+/* SPI */
+whal_Spi g_whalSpi = {
+    WHAL_STM32WB55_SPI1_DEVICE,
+
+    .cfg = &(whal_Stm32wbSpi_Cfg) {
+        .pclk = 64000000,
+        .timeout = &g_whalTimeout,
+    },
+};
+
+whal_Stm32wbSpi_ComCfg g_whalSpiComCfg = {
+    .mode = WHAL_STM32WB_SPI_MODE_0,
+    .baud = 1000000,
 };
 
 /* Timer */
@@ -228,6 +275,11 @@ whal_Error Board_Init(void)
         return err;
     }
 
+    err = whal_Spi_Init(&g_whalSpi);
+    if (err) {
+        return err;
+    }
+
     err = whal_Flash_Init(&g_whalFlash);
     if (err) {
         return err;
@@ -281,6 +333,11 @@ whal_Error Board_Deinit(void)
     }
 
     err = whal_Flash_Deinit(&g_whalFlash);
+    if (err) {
+        return err;
+    }
+
+    err = whal_Spi_Deinit(&g_whalSpi);
     if (err) {
         return err;
     }

@@ -42,6 +42,10 @@ void whal_Test_Ipc_Platform(void);
 #endif
 #endif
 
+#ifdef WHAL_TEST_ENABLE_SPI_LOOPBACK
+void whal_Test_Spi_Loopback(void);
+#endif
+
 #ifdef WHAL_TEST_ENABLE_CRYPTO
 void whal_Test_Crypto(void);
 #endif
@@ -114,6 +118,10 @@ void main(void)
 #ifdef WHAL_TEST_ENABLE_IPC_PLATFORM
     whal_Test_Ipc_Platform();
 #endif
+#endif
+
+#ifdef WHAL_TEST_ENABLE_SPI_LOOPBACK
+    whal_Test_Spi_Loopback();
 #endif
 
 #ifdef WHAL_TEST_ENABLE_CRYPTO

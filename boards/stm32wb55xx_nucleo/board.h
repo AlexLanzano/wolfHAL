@@ -4,11 +4,14 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <wolfHAL/wolfHAL.h>
+#include <wolfHAL/spi/stm32wb_spi.h>
 
 extern whal_Clock g_whalClock;
 extern whal_Gpio g_whalGpio;
 extern whal_Timer g_whalTimer;
 extern whal_Uart g_whalUart;
+extern whal_Spi g_whalSpi;
+extern whal_Stm32wbSpi_ComCfg g_whalSpiComCfg;
 extern whal_Flash g_whalFlash;
 extern whal_Rng g_whalRng;
 extern whal_Crypto g_whalCrypto;
