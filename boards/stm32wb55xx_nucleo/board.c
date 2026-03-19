@@ -189,7 +189,10 @@ whal_Error Board_Init(void)
     whal_Error err;
 
     /* Set flash latency before increasing clock speed */
-    whal_Stm32wbFlash_Ext_SetLatency(&g_whalFlash, WHAL_STM32WB_FLASH_LATENCY_3);
+    err = whal_Stm32wbFlash_Ext_SetLatency(&g_whalFlash, WHAL_STM32WB_FLASH_LATENCY_3);
+    if (err) {
+        return err;
+    }
 
     err = whal_Clock_Init(&g_whalClock);
     if (err) {
@@ -304,7 +307,10 @@ whal_Error Board_Deinit(void)
     }
 
     /* Reduce flash latency after clock is back to safe speed */
-    whal_Stm32wbFlash_Ext_SetLatency(&g_whalFlash, WHAL_STM32WB_FLASH_LATENCY_0);
+    err = whal_Stm32wbFlash_Ext_SetLatency(&g_whalFlash, WHAL_STM32WB_FLASH_LATENCY_0);
+    if (err) {
+        return err;
+    }
 
     return WHAL_SUCCESS;
 }
