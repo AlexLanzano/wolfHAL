@@ -19,7 +19,7 @@
 /*
  * @brief Compute LPUART BRR register value.
  */
-#define WHAL_STM32WB_LPUART_BRR(clk, baud) (((clk) / (baud)) * 256)
+#define WHAL_STM32WB_LPUART_BRR(clk, baud) ((uint32_t)(((uint64_t)(clk) * 256) / (baud)))
 
 /*
  * @brief STM32 UART configuration parameters.
