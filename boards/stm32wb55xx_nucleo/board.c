@@ -48,10 +48,11 @@ whal_Clock g_whalClock = {
     },
 };
 
+static const whal_Stm32wbRcc_Clk g_flashClock = {WHAL_STM32WB55_FLASH_CLOCK};
+
 static const whal_Stm32wbRcc_Clk g_peripheralClocks[] = {
     {WHAL_STM32WB55_GPIOB_CLOCK},
     {WHAL_STM32WB55_UART1_CLOCK},
-    {WHAL_STM32WB55_FLASH_CLOCK},
     {WHAL_STM32WB55_RNG_CLOCK},
     {WHAL_STM32WB55_AES1_CLOCK},
 };
@@ -188,7 +189,12 @@ whal_Error Board_Init(void)
 {
     whal_Error err;
 
-    /* Set flash latency before increasing clock speed */
+    /* Enable flash clock and set latency before increasing clock speed */
+    err = whal_Clock_Enable(&g_whalClock, &g_flashClock);
+    if (err) {
+        return err;
+    }
+
     err = whal_Stm32wbFlash_Ext_SetLatency(&g_whalFlash, WHAL_STM32WB_FLASH_LATENCY_3);
     if (err) {
         return err;
@@ -306,8 +312,13 @@ whal_Error Board_Deinit(void)
         return err;
     }
 
-    /* Reduce flash latency after clock is back to safe speed */
+    /* Reduce flash latency then disable flash clock */
     err = whal_Stm32wbFlash_Ext_SetLatency(&g_whalFlash, WHAL_STM32WB_FLASH_LATENCY_0);
+    if (err) {
+        return err;
+    }
+
+    err = whal_Clock_Disable(&g_whalClock, &g_flashClock);
     if (err) {
         return err;
     }
