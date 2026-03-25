@@ -4,6 +4,7 @@
 #include <stddef.h>
 #include "board.h"
 #include <wolfHAL/platform/st/stm32wb55xx.h>
+#include "peripheral.h"
 
 /* SysTick timing */
 volatile uint32_t g_tick = 0;
@@ -25,7 +26,7 @@ uint32_t Board_GetTick(void)
 }
 
 whal_Timeout g_whalTimeout = {
-    .timeoutTicks = 5, /* 5ms timeout */
+    .timeoutTicks = 1000, /* 1s timeout */
     .GetTick = Board_GetTick,
 };
 
@@ -50,7 +51,7 @@ whal_Clock g_whalClock = {
 
 static const whal_Stm32wbRcc_Clk g_flashClock = {WHAL_STM32WB55_FLASH_CLOCK};
 
-static const whal_Stm32wbRcc_Clk g_peripheralClocks[] = {
+static const whal_Stm32wbRcc_Clk g_clocks[] = {
     {WHAL_STM32WB55_GPIOA_CLOCK},
     {WHAL_STM32WB55_GPIOB_CLOCK},
     {WHAL_STM32WB55_UART1_CLOCK},
@@ -58,23 +59,14 @@ static const whal_Stm32wbRcc_Clk g_peripheralClocks[] = {
     {WHAL_STM32WB55_RNG_CLOCK},
     {WHAL_STM32WB55_AES1_CLOCK},
 };
-#define PERIPHERAL_CLOCK_COUNT (sizeof(g_peripheralClocks) / sizeof(g_peripheralClocks[0]))
+#define CLOCK_COUNT (sizeof(g_clocks) / sizeof(g_clocks[0]))
 
 /* GPIO */
-enum {
-    LED_PIN,
-    UART_TX_PIN,
-    UART_RX_PIN,
-    SPI_SCK_PIN,
-    SPI_MISO_PIN,
-    SPI_MOSI_PIN,
-};
-
 whal_Gpio g_whalGpio = {
     WHAL_STM32WB55_GPIO_DEVICE,
 
     .cfg = &(whal_Stm32wbGpio_Cfg) {
-        .pinCfg = (whal_Stm32wbGpio_PinCfg[6]) {
+        .pinCfg = (whal_Stm32wbGpio_PinCfg[PIN_COUNT]) {
             [LED_PIN] = { /* LED */
                 .port = WHAL_STM32WB_GPIO_PORT_B,
                 .pin = 5,
@@ -129,8 +121,16 @@ whal_Gpio g_whalGpio = {
                 .pull = WHAL_STM32WB_GPIO_PULL_NONE,
                 .altFn = 5,
             },
+            [SPI_CS_PIN] = { /* SPI CS */
+                .port = WHAL_STM32WB_GPIO_PORT_A,
+                .pin = 4,
+                .mode = WHAL_STM32WB_GPIO_MODE_OUT,
+                .outType = WHAL_STM32WB_GPIO_OUTTYPE_PUSHPULL,
+                .speed = WHAL_STM32WB_GPIO_SPEED_FAST,
+                .pull = WHAL_STM32WB_GPIO_PULL_UP,
+            },
         },
-        .pinCount = 6,
+        .pinCount = PIN_COUNT,
     },
 };
 
@@ -142,11 +142,6 @@ whal_Spi g_whalSpi = {
         .pclk = 64000000,
         .timeout = &g_whalTimeout,
     },
-};
-
-whal_Stm32wbSpi_ComCfg g_whalSpiComCfg = {
-    .mode = WHAL_STM32WB_SPI_MODE_0,
-    .baud = 1000000,
 };
 
 /* Timer */
@@ -258,9 +253,9 @@ whal_Error Board_Init(void)
         return err;
     }
 
-    /* Enable peripheral clocks */
-    for (size_t i = 0; i < PERIPHERAL_CLOCK_COUNT; i++) {
-        err = whal_Clock_Enable(&g_whalClock, &g_peripheralClocks[i]);
+    /* Enable clocks */
+    for (size_t i = 0; i < CLOCK_COUNT; i++) {
+        err = whal_Clock_Enable(&g_whalClock, &g_clocks[i]);
         if (err)
             return err;
     }
@@ -283,6 +278,13 @@ whal_Error Board_Init(void)
     err = whal_Flash_Init(&g_whalFlash);
     if (err) {
         return err;
+    }
+
+    /* Initialize peripheral block devices */
+    for (size_t i = 0; g_peripheralBlock[i].dev; i++) {
+        err = whal_Block_Init(g_peripheralBlock[i].dev);
+        if (err)
+            return err;
     }
 
     err = whal_Rng_Init(&g_whalRng);
@@ -332,6 +334,13 @@ whal_Error Board_Deinit(void)
         return err;
     }
 
+    /* Deinitialize peripheral block devices */
+    for (size_t i = 0; g_peripheralBlock[i].dev; i++) {
+        err = whal_Block_Deinit(g_peripheralBlock[i].dev);
+        if (err)
+            return err;
+    }
+
     err = whal_Flash_Deinit(&g_whalFlash);
     if (err) {
         return err;
@@ -352,9 +361,9 @@ whal_Error Board_Deinit(void)
         return err;
     }
 
-    /* Disable peripheral clocks */
-    for (size_t i = 0; i < PERIPHERAL_CLOCK_COUNT; i++) {
-        err = whal_Clock_Disable(&g_whalClock, &g_peripheralClocks[i]);
+    /* Disable clocks */
+    for (size_t i = 0; i < CLOCK_COUNT; i++) {
+        err = whal_Clock_Disable(&g_whalClock, &g_clocks[i]);
         if (err)
             return err;
     }

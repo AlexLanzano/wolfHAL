@@ -20,30 +20,29 @@ inline whal_Error whal_Spi_Deinit(whal_Spi *spiDev)
     return spiDev->driver->Deinit(spiDev);
 }
 
-inline whal_Error whal_Spi_SendRecv(whal_Spi *spiDev, void *spiComCfg, const uint8_t *tx, size_t txLen, uint8_t *rx, size_t rxLen)
+inline whal_Error whal_Spi_StartCom(whal_Spi *spiDev, whal_Spi_ComCfg *comCfg)
 {
-    if (!spiDev || !spiDev->driver || !spiDev->driver->SendRecv || !spiComCfg) {
+    if (!spiDev || !spiDev->driver || !spiDev->driver->StartCom || !comCfg) {
         return WHAL_EINVAL;
     }
 
-    return spiDev->driver->SendRecv(spiDev, spiComCfg, tx, txLen, rx, rxLen);
+    return spiDev->driver->StartCom(spiDev, comCfg);
 }
 
-inline whal_Error whal_Spi_Send(whal_Spi *spiDev, void *spiComCfg, const uint8_t *data, size_t dataSz)
+inline whal_Error whal_Spi_EndCom(whal_Spi *spiDev)
 {
-    if (!spiDev || !spiDev->driver || !spiDev->driver->Send || !spiComCfg || !data) {
+    if (!spiDev || !spiDev->driver || !spiDev->driver->EndCom) {
         return WHAL_EINVAL;
     }
 
-    return spiDev->driver->Send(spiDev, spiComCfg, data, dataSz);
+    return spiDev->driver->EndCom(spiDev);
 }
 
-inline whal_Error whal_Spi_Recv(whal_Spi *spiDev, void *spiComCfg, uint8_t *data, size_t dataSz)
+inline whal_Error whal_Spi_SendRecv(whal_Spi *spiDev, const uint8_t *tx, size_t txLen, uint8_t *rx, size_t rxLen)
 {
-    if (!spiDev || !spiDev->driver || !spiDev->driver->Recv || !spiComCfg || !data) {
+    if (!spiDev || !spiDev->driver || !spiDev->driver->SendRecv) {
         return WHAL_EINVAL;
     }
 
-    return spiDev->driver->Recv(spiDev, spiComCfg, data, dataSz);
+    return spiDev->driver->SendRecv(spiDev, tx, txLen, rx, rxLen);
 }
-

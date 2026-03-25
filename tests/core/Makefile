@@ -12,7 +12,8 @@ WHAL_SRC = $(WHAL_DIR)/src/clock/clock.c \
            $(WHAL_DIR)/src/timer/timer.c \
            $(WHAL_DIR)/src/spi/spi.c \
            $(WHAL_DIR)/src/rng/rng.c \
-           $(WHAL_DIR)/src/supply/supply.c
+           $(WHAL_DIR)/src/supply/supply.c \
+           $(WHAL_DIR)/src/block/block.c
 
 SOURCE = $(TEST_SRC) $(WHAL_SRC)
 OBJECTS = $(patsubst %.c,%.o,$(SOURCE))

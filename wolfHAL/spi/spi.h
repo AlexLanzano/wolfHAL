@@ -13,6 +13,26 @@
 
 typedef struct whal_Spi whal_Spi;
 
+/* SPI mode (CPOL/CPHA) */
+#define WHAL_SPI_MODE_0 0 /* CPOL=0, CPHA=0 */
+#define WHAL_SPI_MODE_1 1 /* CPOL=0, CPHA=1 */
+#define WHAL_SPI_MODE_2 2 /* CPOL=1, CPHA=0 */
+#define WHAL_SPI_MODE_3 3 /* CPOL=1, CPHA=1 */
+
+/*
+ * @brief SPI communication session parameters.
+ *
+ * Platform-independent configuration applied when starting a communication
+ * session via StartCom and kept in effect until EndCom. The platform driver
+ * translates these to hardware register values.
+ */
+typedef struct {
+    uint32_t freq;       /* Bus frequency in Hz */
+    uint8_t mode;        /* WHAL_SPI_MODE_x */
+    uint8_t wordSz;      /* Word size in bits (typically 8) */
+    uint8_t dataLines;   /* Number of data lines (1, 2, 4, or 8) */
+} whal_Spi_ComCfg;
+
 /*
  * @brief Driver vtable for SPI devices.
  */
@@ -21,12 +41,12 @@ typedef struct {
     whal_Error (*Init)(whal_Spi *spiDev);
     /* Deinitialize the SPI hardware. */
     whal_Error (*Deinit)(whal_Spi *spiDev);
+    /* Begin a communication session with the given parameters. */
+    whal_Error (*StartCom)(whal_Spi *spiDev, whal_Spi_ComCfg *comCfg);
+    /* End the current communication session. */
+    whal_Error (*EndCom)(whal_Spi *spiDev);
     /* Perform a bidirectional transfer. */
-    whal_Error (*SendRecv)(whal_Spi *spiDev, void *spiComCfg, const uint8_t *tx, size_t txLen, uint8_t *rx, size_t rxLen);
-    /* Transmit a buffer. */
-    whal_Error (*Send)(whal_Spi *spiDev, void *spiComCfg, const uint8_t *data, size_t dataSz);
-    /* Receive into a buffer. */
-    whal_Error (*Recv)(whal_Spi *spiDev, void *spiComCfg, uint8_t *data, size_t dataSz);
+    whal_Error (*SendRecv)(whal_Spi *spiDev, const uint8_t *tx, size_t txLen, uint8_t *rx, size_t rxLen);
 } whal_SpiDriver;
 
 /*
@@ -49,12 +69,11 @@ struct whal_Spi {
 #ifdef WHAL_CFG_DIRECT_CALLBACKS
 #define whal_Spi_Init(spiDev) ((spiDev)->driver->Init((spiDev)))
 #define whal_Spi_Deinit(spiDev) ((spiDev)->driver->Deinit((spiDev)))
-#define whal_Spi_SendRecv(spiDev, spiComCfg, tx, txLen, rx, rxLen) \
-    ((spiDev)->driver->SendRecv((spiDev), (spiComCfg), (tx), (txLen), (rx), (rxLen)))
-#define whal_Spi_Send(spiDev, spiComCfg, data, dataSz) \
-    ((spiDev)->driver->Send((spiDev), (spiComCfg), (data), (dataSz)))
-#define whal_Spi_Recv(spiDev, spiComCfg, data, dataSz) \
-    ((spiDev)->driver->Recv((spiDev), (spiComCfg), (data), (dataSz)))
+#define whal_Spi_StartCom(spiDev, spiComCfg) \
+    ((spiDev)->driver->StartCom((spiDev), (spiComCfg)))
+#define whal_Spi_EndCom(spiDev) ((spiDev)->driver->EndCom((spiDev)))
+#define whal_Spi_SendRecv(spiDev, tx, txLen, rx, rxLen) \
+    ((spiDev)->driver->SendRecv((spiDev), (tx), (txLen), (rx), (rxLen)))
 #else
 /*
  * @brief Initializes an SPI device and its driver.
@@ -75,43 +94,48 @@ whal_Error whal_Spi_Init(whal_Spi *spiDev);
  */
 whal_Error whal_Spi_Deinit(whal_Spi *spiDev);
 /*
+ * @brief Begin a communication session with the given parameters.
+ *
+ * Configures the SPI peripheral for the specified mode, frequency,
+ * and word size. Must be called before any SendRecv calls.
+ *
+ * @param spiDev  Pointer to the SPI instance.
+ * @param comCfg  Per-session communication parameters.
+ *
+ * @retval WHAL_SUCCESS Communication session started.
+ * @retval WHAL_EINVAL  Null pointer or invalid parameters.
+ */
+whal_Error whal_Spi_StartCom(whal_Spi *spiDev, whal_Spi_ComCfg *comCfg);
+/*
+ * @brief End the current communication session.
+ *
+ * Disables the SPI peripheral. Must be called after the last
+ * SendRecv in a session.
+ *
+ * @param spiDev Pointer to the SPI instance.
+ *
+ * @retval WHAL_SUCCESS Communication session ended.
+ * @retval WHAL_EINVAL  Null pointer or driver error.
+ */
+whal_Error whal_Spi_EndCom(whal_Spi *spiDev);
+/*
  * @brief Perform a bidirectional SPI transfer.
  *
- * @param spiDev Pointer to the SPI instance.
- * @param spiComCfg Communication configuration (chip select, mode, speed, etc).
- * @param tx     Buffer of bytes to transmit (may be NULL for read-only).
- * @param txLen  Number of bytes to transmit.
- * @param rx     Buffer to receive bytes into (may be NULL for write-only).
- * @param rxLen  Number of bytes to receive.
- *
- * @retval WHAL_SUCCESS Transfer completed or queued.
- * @retval WHAL_EINVAL  Null pointer or driver failed to transfer.
- */
-whal_Error whal_Spi_SendRecv(whal_Spi *spiDev, void *spiComCfg, const uint8_t *tx, size_t txLen, uint8_t *rx, size_t rxLen);
-/*
- * @brief Sends a buffer over SPI.
+ * Clocks max(txLen, rxLen) bytes. When one side is shorter:
+ * - tx exhausted: sends 0xFF for remaining clocks.
+ * - rx exhausted or NULL: received bytes are discarded.
+ * Either tx or rx (or both) may be NULL.
  *
  * @param spiDev Pointer to the SPI instance.
- * @param spiComCfg Communication configuration (chip select, mode, speed, etc).
- * @param data   Buffer to transmit.
- * @param dataSz Number of bytes to send.
+ * @param tx     Buffer of bytes to transmit (NULL to send 0xFF).
+ * @param txLen  Number of bytes in tx (0 when tx is NULL).
+ * @param rx     Buffer to receive bytes into (NULL to discard).
+ * @param rxLen  Number of bytes to receive (0 when rx is NULL).
  *
- * @retval WHAL_SUCCESS Buffer was queued or transmitted.
- * @retval WHAL_EINVAL  Null pointer or driver failed to send.
+ * @retval WHAL_SUCCESS Transfer completed.
+ * @retval WHAL_EINVAL  Null spiDev or driver failed to transfer.
  */
-whal_Error whal_Spi_Send(whal_Spi *spiDev, void *spiComCfg, const uint8_t *data, size_t dataSz);
-/*
- * @brief Receives data from SPI into a buffer.
- *
- * @param spiDev Pointer to the SPI instance.
- * @param spiComCfg Communication configuration (chip select, mode, speed, etc).
- * @param data   Destination buffer.
- * @param dataSz Maximum number of bytes to read.
- *
- * @retval WHAL_SUCCESS Buffer was filled or receive started.
- * @retval WHAL_EINVAL  Null pointer or driver failed to receive.
- */
-whal_Error whal_Spi_Recv(whal_Spi *spiDev, void *spiComCfg, uint8_t *data, size_t dataSz);
+whal_Error whal_Spi_SendRecv(whal_Spi *spiDev, const uint8_t *tx, size_t txLen, uint8_t *rx, size_t rxLen);
 #endif
 
 #endif /* WHAL_SPI_H */

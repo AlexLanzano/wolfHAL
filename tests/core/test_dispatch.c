@@ -258,6 +258,94 @@ static void Test_Rng_ValidDispatch(void)
     WHAL_ASSERT_EQ(whal_Rng_Deinit(&dev), WHAL_SUCCESS);
 }
 
+/* --- SPI dispatch tests --- */
+
+static whal_Error MockSpiInit(whal_Spi *d) { (void)d; return WHAL_SUCCESS; }
+static whal_Error MockSpiDeinit(whal_Spi *d) { (void)d; return WHAL_SUCCESS; }
+static whal_Error MockSpiStartCom(whal_Spi *d, whal_Spi_ComCfg *c) { (void)d; (void)c; return WHAL_SUCCESS; }
+static whal_Error MockSpiEndCom(whal_Spi *d) { (void)d; return WHAL_SUCCESS; }
+static whal_Error MockSpiSendRecv(whal_Spi *d, const uint8_t *tx, size_t txLen, uint8_t *rx, size_t rxLen) { (void)d; (void)tx; (void)txLen; (void)rx; (void)rxLen; return WHAL_SUCCESS; }
+
+static const whal_SpiDriver mockSpiDriver = {
+    .Init = MockSpiInit,
+    .Deinit = MockSpiDeinit,
+    .StartCom = MockSpiStartCom,
+    .EndCom = MockSpiEndCom,
+    .SendRecv = MockSpiSendRecv,
+};
+
+static void Test_Spi_NullDev(void)
+{
+    whal_Spi_ComCfg comCfg = {0};
+    uint8_t buf[1];
+    WHAL_ASSERT_EQ(whal_Spi_Init(NULL), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Spi_Deinit(NULL), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Spi_StartCom(NULL, &comCfg), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Spi_EndCom(NULL), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Spi_SendRecv(NULL, buf, 1, buf, 1), WHAL_EINVAL);
+}
+
+static void Test_Spi_NullDriver(void)
+{
+    whal_Spi dev = { .driver = NULL };
+    WHAL_ASSERT_EQ(whal_Spi_Init(&dev), WHAL_EINVAL);
+}
+
+static void Test_Spi_ValidDispatch(void)
+{
+    whal_Spi dev = { .driver = &mockSpiDriver };
+    whal_Spi_ComCfg comCfg = {0};
+    uint8_t buf[4] = {0};
+    WHAL_ASSERT_EQ(whal_Spi_Init(&dev), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Spi_StartCom(&dev, &comCfg), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Spi_SendRecv(&dev, buf, sizeof(buf), buf, sizeof(buf)), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Spi_EndCom(&dev), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Spi_Deinit(&dev), WHAL_SUCCESS);
+}
+
+/* --- Block dispatch tests --- */
+
+static whal_Error MockBlockInit(whal_Block *d) { (void)d; return WHAL_SUCCESS; }
+static whal_Error MockBlockDeinit(whal_Block *d) { (void)d; return WHAL_SUCCESS; }
+static whal_Error MockBlockRead(whal_Block *d, uint32_t b, uint8_t *data, uint32_t c) { (void)d; (void)b; (void)data; (void)c; return WHAL_SUCCESS; }
+static whal_Error MockBlockWrite(whal_Block *d, uint32_t b, const uint8_t *data, uint32_t c) { (void)d; (void)b; (void)data; (void)c; return WHAL_SUCCESS; }
+static whal_Error MockBlockErase(whal_Block *d, uint32_t b, uint32_t c) { (void)d; (void)b; (void)c; return WHAL_SUCCESS; }
+
+static const whal_BlockDriver mockBlockDriver = {
+    .Init = MockBlockInit,
+    .Deinit = MockBlockDeinit,
+    .Read = MockBlockRead,
+    .Write = MockBlockWrite,
+    .Erase = MockBlockErase,
+};
+
+static void Test_Block_NullDev(void)
+{
+    WHAL_ASSERT_EQ(whal_Block_Init(NULL), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Block_Deinit(NULL), WHAL_EINVAL);
+    uint8_t buf[1];
+    WHAL_ASSERT_EQ(whal_Block_Read(NULL, 0, buf, 1), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Block_Write(NULL, 0, buf, 1), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Block_Erase(NULL, 0, 1), WHAL_EINVAL);
+}
+
+static void Test_Block_NullDriver(void)
+{
+    whal_Block dev = { .driver = NULL };
+    WHAL_ASSERT_EQ(whal_Block_Init(&dev), WHAL_EINVAL);
+}
+
+static void Test_Block_ValidDispatch(void)
+{
+    whal_Block dev = { .driver = &mockBlockDriver };
+    WHAL_ASSERT_EQ(whal_Block_Init(&dev), WHAL_SUCCESS);
+    uint8_t buf[4] = {0};
+    WHAL_ASSERT_EQ(whal_Block_Read(&dev, 0, buf, 1), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Block_Write(&dev, 0, buf, 1), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Block_Erase(&dev, 0, 1), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Block_Deinit(&dev), WHAL_SUCCESS);
+}
+
 void whal_Test_Dispatch(void)
 {
     WHAL_TEST_SUITE_START("dispatch");
@@ -280,5 +368,11 @@ void whal_Test_Dispatch(void)
     WHAL_TEST(Test_Rng_NullDev);
     WHAL_TEST(Test_Rng_NullDriver);
     WHAL_TEST(Test_Rng_ValidDispatch);
+    WHAL_TEST(Test_Spi_NullDev);
+    WHAL_TEST(Test_Spi_NullDriver);
+    WHAL_TEST(Test_Spi_ValidDispatch);
+    WHAL_TEST(Test_Block_NullDev);
+    WHAL_TEST(Test_Block_NullDriver);
+    WHAL_TEST(Test_Block_ValidDispatch);
     WHAL_TEST_SUITE_END();
 }

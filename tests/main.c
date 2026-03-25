@@ -50,6 +50,10 @@ void whal_Test_Spi_Loopback(void);
 void whal_Test_Crypto(void);
 #endif
 
+#ifdef WHAL_TEST_ENABLE_BLOCK
+void whal_Test_Block(void);
+#endif
+
 int g_whalTestPassed;
 int g_whalTestFailed;
 int g_whalTestSkipped;
@@ -126,6 +130,10 @@ void main(void)
 
 #ifdef WHAL_TEST_ENABLE_CRYPTO
     whal_Test_Crypto();
+#endif
+
+#ifdef WHAL_TEST_ENABLE_BLOCK
+    whal_Test_Block();
 #endif
 
     WHAL_TEST_SUMMARY();
