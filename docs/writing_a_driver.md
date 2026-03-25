@@ -383,54 +383,57 @@ Receive `dataSz` bytes into the provided buffer. For each byte:
 
 Header: `wolfHAL/spi/spi.h`
 
-The SPI driver provides serial peripheral interface communication. SPI
-operations take an additional `spiComCfg` parameter that carries per-transfer
-communication settings. This allows the same SPI bus to communicate with
-multiple devices using different modes and speeds without reinitializing the
-peripheral.
+The SPI driver provides serial peripheral interface communication. A
+communication session is bracketed by `StartCom` / `EndCom`, which configure
+the peripheral for a specific mode and speed. All transfers within a session
+use the same settings, allowing the bus to be shared between devices with
+different configurations by starting a new session for each device.
 
 ### Init
 
-Configure and enable the SPI peripheral:
-
-- Set master mode and configure slave select management (typically software-
-  managed via GPIO)
-- Set the data frame size (usually 8-bit)
-- Do not configure mode or baud rate here — these are applied per-transfer via
-  `spiComCfg`
+Perform one-time SPI peripheral configuration that remains fixed for the
+lifetime of the device. Do not configure mode, baud rate, or data size
+here — these are applied per-session via `StartCom`.
 
 The board must enable the peripheral clock before calling Init. The
 configuration struct should include the peripheral clock frequency so the
-driver can compute baud rate prescalers during transfers.
+driver can compute baud rate prescalers.
 
 ### Deinit
 
 Disable the SPI peripheral.
 
+### StartCom
+
+Begin a communication session. Configures the peripheral from the
+platform-independent `whal_Spi_ComCfg` struct:
+
+- `freq` — bus frequency in Hz
+- `mode` — SPI mode (CPOL/CPHA)
+- `wordSz` — word size in bits (e.g. 8)
+- `dataLines` — number of data lines (1 for standard SPI)
+
+The driver should disable the peripheral, apply the new settings (mode, baud
+rate prescaler, data size, FIFO threshold), and re-enable it. Return
+`WHAL_EINVAL` if a requested setting is not supported by the hardware.
+
+### EndCom
+
+End the current communication session by disabling the peripheral.
+
 ### SendRecv
 
-Perform a full-duplex SPI transfer. This is the primary transfer function —
-Send and Recv are convenience wrappers around it.
+Perform a full-duplex SPI transfer. This is the only transfer function — there
+are no separate Send or Recv operations.
 
-The `spiComCfg` parameter is an opaque pointer to a platform-specific
-communication config that describes the SPI mode (CPOL/CPHA), baud rate, and
-any other per-transfer settings. The driver should:
+The driver clocks `max(txLen, rxLen)` bytes:
 
-1. Apply the communication config (disable the peripheral, update mode and
-   baud rate registers, re-enable)
-2. Transfer `max(txLen, rxLen)` bytes. For each byte:
-   - Write a byte from `tx` to the transmit register (if `tx` is provided)
-   - Read a byte from the receive register into `rx` (if `rx` is provided)
-3. Wait for the bus to go idle before returning
+- When `tx` is NULL or exhausted, send `0xFF` for remaining clocks
+- When `rx` is NULL or exhausted, discard received bytes
+- Every TX byte produces an RX byte; always drain the RX FIFO to prevent
+  overflow
 
-### Send
-
-Transmit-only convenience wrapper. Calls SendRecv with no receive buffer.
-
-### Recv
-
-Receive-only convenience wrapper. Calls SendRecv, clocking out dummy bytes to
-generate the SPI clock while capturing received data.
+After the loop, wait for the bus to go idle before returning.
 
 ---
 
@@ -509,6 +512,47 @@ Erase a flash region. Flash erase operates at sector/page granularity
 
 The `addr` does not need to be page-aligned — the driver should erase all pages
 that overlap with the requested range.
+
+---
+
+## Block
+
+Header: `wolfHAL/block/block.h`
+
+The block driver provides access to block-addressable storage devices such as
+SD cards and eMMC. Unlike flash, block devices are addressed by block number
+rather than byte address, and all operations work in units of fixed-size blocks
+(e.g. 512 bytes).
+
+Block drivers are bus-device drivers — they call their underlying bus driver
+(SPI, SDIO) to communicate with the storage device. This is the expected
+exception to the no-cross-driver-calls rule.
+
+### Init
+
+Initialize the storage device. This includes any device-specific initialization
+sequence required to bring the device into a usable state. The board must have
+already initialized the bus driver and enabled the relevant clocks and GPIOs
+before calling Init.
+
+### Deinit
+
+Release the storage device.
+
+### Read
+
+Read one or more blocks from the device into a buffer. The driver should handle
+both single-block and multi-block reads based on the block count.
+
+### Write
+
+Write one or more blocks from a buffer to the device. The driver should handle
+both single-block and multi-block writes, and wait for the device to finish
+programming before returning.
+
+### Erase
+
+Erase a range of blocks on the device.
 
 ---
 

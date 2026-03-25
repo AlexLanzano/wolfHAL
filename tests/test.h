@@ -117,11 +117,14 @@ extern int g_whalTestCurSkipped;
 
 #define WHAL_ASSERT_EQ(a, b)                                         \
     do {                                                        \
-        if ((a) != (b)) {                                       \
-            whal_Test_Printf("  ASSERT_EQ failed at line %d\n", __LINE__); \
-            whal_Test_Printf("  got: %d, expected: %d\n",              \
-                            (int)(a), (int)(b));                \
-            g_whalTestCurFailed = 1;                                \
+        int _a = (int)(a);                                      \
+        int _b = (int)(b);                                      \
+        if (_a != _b) {                                         \
+            whal_Test_Printf("  ASSERT_EQ failed at %s:%d\n",  \
+                            __FILE__, __LINE__);                \
+            whal_Test_Printf("  got: %d, expected: %d\n",      \
+                            _a, _b);                            \
+            g_whalTestCurFailed = 1;                            \
             return;                                             \
         }                                                       \
     } while (0)
@@ -129,8 +132,9 @@ extern int g_whalTestCurSkipped;
 #define WHAL_ASSERT_NEQ(a, b)                                        \
     do {                                                        \
         if ((a) == (b)) {                                       \
-            whal_Test_Printf("  ASSERT_NEQ failed at line %d\n", __LINE__);\
-            g_whalTestCurFailed = 1;                                \
+            whal_Test_Printf("  ASSERT_NEQ failed at %s:%d\n", \
+                            __FILE__, __LINE__);                \
+            g_whalTestCurFailed = 1;                            \
             return;                                             \
         }                                                       \
     } while (0)
@@ -141,9 +145,10 @@ extern int g_whalTestCurSkipped;
         const unsigned char *_b = (const unsigned char *)(b);   \
         for (size_t _i = 0; _i < (len); _i++) {                \
             if (_a[_i] != _b[_i]) {                             \
-                whal_Test_Printf("  ASSERT_MEM_EQ failed at line %d, " \
-                                "byte offset: %d\n", __LINE__, (int)_i); \
-                g_whalTestCurFailed = 1;                            \
+                whal_Test_Printf("  ASSERT_MEM_EQ failed at "  \
+                                "%s:%d, byte offset: %d\n",    \
+                                __FILE__, __LINE__, (int)_i);   \
+                g_whalTestCurFailed = 1;                        \
                 return;                                         \
             }                                                   \
         }                                                       \

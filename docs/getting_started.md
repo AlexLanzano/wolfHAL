@@ -40,6 +40,7 @@ src/gpio/gpio.c
 src/uart/uart.c
 src/flash/flash.c
 src/spi/spi.c
+src/block/block.c
 src/timer/timer.c
 src/rng/rng.c
 src/supply/supply.c

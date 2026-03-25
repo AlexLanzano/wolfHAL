@@ -55,7 +55,7 @@ static const whal_Pic32czClock_Clk g_peripheralClocks[] = {
         .mclkEnablePos = 3,
     },
 };
-#define PERIPHERAL_CLOCK_COUNT (sizeof(g_peripheralClocks) / sizeof(g_peripheralClocks[0]))
+#define CLOCK_COUNT (sizeof(g_peripheralClocks) / sizeof(g_peripheralClocks[0]))
 
 /* GPIO */
 whal_Gpio g_whalGpio = {
@@ -168,7 +168,7 @@ whal_Error Board_Init(void)
     }
 
     /* Enable peripheral clocks */
-    for (size_t i = 0; i < PERIPHERAL_CLOCK_COUNT; i++) {
+    for (size_t i = 0; i < CLOCK_COUNT; i++) {
         err = whal_Clock_Enable(&g_whalClock, &g_peripheralClocks[i]);
         if (err)
             return err;
@@ -232,7 +232,7 @@ whal_Error Board_Deinit(void)
     }
 
     /* Disable peripheral clocks */
-    for (size_t i = 0; i < PERIPHERAL_CLOCK_COUNT; i++) {
+    for (size_t i = 0; i < CLOCK_COUNT; i++) {
         err = whal_Clock_Disable(&g_whalClock, &g_peripheralClocks[i]);
         if (err)
             return err;

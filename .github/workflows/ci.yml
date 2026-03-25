@@ -19,7 +19,7 @@ jobs:
         working-directory: tests/core
         run: CFLAGS="${{ matrix.extra_cflags }}" make run
 
-  cross-compile:
+  boards:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -38,3 +38,18 @@ jobs:
       - name: Build tests
         working-directory: tests
         run: CFLAGS="${{ matrix.extra_cflags }}" make BOARD=${{ matrix.board }}
+
+  peripheral-drivers:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        source:
+          - src/block/sdhc_spi.c
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install ARM toolchain
+        run: sudo apt-get update && sudo apt-get install -y gcc-arm-none-eabi
+
+      - name: Compile ${{ matrix.source }}
+        run: arm-none-eabi-gcc -c -I. -Wall -Werror ${{ matrix.source }} -o /dev/null
