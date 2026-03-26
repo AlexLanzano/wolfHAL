@@ -14,7 +14,7 @@ LDFLAGS = --omagic -static
 
 LINKER_SCRIPT ?= $(_BOARD_DIR)/linker.ld
 
-INCLUDE += -I$(_BOARD_DIR)
+INCLUDE += -I$(_BOARD_DIR) -I$(WHAL_DIR)/boards/peripheral
 
 BOARD_SOURCE = $(_BOARD_DIR)/ivt.c
 BOARD_SOURCE += $(_BOARD_DIR)/board.c
@@ -29,3 +29,6 @@ BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/rng.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/block.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/pic32cz_*.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/systick.c)
+
+# Peripheral devices
+include $(WHAL_DIR)/boards/peripheral/Makefile.inc

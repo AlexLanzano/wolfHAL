@@ -54,9 +54,8 @@ _Min_Stack_Size = 0x500;   /* required amount of stack */
 /* Specify the memory areas */
 MEMORY
 {
-FLASH (rx)                 : ORIGIN = 0x08000000, LENGTH = 512K
-BOOTLOADER_MAGIC (rx)      : ORIGIN = 0x20000004, LENGTH = 0x4
-RAM1 (xrw)                 : ORIGIN = 0x20000008, LENGTH = 0x1ffc
+FLASH (rx) : ORIGIN = 0x08000000, LENGTH = 512K
+RAM1 (rwx) : ORIGIN = 0x20000000, LENGTH = 0x00030000
 }
 
 /* Define output sections */

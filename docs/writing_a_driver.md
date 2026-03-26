@@ -511,7 +511,9 @@ Erase a flash region. Flash erase operates at sector/page granularity
 - Validate that the region is unlocked before erasing
 
 The `addr` does not need to be page-aligned — the driver should erase all pages
-that overlap with the requested range.
+that overlap with the requested range. Bus-device flash drivers (e.g., SPI-NOR)
+may enforce stricter alignment requirements where the underlying hardware
+requires aligned erase addresses.
 
 ---
 

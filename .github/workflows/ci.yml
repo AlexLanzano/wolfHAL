@@ -45,6 +45,7 @@ jobs:
       matrix:
         source:
           - src/block/sdhc_spi.c
+          - src/flash/spi_nor.c
     steps:
       - uses: actions/checkout@v4
 

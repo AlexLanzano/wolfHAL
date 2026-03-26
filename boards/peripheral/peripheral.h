@@ -3,6 +3,7 @@
 
 #include <wolfHAL/wolfHAL.h>
 #include <wolfHAL/block/block.h>
+#include <wolfHAL/flash/flash.h>
 #include <stddef.h>
 #include <stdint.h>
 
@@ -16,6 +17,17 @@ typedef struct {
     uint8_t erasedByte;  /* Expected byte value after erase (0x00 or 0xFF) */
 } whal_PeripheralBlock_Cfg;
 
+/* Peripheral flash device test configuration */
+typedef struct {
+    const char *name;
+    whal_Flash *dev;
+    size_t sectorSz;     /* Sector (erase) size in bytes */
+} whal_PeripheralFlash_Cfg;
+
 extern whal_PeripheralBlock_Cfg g_peripheralBlock[];
+extern whal_PeripheralFlash_Cfg g_peripheralFlash[];
+
+whal_Error Peripheral_Init(void);
+whal_Error Peripheral_Deinit(void);
 
 #endif /* BOARD_PERIPHERAL_H */
