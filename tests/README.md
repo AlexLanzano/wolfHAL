@@ -46,6 +46,19 @@ Each device directory contains:
 Board support (device instances, linker scripts, etc.) lives in the top-level
 `boards/` directory. See [boards/README.md](../boards/README.md) for details.
 
+### Peripheral Devices
+
+External peripheral drivers (SPI-NOR flash, SD cards, etc.) are opt-in. Enable
+them by setting the corresponding variable when building:
+
+```
+make BOARD=stm32wb55xx_nucleo PERIPHERAL_SPI_NOR_W25Q64=1
+make BOARD=stm32wb55xx_nucleo PERIPHERAL_SDHC_SPI_SDCARD32GB=1
+```
+
+Peripheral devices are automatically tested by their matching test suite (e.g.,
+`flash` tests iterate all entries in `g_peripheralFlash[]`).
+
 ## Core Tests
 
 Host-side unit tests (bitops, dispatch, endian) live in `core/` and build with

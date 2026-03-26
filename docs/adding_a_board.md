@@ -49,6 +49,7 @@ on failure.
 ```c
 #include "board.h"
 #include <wolfHAL/platform/vendor/device.h>
+#include "peripheral.h"
 
 static whal_MyplatformGpio_PinCfg pinCfg[] = { /* ... */ };
 
@@ -99,12 +100,20 @@ whal_Error Board_Init(void)
     if (err)
         return err;
 
+    err = Peripheral_Init();
+    if (err)
+        return err;
+
     return WHAL_SUCCESS;
 }
 
 whal_Error Board_Deinit(void)
 {
     whal_Error err;
+
+    err = Peripheral_Deinit();
+    if (err)
+        return err;
 
     whal_Timer_Stop(&g_whalTimer);
     whal_Timer_Deinit(&g_whalTimer);
@@ -141,11 +150,40 @@ LDFLAGS = -mcpu=cortex-m4 -mthumb -nostdlib -lgcc
 
 LINKER_SCRIPT = $(_BOARD_DIR)/linker.ld
 
+INCLUDE += -I$(_BOARD_DIR) -I$(WHAL_DIR)/boards/peripheral
+
 BOARD_SOURCE  = $(_BOARD_DIR)/board.c
 BOARD_SOURCE += $(_BOARD_DIR)/ivt.c
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/myplatform_*.c)
 BOARD_SOURCE += $(WHAL_DIR)/src/timer/systick.c
+
+# Peripheral devices
+include $(WHAL_DIR)/boards/peripheral/Makefile.inc
 ```
+
+## Peripheral Devices
+
+Boards support optional external peripheral devices (e.g., SPI-NOR flash, SD
+cards) through the peripheral system in `boards/peripheral/`. To enable this:
+
+1. Include `peripheral.h` in `board.c` and add the peripheral include path
+   (`-I$(WHAL_DIR)/boards/peripheral`) in `Makefile.inc`.
+
+2. Include `boards/peripheral/Makefile.inc` at the end of the board's
+   `Makefile.inc`. This conditionally compiles peripheral drivers based on
+   build-time flags (e.g., `PERIPHERAL_SPI_NOR_W25Q64=1`).
+
+3. Call `Peripheral_Init()` at the end of `Board_Init()` and
+   `Peripheral_Deinit()` at the top of `Board_Deinit()`. These functions
+   iterate the peripheral registry arrays and initialize/deinitialize all
+   enabled peripheral devices.
+
+`Peripheral_Init()` and `Peripheral_Deinit()` are safe to call even when no
+peripherals are enabled — the registry arrays will be empty and the functions
+return immediately.
+
+See [Adding a Peripheral](adding_a_peripheral.md) for details on how to add
+new peripheral devices to the registry.
 
 ### linker.ld
 

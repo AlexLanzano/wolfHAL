@@ -2,6 +2,7 @@
 #include <wolfHAL/wolfHAL.h>
 #include "board.h"
 #include "test.h"
+#include "peripheral.h"
 
 static whal_Flash *g_testFlashDev;
 static size_t g_testFlashAddr;
@@ -71,4 +72,12 @@ void whal_Test_Flash(void)
     g_testFlashAddr = BOARD_FLASH_TEST_ADDR;
     g_testFlashSectorSz = BOARD_FLASH_SECTOR_SZ;
     run_flash_tests("on-chip");
+
+    /* Test peripheral flash devices */
+    for (size_t i = 0; g_peripheralFlash[i].dev; i++) {
+        g_testFlashDev = g_peripheralFlash[i].dev;
+        g_testFlashAddr = 0;
+        g_testFlashSectorSz = g_peripheralFlash[i].sectorSz;
+        run_flash_tests(g_peripheralFlash[i].name);
+    }
 }

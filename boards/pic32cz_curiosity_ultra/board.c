@@ -4,6 +4,7 @@
 #include <stddef.h>
 #include "board.h"
 #include <wolfHAL/platform/microchip/pic32cz.h>
+#include "peripheral.h"
 
 /* Supply */
 static whal_Supply g_whalSupply = {
@@ -199,12 +200,22 @@ whal_Error Board_Init(void)
         return err;
     }
 
+    err = Peripheral_Init();
+    if (err) {
+        return err;
+    }
+
     return WHAL_SUCCESS;
 }
 
 whal_Error Board_Deinit(void)
 {
     whal_Error err;
+
+    err = Peripheral_Deinit();
+    if (err) {
+        return err;
+    }
 
     err = whal_Timer_Stop(&g_whalTimer);
     if (err) {

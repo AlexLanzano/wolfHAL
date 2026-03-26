@@ -23,6 +23,7 @@ tests/                      Test framework and test suites
 - [Tests](tests/README.md) — Test framework and test suites
 - [Writing a Driver](docs/writing_a_driver.md) — How to implement a driver for a new platform
 - [Adding a Board](docs/adding_a_board.md) — How to add a new board configuration
+- [Adding a Peripheral](docs/adding_a_peripheral.md) — How to add an external peripheral device
 - [Adding an Example](docs/adding_an_example.md) — How to add a new example application
 - [Adding a Test](docs/adding_a_test.md) — How to add hardware tests
 

@@ -280,13 +280,6 @@ whal_Error Board_Init(void)
         return err;
     }
 
-    /* Initialize peripheral block devices */
-    for (size_t i = 0; g_peripheralBlock[i].dev; i++) {
-        err = whal_Block_Init(g_peripheralBlock[i].dev);
-        if (err)
-            return err;
-    }
-
     err = whal_Rng_Init(&g_whalRng);
     if (err) {
         return err;
@@ -307,12 +300,22 @@ whal_Error Board_Init(void)
         return err;
     }
 
+    err = Peripheral_Init();
+    if (err) {
+        return err;
+    }
+
     return WHAL_SUCCESS;
 }
 
 whal_Error Board_Deinit(void)
 {
     whal_Error err;
+
+    err = Peripheral_Deinit();
+    if (err) {
+        return err;
+    }
 
     err = whal_Timer_Stop(&g_whalTimer);
     if (err) {
@@ -332,13 +335,6 @@ whal_Error Board_Deinit(void)
     err = whal_Rng_Deinit(&g_whalRng);
     if (err) {
         return err;
-    }
-
-    /* Deinitialize peripheral block devices */
-    for (size_t i = 0; g_peripheralBlock[i].dev; i++) {
-        err = whal_Block_Deinit(g_peripheralBlock[i].dev);
-        if (err)
-            return err;
     }
 
     err = whal_Flash_Deinit(&g_whalFlash);
