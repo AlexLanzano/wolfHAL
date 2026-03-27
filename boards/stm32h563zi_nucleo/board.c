@@ -49,9 +49,12 @@ whal_Clock g_whalClock = {
 };
 
 static const whal_Stm32h5Rcc_Clk g_clocks[] = {
+    {WHAL_STM32H563_GPIOA_CLOCK},
     {WHAL_STM32H563_GPIOB_CLOCK},
     {WHAL_STM32H563_GPIOD_CLOCK},
+    {WHAL_STM32H563_GPIOG_CLOCK},
     {WHAL_STM32H563_USART2_CLOCK},
+    {WHAL_STM32H563_SPI1_CLOCK},
 };
 #define CLOCK_COUNT (sizeof(g_clocks) / sizeof(g_clocks[0]))
 
@@ -79,7 +82,7 @@ whal_Gpio g_whalGpio = {
                 .pull = WHAL_STM32H5_GPIO_PULL_UP,
                 .altFn = 7,
             },
-            [UART_RX_PIN] = { /* USART3 RX on PD9 */
+            [UART_RX_PIN] = { /* USART2 RX on PD6 */
                 .port = WHAL_STM32H5_GPIO_PORT_D,
                 .pin = 6,
                 .mode = WHAL_STM32H5_GPIO_MODE_ALTFN,
@@ -87,6 +90,41 @@ whal_Gpio g_whalGpio = {
                 .speed = WHAL_STM32H5_GPIO_SPEED_FAST,
                 .pull = WHAL_STM32H5_GPIO_PULL_UP,
                 .altFn = 7,
+            },
+            [SPI_SCK_PIN] = { /* SPI1 SCK on PA5 */
+                .port = WHAL_STM32H5_GPIO_PORT_A,
+                .pin = 5,
+                .mode = WHAL_STM32H5_GPIO_MODE_ALTFN,
+                .outType = WHAL_STM32H5_GPIO_OUTTYPE_PUSHPULL,
+                .speed = WHAL_STM32H5_GPIO_SPEED_FAST,
+                .pull = WHAL_STM32H5_GPIO_PULL_NONE,
+                .altFn = 5,
+            },
+            [SPI_MISO_PIN] = { /* SPI1 MISO on PG9 */
+                .port = WHAL_STM32H5_GPIO_PORT_G,
+                .pin = 9,
+                .mode = WHAL_STM32H5_GPIO_MODE_ALTFN,
+                .outType = WHAL_STM32H5_GPIO_OUTTYPE_PUSHPULL,
+                .speed = WHAL_STM32H5_GPIO_SPEED_FAST,
+                .pull = WHAL_STM32H5_GPIO_PULL_NONE,
+                .altFn = 5,
+            },
+            [SPI_MOSI_PIN] = { /* SPI1 MOSI on PB5 */
+                .port = WHAL_STM32H5_GPIO_PORT_B,
+                .pin = 5,
+                .mode = WHAL_STM32H5_GPIO_MODE_ALTFN,
+                .outType = WHAL_STM32H5_GPIO_OUTTYPE_PUSHPULL,
+                .speed = WHAL_STM32H5_GPIO_SPEED_FAST,
+                .pull = WHAL_STM32H5_GPIO_PULL_NONE,
+                .altFn = 5,
+            },
+            [SPI_CS_PIN] = { /* SPI CS on PD14 */
+                .port = WHAL_STM32H5_GPIO_PORT_D,
+                .pin = 14,
+                .mode = WHAL_STM32H5_GPIO_MODE_OUT,
+                .outType = WHAL_STM32H5_GPIO_OUTTYPE_PUSHPULL,
+                .speed = WHAL_STM32H5_GPIO_SPEED_FAST,
+                .pull = WHAL_STM32H5_GPIO_PULL_UP,
             },
         },
         .pinCount = PIN_COUNT,
@@ -114,6 +152,16 @@ whal_Uart g_whalUart = {
     },
 };
 
+/* SPI */
+whal_Spi g_whalSpi = {
+    WHAL_STM32H563_SPI1_DEVICE,
+
+    .cfg = &(whal_Stm32h5Spi_Cfg) {
+        .pclk = 168000000,
+        .timeout = &g_whalTimeout,
+    },
+};
+
 void Board_WaitMs(size_t ms)
 {
     uint32_t startCount = g_tick;
@@ -135,11 +183,11 @@ void Board_WaitMs(size_t ms)
 
 /*
  * FLASH_ACR: 0x40022000
- * LATENCY[3:0] = 3 wait states for 168 MHz at VOS0
- * WRHIGHFREQ[5:4] = 1 for 168 MHz
+ * LATENCY[3:0] = 5 wait states for 168 MHz
+ * WRHIGHFREQ[5:4] = 2
  */
 #define FLASH_ACR_ADDR 0x40022000
-#define FLASH_ACR_LATENCY_168MHZ ((1 << 4) | 3)
+#define FLASH_ACR_LATENCY_168MHZ ((2 << 4) | 5)
 
 whal_Error Board_Init(void)
 {
@@ -164,6 +212,10 @@ whal_Error Board_Init(void)
         return err;
 
     err = whal_Uart_Init(&g_whalUart);
+    if (err)
+        return err;
+
+    err = whal_Spi_Init(&g_whalSpi);
     if (err)
         return err;
 
@@ -195,6 +247,10 @@ whal_Error Board_Deinit(void)
         return err;
 
     err = whal_Timer_Deinit(&g_whalTimer);
+    if (err)
+        return err;
+
+    err = whal_Spi_Deinit(&g_whalSpi);
     if (err)
         return err;
 

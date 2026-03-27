@@ -172,10 +172,12 @@ whal_Error whal_Stm32h5RccPll_Init(whal_Clock *clkDev)
     /* Configure PLL1 source and prescaler */
     whal_Reg_Update(base, RCC_PLL1CFGR_REG,
                     RCC_PLL1CFGR_PLL1SRC_Msk | RCC_PLL1CFGR_PLL1M_Msk |
-                    RCC_PLL1CFGR_PLL1PEN_Msk | RCC_PLL1CFGR_PLL1REN_Msk,
+                    RCC_PLL1CFGR_PLL1PEN_Msk | RCC_PLL1CFGR_PLL1QEN_Msk |
+                    RCC_PLL1CFGR_PLL1REN_Msk,
                     whal_SetBits(RCC_PLL1CFGR_PLL1SRC_Msk, RCC_PLL1CFGR_PLL1SRC_Pos, pllCfg->clkSrc) |
                     whal_SetBits(RCC_PLL1CFGR_PLL1M_Msk, RCC_PLL1CFGR_PLL1M_Pos, pllCfg->m) |
                     whal_SetBits(RCC_PLL1CFGR_PLL1PEN_Msk, RCC_PLL1CFGR_PLL1PEN_Pos, 1) |
+                    whal_SetBits(RCC_PLL1CFGR_PLL1QEN_Msk, RCC_PLL1CFGR_PLL1QEN_Pos, 1) |
                     whal_SetBits(RCC_PLL1CFGR_PLL1REN_Msk, RCC_PLL1CFGR_PLL1REN_Pos, 1));
 
     /* Configure PLL1 multiplier and dividers */

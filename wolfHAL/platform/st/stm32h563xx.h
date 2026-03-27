@@ -6,6 +6,7 @@
 #include <wolfHAL/clock/stm32h5_rcc.h>
 #include <wolfHAL/gpio/stm32h5_gpio.h>
 #include <wolfHAL/uart/stm32h5_uart.h>
+#include <wolfHAL/spi/stm32h5_spi.h>
 
 /*
  * @file stm32h563xx.h
@@ -137,5 +138,19 @@
     .regOffset = 0x0A4,             \
     .enableMask = (1UL << 14),      \
     .enablePos = 14
+
+#define WHAL_STM32H563_SPI1_CLOCK   \
+    .regOffset = 0x0A4,             \
+    .enableMask = (1UL << 12),      \
+    .enablePos = 12
+
+/* SPI device macros */
+
+#define WHAL_STM32H563_SPI1_DEVICE  \
+    .regmap = {                     \
+        .base = 0x40013000,         \
+        .size = 0x400,              \
+    },                              \
+    .driver = &whal_Stm32h5Spi_Driver
 
 #endif /* WHAL_STM32H563XX_H */
