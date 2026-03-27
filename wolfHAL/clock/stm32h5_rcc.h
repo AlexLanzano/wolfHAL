@@ -212,4 +212,19 @@ whal_Error whal_Stm32h5RccPll_GetRate(whal_Clock *clkDev, size_t *rateOut);
  */
 whal_Error whal_Stm32h5RccHsi_GetRate(whal_Clock *clkDev, size_t *rateOut);
 
+/*
+ * @brief Enable or disable the HSI48 oscillator.
+ *
+ * The HSI48 provides a 48 MHz clock used as kernel clock for the RNG
+ * and USB peripherals. When enabling, this function waits for the
+ * oscillator to stabilize.
+ *
+ * @param clkDev Clock device instance (RCC regmap).
+ * @param enable 1 to enable, 0 to disable.
+ *
+ * @retval WHAL_SUCCESS HSI48 state changed.
+ * @retval WHAL_EINVAL  Invalid arguments.
+ */
+whal_Error whal_Stm32h5Rcc_Ext_EnableHsi48(whal_Clock *clkDev, uint8_t enable);
+
 #endif /* WHAL_STM32H5_RCC_H */

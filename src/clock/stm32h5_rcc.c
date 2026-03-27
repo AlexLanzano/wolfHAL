@@ -389,3 +389,29 @@ const whal_ClockDriver whal_Stm32h5RccHsi_Driver = {
     .Disable = whal_Stm32h5Rcc_Disable,
     .GetRate = whal_Stm32h5RccHsi_GetRate,
 };
+
+whal_Error whal_Stm32h5Rcc_Ext_EnableHsi48(whal_Clock *clkDev, uint8_t enable)
+{
+    size_t base;
+
+    if (!clkDev)
+        return WHAL_EINVAL;
+
+    base = clkDev->regmap.base;
+
+    whal_Reg_Update(base, RCC_CR_REG, RCC_CR_HSI48ON_Msk,
+                    whal_SetBits(RCC_CR_HSI48ON_Msk, RCC_CR_HSI48ON_Pos,
+                                 enable ? 1 : 0));
+
+    if (enable) {
+        while (1) {
+            size_t rdy;
+            whal_Reg_Get(base, RCC_CR_REG, RCC_CR_HSI48RDY_Msk,
+                         RCC_CR_HSI48RDY_Pos, &rdy);
+            if (rdy)
+                break;
+        }
+    }
+
+    return WHAL_SUCCESS;
+}

@@ -10,6 +10,7 @@ extern whal_Gpio g_whalGpio;
 extern whal_Timer g_whalTimer;
 extern whal_Uart g_whalUart;
 extern whal_Spi g_whalSpi;
+extern whal_Rng g_whalRng;
 
 extern whal_Timeout g_whalTimeout;
 extern volatile uint32_t g_tick;

@@ -7,6 +7,7 @@
 #include <wolfHAL/gpio/stm32h5_gpio.h>
 #include <wolfHAL/uart/stm32h5_uart.h>
 #include <wolfHAL/spi/stm32h5_spi.h>
+#include <wolfHAL/rng/stm32h5_rng.h>
 
 /*
  * @file stm32h563xx.h
@@ -152,5 +153,20 @@
         .size = 0x400,              \
     },                              \
     .driver = &whal_Stm32h5Spi_Driver
+
+/* RNG device macros */
+
+#define WHAL_STM32H563_RNG_DEVICE   \
+    .regmap = {                     \
+        .base = 0x420C0800,         \
+        .size = 0x400,              \
+    },                              \
+    .driver = &whal_Stm32h5Rng_Driver
+
+/* RCC_AHB2ENR (offset 0x08C), bit 18 */
+#define WHAL_STM32H563_RNG_CLOCK    \
+    .regOffset = 0x08C,             \
+    .enableMask = (1UL << 18),      \
+    .enablePos = 18
 
 #endif /* WHAL_STM32H563XX_H */

@@ -55,6 +55,7 @@ static const whal_Stm32h5Rcc_Clk g_clocks[] = {
     {WHAL_STM32H563_GPIOG_CLOCK},
     {WHAL_STM32H563_USART2_CLOCK},
     {WHAL_STM32H563_SPI1_CLOCK},
+    {WHAL_STM32H563_RNG_CLOCK},
 };
 #define CLOCK_COUNT (sizeof(g_clocks) / sizeof(g_clocks[0]))
 
@@ -162,6 +163,15 @@ whal_Spi g_whalSpi = {
     },
 };
 
+/* RNG */
+whal_Rng g_whalRng = {
+    WHAL_STM32H563_RNG_DEVICE,
+
+    .cfg = &(whal_Stm32h5Rng_Cfg) {
+        .timeout = &g_whalTimeout,
+    },
+};
+
 void Board_WaitMs(size_t ms)
 {
     uint32_t startCount = g_tick;
@@ -207,6 +217,11 @@ whal_Error Board_Init(void)
             return err;
     }
 
+    /* Enable HSI48 for RNG kernel clock */
+    err = whal_Stm32h5Rcc_Ext_EnableHsi48(&g_whalClock, 1);
+    if (err)
+        return err;
+
     err = whal_Gpio_Init(&g_whalGpio);
     if (err)
         return err;
@@ -216,6 +231,10 @@ whal_Error Board_Init(void)
         return err;
 
     err = whal_Spi_Init(&g_whalSpi);
+    if (err)
+        return err;
+
+    err = whal_Rng_Init(&g_whalRng);
     if (err)
         return err;
 
@@ -247,6 +266,10 @@ whal_Error Board_Deinit(void)
         return err;
 
     err = whal_Timer_Deinit(&g_whalTimer);
+    if (err)
+        return err;
+
+    err = whal_Rng_Deinit(&g_whalRng);
     if (err)
         return err;
 
