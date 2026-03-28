@@ -11,6 +11,7 @@ extern whal_Timer g_whalTimer;
 extern whal_Uart g_whalUart;
 extern whal_Spi g_whalSpi;
 extern whal_Rng g_whalRng;
+extern whal_Flash g_whalFlash;
 
 extern whal_Timeout g_whalTimeout;
 extern volatile uint32_t g_tick;
@@ -27,6 +28,10 @@ enum {
 };
 
 #define BOARD_LED_PIN 0
+
+/* Flash test address: last sector of bank 2 (safe area away from firmware) */
+#define BOARD_FLASH_TEST_ADDR 0x081FE000
+#define BOARD_FLASH_SECTOR_SZ 0x2000
 
 whal_Error Board_Init(void);
 whal_Error Board_Deinit(void);

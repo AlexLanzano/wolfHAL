@@ -7,6 +7,7 @@
 #include <wolfHAL/gpio/stm32h5_gpio.h>
 #include <wolfHAL/uart/stm32h5_uart.h>
 #include <wolfHAL/spi/stm32h5_spi.h>
+#include <wolfHAL/flash/stm32h5_flash.h>
 #include <wolfHAL/rng/stm32h5_rng.h>
 
 /*
@@ -168,5 +169,14 @@
     .regOffset = 0x08C,             \
     .enableMask = (1UL << 18),      \
     .enablePos = 18
+
+/* Flash device macros */
+
+#define WHAL_STM32H563_FLASH_DEVICE \
+    .regmap = {                     \
+        .base = 0x40022000,         \
+        .size = 0x400,              \
+    },                              \
+    .driver = &whal_Stm32h5Flash_Driver
 
 #endif /* WHAL_STM32H563XX_H */

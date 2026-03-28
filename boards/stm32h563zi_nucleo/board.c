@@ -172,6 +172,18 @@ whal_Rng g_whalRng = {
     },
 };
 
+
+/* Flash */
+whal_Flash g_whalFlash = {
+    WHAL_STM32H563_FLASH_DEVICE,
+
+    .cfg = &(whal_Stm32h5Flash_Cfg) {
+        .startAddr = 0x08000000,
+        .size = 0x200000, /* 2 MB */
+        .timeout = &g_whalTimeout,
+    },
+};
+
 void Board_WaitMs(size_t ms)
 {
     uint32_t startCount = g_tick;
