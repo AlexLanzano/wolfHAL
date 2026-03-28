@@ -305,7 +305,12 @@ whal_Error whal_Stm32h5RccHsi_Deinit(whal_Clock *clkDev)
 
 whal_Error whal_Stm32h5Rcc_Enable(whal_Clock *clkDev, const void *clk)
 {
-    whal_Stm32h5Rcc_Clk *stClk = (whal_Stm32h5Rcc_Clk *)clk;
+    whal_Stm32h5Rcc_Clk *stClk;
+
+    if (!clkDev || !clk)
+        return WHAL_EINVAL;
+
+    stClk = (whal_Stm32h5Rcc_Clk *)clk;
 
     whal_Reg_Update(clkDev->regmap.base, stClk->regOffset, stClk->enableMask,
                     whal_SetBits(stClk->enableMask, stClk->enablePos, 1));
@@ -315,7 +320,12 @@ whal_Error whal_Stm32h5Rcc_Enable(whal_Clock *clkDev, const void *clk)
 
 whal_Error whal_Stm32h5Rcc_Disable(whal_Clock *clkDev, const void *clk)
 {
-    whal_Stm32h5Rcc_Clk *stClk = (whal_Stm32h5Rcc_Clk *)clk;
+    whal_Stm32h5Rcc_Clk *stClk;
+
+    if (!clkDev || !clk)
+        return WHAL_EINVAL;
+
+    stClk = (whal_Stm32h5Rcc_Clk *)clk;
 
     whal_Reg_Update(clkDev->regmap.base, stClk->regOffset, stClk->enableMask,
                     whal_SetBits(stClk->enableMask, stClk->enablePos, 0));

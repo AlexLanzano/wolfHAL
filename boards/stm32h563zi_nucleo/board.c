@@ -74,7 +74,7 @@ whal_Gpio g_whalGpio = {
                 .pull = WHAL_STM32H5_GPIO_PULL_NONE,
                 .altFn = 0,
             },
-            [UART_TX_PIN] = { /* USART3 TX on PD8 */
+            [UART_TX_PIN] = { /* USART2 TX on PD5 */
                 .port = WHAL_STM32H5_GPIO_PORT_D,
                 .pin = 5,
                 .mode = WHAL_STM32H5_GPIO_MODE_ALTFN,
@@ -134,10 +134,10 @@ whal_Gpio g_whalGpio = {
 
 /* Timer */
 whal_Timer g_whalTimer = {
-    WHAL_CORTEX_M4_SYSTICK_DEVICE,
+    WHAL_CORTEX_M33_SYSTICK_DEVICE,
 
     .cfg = &(whal_SysTick_Cfg) {
-        .cyclesPerTick = 168000000 / 1000, /* 250 MHz / 1 kHz = 1 ms tick */
+        .cyclesPerTick = 168000000 / 1000, /* 168 MHz / 1 kHz = 1 ms tick */
         .clkSrc = WHAL_SYSTICK_CLKSRC_SYSCLK,
         .tickInt = WHAL_SYSTICK_TICKINT_ENABLED,
     },
@@ -187,20 +187,8 @@ whal_Flash g_whalFlash = {
 void Board_WaitMs(size_t ms)
 {
     uint32_t startCount = g_tick;
-    g_waiting = 1;
-    while (1) {
-        uint32_t currentCount = g_tick;
-        if (g_tickOverflow) {
-            if ((UINT32_MAX - startCount) + currentCount > ms) {
-                break;
-            }
-        } else if (currentCount - startCount > ms) {
-            break;
-        }
-    }
-
-    g_waiting = 0;
-    g_tickOverflow = 0;
+    while ((g_tick - startCount) < ms)
+        ;
 }
 
 /*

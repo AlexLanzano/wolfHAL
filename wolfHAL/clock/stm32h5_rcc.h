@@ -62,8 +62,8 @@ typedef enum {
  */
 typedef struct whal_Stm32h5Rcc_PllClkCfg {
     whal_Stm32h5Rcc_PllClockSrc clkSrc; /* PLL input source */
-    uint16_t n; /* PLLN multiplier (3-512, VCO = input * (n+1)) */
-    uint8_t m;  /* PLLM divider (0-63, input / (m+1)) */
+    uint16_t n; /* PLLN multiplier (3-511, VCO = input * (n+1)) */
+    uint8_t m;  /* PLLM divider (1-63, input / m) */
     uint8_t p;  /* PLLP divider (0-127, output / (p+1)) */
     uint8_t q;  /* PLLQ divider (0-127, output / (q+1)) */
     uint8_t r;  /* PLLR divider (0-127, output / (r+1)) */

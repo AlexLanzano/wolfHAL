@@ -36,7 +36,7 @@ static void Test_Flash_WriteRead(void)
         0xDE, 0xAD, 0xBE, 0xEF, 0xCA, 0xFE, 0xBA, 0xBE,
         0xDE, 0xAD, 0xBE, 0xEF, 0xCA, 0xFE, 0xBA, 0xBE,
     };
-    uint8_t readback[32] = {0};
+    uint8_t readback[32];
 
     WHAL_ASSERT_EQ(whal_Flash_Unlock(g_testFlashDev, g_testFlashAddr,
                                       g_testFlashSectorSz), WHAL_SUCCESS);

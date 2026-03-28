@@ -50,8 +50,8 @@ whal_Error whal_Stm32h5Rng_Deinit(whal_Rng *rngDev);
 /*
  * @brief Generate random data.
  *
- * Configures the RNG with NIST-certified values via CONDRST, polls for
- * DRDY, and fills the output buffer. The RNG is disabled after each call.
+ * Polls for DRDY and fills the output buffer. The RNG must be
+ * initialized via Init() before calling this function.
  *
  * @param rngDev    RNG device instance.
  * @param rngData   Destination buffer.

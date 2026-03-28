@@ -57,37 +57,15 @@
 
 whal_Error whal_Stm32h5Rng_Init(whal_Rng *rngDev)
 {
-    if (!rngDev || !rngDev->cfg)
-        return WHAL_EINVAL;
-
-    return WHAL_SUCCESS;
-}
-
-whal_Error whal_Stm32h5Rng_Deinit(whal_Rng *rngDev)
-{
-    if (!rngDev || !rngDev->cfg)
-        return WHAL_EINVAL;
-
-    return WHAL_SUCCESS;
-}
-
-whal_Error whal_Stm32h5Rng_Generate(whal_Rng *rngDev, uint8_t *rngData,
-                                     size_t rngDataSz)
-{
-    whal_Error err = WHAL_SUCCESS;
     whal_Stm32h5Rng_Cfg *cfg;
     const whal_Regmap *reg;
-    size_t sr;
-    size_t offset = 0;
+    whal_Error err;
 
-    if (!rngDev || !rngDev->cfg || !rngData)
+    if (!rngDev || !rngDev->cfg)
         return WHAL_EINVAL;
 
     cfg = (whal_Stm32h5Rng_Cfg *)rngDev->cfg;
     reg = &rngDev->regmap;
-#ifdef WHAL_CFG_NO_TIMEOUT
-    (void)(cfg);
-#endif
 
     /*
      * Apply NIST-certified configuration via CONDRST sequence:
@@ -109,8 +87,39 @@ whal_Error whal_Stm32h5Rng_Generate(whal_Rng *rngDev, uint8_t *rngData,
     /* Wait for CONDRST to clear (reset complete) */
     err = whal_Reg_ReadPoll(reg->base, RNG_CR_REG,
                             RNG_CR_CONDRST_Msk, 0, cfg->timeout);
-    if (err)
-        goto exit;
+
+    return err;
+}
+
+whal_Error whal_Stm32h5Rng_Deinit(whal_Rng *rngDev)
+{
+    if (!rngDev || !rngDev->cfg)
+        return WHAL_EINVAL;
+
+    /* Disable the RNG peripheral */
+    whal_Reg_Update(rngDev->regmap.base, RNG_CR_REG, RNG_CR_RNGEN_Msk,
+                    whal_SetBits(RNG_CR_RNGEN_Msk, RNG_CR_RNGEN_Pos, 0));
+
+    return WHAL_SUCCESS;
+}
+
+whal_Error whal_Stm32h5Rng_Generate(whal_Rng *rngDev, uint8_t *rngData,
+                                     size_t rngDataSz)
+{
+    whal_Error err = WHAL_SUCCESS;
+    whal_Stm32h5Rng_Cfg *cfg;
+    const whal_Regmap *reg;
+    size_t sr;
+    size_t offset = 0;
+
+    if (!rngDev || !rngDev->cfg || !rngData)
+        return WHAL_EINVAL;
+
+    cfg = (whal_Stm32h5Rng_Cfg *)rngDev->cfg;
+    reg = &rngDev->regmap;
+#ifdef WHAL_CFG_NO_TIMEOUT
+    (void)(cfg);
+#endif
 
     while (offset < rngDataSz) {
         /* Wait for a random value to be ready */
@@ -137,7 +146,7 @@ whal_Error whal_Stm32h5Rng_Generate(whal_Rng *rngDev, uint8_t *rngData,
         }
 
         /* Read 32-bit random value */
-        uint32_t rnd = *(volatile uint32_t *)(reg->base + RNG_DR_REG);
+        uint32_t rnd = (uint32_t)whal_Reg_Read(reg->base, RNG_DR_REG);
 
         /* Copy bytes into output buffer */
         for (size_t i = 0; i < 4 && offset < rngDataSz; i++, offset++)
@@ -145,10 +154,6 @@ whal_Error whal_Stm32h5Rng_Generate(whal_Rng *rngDev, uint8_t *rngData,
     }
 
 exit:
-    /* Disable the RNG peripheral */
-    whal_Reg_Update(reg->base, RNG_CR_REG, RNG_CR_RNGEN_Msk,
-                    whal_SetBits(RNG_CR_RNGEN_Msk, RNG_CR_RNGEN_Pos, 0));
-
     return err;
 }
 

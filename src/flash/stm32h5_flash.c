@@ -161,7 +161,15 @@ whal_Error whal_Stm32h5Flash_Unlock(whal_Flash *flashDev, size_t addr,
 whal_Error whal_Stm32h5Flash_Read(whal_Flash *flashDev, size_t addr,
                                    uint8_t *data, size_t dataSz)
 {
-    (void)flashDev;
+    whal_Stm32h5Flash_Cfg *cfg;
+
+    if (!flashDev || !flashDev->cfg || !data)
+        return WHAL_EINVAL;
+
+    cfg = flashDev->cfg;
+
+    if (addr < cfg->startAddr || addr + dataSz > cfg->startAddr + cfg->size)
+        return WHAL_EINVAL;
 
     uint8_t *flashAddr = (uint8_t *)addr;
     for (size_t i = 0; i < dataSz; ++i)
@@ -194,7 +202,7 @@ whal_Error whal_Stm32h5Flash_Write(whal_Flash *flashDev, size_t addr,
     const whal_Regmap *regmap;
     whal_Error err;
 
-    if (!flashDev || !flashDev->cfg)
+    if (!flashDev || !flashDev->cfg || !data)
         return WHAL_EINVAL;
 
     cfg = flashDev->cfg;
@@ -259,6 +267,9 @@ whal_Error whal_Stm32h5Flash_Erase(whal_Flash *flashDev, size_t addr,
 
     cfg = flashDev->cfg;
     regmap = &flashDev->regmap;
+
+    if (dataSz == 0)
+        return WHAL_SUCCESS;
 
     if (addr < cfg->startAddr || addr + dataSz > cfg->startAddr + cfg->size)
         return WHAL_EINVAL;

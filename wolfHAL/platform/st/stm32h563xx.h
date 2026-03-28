@@ -1,7 +1,7 @@
 #ifndef WHAL_STM32H563XX_H
 #define WHAL_STM32H563XX_H
 
-#include <wolfHAL/platform/arm/cortex_m4.h>
+#include <wolfHAL/platform/arm/cortex_m33.h>
 
 #include <wolfHAL/clock/stm32h5_rcc.h>
 #include <wolfHAL/gpio/stm32h5_gpio.h>

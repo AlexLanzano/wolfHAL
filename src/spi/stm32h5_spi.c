@@ -172,7 +172,7 @@ whal_Error whal_Stm32h5Spi_StartCom(whal_Spi *spiDev, whal_Spi_ComCfg *comCfg)
     cpol = (comCfg->mode >> 1) & 1;
     cpha = comCfg->mode & 1;
     dsize = comCfg->wordSz - 1;
-    fthlv = (comCfg->wordSz <= 8) ? 0 : 0; /* 1 data frame threshold */
+    fthlv = 0; /* 1 data frame threshold */
 
     /* Set baud rate, data size, FIFO threshold */
     whal_Reg_Update(reg->base, SPI_CFG1_REG,

@@ -207,7 +207,7 @@ need, and unused configurations are not compiled into the final binary.
 ### Reusing a Driver Across Platforms
 
 Many MCU families share identical peripheral IP blocks. For example, the
-STM32WB and STM32H5 have register-compatible GPIO, UART, and SPI peripherals.
+STM32WB and STM32H5 have register-compatible GPIO and UART peripherals.
 Rather than duplicating driver code, create thin alias files for the new
 platform that re-export the existing driver under platform-specific names.
 
