@@ -204,6 +204,66 @@ clock sources, each with its own initialization logic, you can provide a
 separate driver for each source. This way users only link the code they actually
 need, and unused configurations are not compiled into the final binary.
 
+### Reusing a Driver Across Platforms
+
+Many MCU families share identical peripheral IP blocks. For example, the
+STM32WB and STM32H5 have register-compatible GPIO and UART peripherals.
+Rather than duplicating driver code, create thin alias files for the new
+platform that re-export the existing driver under platform-specific names.
+
+#### Header
+
+The alias header `typedef`s the config structs and `#define`s the driver
+instance, functions, and any enum constants:
+
+```c
+#ifndef WHAL_STM32H5_GPIO_H
+#define WHAL_STM32H5_GPIO_H
+
+#include <wolfHAL/gpio/stm32wb_gpio.h>
+
+typedef whal_Stm32wbGpio_Cfg    whal_Stm32h5Gpio_Cfg;
+typedef whal_Stm32wbGpio_PinCfg whal_Stm32h5Gpio_PinCfg;
+
+#define whal_Stm32h5Gpio_Driver whal_Stm32wbGpio_Driver
+#define whal_Stm32h5Gpio_Init   whal_Stm32wbGpio_Init
+#define whal_Stm32h5Gpio_Deinit whal_Stm32wbGpio_Deinit
+#define whal_Stm32h5Gpio_Get    whal_Stm32wbGpio_Get
+#define whal_Stm32h5Gpio_Set    whal_Stm32wbGpio_Set
+
+/* Re-export enum constants under the new platform name */
+#define WHAL_STM32H5_GPIO_MODE_OUT WHAL_STM32WB_GPIO_MODE_OUT
+/* ... */
+
+#endif
+```
+
+Use `typedef` for types (gives proper type-checking and debugger visibility)
+and `#define` for the driver instance and functions (which are values, not
+types).
+
+#### Source
+
+The source file includes the original implementation directly:
+
+```c
+#include "stm32wb_gpio.c"
+```
+
+This works because `#include` is textual insertion — the compiler does not
+distinguish `.h` from `.c`. The new platform's `Makefile.inc` compiles this
+file and does **not** compile the original. The original platform's
+`Makefile.inc` still compiles its own file directly. Both must never appear in
+the same build.
+
+#### When to alias vs. write a new driver
+
+Alias when the register layout is identical — same offsets, same bit positions,
+same behavior. If even one register differs (different bit position, extra
+field, different reset value that affects behavior), write a new driver. A
+partial alias that papers over register differences with workarounds is worse
+than a clean separate implementation.
+
 ### Platform Device Macro
 
 Add a device macro to your platform header

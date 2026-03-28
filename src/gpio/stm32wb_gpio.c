@@ -42,16 +42,12 @@
 static inline void whal_Stm32wbGpio_InitAltFn(whal_Regmap *portReg, whal_Stm32wbGpio_PinCfg *pinCfg)
 {
     uint8_t pin = pinCfg->pin;
-    uint8_t maskBit;
-    uint64_t mask;
+    size_t offset = (pin < 8) ? GPIO_ALTFNL_REG : GPIO_ALTFNH_REG;
+    uint8_t pos = (pin & 7) << 2;
+    size_t mask = WHAL_BITMASK(4) << pos;
 
-    /* Each pin uses 4 bits: pin 0 = bits 0-3, pin 1 = bits 4-7, etc. */
-    maskBit = pin << 2;
-    mask = (WHAL_BITMASK(4) << maskBit);
-
-    /* Access AFRL and AFRH as a single 64-bit register */
-    uint64_t *reg = (uint64_t *)(portReg->base + GPIO_ALTFNL_REG);
-    *reg = (*reg & ~mask) | (whal_SetBits(mask, maskBit, pinCfg->altFn) & mask);
+    whal_Reg_Update(portReg->base, offset, mask,
+                    whal_SetBits(mask, pos, pinCfg->altFn));
 }
 
 /*
