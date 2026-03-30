@@ -7,6 +7,10 @@
 static whal_Flash *g_testFlashDev;
 static size_t g_testFlashAddr;
 static size_t g_testFlashSectorSz;
+#ifdef BOARD_FLASH_SIZE
+static size_t g_testFlashStartAddr;
+static size_t g_testFlashSize;
+#endif
 
 static void Test_Flash_EraseBlank(void)
 {
@@ -60,6 +64,29 @@ static void Test_Flash_WriteRead(void)
                                     g_testFlashSectorSz), WHAL_SUCCESS);
 }
 
+#ifdef BOARD_FLASH_SIZE
+static void Test_Flash_EraseLastSector(void)
+{
+    size_t lastSectorAddr = g_testFlashStartAddr + g_testFlashSize - g_testFlashSectorSz;
+    uint8_t readback[8] = {0};
+    uint8_t erased[8] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+
+    WHAL_ASSERT_EQ(whal_Flash_Unlock(g_testFlashDev, lastSectorAddr,
+                                      g_testFlashSectorSz), WHAL_SUCCESS);
+
+    WHAL_ASSERT_EQ(whal_Flash_Erase(g_testFlashDev, lastSectorAddr,
+                                     g_testFlashSectorSz), WHAL_SUCCESS);
+
+    WHAL_ASSERT_EQ(whal_Flash_Read(g_testFlashDev, lastSectorAddr,
+                                    readback, sizeof(readback)), WHAL_SUCCESS);
+
+    WHAL_ASSERT_MEM_EQ(readback, erased, sizeof(erased));
+
+    WHAL_ASSERT_EQ(whal_Flash_Lock(g_testFlashDev, lastSectorAddr,
+                                    g_testFlashSectorSz), WHAL_SUCCESS);
+}
+#endif
+
 static void run_flash_tests(const char *name)
 {
     WHAL_TEST_SUITE_START("flash");
@@ -67,6 +94,9 @@ static void run_flash_tests(const char *name)
         whal_Test_Printf("  device: %s\n", name);
     WHAL_TEST(Test_Flash_EraseBlank);
     WHAL_TEST(Test_Flash_WriteRead);
+#ifdef BOARD_FLASH_SIZE
+    WHAL_TEST(Test_Flash_EraseLastSector);
+#endif
     WHAL_TEST_SUITE_END();
 }
 
@@ -75,6 +105,10 @@ void whal_Test_Flash(void)
     /* Test on-chip flash */
     g_testFlashDev = &g_whalFlash;
     g_testFlashAddr = BOARD_FLASH_TEST_ADDR;
+#ifdef BOARD_FLASH_SIZE
+    g_testFlashStartAddr = BOARD_FLASH_START_ADDR;
+    g_testFlashSize = BOARD_FLASH_SIZE;
+#endif
     g_testFlashSectorSz = BOARD_FLASH_SECTOR_SZ;
     run_flash_tests("on-chip");
 

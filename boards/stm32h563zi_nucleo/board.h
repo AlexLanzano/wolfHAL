@@ -41,8 +41,10 @@ enum {
 #define BOARD_LED_PIN 0
 
 /* Flash test address: last sector of bank 2 (safe area away from firmware) */
-#define BOARD_FLASH_TEST_ADDR 0x081FE000
-#define BOARD_FLASH_SECTOR_SZ 0x2000
+#define BOARD_FLASH_START_ADDR 0x08000000
+#define BOARD_FLASH_SIZE       0x200000
+#define BOARD_FLASH_TEST_ADDR  0x081FE000
+#define BOARD_FLASH_SECTOR_SZ  0x2000
 
 /* Ethernet PHY: LAN8742A on MDIO address 0 */
 #define BOARD_ETH_PHY_ADDR 0
