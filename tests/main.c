@@ -54,6 +54,13 @@ void whal_Test_Crypto(void);
 void whal_Test_Block(void);
 #endif
 
+#ifdef WHAL_TEST_ENABLE_ETH
+void whal_Test_Eth(void);
+#ifdef WHAL_TEST_ENABLE_ETH_PLATFORM
+void whal_Test_Eth_Platform(void);
+#endif
+#endif
+
 int g_whalTestPassed;
 int g_whalTestFailed;
 int g_whalTestSkipped;
@@ -134,6 +141,13 @@ void main(void)
 
 #ifdef WHAL_TEST_ENABLE_BLOCK
     whal_Test_Block();
+#endif
+
+#ifdef WHAL_TEST_ENABLE_ETH
+    whal_Test_Eth();
+#ifdef WHAL_TEST_ENABLE_ETH_PLATFORM
+    whal_Test_Eth_Platform();
+#endif
 #endif
 
     WHAL_TEST_SUMMARY();

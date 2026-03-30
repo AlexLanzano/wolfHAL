@@ -9,6 +9,8 @@
 #include <wolfHAL/spi/stm32h5_spi.h>
 #include <wolfHAL/flash/stm32h5_flash.h>
 #include <wolfHAL/rng/stm32h5_rng.h>
+#include <wolfHAL/eth/stm32h5_eth.h>
+#include <wolfHAL/eth_phy/eth_phy.h>
 
 /*
  * @file stm32h563xx.h
@@ -178,5 +180,38 @@
         .size = 0x400,              \
     },                              \
     .driver = &whal_Stm32h5Flash_Driver
+
+/* RCC_APB3ENR (offset 0x0A8), bit 1 */
+#define WHAL_STM32H563_SBS_CLOCK    \
+    .regOffset = 0x0A8,             \
+    .enableMask = (1UL << 1),       \
+    .enablePos = 1
+
+/* Ethernet device macros */
+
+#define WHAL_STM32H563_ETH_DEVICE   \
+    .regmap = {                     \
+        .base = 0x40028000,         \
+        .size = 0x1200,             \
+    },                              \
+    .driver = &whal_Stm32h5Eth_Driver
+
+/* RCC_AHB1ENR (offset 0x088), bit 19 */
+#define WHAL_STM32H563_ETH_CLOCK    \
+    .regOffset = 0x088,             \
+    .enableMask = (1UL << 19),      \
+    .enablePos = 19
+
+/* RCC_AHB1ENR (offset 0x088), bit 20 — ETH TX clock */
+#define WHAL_STM32H563_ETHTX_CLOCK  \
+    .regOffset = 0x088,             \
+    .enableMask = (1UL << 20),      \
+    .enablePos = 20
+
+/* RCC_AHB1ENR (offset 0x088), bit 21 — ETH RX clock */
+#define WHAL_STM32H563_ETHRX_CLOCK  \
+    .regOffset = 0x088,             \
+    .enableMask = (1UL << 21),      \
+    .enablePos = 21
 
 #endif /* WHAL_STM32H563XX_H */
