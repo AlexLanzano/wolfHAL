@@ -8,16 +8,10 @@
 
 /* SysTick timing */
 volatile uint32_t g_tick = 0;
-volatile uint8_t g_waiting = 0;
-volatile uint8_t g_tickOverflow = 0;
 
 void SysTick_Handler()
 {
-    uint32_t tickBefore = g_tick++;
-    if (g_waiting) {
-        if (tickBefore > g_tick)
-            g_tickOverflow = 1;
-    }
+    g_tick++;
 }
 
 uint32_t Board_GetTick(void)
