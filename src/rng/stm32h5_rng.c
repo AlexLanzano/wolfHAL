@@ -103,9 +103,10 @@ whal_Error whal_Stm32h5Rng_Deinit(whal_Rng *rngDev)
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_Stm32h5Rng_Generate(whal_Rng *rngDev, uint8_t *rngData,
+whal_Error whal_Stm32h5Rng_Generate(whal_Rng *rngDev, void *rngData,
                                      size_t rngDataSz)
 {
+    uint8_t *rngBuf = (uint8_t *)rngData;
     whal_Error err = WHAL_SUCCESS;
     whal_Stm32h5Rng_Cfg *cfg;
     const whal_Regmap *reg;
@@ -150,7 +151,7 @@ whal_Error whal_Stm32h5Rng_Generate(whal_Rng *rngDev, uint8_t *rngData,
 
         /* Copy bytes into output buffer */
         for (size_t i = 0; i < 4 && offset < rngDataSz; i++, offset++)
-            rngData[offset] = (uint8_t)(rnd >> (i * 8));
+            rngBuf[offset] = (uint8_t)(rnd >> (i * 8));
     }
 
 exit:

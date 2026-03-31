@@ -128,8 +128,9 @@ whal_Error whal_Stm32f4Flash_Unlock(whal_Flash *flashDev, size_t addr, size_t le
 }
 
 whal_Error whal_Stm32f4Flash_Read(whal_Flash *flashDev, size_t addr,
-                                   uint8_t *data, size_t dataSz)
+                                   void *data, size_t dataSz)
 {
+    uint8_t *dataBuf = (uint8_t *)data;
     whal_Stm32f4Flash_Cfg *cfg;
 
     if (!flashDev || !flashDev->cfg || !data)
@@ -142,14 +143,15 @@ whal_Error whal_Stm32f4Flash_Read(whal_Flash *flashDev, size_t addr,
 
     uint8_t *flashAddr = (uint8_t *)addr;
     for (size_t i = 0; i < dataSz; ++i)
-        data[i] = flashAddr[i];
+        dataBuf[i] = flashAddr[i];
 
     return WHAL_SUCCESS;
 }
 
 whal_Error whal_Stm32f4Flash_Write(whal_Flash *flashDev, size_t addr,
-                                    const uint8_t *data, size_t dataSz)
+                                    const void *data, size_t dataSz)
 {
+    const uint8_t *dataBuf = (const uint8_t *)data;
     whal_Stm32f4Flash_Cfg *cfg;
     const whal_Regmap *regmap;
     whal_Error err = WHAL_SUCCESS;
@@ -185,7 +187,7 @@ whal_Error whal_Stm32f4Flash_Write(whal_Flash *flashDev, size_t addr,
     /* Program data in 32-bit word chunks */
     for (size_t i = 0; i < dataSz; i += 4) {
         uint32_t *flashAddr = (uint32_t *)(addr + i);
-        const uint32_t *dataAddr = (const uint32_t *)(data + i);
+        const uint32_t *dataAddr = (const uint32_t *)(dataBuf + i);
 
         *flashAddr = *dataAddr;
 

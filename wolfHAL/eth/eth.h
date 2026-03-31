@@ -38,9 +38,9 @@ typedef struct {
     /* Disable MAC TX/RX and stop DMA engines. */
     whal_Error (*Stop)(whal_Eth *ethDev);
     /* Transmit an Ethernet frame. */
-    whal_Error (*Send)(whal_Eth *ethDev, const uint8_t *frame, size_t len);
+    whal_Error (*Send)(whal_Eth *ethDev, const void *frame, size_t len);
     /* Receive an Ethernet frame. */
-    whal_Error (*Recv)(whal_Eth *ethDev, uint8_t *frame, size_t *len);
+    whal_Error (*Recv)(whal_Eth *ethDev, void *frame, size_t *len);
     /* Read a PHY register via MDIO. */
     whal_Error (*MdioRead)(whal_Eth *ethDev, uint8_t phyAddr, uint8_t reg,
                            uint16_t *val);
@@ -138,7 +138,7 @@ whal_Error whal_Eth_Stop(whal_Eth *ethDev);
  * @retval WHAL_EINVAL    Invalid arguments.
  * @retval WHAL_ENOTREADY No TX descriptor available.
  */
-whal_Error whal_Eth_Send(whal_Eth *ethDev, const uint8_t *frame, size_t len);
+whal_Error whal_Eth_Send(whal_Eth *ethDev, const void *frame, size_t len);
 /*
  * @brief Receive an Ethernet frame.
  *
@@ -150,7 +150,7 @@ whal_Error whal_Eth_Send(whal_Eth *ethDev, const uint8_t *frame, size_t len);
  * @retval WHAL_EINVAL    Invalid arguments.
  * @retval WHAL_ENOTREADY No frame available.
  */
-whal_Error whal_Eth_Recv(whal_Eth *ethDev, uint8_t *frame, size_t *len);
+whal_Error whal_Eth_Recv(whal_Eth *ethDev, void *frame, size_t *len);
 /*
  * @brief Read a PHY register via the MDIO bus.
  *

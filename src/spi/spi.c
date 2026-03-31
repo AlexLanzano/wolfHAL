@@ -38,7 +38,7 @@ inline whal_Error whal_Spi_EndCom(whal_Spi *spiDev)
     return spiDev->driver->EndCom(spiDev);
 }
 
-inline whal_Error whal_Spi_SendRecv(whal_Spi *spiDev, const uint8_t *tx, size_t txLen, uint8_t *rx, size_t rxLen)
+inline whal_Error whal_Spi_SendRecv(whal_Spi *spiDev, const void *tx, size_t txLen, void *rx, size_t rxLen)
 {
     if (!spiDev || !spiDev->driver || !spiDev->driver->SendRecv) {
         return WHAL_EINVAL;

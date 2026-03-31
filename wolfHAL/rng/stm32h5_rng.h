@@ -62,7 +62,7 @@ whal_Error whal_Stm32h5Rng_Deinit(whal_Rng *rngDev);
  * @retval WHAL_EHARDWARE Seed or clock error detected.
  * @retval WHAL_ETIMEOUT  Timed out waiting for random data.
  */
-whal_Error whal_Stm32h5Rng_Generate(whal_Rng *rngDev, uint8_t *rngData,
+whal_Error whal_Stm32h5Rng_Generate(whal_Rng *rngDev, void *rngData,
                                      size_t rngDataSz);
 
 #endif /* WHAL_STM32H5_RNG_H */

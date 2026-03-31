@@ -153,7 +153,7 @@ whal_Error whal_SpiNor_Unlock(whal_Flash *flashDev, size_t addr, size_t len);
  * @retval WHAL_SUCCESS Read completed.
  * @retval WHAL_EINVAL  Null pointer, zero size, or out of bounds.
  */
-whal_Error whal_SpiNor3b_Read(whal_Flash *flashDev, size_t addr, uint8_t *data, size_t dataSz);
+whal_Error whal_SpiNor3b_Read(whal_Flash *flashDev, size_t addr, void *data, size_t dataSz);
 
 /*
  * @brief Read data using the Fast Read command (0x0B) with 3-byte address.
@@ -169,7 +169,7 @@ whal_Error whal_SpiNor3b_Read(whal_Flash *flashDev, size_t addr, uint8_t *data, 
  * @retval WHAL_SUCCESS Read completed.
  * @retval WHAL_EINVAL  Null pointer, zero size, or out of bounds.
  */
-whal_Error whal_SpiNor3b_ReadFast(whal_Flash *flashDev, size_t addr, uint8_t *data, size_t dataSz);
+whal_Error whal_SpiNor3b_ReadFast(whal_Flash *flashDev, size_t addr, void *data, size_t dataSz);
 
 /* -------------------------------------------------------------------- */
 /*  Read — dedicated 4-byte address commands                            */
@@ -189,7 +189,7 @@ whal_Error whal_SpiNor3b_ReadFast(whal_Flash *flashDev, size_t addr, uint8_t *da
  * @retval WHAL_SUCCESS Read completed.
  * @retval WHAL_EINVAL  Null pointer, zero size, or out of bounds.
  */
-whal_Error whal_SpiNor4b_Read(whal_Flash *flashDev, size_t addr, uint8_t *data, size_t dataSz);
+whal_Error whal_SpiNor4b_Read(whal_Flash *flashDev, size_t addr, void *data, size_t dataSz);
 
 /*
  * @brief Read data using the dedicated 4-byte Fast Read command (0x0C).
@@ -205,7 +205,7 @@ whal_Error whal_SpiNor4b_Read(whal_Flash *flashDev, size_t addr, uint8_t *data, 
  * @retval WHAL_SUCCESS Read completed.
  * @retval WHAL_EINVAL  Null pointer, zero size, or out of bounds.
  */
-whal_Error whal_SpiNor4b_ReadFast(whal_Flash *flashDev, size_t addr, uint8_t *data, size_t dataSz);
+whal_Error whal_SpiNor4b_ReadFast(whal_Flash *flashDev, size_t addr, void *data, size_t dataSz);
 
 /* -------------------------------------------------------------------- */
 /*  Read — 4-byte address mode (after 0xB7)                             */
@@ -225,7 +225,7 @@ whal_Error whal_SpiNor4b_ReadFast(whal_Flash *flashDev, size_t addr, uint8_t *da
  * @retval WHAL_SUCCESS Read completed.
  * @retval WHAL_EINVAL  Null pointer, zero size, or out of bounds.
  */
-whal_Error whal_SpiNor4bMode_Read(whal_Flash *flashDev, size_t addr, uint8_t *data, size_t dataSz);
+whal_Error whal_SpiNor4bMode_Read(whal_Flash *flashDev, size_t addr, void *data, size_t dataSz);
 
 /*
  * @brief Read data using Fast Read (0x0B) in 4-byte address mode.
@@ -241,7 +241,7 @@ whal_Error whal_SpiNor4bMode_Read(whal_Flash *flashDev, size_t addr, uint8_t *da
  * @retval WHAL_SUCCESS Read completed.
  * @retval WHAL_EINVAL  Null pointer, zero size, or out of bounds.
  */
-whal_Error whal_SpiNor4bMode_ReadFast(whal_Flash *flashDev, size_t addr, uint8_t *data, size_t dataSz);
+whal_Error whal_SpiNor4bMode_ReadFast(whal_Flash *flashDev, size_t addr, void *data, size_t dataSz);
 
 /* -------------------------------------------------------------------- */
 /*  Read — extended address register (bank select)                      */
@@ -262,7 +262,7 @@ whal_Error whal_SpiNor4bMode_ReadFast(whal_Flash *flashDev, size_t addr, uint8_t
  * @retval WHAL_SUCCESS Read completed.
  * @retval WHAL_EINVAL  Null pointer, zero size, or out of bounds.
  */
-whal_Error whal_SpiNor4bExReg_Read(whal_Flash *flashDev, size_t addr, uint8_t *data, size_t dataSz);
+whal_Error whal_SpiNor4bExReg_Read(whal_Flash *flashDev, size_t addr, void *data, size_t dataSz);
 
 /*
  * @brief Read data using Fast Read (0x0B) with extended address register.
@@ -278,7 +278,7 @@ whal_Error whal_SpiNor4bExReg_Read(whal_Flash *flashDev, size_t addr, uint8_t *d
  * @retval WHAL_SUCCESS Read completed.
  * @retval WHAL_EINVAL  Null pointer, zero size, or out of bounds.
  */
-whal_Error whal_SpiNor4bExReg_ReadFast(whal_Flash *flashDev, size_t addr, uint8_t *data, size_t dataSz);
+whal_Error whal_SpiNor4bExReg_ReadFast(whal_Flash *flashDev, size_t addr, void *data, size_t dataSz);
 
 /* -------------------------------------------------------------------- */
 /*  Write — 3-byte address                                              */
@@ -298,7 +298,7 @@ whal_Error whal_SpiNor4bExReg_ReadFast(whal_Flash *flashDev, size_t addr, uint8_
  * @retval WHAL_SUCCESS Write completed.
  * @retval WHAL_EINVAL  Null pointer, zero size, or out of bounds.
  */
-whal_Error whal_SpiNor3b_Write(whal_Flash *flashDev, size_t addr, const uint8_t *data, size_t dataSz);
+whal_Error whal_SpiNor3b_Write(whal_Flash *flashDev, size_t addr, const void *data, size_t dataSz);
 
 /* -------------------------------------------------------------------- */
 /*  Write — dedicated 4-byte address command                            */
@@ -318,7 +318,7 @@ whal_Error whal_SpiNor3b_Write(whal_Flash *flashDev, size_t addr, const uint8_t 
  * @retval WHAL_SUCCESS Write completed.
  * @retval WHAL_EINVAL  Null pointer, zero size, or out of bounds.
  */
-whal_Error whal_SpiNor4b_Write(whal_Flash *flashDev, size_t addr, const uint8_t *data, size_t dataSz);
+whal_Error whal_SpiNor4b_Write(whal_Flash *flashDev, size_t addr, const void *data, size_t dataSz);
 
 /* -------------------------------------------------------------------- */
 /*  Write — 4-byte address mode (after 0xB7)                            */
@@ -338,7 +338,7 @@ whal_Error whal_SpiNor4b_Write(whal_Flash *flashDev, size_t addr, const uint8_t 
  * @retval WHAL_SUCCESS Write completed.
  * @retval WHAL_EINVAL  Null pointer, zero size, or out of bounds.
  */
-whal_Error whal_SpiNor4bMode_Write(whal_Flash *flashDev, size_t addr, const uint8_t *data, size_t dataSz);
+whal_Error whal_SpiNor4bMode_Write(whal_Flash *flashDev, size_t addr, const void *data, size_t dataSz);
 
 /* -------------------------------------------------------------------- */
 /*  Write — extended address register                                   */
@@ -359,7 +359,7 @@ whal_Error whal_SpiNor4bMode_Write(whal_Flash *flashDev, size_t addr, const uint
  * @retval WHAL_SUCCESS Write completed.
  * @retval WHAL_EINVAL  Null pointer, zero size, or out of bounds.
  */
-whal_Error whal_SpiNor4bExReg_Write(whal_Flash *flashDev, size_t addr, const uint8_t *data, size_t dataSz);
+whal_Error whal_SpiNor4bExReg_Write(whal_Flash *flashDev, size_t addr, const void *data, size_t dataSz);
 
 /* -------------------------------------------------------------------- */
 /*  Erase — 3-byte address                                              */

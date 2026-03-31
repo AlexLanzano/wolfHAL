@@ -88,7 +88,7 @@ whal_Error whal_Pic32czFlash_Unlock(whal_Flash *flashDev, size_t addr, size_t le
  * @retval WHAL_SUCCESS Read completed.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_Pic32czFlash_Read(whal_Flash *flashDev, size_t addr, uint8_t *data,
+whal_Error whal_Pic32czFlash_Read(whal_Flash *flashDev, size_t addr, void *data,
                              size_t dataSz);
 /*
  * @brief Write a block of data to flash.
@@ -105,7 +105,7 @@ whal_Error whal_Pic32czFlash_Read(whal_Flash *flashDev, size_t addr, uint8_t *da
  * @retval WHAL_SUCCESS Program completed.
  * @retval WHAL_EINVAL  Invalid arguments or alignment.
  */
-whal_Error whal_Pic32czFlash_Write(whal_Flash *flashDev, size_t addr, const uint8_t *data,
+whal_Error whal_Pic32czFlash_Write(whal_Flash *flashDev, size_t addr, const void *data,
                               size_t dataSz);
 /*
  * @brief Erase flash pages covering the given range.

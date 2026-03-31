@@ -94,7 +94,7 @@ whal_Error whal_Stm32h5Spi_EndCom(whal_Spi *spiDev);
  * @retval WHAL_SUCCESS Transfer completed.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_Stm32h5Spi_SendRecv(whal_Spi *spiDev, const uint8_t *tx,
-                                     size_t txLen, uint8_t *rx, size_t rxLen);
+whal_Error whal_Stm32h5Spi_SendRecv(whal_Spi *spiDev, const void *tx,
+                                     size_t txLen, void *rx, size_t rxLen);
 
 #endif /* WHAL_STM32H5_SPI_H */

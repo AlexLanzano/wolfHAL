@@ -46,7 +46,7 @@ typedef struct {
     /* End the current communication session. */
     whal_Error (*EndCom)(whal_Spi *spiDev);
     /* Perform a bidirectional transfer. */
-    whal_Error (*SendRecv)(whal_Spi *spiDev, const uint8_t *tx, size_t txLen, uint8_t *rx, size_t rxLen);
+    whal_Error (*SendRecv)(whal_Spi *spiDev, const void *tx, size_t txLen, void *rx, size_t rxLen);
 } whal_SpiDriver;
 
 /*
@@ -135,7 +135,7 @@ whal_Error whal_Spi_EndCom(whal_Spi *spiDev);
  * @retval WHAL_SUCCESS Transfer completed.
  * @retval WHAL_EINVAL  Null spiDev or driver failed to transfer.
  */
-whal_Error whal_Spi_SendRecv(whal_Spi *spiDev, const uint8_t *tx, size_t txLen, uint8_t *rx, size_t rxLen);
+whal_Error whal_Spi_SendRecv(whal_Spi *spiDev, const void *tx, size_t txLen, void *rx, size_t rxLen);
 #endif
 
 #endif /* WHAL_SPI_H */

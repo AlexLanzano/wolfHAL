@@ -26,9 +26,9 @@ typedef struct {
     /* Unlock a flash region to allow modification. */
     whal_Error (*Unlock)(whal_Flash *flashDev, size_t addr, size_t len);
     /* Read data from flash into a buffer. */
-    whal_Error (*Read)(whal_Flash *flashDev, size_t addr, uint8_t *data, size_t dataSz);
+    whal_Error (*Read)(whal_Flash *flashDev, size_t addr, void *data, size_t dataSz);
     /* Program a region of flash starting at @p addr. */
-    whal_Error (*Write)(whal_Flash *flashDev, size_t addr, const uint8_t *data, size_t dataSz);
+    whal_Error (*Write)(whal_Flash *flashDev, size_t addr, const void *data, size_t dataSz);
     /* Erase a flash range starting at @p addr. */
     whal_Error (*Erase)(whal_Flash *flashDev, size_t addr, size_t dataSz);
 } whal_FlashDriver;
@@ -110,7 +110,7 @@ whal_Error whal_Flash_Unlock(whal_Flash *flashDev, size_t addr, size_t len);
  * @retval WHAL_SUCCESS Read completed.
  * @retval WHAL_EINVAL  Null pointer or missing driver function.
  */
-whal_Error whal_Flash_Read(whal_Flash *flashDev, size_t addr, uint8_t *data, size_t dataSz);
+whal_Error whal_Flash_Read(whal_Flash *flashDev, size_t addr, void *data, size_t dataSz);
 /*
  * @brief Write data into flash.
  *
@@ -122,7 +122,7 @@ whal_Error whal_Flash_Read(whal_Flash *flashDev, size_t addr, uint8_t *data, siz
  * @retval WHAL_SUCCESS Write accepted or completed.
  * @retval WHAL_EINVAL  Null pointer, missing driver function, or bad arguments.
  */
-whal_Error whal_Flash_Write(whal_Flash *flashDev, size_t addr, const uint8_t *data, size_t dataSz);
+whal_Error whal_Flash_Write(whal_Flash *flashDev, size_t addr, const void *data, size_t dataSz);
 /*
  * @brief Erase a region of flash.
  *

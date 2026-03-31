@@ -21,7 +21,7 @@ inline whal_Error whal_Block_Deinit(whal_Block *blockDev)
 }
 
 inline whal_Error whal_Block_Read(whal_Block *blockDev, uint32_t block,
-                                  uint8_t *data, uint32_t blockCount)
+                                  void *data, uint32_t blockCount)
 {
     if (!blockDev || !blockDev->driver || !blockDev->driver->Read || !data) {
         return WHAL_EINVAL;
@@ -31,7 +31,7 @@ inline whal_Error whal_Block_Read(whal_Block *blockDev, uint32_t block,
 }
 
 inline whal_Error whal_Block_Write(whal_Block *blockDev, uint32_t block,
-                                   const uint8_t *data, uint32_t blockCount)
+                                   const void *data, uint32_t blockCount)
 {
     if (!blockDev || !blockDev->driver || !blockDev->driver->Write || !data) {
         return WHAL_EINVAL;

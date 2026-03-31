@@ -122,7 +122,7 @@ whal_Error whal_Stm32f4Flash_Unlock(whal_Flash *flashDev, size_t addr, size_t le
  * @retval WHAL_EINVAL  Invalid arguments.
  */
 whal_Error whal_Stm32f4Flash_Read(whal_Flash *flashDev, size_t addr,
-                                   uint8_t *data, size_t dataSz);
+                                   void *data, size_t dataSz);
 
 /*
  * @brief Write data to flash.
@@ -140,7 +140,7 @@ whal_Error whal_Stm32f4Flash_Read(whal_Flash *flashDev, size_t addr,
  * @retval WHAL_EHARDWARE Flash error during programming.
  */
 whal_Error whal_Stm32f4Flash_Write(whal_Flash *flashDev, size_t addr,
-                                    const uint8_t *data, size_t dataSz);
+                                    const void *data, size_t dataSz);
 
 /*
  * @brief Erase flash sectors covering the given range.

@@ -242,9 +242,10 @@ whal_Error whal_Pic32czFlash_Unlock(whal_Flash *flashDev, size_t addr, size_t le
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_Pic32czFlash_Read(whal_Flash *flashDev, size_t addr, uint8_t *data,
+whal_Error whal_Pic32czFlash_Read(whal_Flash *flashDev, size_t addr, void *data,
                              size_t dataSz)
 {
+    uint8_t *dataBuf = (uint8_t *)data;
     const whal_Regmap *reg;
     whal_Pic32czFlash_Cfg *cfg;
     uint8_t *flashAddr = (uint8_t *)addr;
@@ -265,7 +266,7 @@ whal_Error whal_Pic32czFlash_Read(whal_Flash *flashDev, size_t addr, uint8_t *da
 
     /* Flash is memory-mapped; read directly */
     for (i = 0; i < dataSz; i++) {
-        data[i] = flashAddr[i];
+        dataBuf[i] = flashAddr[i];
     }
 
     whal_Pic32czFlash_MutexUnlock(reg);
@@ -273,9 +274,10 @@ whal_Error whal_Pic32czFlash_Read(whal_Flash *flashDev, size_t addr, uint8_t *da
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_Pic32czFlash_Write(whal_Flash *flashDev, size_t addr, const uint8_t *data,
+whal_Error whal_Pic32czFlash_Write(whal_Flash *flashDev, size_t addr, const void *data,
                               size_t dataSz)
 {
+    const uint8_t *dataBuf = (const uint8_t *)data;
     const whal_Regmap *reg;
     whal_Pic32czFlash_Cfg *cfg;
     const uint32_t *src;
@@ -294,7 +296,7 @@ whal_Error whal_Pic32czFlash_Write(whal_Flash *flashDev, size_t addr, const uint
     }
 
     reg = &flashDev->regmap;
-    src = (const uint32_t *)data;
+    src = (const uint32_t *)dataBuf;
 
 
     err = whal_Pic32czFlash_MutexLock(reg, cfg->timeout);

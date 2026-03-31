@@ -38,7 +38,7 @@ inline whal_Error whal_Flash_Unlock(whal_Flash *flashDev, size_t addr, size_t le
     return flashDev->driver->Unlock(flashDev, addr, len);
 }
 
-inline whal_Error whal_Flash_Read(whal_Flash *flashDev, size_t addr, uint8_t *data,
+inline whal_Error whal_Flash_Read(whal_Flash *flashDev, size_t addr, void *data,
                                   size_t dataSz)
 {
     if (!flashDev || !flashDev->driver || !flashDev->driver->Read || !data) {
@@ -48,7 +48,7 @@ inline whal_Error whal_Flash_Read(whal_Flash *flashDev, size_t addr, uint8_t *da
     return flashDev->driver->Read(flashDev, addr, data, dataSz);
 }
 
-inline whal_Error whal_Flash_Write(whal_Flash *flashDev, size_t addr, const uint8_t *data,
+inline whal_Error whal_Flash_Write(whal_Flash *flashDev, size_t addr, const void *data,
                                   size_t dataSz)
 {
     if (!flashDev || !flashDev->driver || !flashDev->driver->Write || !data) {

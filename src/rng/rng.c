@@ -20,7 +20,7 @@ inline whal_Error whal_Rng_Deinit(whal_Rng *rngDev)
     return rngDev->driver->Deinit(rngDev);
 }
 
-inline whal_Error whal_Rng_Generate(whal_Rng *rngDev, uint8_t *rngData, size_t rngDataSz)
+inline whal_Error whal_Rng_Generate(whal_Rng *rngDev, void *rngData, size_t rngDataSz)
 {
     if (!rngDev || !rngDev->driver || !rngDev->driver->Generate || !rngData) {
         return WHAL_EINVAL;

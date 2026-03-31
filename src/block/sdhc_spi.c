@@ -266,8 +266,9 @@ whal_Error whal_SdhcSpi_Deinit(whal_Block *blockDev)
 }
 
 whal_Error whal_SdhcSpi_Read(whal_Block *blockDev, uint32_t block,
-                              uint8_t *data, uint32_t blockCount)
+                              void *data, uint32_t blockCount)
 {
+    uint8_t *dataBuf = (uint8_t *)data;
     whal_SdhcSpi_Cfg *cfg;
     whal_Error err;
     uint8_t r1;
@@ -309,7 +310,7 @@ whal_Error whal_SdhcSpi_Read(whal_Block *blockDev, uint32_t block,
         }
 
         err = whal_Spi_SendRecv(cfg->spiDev, NULL, 0,
-                                data + (i * WHAL_SDHC_SPI_BLOCK_SZ),
+                                dataBuf + (i * WHAL_SDHC_SPI_BLOCK_SZ),
                                 WHAL_SDHC_SPI_BLOCK_SZ);
         if (err)
             break;
@@ -334,8 +335,9 @@ cleanup:
 }
 
 whal_Error whal_SdhcSpi_Write(whal_Block *blockDev, uint32_t block,
-                               const uint8_t *data, uint32_t blockCount)
+                               const void *data, uint32_t blockCount)
 {
+    const uint8_t *dataBuf = (const uint8_t *)data;
     whal_SdhcSpi_Cfg *cfg;
     whal_Error err;
     uint8_t r1;
@@ -379,7 +381,7 @@ whal_Error whal_SdhcSpi_Write(whal_Block *blockDev, uint32_t block,
         if (err)
             break;
         err = whal_Spi_SendRecv(cfg->spiDev,
-                      data + (i * WHAL_SDHC_SPI_BLOCK_SZ),
+                      dataBuf + (i * WHAL_SDHC_SPI_BLOCK_SZ),
                       WHAL_SDHC_SPI_BLOCK_SZ, NULL, 0);
         if (err)
             break;
