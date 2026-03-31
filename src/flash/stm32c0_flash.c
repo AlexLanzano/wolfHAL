@@ -1,20 +1,20 @@
 #include <stdint.h>
-#include <wolfHAL/flash/stm32wb_flash.h>
+#include <wolfHAL/flash/stm32c0_flash.h>
 #include <wolfHAL/flash/flash.h>
 #include <wolfHAL/error.h>
 #include <wolfHAL/bitops.h>
 #include <wolfHAL/timeout.h>
 
 /*
- * STM32WB Flash Register Definitions
+ * STM32C0 Flash Register Definitions
  *
  * The flash controller manages embedded flash memory operations including
- * programming, erasing, and access control. Flash is organized in 4 KB pages.
+ * programming, erasing, and access control. Flash is organized in 2 KB pages.
  */
 
 /* Access Control Register - configures latency and caches */
 #define FLASH_ACR_REG 0x00
-#define FLASH_ACR_LATENCY_Pos 0 /* Wait states (0-3) */
+#define FLASH_ACR_LATENCY_Pos 0 /* Wait states (0-1) */
 #define FLASH_ACR_LATENCY_Msk (WHAL_BITMASK(3) << FLASH_ACR_LATENCY_Pos)
 
 /* Key Register - unlock sequence for write operations */
@@ -62,9 +62,6 @@
 #define FLASH_SR_CFGBSY_Pos 18   /* Configuration busy */
 #define FLASH_SR_CFGBSY_Msk (1UL << FLASH_SR_CFGBSY_Pos)
 
-#define FLASH_SR_PESD_Pos 19     /* Programming/erase suspended */
-#define FLASH_SR_PESD_Msk (1UL << FLASH_SR_PESD_Pos)
-
 /* Combined mask for all error flags */
 #define FLASH_SR_ALL_ERR (FLASH_SR_OP_ERR_Msk | FLASH_SR_PROG_ERR_Msk | FLASH_SR_WRP_ERR_Msk | \
                              FLASH_SR_PGA_ERR_Msk | FLASH_SR_SIZ_ERR_Msk | FLASH_SR_PGS_ERR_Msk | \
@@ -79,8 +76,8 @@
 #define FLASH_CR_PER_Pos 1           /* Page erase enable */
 #define FLASH_CR_PER_Msk (1UL << FLASH_CR_PER_Pos)
 
-#define FLASH_CR_PNB_Pos 3 /* Page number for erase */
-#define FLASH_CR_PNB_Msk (WHAL_BITMASK(8) << FLASH_CR_PNB_Pos)
+#define FLASH_CR_PNB_Pos 3 /* Page number for erase (7 bits for C0) */
+#define FLASH_CR_PNB_Msk (WHAL_BITMASK(7) << FLASH_CR_PNB_Pos)
 
 #define FLASH_CR_STRT_Pos 16         /* Start erase operation */
 #define FLASH_CR_STRT_Msk (1UL << FLASH_CR_STRT_Pos)
@@ -88,21 +85,21 @@
 #define FLASH_CR_LOCK_Pos 31         /* Lock flash control */
 #define FLASH_CR_LOCK_Msk (1UL << FLASH_CR_LOCK_Pos)
 
-whal_Error whal_Stm32wbFlash_Init(whal_Flash *flashDev)
+whal_Error whal_Stm32c0Flash_Init(whal_Flash *flashDev)
 {
     (void)flashDev;
 
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_Stm32wbFlash_Deinit(whal_Flash *flashDev)
+whal_Error whal_Stm32c0Flash_Deinit(whal_Flash *flashDev)
 {
     (void)flashDev;
 
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_Stm32wbFlash_Lock(whal_Flash *flashDev, size_t addr, size_t len)
+whal_Error whal_Stm32c0Flash_Lock(whal_Flash *flashDev, size_t addr, size_t len)
 {
     const whal_Regmap *regmap;
 
@@ -122,7 +119,7 @@ whal_Error whal_Stm32wbFlash_Lock(whal_Flash *flashDev, size_t addr, size_t len)
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_Stm32wbFlash_Unlock(whal_Flash *flashDev, size_t addr, size_t len)
+whal_Error whal_Stm32c0Flash_Unlock(whal_Flash *flashDev, size_t addr, size_t len)
 {
     const whal_Regmap *regmap;
 
@@ -145,7 +142,7 @@ whal_Error whal_Stm32wbFlash_Unlock(whal_Flash *flashDev, size_t addr, size_t le
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_Stm32wbFlash_Read(whal_Flash *flashDev, size_t addr, uint8_t *data,
+whal_Error whal_Stm32c0Flash_Read(whal_Flash *flashDev, size_t addr, uint8_t *data,
                              size_t dataSz)
 {
     (void)flashDev;
@@ -162,15 +159,14 @@ whal_Error whal_Stm32wbFlash_Read(whal_Flash *flashDev, size_t addr, uint8_t *da
  * Internal helper for write and erase operations.
  *
  * For write (write=1): Programs data in 64-bit (8 byte) chunks.
- * For erase (write=0): Erases 4 KB pages covering the address range.
+ * For erase (write=0): Erases 2 KB pages covering the address range.
  */
-static whal_Error whal_Stm32wbFlash_WriteOrErase(whal_Flash *flashDev, size_t addr, const uint8_t *data,
+static whal_Error whal_Stm32c0Flash_WriteOrErase(whal_Flash *flashDev, size_t addr, const uint8_t *data,
                                             size_t dataSz, uint8_t write)
 {
-    whal_Stm32wbFlash_Cfg *cfg;
+    whal_Stm32c0Flash_Cfg *cfg;
     const whal_Regmap *regmap;
     size_t bsy;
-    size_t pesd;
 
     if (!flashDev || !flashDev->cfg) {
         return WHAL_EINVAL;
@@ -179,19 +175,20 @@ static whal_Error whal_Stm32wbFlash_WriteOrErase(whal_Flash *flashDev, size_t ad
     cfg = flashDev->cfg;
     regmap = &flashDev->regmap;
 
-    if (dataSz == 0)
+    if (addr < cfg->startAddr || addr + dataSz > cfg->startAddr + cfg->size)
+        return WHAL_EINVAL;
+
+    /* Write requires 8-byte alignment (64-bit double-word programming) */
+    if (write && ((addr & 0x7) || (dataSz & 0x7)))
+        return WHAL_EINVAL;
+
+    if (!write && dataSz == 0)
         return WHAL_SUCCESS;
 
-    /* Validate address alignment and bounds */
-    if (addr & 0xf || addr < cfg->startAddr || addr + dataSz > cfg->startAddr + cfg->size) {
-        return WHAL_EINVAL;
-    }
-
-    /* Check if flash is busy or suspended */
+    /* Check if flash is busy */
     whal_Reg_Get(regmap->base, FLASH_SR_REG, FLASH_SR_BSY_Msk, FLASH_SR_BSY_Pos, &bsy);
-    whal_Reg_Get(regmap->base, FLASH_SR_REG, FLASH_SR_PESD_Msk, FLASH_SR_PESD_Pos, &pesd);
 
-    if (bsy || pesd) {
+    if (bsy) {
         return WHAL_ENOTREADY;
     }
 
@@ -221,10 +218,10 @@ static whal_Error whal_Stm32wbFlash_WriteOrErase(whal_Flash *flashDev, size_t ad
         }
     }
     else {
-        /* Calculate page range to erase (4 KB per page) */
+        /* Calculate page range to erase (2 KB per page) */
         size_t startPage, endPage;
-        startPage = (addr - cfg->startAddr) >> 12;
-        endPage = ((addr - cfg->startAddr) + dataSz - 1) >> 12;
+        startPage = (addr - cfg->startAddr) >> 11;
+        endPage = ((addr - cfg->startAddr) + dataSz - 1) >> 11;
 
         /* Enable page erase mode */
         whal_Reg_Update(regmap->base, FLASH_CR_REG, FLASH_CR_PER_Msk,
@@ -253,25 +250,26 @@ static whal_Error whal_Stm32wbFlash_WriteOrErase(whal_Flash *flashDev, size_t ad
     }
 
 cleanup:
-    /* Disable flash programming mode */
-    whal_Reg_Update(regmap->base, FLASH_CR_REG, FLASH_CR_PG_Msk, 0);
+    /* Clear programming and erase mode bits */
+    whal_Reg_Update(regmap->base, FLASH_CR_REG,
+                    FLASH_CR_PG_Msk | FLASH_CR_PER_Msk, 0);
 
     return err;
 }
 
-whal_Error whal_Stm32wbFlash_Write(whal_Flash *flashDev, size_t addr, const uint8_t *data,
+whal_Error whal_Stm32c0Flash_Write(whal_Flash *flashDev, size_t addr, const uint8_t *data,
                                 size_t dataSz)
 {
-    return whal_Stm32wbFlash_WriteOrErase(flashDev, addr, data, dataSz, 1);
+    return whal_Stm32c0Flash_WriteOrErase(flashDev, addr, data, dataSz, 1);
 }
 
-whal_Error whal_Stm32wbFlash_Erase(whal_Flash *flashDev, size_t addr,
+whal_Error whal_Stm32c0Flash_Erase(whal_Flash *flashDev, size_t addr,
                                 size_t dataSz)
 {
-    return whal_Stm32wbFlash_WriteOrErase(flashDev, addr, NULL, dataSz, 0);
+    return whal_Stm32c0Flash_WriteOrErase(flashDev, addr, NULL, dataSz, 0);
 }
 
-whal_Error whal_Stm32wbFlash_Ext_SetLatency(whal_Flash *flashDev, enum whal_Stm32wbFlash_Latency latency)
+whal_Error whal_Stm32c0Flash_Ext_SetLatency(whal_Flash *flashDev, enum whal_Stm32c0Flash_Latency latency)
 {
     if (!flashDev) {
         return WHAL_EINVAL;
@@ -282,12 +280,12 @@ whal_Error whal_Stm32wbFlash_Ext_SetLatency(whal_Flash *flashDev, enum whal_Stm3
     return WHAL_SUCCESS;
 }
 
-const whal_FlashDriver whal_Stm32wbFlash_Driver = {
-    .Init = whal_Stm32wbFlash_Init,
-    .Deinit = whal_Stm32wbFlash_Deinit,
-    .Lock = whal_Stm32wbFlash_Lock,
-    .Unlock = whal_Stm32wbFlash_Unlock,
-    .Read = whal_Stm32wbFlash_Read,
-    .Write = whal_Stm32wbFlash_Write,
-    .Erase = whal_Stm32wbFlash_Erase,
+const whal_FlashDriver whal_Stm32c0Flash_Driver = {
+    .Init = whal_Stm32c0Flash_Init,
+    .Deinit = whal_Stm32c0Flash_Deinit,
+    .Lock = whal_Stm32c0Flash_Lock,
+    .Unlock = whal_Stm32c0Flash_Unlock,
+    .Read = whal_Stm32c0Flash_Read,
+    .Write = whal_Stm32c0Flash_Write,
+    .Erase = whal_Stm32c0Flash_Erase,
 };
