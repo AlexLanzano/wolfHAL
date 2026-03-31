@@ -792,3 +792,95 @@ calling Clock Init.
 ### Disable
 
 Disable a specific power supply output. The inverse of Enable.
+
+---
+
+## Ethernet
+
+Header: `wolfHAL/eth/eth.h`
+
+The Ethernet driver controls a MAC (Media Access Controller) with an integrated
+DMA engine. It manages descriptor rings in RAM for transmit and receive, handles
+MDIO bus access for PHY communication, and configures the MAC for the negotiated
+link speed and duplex.
+
+### Init
+
+Initialize the MAC, DMA, and MTL. Set up TX and RX descriptor rings in RAM,
+program the MAC address, and configure DMA bus mode and burst lengths. Does NOT
+enable TX/RX — call Start for that. The descriptor and buffer memory must be
+pre-allocated by the board and passed via the config struct. Validate all config
+fields (descriptor counts > 0, buffer pointers non-NULL, buffer sizes > 0).
+
+### Deinit
+
+Perform a DMA software reset to clear all state.
+
+### Start
+
+Configure the MAC speed and duplex to match the PHY, enable MAC TX/RX, start
+the DMA TX and RX engines, and kick the RX DMA by writing the tail pointer.
+Speed and duplex are passed as parameters — the board reads these from the PHY
+driver before calling Start.
+
+### Stop
+
+Stop DMA TX and RX engines, then disable MAC TX and RX.
+
+### Send
+
+Transmit a single Ethernet frame. Find the next available TX descriptor (OWN=0),
+copy the frame into the pre-allocated TX buffer, fill in the descriptor fields
+(buffer address, length, OWN=1, FD, LD), and write the DMA tail pointer to kick
+transmission. Return WHAL_ENOTREADY if no descriptor is available. Validate that
+the frame length does not exceed the TX buffer size.
+
+### Recv
+
+Receive a single Ethernet frame by polling. Check the next RX descriptor — if
+OWN=0, DMA has written a frame. Read the packet length from the descriptor, copy
+the frame data to the caller's buffer, re-arm the descriptor (set OWN=1), and
+update the tail pointer. Return WHAL_ENOTREADY if no frame is available, or
+WHAL_EHARDWARE if the error summary bit is set.
+
+### MdioRead
+
+Read a 16-bit PHY register via the MDIO management bus. Write the PHY address,
+register address, and read command to the MDIO address register, poll for
+completion, then read the data register. Use a timeout to avoid infinite hang
+if the PHY is not responding.
+
+### MdioWrite
+
+Write a 16-bit value to a PHY register via MDIO. Write the data first, then
+issue the write command and poll for completion with a timeout.
+
+---
+
+## EthPhy
+
+Header: `wolfHAL/eth_phy/eth_phy.h`
+
+The Ethernet PHY driver handles link negotiation and status for an external PHY
+chip connected to a MAC via the MDIO bus. The PHY device struct holds a pointer
+to its parent MAC (for MDIO access) and the PHY address on the bus. Different
+PHY chips (e.g., LAN8742A, DP83848) have different vendor-specific registers
+but share the same API.
+
+### Init
+
+Reset the PHY via software reset (BCR bit 15), wait for the reset bit to
+self-clear, then enable autonegotiation. Does not block waiting for link — the
+board or application polls GetLinkState separately.
+
+### Deinit
+
+Power down the PHY or release resources. May be a no-op on simple PHYs.
+
+### GetLinkState
+
+Read the current link status, negotiated speed, and duplex mode. The IEEE 802.3
+BSR register (reg 1) link bit is latching-low — read it twice and use the second
+result for current status. Speed and duplex are read from a vendor-specific
+status register (e.g., register 0x1F on LAN8742A). Return speed as 10 or 100,
+and duplex as WHAL_ETH_DUPLEX_HALF or WHAL_ETH_DUPLEX_FULL.

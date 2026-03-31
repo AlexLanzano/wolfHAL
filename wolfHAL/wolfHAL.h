@@ -21,5 +21,7 @@
 #include <wolfHAL/supply/supply.h>
 #include <wolfHAL/timeout.h>
 #include <wolfHAL/crypto/crypto.h>
+#include <wolfHAL/eth/eth.h>
+#include <wolfHAL/eth_phy/eth_phy.h>
 
 #endif /* WOLFHAL_H */

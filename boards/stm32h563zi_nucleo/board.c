@@ -4,6 +4,7 @@
 #include <stddef.h>
 #include "board.h"
 #include <wolfHAL/platform/st/stm32h563xx.h>
+#include <wolfHAL/eth_phy/lan8742a.h>
 #include "peripheral.h"
 
 /* SysTick timing */
@@ -52,12 +53,21 @@ static const whal_Stm32h5Rcc_Clk g_clocks[] = {
     {WHAL_STM32H563_GPIOA_CLOCK},
     {WHAL_STM32H563_GPIOB_CLOCK},
     {WHAL_STM32H563_GPIOD_CLOCK},
+    {WHAL_STM32H563_GPIOC_CLOCK},
     {WHAL_STM32H563_GPIOG_CLOCK},
     {WHAL_STM32H563_USART2_CLOCK},
     {WHAL_STM32H563_SPI1_CLOCK},
     {WHAL_STM32H563_RNG_CLOCK},
+    {WHAL_STM32H563_SBS_CLOCK},
 };
 #define CLOCK_COUNT (sizeof(g_clocks) / sizeof(g_clocks[0]))
+
+static const whal_Stm32h5Rcc_Clk g_ethClocks[] = {
+    {WHAL_STM32H563_ETH_CLOCK},
+    {WHAL_STM32H563_ETHTX_CLOCK},
+    {WHAL_STM32H563_ETHRX_CLOCK},
+};
+#define ETH_CLOCK_COUNT (sizeof(g_ethClocks) / sizeof(g_ethClocks[0]))
 
 /* GPIO */
 whal_Gpio g_whalGpio = {
@@ -127,6 +137,78 @@ whal_Gpio g_whalGpio = {
                 .speed = WHAL_STM32H5_GPIO_SPEED_FAST,
                 .pull = WHAL_STM32H5_GPIO_PULL_UP,
             },
+            [ETH_RMII_REF_CLK_PIN] = { /* RMII REF_CLK on PA1 */
+                .port = WHAL_STM32H5_GPIO_PORT_A,
+                .pin = 1,
+                .mode = WHAL_STM32H5_GPIO_MODE_ALTFN,
+                .speed = WHAL_STM32H5_GPIO_SPEED_HIGH,
+                .pull = WHAL_STM32H5_GPIO_PULL_NONE,
+                .altFn = 11,
+            },
+            [ETH_RMII_MDIO_PIN] = { /* RMII MDIO on PA2 */
+                .port = WHAL_STM32H5_GPIO_PORT_A,
+                .pin = 2,
+                .mode = WHAL_STM32H5_GPIO_MODE_ALTFN,
+                .speed = WHAL_STM32H5_GPIO_SPEED_HIGH,
+                .pull = WHAL_STM32H5_GPIO_PULL_NONE,
+                .altFn = 11,
+            },
+            [ETH_RMII_MDC_PIN] = { /* RMII MDC on PC1 */
+                .port = WHAL_STM32H5_GPIO_PORT_C,
+                .pin = 1,
+                .mode = WHAL_STM32H5_GPIO_MODE_ALTFN,
+                .speed = WHAL_STM32H5_GPIO_SPEED_HIGH,
+                .pull = WHAL_STM32H5_GPIO_PULL_NONE,
+                .altFn = 11,
+            },
+            [ETH_RMII_CRS_DV_PIN] = { /* RMII CRS_DV on PA7 */
+                .port = WHAL_STM32H5_GPIO_PORT_A,
+                .pin = 7,
+                .mode = WHAL_STM32H5_GPIO_MODE_ALTFN,
+                .speed = WHAL_STM32H5_GPIO_SPEED_HIGH,
+                .pull = WHAL_STM32H5_GPIO_PULL_NONE,
+                .altFn = 11,
+            },
+            [ETH_RMII_RXD0_PIN] = { /* RMII RXD0 on PC4 */
+                .port = WHAL_STM32H5_GPIO_PORT_C,
+                .pin = 4,
+                .mode = WHAL_STM32H5_GPIO_MODE_ALTFN,
+                .speed = WHAL_STM32H5_GPIO_SPEED_HIGH,
+                .pull = WHAL_STM32H5_GPIO_PULL_NONE,
+                .altFn = 11,
+            },
+            [ETH_RMII_RXD1_PIN] = { /* RMII RXD1 on PC5 */
+                .port = WHAL_STM32H5_GPIO_PORT_C,
+                .pin = 5,
+                .mode = WHAL_STM32H5_GPIO_MODE_ALTFN,
+                .speed = WHAL_STM32H5_GPIO_SPEED_HIGH,
+                .pull = WHAL_STM32H5_GPIO_PULL_NONE,
+                .altFn = 11,
+            },
+            [ETH_RMII_TX_EN_PIN] = { /* RMII TX_EN on PG11 */
+                .port = WHAL_STM32H5_GPIO_PORT_G,
+                .pin = 11,
+                .mode = WHAL_STM32H5_GPIO_MODE_ALTFN,
+                .speed = WHAL_STM32H5_GPIO_SPEED_HIGH,
+                .pull = WHAL_STM32H5_GPIO_PULL_NONE,
+                .altFn = 11,
+            },
+            [ETH_RMII_TXD0_PIN] = { /* RMII TXD0 on PG13 */
+                .port = WHAL_STM32H5_GPIO_PORT_G,
+                .pin = 13,
+                .mode = WHAL_STM32H5_GPIO_MODE_ALTFN,
+                .speed = WHAL_STM32H5_GPIO_SPEED_HIGH,
+                .pull = WHAL_STM32H5_GPIO_PULL_NONE,
+                .altFn = 11,
+            },
+            [ETH_RMII_TXD1_PIN] = { /* RMII TXD1 on PB15 */
+                .port = WHAL_STM32H5_GPIO_PORT_B,
+                .pin = 15,
+                .mode = WHAL_STM32H5_GPIO_MODE_ALTFN,
+                .speed = WHAL_STM32H5_GPIO_SPEED_HIGH,
+                .pull = WHAL_STM32H5_GPIO_PULL_NONE,
+                .altFn = 11,
+            },
         },
         .pinCount = PIN_COUNT,
     },
@@ -184,6 +266,49 @@ whal_Flash g_whalFlash = {
     },
 };
 
+/* Ethernet */
+#define ETH_TX_DESC_COUNT 4
+#define ETH_RX_DESC_COUNT 4
+#define ETH_TX_BUF_SIZE   1536
+#define ETH_RX_BUF_SIZE   1536
+
+static whal_Stm32h5Eth_TxDesc ethTxDescs[ETH_TX_DESC_COUNT]
+    __attribute__((aligned(16)));
+static whal_Stm32h5Eth_RxDesc ethRxDescs[ETH_RX_DESC_COUNT]
+    __attribute__((aligned(16)));
+static uint8_t ethTxBufs[ETH_TX_DESC_COUNT * ETH_TX_BUF_SIZE]
+    __attribute__((aligned(4)));
+static uint8_t ethRxBufs[ETH_RX_DESC_COUNT * ETH_RX_BUF_SIZE]
+    __attribute__((aligned(4)));
+
+whal_Eth g_whalEth = {
+    WHAL_STM32H563_ETH_DEVICE,
+
+    .cfg = &(whal_Stm32h5Eth_Cfg) {
+        .macAddr = {0x00, 0x80, 0xE1, 0x00, 0x00, 0x01},
+        .txDescs = ethTxDescs,
+        .txBufs = ethTxBufs,
+        .txDescCount = ETH_TX_DESC_COUNT,
+        .txBufSize = ETH_TX_BUF_SIZE,
+        .rxDescs = ethRxDescs,
+        .rxBufs = ethRxBufs,
+        .rxDescCount = ETH_RX_DESC_COUNT,
+        .rxBufSize = ETH_RX_BUF_SIZE,
+        .timeout = &g_whalTimeout,
+    },
+};
+
+/* Ethernet PHY (LAN8742A) */
+whal_EthPhy g_whalEthPhy = {
+    .eth = &g_whalEth,
+    .addr = BOARD_ETH_PHY_ADDR,
+    .driver = &whal_Lan8742a_Driver,
+
+    .cfg = &(whal_Lan8742a_Cfg) {
+        .timeout = &g_whalTimeout,
+    },
+};
+
 void Board_WaitMs(size_t ms)
 {
     uint32_t startCount = g_tick;
@@ -210,9 +335,20 @@ whal_Error Board_Init(void)
     if (err)
         return err;
 
-    /* Enable clocks */
+    /* Enable clocks (excludes ETH — needs SBS RMII config first) */
     for (size_t i = 0; i < CLOCK_COUNT; i++) {
         err = whal_Clock_Enable(&g_whalClock, &g_clocks[i]);
+        if (err)
+            return err;
+    }
+
+    /* Select RMII mode in SBS_PMCR (SBS base 0x44000400 + 0x100) bits [23:21] = 0b100 */
+    *(volatile uint32_t *)0x44000500 =
+        (*(volatile uint32_t *)0x44000500 & ~(7UL << 21)) | (4UL << 21);
+
+    /* Enable ETH clocks after RMII mode is selected */
+    for (size_t i = 0; i < ETH_CLOCK_COUNT; i++) {
+        err = whal_Clock_Enable(&g_whalClock, &g_ethClocks[i]);
         if (err)
             return err;
     }
@@ -235,6 +371,14 @@ whal_Error Board_Init(void)
         return err;
 
     err = whal_Rng_Init(&g_whalRng);
+    if (err)
+        return err;
+
+    err = whal_Eth_Init(&g_whalEth);
+    if (err)
+        return err;
+
+    err = whal_EthPhy_Init(&g_whalEthPhy);
     if (err)
         return err;
 
@@ -269,6 +413,14 @@ whal_Error Board_Deinit(void)
     if (err)
         return err;
 
+    err = whal_EthPhy_Deinit(&g_whalEthPhy);
+    if (err)
+        return err;
+
+    err = whal_Eth_Deinit(&g_whalEth);
+    if (err)
+        return err;
+
     err = whal_Rng_Deinit(&g_whalRng);
     if (err)
         return err;
@@ -284,6 +436,13 @@ whal_Error Board_Deinit(void)
     err = whal_Gpio_Deinit(&g_whalGpio);
     if (err)
         return err;
+
+    /* Disable ETH clocks */
+    for (size_t i = 0; i < ETH_CLOCK_COUNT; i++) {
+        err = whal_Clock_Disable(&g_whalClock, &g_ethClocks[i]);
+        if (err)
+            return err;
+    }
 
     /* Disable clocks */
     for (size_t i = 0; i < CLOCK_COUNT; i++) {
