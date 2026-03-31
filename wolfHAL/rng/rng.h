@@ -22,7 +22,7 @@ typedef struct {
     /* Deinitialize the RNG hardware. */
     whal_Error (*Deinit)(whal_Rng *rngDev);
     /* Generate random data into a buffer. */
-    whal_Error (*Generate)(whal_Rng *rngDev, uint8_t *rngData, size_t rngDataSz);
+    whal_Error (*Generate)(whal_Rng *rngDev, void *rngData, size_t rngDataSz);
 } whal_RngDriver;
 
 /*
@@ -76,7 +76,7 @@ whal_Error whal_Rng_Deinit(whal_Rng *rngDev);
  * @retval WHAL_SUCCESS Buffer filled with random data.
  * @retval WHAL_EINVAL  Null pointer or missing driver function.
  */
-whal_Error whal_Rng_Generate(whal_Rng *rngDev, uint8_t *rngData, size_t rngDataSz);
+whal_Error whal_Rng_Generate(whal_Rng *rngDev, void *rngData, size_t rngDataSz);
 #endif
 
 #endif /* WHAL_RNG_H */

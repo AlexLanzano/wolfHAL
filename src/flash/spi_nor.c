@@ -294,9 +294,10 @@ cleanup:
     return err;
 }
 
-whal_Error whal_SpiNor3b_Read(whal_Flash *flashDev, size_t addr, uint8_t *data,
+whal_Error whal_SpiNor3b_Read(whal_Flash *flashDev, size_t addr, void *data,
                             size_t dataSz)
 {
+    uint8_t *dataBuf = (uint8_t *)data;
     whal_SpiNor_Cfg *cfg;
     uint8_t frame[4];
     whal_Error err;
@@ -324,7 +325,7 @@ whal_Error whal_SpiNor3b_Read(whal_Flash *flashDev, size_t addr, uint8_t *data,
         goto cleanup;
     err = whal_Spi_SendRecv(cfg->spiDev, frame, 4, NULL, 0);
     if (!err)
-        err = whal_Spi_SendRecv(cfg->spiDev, NULL, 0, data, dataSz);
+        err = whal_Spi_SendRecv(cfg->spiDev, NULL, 0, dataBuf, dataSz);
     SpiNor_CsDeassert(cfg);
 
 cleanup:
@@ -333,8 +334,9 @@ cleanup:
 }
 
 whal_Error whal_SpiNor3b_Write(whal_Flash *flashDev, size_t addr,
-                             const uint8_t *data, size_t dataSz)
+                             const void *data, size_t dataSz)
 {
+    const uint8_t *dataBuf = (const uint8_t *)data;
     whal_SpiNor_Cfg *cfg;
     uint8_t frame[4];
     whal_Error err;
@@ -380,7 +382,7 @@ whal_Error whal_SpiNor3b_Write(whal_Flash *flashDev, size_t addr,
             break;
         err = whal_Spi_SendRecv(cfg->spiDev, frame, 4, NULL, 0);
         if (!err)
-            err = whal_Spi_SendRecv(cfg->spiDev, data + offset, chunk,
+            err = whal_Spi_SendRecv(cfg->spiDev, dataBuf + offset, chunk,
                                     NULL, 0);
         SpiNor_CsDeassert(cfg);
         if (err)
@@ -598,8 +600,9 @@ whal_Error whal_SpiNor_EraseChip(whal_Flash *flashDev, size_t addr,
 /* --- Fast Read (3-byte addr) --- */
 
 whal_Error whal_SpiNor3b_ReadFast(whal_Flash *flashDev, size_t addr,
-                                uint8_t *data, size_t dataSz)
+                                void *data, size_t dataSz)
 {
+    uint8_t *dataBuf = (uint8_t *)data;
     whal_SpiNor_Cfg *cfg;
     uint8_t frame[5];
     whal_Error err;
@@ -628,7 +631,7 @@ whal_Error whal_SpiNor3b_ReadFast(whal_Flash *flashDev, size_t addr,
         goto cleanup;
     err = whal_Spi_SendRecv(cfg->spiDev, frame, 5, NULL, 0);
     if (!err)
-        err = whal_Spi_SendRecv(cfg->spiDev, NULL, 0, data, dataSz);
+        err = whal_Spi_SendRecv(cfg->spiDev, NULL, 0, dataBuf, dataSz);
     SpiNor_CsDeassert(cfg);
 
 cleanup:
@@ -660,8 +663,9 @@ whal_Error whal_SpiNor4bMode_Init(whal_Flash *flashDev)
 }
 
 whal_Error whal_SpiNor4b_Read(whal_Flash *flashDev, size_t addr,
-                              uint8_t *data, size_t dataSz)
+                              void *data, size_t dataSz)
 {
+    uint8_t *dataBuf = (uint8_t *)data;
     whal_SpiNor_Cfg *cfg;
     uint8_t frame[5];
     whal_Error err;
@@ -688,7 +692,7 @@ whal_Error whal_SpiNor4b_Read(whal_Flash *flashDev, size_t addr,
         goto cleanup;
     err = whal_Spi_SendRecv(cfg->spiDev, frame, 5, NULL, 0);
     if (!err)
-        err = whal_Spi_SendRecv(cfg->spiDev, NULL, 0, data, dataSz);
+        err = whal_Spi_SendRecv(cfg->spiDev, NULL, 0, dataBuf, dataSz);
     SpiNor_CsDeassert(cfg);
 
 cleanup:
@@ -697,8 +701,9 @@ cleanup:
 }
 
 whal_Error whal_SpiNor4b_ReadFast(whal_Flash *flashDev, size_t addr,
-                                  uint8_t *data, size_t dataSz)
+                                  void *data, size_t dataSz)
 {
+    uint8_t *dataBuf = (uint8_t *)data;
     whal_SpiNor_Cfg *cfg;
     uint8_t frame[6];
     whal_Error err;
@@ -726,7 +731,7 @@ whal_Error whal_SpiNor4b_ReadFast(whal_Flash *flashDev, size_t addr,
         goto cleanup;
     err = whal_Spi_SendRecv(cfg->spiDev, frame, 6, NULL, 0);
     if (!err)
-        err = whal_Spi_SendRecv(cfg->spiDev, NULL, 0, data, dataSz);
+        err = whal_Spi_SendRecv(cfg->spiDev, NULL, 0, dataBuf, dataSz);
     SpiNor_CsDeassert(cfg);
 
 cleanup:
@@ -735,8 +740,9 @@ cleanup:
 }
 
 whal_Error whal_SpiNor4b_Write(whal_Flash *flashDev, size_t addr,
-                               const uint8_t *data, size_t dataSz)
+                               const void *data, size_t dataSz)
 {
+    const uint8_t *dataBuf = (const uint8_t *)data;
     whal_SpiNor_Cfg *cfg;
     uint8_t frame[5];
     whal_Error err;
@@ -777,7 +783,7 @@ whal_Error whal_SpiNor4b_Write(whal_Flash *flashDev, size_t addr,
             break;
         err = whal_Spi_SendRecv(cfg->spiDev, frame, 5, NULL, 0);
         if (!err)
-            err = whal_Spi_SendRecv(cfg->spiDev, data + offset, chunk,
+            err = whal_Spi_SendRecv(cfg->spiDev, dataBuf + offset, chunk,
                                     NULL, 0);
         SpiNor_CsDeassert(cfg);
         if (err)
@@ -906,8 +912,9 @@ whal_Error whal_SpiNor4b_Erase64k(whal_Flash *flashDev, size_t addr,
 /* --- 4-byte address mode (0xB7) variants --- */
 
 whal_Error whal_SpiNor4bMode_Read(whal_Flash *flashDev, size_t addr,
-                                  uint8_t *data, size_t dataSz)
+                                  void *data, size_t dataSz)
 {
+    uint8_t *dataBuf = (uint8_t *)data;
     whal_SpiNor_Cfg *cfg;
     uint8_t frame[5];
     whal_Error err;
@@ -934,7 +941,7 @@ whal_Error whal_SpiNor4bMode_Read(whal_Flash *flashDev, size_t addr,
         goto cleanup;
     err = whal_Spi_SendRecv(cfg->spiDev, frame, 5, NULL, 0);
     if (!err)
-        err = whal_Spi_SendRecv(cfg->spiDev, NULL, 0, data, dataSz);
+        err = whal_Spi_SendRecv(cfg->spiDev, NULL, 0, dataBuf, dataSz);
     SpiNor_CsDeassert(cfg);
 
 cleanup:
@@ -943,8 +950,9 @@ cleanup:
 }
 
 whal_Error whal_SpiNor4bMode_ReadFast(whal_Flash *flashDev, size_t addr,
-                                      uint8_t *data, size_t dataSz)
+                                      void *data, size_t dataSz)
 {
+    uint8_t *dataBuf = (uint8_t *)data;
     whal_SpiNor_Cfg *cfg;
     uint8_t frame[6];
     whal_Error err;
@@ -972,7 +980,7 @@ whal_Error whal_SpiNor4bMode_ReadFast(whal_Flash *flashDev, size_t addr,
         goto cleanup;
     err = whal_Spi_SendRecv(cfg->spiDev, frame, 6, NULL, 0);
     if (!err)
-        err = whal_Spi_SendRecv(cfg->spiDev, NULL, 0, data, dataSz);
+        err = whal_Spi_SendRecv(cfg->spiDev, NULL, 0, dataBuf, dataSz);
     SpiNor_CsDeassert(cfg);
 
 cleanup:
@@ -981,8 +989,9 @@ cleanup:
 }
 
 whal_Error whal_SpiNor4bMode_Write(whal_Flash *flashDev, size_t addr,
-                                   const uint8_t *data, size_t dataSz)
+                                   const void *data, size_t dataSz)
 {
+    const uint8_t *dataBuf = (const uint8_t *)data;
     whal_SpiNor_Cfg *cfg;
     uint8_t frame[5];
     whal_Error err;
@@ -1023,7 +1032,7 @@ whal_Error whal_SpiNor4bMode_Write(whal_Flash *flashDev, size_t addr,
             break;
         err = whal_Spi_SendRecv(cfg->spiDev, frame, 5, NULL, 0);
         if (!err)
-            err = whal_Spi_SendRecv(cfg->spiDev, data + offset, chunk,
+            err = whal_Spi_SendRecv(cfg->spiDev, dataBuf + offset, chunk,
                                     NULL, 0);
         SpiNor_CsDeassert(cfg);
         if (err)
@@ -1230,8 +1239,9 @@ static whal_Error SpiNor_SetEAR(whal_SpiNor_Cfg *cfg, size_t addr)
 }
 
 whal_Error whal_SpiNor4bExReg_Read(whal_Flash *flashDev, size_t addr,
-                                   uint8_t *data, size_t dataSz)
+                                   void *data, size_t dataSz)
 {
+    uint8_t *dataBuf = (uint8_t *)data;
     whal_SpiNor_Cfg *cfg;
     uint8_t frame[4];
     whal_Error err;
@@ -1273,7 +1283,7 @@ whal_Error whal_SpiNor4bExReg_Read(whal_Flash *flashDev, size_t addr,
             break;
         err = whal_Spi_SendRecv(cfg->spiDev, frame, 4, NULL, 0);
         if (!err)
-            err = whal_Spi_SendRecv(cfg->spiDev, NULL, 0, data + offset,
+            err = whal_Spi_SendRecv(cfg->spiDev, NULL, 0, dataBuf + offset,
                                     chunk);
         SpiNor_CsDeassert(cfg);
         if (err)
@@ -1287,8 +1297,9 @@ whal_Error whal_SpiNor4bExReg_Read(whal_Flash *flashDev, size_t addr,
 }
 
 whal_Error whal_SpiNor4bExReg_ReadFast(whal_Flash *flashDev, size_t addr,
-                                       uint8_t *data, size_t dataSz)
+                                       void *data, size_t dataSz)
 {
+    uint8_t *dataBuf = (uint8_t *)data;
     whal_SpiNor_Cfg *cfg;
     uint8_t frame[5];
     whal_Error err;
@@ -1331,7 +1342,7 @@ whal_Error whal_SpiNor4bExReg_ReadFast(whal_Flash *flashDev, size_t addr,
             break;
         err = whal_Spi_SendRecv(cfg->spiDev, frame, 5, NULL, 0);
         if (!err)
-            err = whal_Spi_SendRecv(cfg->spiDev, NULL, 0, data + offset,
+            err = whal_Spi_SendRecv(cfg->spiDev, NULL, 0, dataBuf + offset,
                                     chunk);
         SpiNor_CsDeassert(cfg);
         if (err)
@@ -1345,8 +1356,9 @@ whal_Error whal_SpiNor4bExReg_ReadFast(whal_Flash *flashDev, size_t addr,
 }
 
 whal_Error whal_SpiNor4bExReg_Write(whal_Flash *flashDev, size_t addr,
-                                    const uint8_t *data, size_t dataSz)
+                                    const void *data, size_t dataSz)
 {
+    const uint8_t *dataBuf = (const uint8_t *)data;
     whal_SpiNor_Cfg *cfg;
     uint8_t frame[4];
     whal_Error err;
@@ -1391,7 +1403,7 @@ whal_Error whal_SpiNor4bExReg_Write(whal_Flash *flashDev, size_t addr,
             break;
         err = whal_Spi_SendRecv(cfg->spiDev, frame, 4, NULL, 0);
         if (!err)
-            err = whal_Spi_SendRecv(cfg->spiDev, data + offset, chunk,
+            err = whal_Spi_SendRecv(cfg->spiDev, dataBuf + offset, chunk,
                                     NULL, 0);
         SpiNor_CsDeassert(cfg);
         if (err)

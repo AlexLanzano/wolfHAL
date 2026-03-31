@@ -51,8 +51,8 @@ static whal_Error MockFlashInit(whal_Flash *d) { (void)d; return WHAL_SUCCESS; }
 static whal_Error MockFlashDeinit(whal_Flash *d) { (void)d; return WHAL_SUCCESS; }
 static whal_Error MockFlashLock(whal_Flash *d, size_t a, size_t l) { (void)d; (void)a; (void)l; return WHAL_SUCCESS; }
 static whal_Error MockFlashUnlock(whal_Flash *d, size_t a, size_t l) { (void)d; (void)a; (void)l; return WHAL_SUCCESS; }
-static whal_Error MockFlashRead(whal_Flash *d, size_t a, uint8_t *data, size_t sz) { (void)d; (void)a; (void)data; (void)sz; return WHAL_SUCCESS; }
-static whal_Error MockFlashWrite(whal_Flash *d, size_t a, const uint8_t *data, size_t sz) { (void)d; (void)a; (void)data; (void)sz; return WHAL_SUCCESS; }
+static whal_Error MockFlashRead(whal_Flash *d, size_t a, void *data, size_t sz) { (void)d; (void)a; (void)data; (void)sz; return WHAL_SUCCESS; }
+static whal_Error MockFlashWrite(whal_Flash *d, size_t a, const void *data, size_t sz) { (void)d; (void)a; (void)data; (void)sz; return WHAL_SUCCESS; }
 static whal_Error MockFlashErase(whal_Flash *d, size_t a, size_t sz) { (void)d; (void)a; (void)sz; return WHAL_SUCCESS; }
 
 static const whal_FlashDriver mockFlashDriver = {
@@ -81,7 +81,7 @@ static const whal_TimerDriver mockTimerDriver = {
 
 static whal_Error MockRngInit(whal_Rng *d) { (void)d; return WHAL_SUCCESS; }
 static whal_Error MockRngDeinit(whal_Rng *d) { (void)d; return WHAL_SUCCESS; }
-static whal_Error MockRngGenerate(whal_Rng *d, uint8_t *data, size_t sz) { (void)d; (void)data; (void)sz; return WHAL_SUCCESS; }
+static whal_Error MockRngGenerate(whal_Rng *d, void *data, size_t sz) { (void)d; (void)data; (void)sz; return WHAL_SUCCESS; }
 
 static const whal_RngDriver mockRngDriver = {
     .Init = MockRngInit,
@@ -264,7 +264,7 @@ static whal_Error MockSpiInit(whal_Spi *d) { (void)d; return WHAL_SUCCESS; }
 static whal_Error MockSpiDeinit(whal_Spi *d) { (void)d; return WHAL_SUCCESS; }
 static whal_Error MockSpiStartCom(whal_Spi *d, whal_Spi_ComCfg *c) { (void)d; (void)c; return WHAL_SUCCESS; }
 static whal_Error MockSpiEndCom(whal_Spi *d) { (void)d; return WHAL_SUCCESS; }
-static whal_Error MockSpiSendRecv(whal_Spi *d, const uint8_t *tx, size_t txLen, uint8_t *rx, size_t rxLen) { (void)d; (void)tx; (void)txLen; (void)rx; (void)rxLen; return WHAL_SUCCESS; }
+static whal_Error MockSpiSendRecv(whal_Spi *d, const void *tx, size_t txLen, void *rx, size_t rxLen) { (void)d; (void)tx; (void)txLen; (void)rx; (void)rxLen; return WHAL_SUCCESS; }
 
 static const whal_SpiDriver mockSpiDriver = {
     .Init = MockSpiInit,
@@ -307,8 +307,8 @@ static void Test_Spi_ValidDispatch(void)
 
 static whal_Error MockBlockInit(whal_Block *d) { (void)d; return WHAL_SUCCESS; }
 static whal_Error MockBlockDeinit(whal_Block *d) { (void)d; return WHAL_SUCCESS; }
-static whal_Error MockBlockRead(whal_Block *d, uint32_t b, uint8_t *data, uint32_t c) { (void)d; (void)b; (void)data; (void)c; return WHAL_SUCCESS; }
-static whal_Error MockBlockWrite(whal_Block *d, uint32_t b, const uint8_t *data, uint32_t c) { (void)d; (void)b; (void)data; (void)c; return WHAL_SUCCESS; }
+static whal_Error MockBlockRead(whal_Block *d, uint32_t b, void *data, uint32_t c) { (void)d; (void)b; (void)data; (void)c; return WHAL_SUCCESS; }
+static whal_Error MockBlockWrite(whal_Block *d, uint32_t b, const void *data, uint32_t c) { (void)d; (void)b; (void)data; (void)c; return WHAL_SUCCESS; }
 static whal_Error MockBlockErase(whal_Block *d, uint32_t b, uint32_t c) { (void)d; (void)b; (void)c; return WHAL_SUCCESS; }
 
 static const whal_BlockDriver mockBlockDriver = {

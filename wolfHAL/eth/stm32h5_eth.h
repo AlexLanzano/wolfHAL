@@ -114,7 +114,7 @@ whal_Error whal_Stm32h5Eth_Stop(whal_Eth *ethDev);
  * @retval WHAL_EINVAL    Invalid arguments.
  * @retval WHAL_ENOTREADY No TX descriptor available.
  */
-whal_Error whal_Stm32h5Eth_Send(whal_Eth *ethDev, const uint8_t *frame,
+whal_Error whal_Stm32h5Eth_Send(whal_Eth *ethDev, const void *frame,
                                  size_t len);
 
 /*
@@ -132,7 +132,7 @@ whal_Error whal_Stm32h5Eth_Send(whal_Eth *ethDev, const uint8_t *frame,
  * @retval WHAL_EINVAL    Invalid arguments.
  * @retval WHAL_ENOTREADY No frame available.
  */
-whal_Error whal_Stm32h5Eth_Recv(whal_Eth *ethDev, uint8_t *frame,
+whal_Error whal_Stm32h5Eth_Recv(whal_Eth *ethDev, void *frame,
                                  size_t *len);
 
 /*

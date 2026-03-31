@@ -292,9 +292,10 @@ whal_Error whal_Stm32h5Eth_Stop(whal_Eth *ethDev)
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_Stm32h5Eth_Send(whal_Eth *ethDev, const uint8_t *frame,
+whal_Error whal_Stm32h5Eth_Send(whal_Eth *ethDev, const void *frame,
                                  size_t len)
 {
+    const uint8_t *frameBuf = (const uint8_t *)frame;
     whal_Stm32h5Eth_Cfg *cfg;
     whal_Stm32h5Eth_TxDesc *desc;
     size_t base;
@@ -318,7 +319,7 @@ whal_Error whal_Stm32h5Eth_Send(whal_Eth *ethDev, const uint8_t *frame,
     /* Copy frame into TX buffer */
     uint8_t *txBuf = cfg->txBufs + idx * cfg->txBufSize;
     for (size_t i = 0; i < len; i++)
-        txBuf[i] = frame[i];
+        txBuf[i] = frameBuf[i];
 
     /* Set up descriptor */
     desc->des[0] = (uintptr_t)txBuf;
@@ -336,9 +337,10 @@ whal_Error whal_Stm32h5Eth_Send(whal_Eth *ethDev, const uint8_t *frame,
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_Stm32h5Eth_Recv(whal_Eth *ethDev, uint8_t *frame,
+whal_Error whal_Stm32h5Eth_Recv(whal_Eth *ethDev, void *frame,
                                  size_t *len)
 {
+    uint8_t *frameBuf = (uint8_t *)frame;
     whal_Stm32h5Eth_Cfg *cfg;
     whal_Stm32h5Eth_RxDesc *desc;
     size_t base;
@@ -378,7 +380,7 @@ whal_Error whal_Stm32h5Eth_Recv(whal_Eth *ethDev, uint8_t *frame,
     /* Copy frame data */
     uint8_t *rxBuf = (uint8_t *)(cfg->rxBufs + idx * cfg->rxBufSize);
     for (size_t i = 0; i < pktLen; i++)
-        frame[i] = rxBuf[i];
+        frameBuf[i] = rxBuf[i];
     *len = pktLen;
 
     /* Re-arm descriptor for DMA */

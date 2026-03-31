@@ -189,9 +189,11 @@ whal_Error whal_Stm32wbSpi_EndCom(whal_Spi *spiDev)
 }
 
 whal_Error whal_Stm32wbSpi_SendRecv(whal_Spi *spiDev,
-                                    const uint8_t *tx, size_t txLen,
-                                    uint8_t *rx, size_t rxLen)
+                                    const void *tx, size_t txLen,
+                                    void *rx, size_t rxLen)
 {
+    const uint8_t *txBuf = (const uint8_t *)tx;
+    uint8_t *rxBuf = (uint8_t *)rx;
     const whal_Regmap *reg;
     whal_Stm32wbSpi_Cfg *cfg;
     size_t totalLen;
@@ -215,7 +217,7 @@ whal_Error whal_Stm32wbSpi_SendRecv(whal_Spi *spiDev,
             return err;
 
         /* Write TX data, pad with 0xFF when tx is exhausted or NULL */
-        txByte = (tx && i < txLen) ? tx[i] : 0xFF;
+        txByte = (txBuf && i < txLen) ? txBuf[i] : 0xFF;
         *(volatile uint8_t *)(reg->base + SPI_DR_REG) = txByte;
 
         /* Wait for RX byte */
@@ -226,8 +228,8 @@ whal_Error whal_Stm32wbSpi_SendRecv(whal_Spi *spiDev,
             return err;
 
         /* Store or discard received byte */
-        if (rx && i < rxLen)
-            rx[i] = *(volatile uint8_t *)(reg->base + SPI_DR_REG);
+        if (rxBuf && i < rxLen)
+            rxBuf[i] = *(volatile uint8_t *)(reg->base + SPI_DR_REG);
         else
             (void)*(volatile uint8_t *)(reg->base + SPI_DR_REG);
     }

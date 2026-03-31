@@ -30,7 +30,7 @@ whal_Error whal_Eth_Stop(whal_Eth *ethDev)
     return ethDev->driver->Stop(ethDev);
 }
 
-whal_Error whal_Eth_Send(whal_Eth *ethDev, const uint8_t *frame,
+whal_Error whal_Eth_Send(whal_Eth *ethDev, const void *frame,
                                  size_t len)
 {
     if (!ethDev || !ethDev->driver || !ethDev->driver->Send || !frame)
@@ -38,7 +38,7 @@ whal_Error whal_Eth_Send(whal_Eth *ethDev, const uint8_t *frame,
     return ethDev->driver->Send(ethDev, frame, len);
 }
 
-whal_Error whal_Eth_Recv(whal_Eth *ethDev, uint8_t *frame, size_t *len)
+whal_Error whal_Eth_Recv(whal_Eth *ethDev, void *frame, size_t *len)
 {
     if (!ethDev || !ethDev->driver || !ethDev->driver->Recv || !frame || !len)
         return WHAL_EINVAL;

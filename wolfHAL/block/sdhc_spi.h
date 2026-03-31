@@ -37,9 +37,9 @@ extern const whal_BlockDriver whal_SdhcSpi_Driver;
 whal_Error whal_SdhcSpi_Init(whal_Block *blockDev);
 whal_Error whal_SdhcSpi_Deinit(whal_Block *blockDev);
 whal_Error whal_SdhcSpi_Read(whal_Block *blockDev, uint32_t block,
-                              uint8_t *data, uint32_t blockCount);
+                              void *data, uint32_t blockCount);
 whal_Error whal_SdhcSpi_Write(whal_Block *blockDev, uint32_t block,
-                               const uint8_t *data, uint32_t blockCount);
+                               const void *data, uint32_t blockCount);
 whal_Error whal_SdhcSpi_Erase(whal_Block *blockDev, uint32_t block,
                                uint32_t blockCount);
 

@@ -95,7 +95,7 @@ whal_Error whal_Stm32f4Spi_EndCom(whal_Spi *spiDev);
  * @retval WHAL_EINVAL  Invalid arguments.
  */
 whal_Error whal_Stm32f4Spi_SendRecv(whal_Spi *spiDev,
-                                     const uint8_t *tx, size_t txLen,
-                                     uint8_t *rx, size_t rxLen);
+                                     const void *tx, size_t txLen,
+                                     void *rx, size_t rxLen);
 
 #endif /* WHAL_STM32F4_SPI_H */

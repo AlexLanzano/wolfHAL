@@ -54,6 +54,6 @@ whal_Error whal_Stm32wbRng_Deinit(whal_Rng *rngDev);
  * @retval WHAL_SUCCESS Buffer filled with random data.
  * @retval WHAL_EINVAL  Invalid arguments or seed/clock error detected.
  */
-whal_Error whal_Stm32wbRng_Generate(whal_Rng *rngDev, uint8_t *rngData, size_t rngDataSz);
+whal_Error whal_Stm32wbRng_Generate(whal_Rng *rngDev, void *rngData, size_t rngDataSz);
 
 #endif /* WHAL_STM32WB_RNG_H */

@@ -159,8 +159,9 @@ whal_Error whal_Stm32h5Flash_Unlock(whal_Flash *flashDev, size_t addr,
 }
 
 whal_Error whal_Stm32h5Flash_Read(whal_Flash *flashDev, size_t addr,
-                                   uint8_t *data, size_t dataSz)
+                                   void *data, size_t dataSz)
 {
+    uint8_t *dataBuf = (uint8_t *)data;
     whal_Stm32h5Flash_Cfg *cfg;
 
     if (!flashDev || !flashDev->cfg || !data)
@@ -173,7 +174,7 @@ whal_Error whal_Stm32h5Flash_Read(whal_Flash *flashDev, size_t addr,
 
     uint8_t *flashAddr = (uint8_t *)addr;
     for (size_t i = 0; i < dataSz; ++i)
-        data[i] = flashAddr[i];
+        dataBuf[i] = flashAddr[i];
 
     return WHAL_SUCCESS;
 }
@@ -196,8 +197,9 @@ static whal_Error CheckErrors(size_t base)
 }
 
 whal_Error whal_Stm32h5Flash_Write(whal_Flash *flashDev, size_t addr,
-                                    const uint8_t *data, size_t dataSz)
+                                    const void *data, size_t dataSz)
 {
+    const uint8_t *dataBuf = (const uint8_t *)data;
     whal_Stm32h5Flash_Cfg *cfg;
     const whal_Regmap *regmap;
     whal_Error err;
@@ -230,7 +232,7 @@ whal_Error whal_Stm32h5Flash_Write(whal_Flash *flashDev, size_t addr,
     /* Program data in 128-bit (16 byte) flash-word chunks */
     for (size_t i = 0; i < dataSz; i += 16) {
         uint32_t *flashAddr = (uint32_t *)(addr + i);
-        const uint32_t *dataAddr = (const uint32_t *)(data + i);
+        const uint32_t *dataAddr = (const uint32_t *)(dataBuf + i);
 
         flashAddr[0] = dataAddr[0];
         flashAddr[1] = dataAddr[1];

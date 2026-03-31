@@ -142,15 +142,27 @@ whal_Error whal_Stm32c0Flash_Unlock(whal_Flash *flashDev, size_t addr, size_t le
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_Stm32c0Flash_Read(whal_Flash *flashDev, size_t addr, uint8_t *data,
+whal_Error whal_Stm32c0Flash_Read(whal_Flash *flashDev, size_t addr, void *data,
                              size_t dataSz)
 {
-    (void)flashDev;
+    whal_Stm32c0Flash_Cfg *cfg;
+    uint8_t *dataBuf = (uint8_t *)data;
+
+    if (!flashDev || !flashDev->cfg || !data)
+        return WHAL_EINVAL;
+
+    if (dataSz == 0)
+        return WHAL_SUCCESS;
+
+    cfg = flashDev->cfg;
+
+    if (addr < cfg->startAddr || addr + dataSz > cfg->startAddr + cfg->size)
+        return WHAL_EINVAL;
 
     /* Flash is memory-mapped, so reading is a simple memory copy */
     uint8_t *flashAddr = (uint8_t *)addr;
     for (size_t i = 0; i < dataSz; ++i) {
-        data[i] = flashAddr[i];
+        dataBuf[i] = flashAddr[i];
     }
     return WHAL_SUCCESS;
 }
@@ -257,10 +269,10 @@ cleanup:
     return err;
 }
 
-whal_Error whal_Stm32c0Flash_Write(whal_Flash *flashDev, size_t addr, const uint8_t *data,
+whal_Error whal_Stm32c0Flash_Write(whal_Flash *flashDev, size_t addr, const void *data,
                                 size_t dataSz)
 {
-    return whal_Stm32c0Flash_WriteOrErase(flashDev, addr, data, dataSz, 1);
+    return whal_Stm32c0Flash_WriteOrErase(flashDev, addr, (const uint8_t *)data, dataSz, 1);
 }
 
 whal_Error whal_Stm32c0Flash_Erase(whal_Flash *flashDev, size_t addr,

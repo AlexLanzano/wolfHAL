@@ -26,9 +26,9 @@ typedef struct {
     /* Release any resources owned by the block driver. */
     whal_Error (*Deinit)(whal_Block *blockDev);
     /* Read blocks from the device into a buffer. */
-    whal_Error (*Read)(whal_Block *blockDev, uint32_t block, uint8_t *data, uint32_t blockCount);
+    whal_Error (*Read)(whal_Block *blockDev, uint32_t block, void *data, uint32_t blockCount);
     /* Write data to the device starting at @p block. */
-    whal_Error (*Write)(whal_Block *blockDev, uint32_t block, const uint8_t *data, uint32_t blockCount);
+    whal_Error (*Write)(whal_Block *blockDev, uint32_t block, const void *data, uint32_t blockCount);
     /* Erase blocks on the device starting at @p block. */
     whal_Error (*Erase)(whal_Block *blockDev, uint32_t block, uint32_t blockCount);
 } whal_BlockDriver;
@@ -86,7 +86,7 @@ whal_Error whal_Block_Deinit(whal_Block *blockDev);
  * @retval WHAL_SUCCESS Read completed.
  * @retval WHAL_EINVAL  Null pointer or missing driver function.
  */
-whal_Error whal_Block_Read(whal_Block *blockDev, uint32_t block, uint8_t *data,
+whal_Error whal_Block_Read(whal_Block *blockDev, uint32_t block, void *data,
                            uint32_t blockCount);
 /*
  * @brief Write data to a block device.
@@ -100,7 +100,7 @@ whal_Error whal_Block_Read(whal_Block *blockDev, uint32_t block, uint8_t *data,
  * @retval WHAL_EINVAL  Null pointer or missing driver function.
  */
 whal_Error whal_Block_Write(whal_Block *blockDev, uint32_t block,
-                            const uint8_t *data, uint32_t blockCount);
+                            const void *data, uint32_t blockCount);
 /*
  * @brief Erase blocks on a block device.
  *
