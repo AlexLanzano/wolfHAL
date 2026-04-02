@@ -25,6 +25,9 @@ jobs:
       matrix:
         board: [stm32wb55xx_nucleo, pic32cz_curiosity_ultra, stm32h563zi_nucleo, stm32f411_blackpill, stm32c031_nucleo]
         extra_cflags: ["", "-DWHAL_CFG_NO_TIMEOUT"]
+        include:
+          - board: stm32wb55xx_nucleo
+            extra_cflags: "-DBOARD_DMA"
     steps:
       - uses: actions/checkout@v4
 

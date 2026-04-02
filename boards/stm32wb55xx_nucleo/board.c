@@ -6,6 +6,7 @@
 #include <wolfHAL/platform/st/stm32wb55xx.h>
 #include "peripheral.h"
 
+
 /* SysTick timing */
 volatile uint32_t g_tick = 0;
 volatile uint8_t g_waiting = 0;
@@ -28,6 +29,11 @@ uint32_t Board_GetTick(void)
 whal_Timeout g_whalTimeout = {
     .timeoutTicks = 1000, /* 1s timeout */
     .GetTick = Board_GetTick,
+};
+
+/* IRQ */
+whal_Irq g_whalIrq = {
+    WHAL_CORTEX_M4_NVIC_DEVICE,
 };
 
 /* Clock */
@@ -155,7 +161,48 @@ whal_Timer g_whalTimer = {
     },
 };
 
+/* DMA */
+#ifdef BOARD_DMA
+
+whal_Dma g_whalDma1 = {
+    WHAL_STM32WB55_DMA1_DEVICE,
+    .cfg = &(whal_Stm32wbDma_Cfg){WHAL_STM32WB55_DMA1_CFG},
+};
+
+static const whal_Stm32wbRcc_Clk g_dmaClock = {WHAL_STM32WB55_DMA1_CLOCK};
+static const whal_Stm32wbRcc_Clk g_dmamuxClock = {WHAL_STM32WB55_DMAMUX1_CLOCK};
+
+void DMA1_Channel4_IRQHandler(void)
+{
+    whal_Stm32wbDma_IRQHandler(&g_whalDma1, 3,
+                                whal_Stm32wbUartDma_TxCallback, g_whalUart.cfg);
+}
+
+void DMA1_Channel5_IRQHandler(void)
+{
+    whal_Stm32wbDma_IRQHandler(&g_whalDma1, 4,
+                                whal_Stm32wbUartDma_RxCallback, g_whalUart.cfg);
+}
+#endif
+
 /* UART */
+#ifdef BOARD_DMA
+whal_Uart g_whalUart = {
+    WHAL_STM32WB55_UART1_DEVICE,
+    .driver = &whal_Stm32wbUartDma_Driver,
+    .cfg = &(whal_Stm32wbUartDma_Cfg) {
+        .base = {
+            .brr = WHAL_STM32WB_UART_BRR(64000000, 115200),
+            .timeout = &g_whalTimeout,
+        },
+        .dma = &g_whalDma1,
+        .txCh = 3,
+        .rxCh = 4,
+        .txChCfg = &(whal_Stm32wbDma_ChCfg){WHAL_STM32WB55_UART1_TX_DMA_CFG},
+        .rxChCfg = &(whal_Stm32wbDma_ChCfg){WHAL_STM32WB55_UART1_RX_DMA_CFG},
+    },
+};
+#else
 whal_Uart g_whalUart = {
     WHAL_STM32WB55_UART1_DEVICE,
 
@@ -165,6 +212,7 @@ whal_Uart g_whalUart = {
         .brr = WHAL_STM32WB_UART_BRR(64000000, 115200),
     },
 };
+#endif
 
 /* Flash */
 whal_Flash g_whalFlash = {
@@ -174,7 +222,7 @@ whal_Flash g_whalFlash = {
         .timeout = &g_whalTimeout,
 
         .startAddr = 0x08000000,
-        .size = 0x100000,
+        .size = 0x80000, /* 512 KB (upper half reserved for BLE stack) */
     },
 };
 
@@ -259,6 +307,30 @@ whal_Error Board_Init(void)
         if (err)
             return err;
     }
+
+    err = whal_Irq_Init(&g_whalIrq);
+    if (err)
+        return err;
+
+#ifdef BOARD_DMA
+    err = whal_Clock_Enable(&g_whalClock, &g_dmaClock);
+    if (err)
+        return err;
+    err = whal_Clock_Enable(&g_whalClock, &g_dmamuxClock);
+    if (err)
+        return err;
+    err = whal_Dma_Init(&g_whalDma1);
+    if (err)
+        return err;
+
+    /* Enable NVIC interrupts for DMA1 channel 4 (IRQ 14) and channel 5 (IRQ 15) */
+    err = whal_Irq_Enable(&g_whalIrq, 14, NULL);
+    if (err)
+        return err;
+    err = whal_Irq_Enable(&g_whalIrq, 15, NULL);
+    if (err)
+        return err;
+#endif
 
     err = whal_Gpio_Init(&g_whalGpio);
     if (err) {
@@ -356,6 +428,25 @@ whal_Error Board_Deinit(void)
     if (err) {
         return err;
     }
+
+#ifdef BOARD_DMA
+    whal_Irq_Disable(&g_whalIrq, 14);
+    whal_Irq_Disable(&g_whalIrq, 15);
+
+    err = whal_Dma_Deinit(&g_whalDma1);
+    if (err)
+        return err;
+    err = whal_Clock_Disable(&g_whalClock, &g_dmamuxClock);
+    if (err)
+        return err;
+    err = whal_Clock_Disable(&g_whalClock, &g_dmaClock);
+    if (err)
+        return err;
+#endif
+
+    err = whal_Irq_Deinit(&g_whalIrq);
+    if (err)
+        return err;
 
     /* Disable clocks */
     for (size_t i = 0; i < CLOCK_COUNT; i++) {

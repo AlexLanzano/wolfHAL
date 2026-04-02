@@ -2,6 +2,7 @@
 #define WHAL_CORTEX_M4_H
 
 #include <wolfHAL/timer/systick.h>
+#include <wolfHAL/irq/cortex_m4_nvic.h>
 
 #define WHAL_CORTEX_M4_SYSTICK_DEVICE   \
     .regmap = {                         \
@@ -9,5 +10,12 @@
         .size = 0x400,                  \
     },                                  \
     .driver = &whal_SysTick_Driver
+
+#define WHAL_CORTEX_M4_NVIC_DEVICE      \
+    .regmap = {                         \
+        .base = 0xE000E100,             \
+        .size = 0x400,                  \
+    },                                  \
+    .driver = &whal_Nvic_Driver
 
 #endif /* WHAL_CORTEX_M4_H */

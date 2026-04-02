@@ -40,11 +40,23 @@ static whal_Error MockUartDeinit(whal_Uart *d) { (void)d; return WHAL_SUCCESS; }
 static whal_Error MockUartSend(whal_Uart *d, const void *data, size_t sz) { (void)d; (void)data; (void)sz; return WHAL_SUCCESS; }
 static whal_Error MockUartRecv(whal_Uart *d, void *data, size_t sz) { (void)d; (void)data; (void)sz; return WHAL_SUCCESS; }
 
+static whal_Error MockUartSendAsync(whal_Uart *d, const void *data, size_t sz) { (void)d; (void)data; (void)sz; return WHAL_SUCCESS; }
+static whal_Error MockUartRecvAsync(whal_Uart *d, void *data, size_t sz) { (void)d; (void)data; (void)sz; return WHAL_SUCCESS; }
+
 static const whal_UartDriver mockUartDriver = {
     .Init = MockUartInit,
     .Deinit = MockUartDeinit,
     .Send = MockUartSend,
     .Recv = MockUartRecv,
+};
+
+static const whal_UartDriver mockUartAsyncDriver = {
+    .Init = MockUartInit,
+    .Deinit = MockUartDeinit,
+    .Send = MockUartSend,
+    .Recv = MockUartRecv,
+    .SendAsync = MockUartSendAsync,
+    .RecvAsync = MockUartRecvAsync,
 };
 
 static whal_Error MockFlashInit(whal_Flash *d) { (void)d; return WHAL_SUCCESS; }
@@ -160,12 +172,22 @@ static void Test_Uart_NullDev(void)
     uint8_t buf[1];
     WHAL_ASSERT_EQ(whal_Uart_Send(NULL, buf, 1), WHAL_EINVAL);
     WHAL_ASSERT_EQ(whal_Uart_Recv(NULL, buf, 1), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Uart_SendAsync(NULL, buf, 1), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Uart_RecvAsync(NULL, buf, 1), WHAL_EINVAL);
 }
 
 static void Test_Uart_NullDriver(void)
 {
     whal_Uart dev = { .driver = NULL };
     WHAL_ASSERT_EQ(whal_Uart_Init(&dev), WHAL_EINVAL);
+}
+
+static void Test_Uart_NullAsyncVtable(void)
+{
+    whal_Uart dev = { .driver = &mockUartDriver };
+    uint8_t buf[1] = {0};
+    WHAL_ASSERT_EQ(whal_Uart_SendAsync(&dev, buf, 1), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Uart_RecvAsync(&dev, buf, 1), WHAL_EINVAL);
 }
 
 static void Test_Uart_ValidDispatch(void)
@@ -175,6 +197,10 @@ static void Test_Uart_ValidDispatch(void)
     uint8_t buf[4] = {0};
     WHAL_ASSERT_EQ(whal_Uart_Send(&dev, buf, sizeof(buf)), WHAL_SUCCESS);
     WHAL_ASSERT_EQ(whal_Uart_Recv(&dev, buf, sizeof(buf)), WHAL_SUCCESS);
+
+    whal_Uart asyncDev = { .driver = &mockUartAsyncDriver };
+    WHAL_ASSERT_EQ(whal_Uart_SendAsync(&asyncDev, buf, sizeof(buf)), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Uart_RecvAsync(&asyncDev, buf, sizeof(buf)), WHAL_SUCCESS);
 }
 
 /* --- Flash dispatch tests --- */
@@ -358,6 +384,7 @@ void whal_Test_Dispatch(void)
     WHAL_TEST(Test_Gpio_ValidDispatch);
     WHAL_TEST(Test_Uart_NullDev);
     WHAL_TEST(Test_Uart_NullDriver);
+    WHAL_TEST(Test_Uart_NullAsyncVtable);
     WHAL_TEST(Test_Uart_ValidDispatch);
     WHAL_TEST(Test_Flash_NullDev);
     WHAL_TEST(Test_Flash_NullDriver);

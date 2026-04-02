@@ -15,7 +15,10 @@ build configuration.
 | Board | Platform | CPU | Directory |
 |-------|----------|-----|-----------|
 | Microchip PIC32CZ CA Curiosity Ultra | PIC32CZ | Cortex-M7 | `pic32cz_curiosity_ultra/` |
-| ST STM32WB55 Nucleo | STM32WB | Cortex-M4 | `stm32wb55xx_nucleo/` |
+| ST NUCLEO-C031C6 | STM32C0 | Cortex-M0+ | `stm32c031_nucleo/` |
+| WeAct BlackPill STM32F411 | STM32F4 | Cortex-M4 | `stm32f411_blackpill/` |
+| ST NUCLEO-H563ZI | STM32H5 | Cortex-M33 | `stm32h563zi_nucleo/` |
+| ST NUCLEO-WB55RG | STM32WB | Cortex-M4 | `stm32wb55xx_nucleo/` |
 
 ## Board Directory Contents
 
