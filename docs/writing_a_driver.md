@@ -437,6 +437,51 @@ Receive `dataSz` bytes into the provided buffer. For each byte:
    is available
 2. Read the byte from the receive data register and store it in the buffer
 
+### SendAsync
+
+Start a non-blocking transmit. Returns immediately after initiating the
+transfer. The buffer must remain valid until the transfer completes. The
+driver signals completion through a platform-specific mechanism.
+
+Drivers that do not support async should set SendAsync to NULL in the vtable.
+The dispatch layer returns WHAL_EINVAL when the caller tries to use a NULL
+async function.
+
+### RecvAsync
+
+Start a non-blocking receive. Returns immediately after initiating the
+transfer. The buffer must remain valid until the transfer completes.
+
+The async variants are optional — a driver vtable only needs to populate
+them if the platform supports non-blocking transfers. Polled-only drivers
+leave these NULL.
+
+---
+
+## IRQ
+
+Header: `wolfHAL/irq/irq.h`
+
+The IRQ driver controls an interrupt controller. It provides a
+platform-independent way to enable and disable individual interrupt lines.
+
+### Init
+
+Initialize the interrupt controller.
+
+### Deinit
+
+Shut down the interrupt controller.
+
+### Enable
+
+Enable an interrupt line. The `irqCfg` parameter is platform-specific and
+can contain settings such as priority. Pass NULL for defaults.
+
+### Disable
+
+Disable an interrupt line.
+
 ---
 
 ## SPI
@@ -854,6 +899,66 @@ if the PHY is not responding.
 
 Write a 16-bit value to a PHY register via MDIO. Write the data first, then
 issue the write command and poll for completion with a timeout.
+
+---
+
+## DMA
+
+Header: `wolfHAL/dma/dma.h`
+
+The DMA driver controls a DMA controller. A single device instance represents
+one controller, and individual channels are identified by index. Channel
+configuration is platform-specific and passed as an opaque pointer.
+
+DMA is a service peripheral — peripheral drivers (UART, SPI) consume it
+internally. The application never calls the DMA API directly. Peripheral
+drivers receive a `whal_Dma` pointer and channel number through their
+configuration struct and use them to set up transfers.
+
+### Init
+
+Initialize the DMA controller. Clear any pending interrupt flags and reset
+controller state. The board must enable the DMA controller clock before calling
+Init.
+
+### Deinit
+
+Shut down the DMA controller.
+
+### Configure
+
+Configure a DMA channel for transfers. The `chCfg` parameter is a
+platform-specific struct containing:
+
+- Transfer direction (memory-to-peripheral, peripheral-to-memory, etc.)
+- Source and destination addresses
+- Transfer width (8, 16, 32 bit)
+- Buffer address and length
+- Burst size (if supported)
+- Peripheral request mapping (e.g., DMAMUX request ID)
+
+The DMA driver does not store callbacks. Instead, the board defines ISR
+entries in the vector table and calls the driver's IRQ handler (e.g.,
+`whal_Stm32wbDma_IRQHandler()`), passing a callback and context pointer.
+The IRQ handler checks and clears the interrupt flags, then invokes the
+callback. Peripheral drivers expose their completion callbacks for the
+board to wire up (e.g., `whal_Stm32wbUartDma_TxCallback`).
+
+Configure sets up all channel registers but does not start the transfer.
+Call Start to begin. A channel can be reconfigured between transfers (e.g.,
+to change the buffer address and length) by calling Configure again.
+
+### Start
+
+Start a previously configured DMA channel. This enables the channel,
+beginning the transfer. The channel must have been configured via Configure
+before calling Start.
+
+### Stop
+
+Stop a DMA channel. This aborts any in-progress transfer and disables the
+channel. The peripheral driver should call Stop in its cleanup path or when
+a transfer needs to be cancelled.
 
 ---
 

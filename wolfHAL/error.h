@@ -15,6 +15,7 @@ enum {
     WHAL_SUCCESS = 0,
     /* Invalid argument or unsupported operation. */
     WHAL_EINVAL = -4000,
+    /* Resource not ready or busy. */
     WHAL_ENOTREADY = -4001,
     /* Hardware device error. */
     WHAL_EHARDWARE = -4002,

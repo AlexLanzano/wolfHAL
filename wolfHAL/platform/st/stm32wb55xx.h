@@ -6,10 +6,12 @@
 #include <wolfHAL/clock/stm32wb_rcc.h>
 #include <wolfHAL/gpio/stm32wb_gpio.h>
 #include <wolfHAL/uart/stm32wb_uart.h>
+#include <wolfHAL/uart/stm32wb_uart_dma.h>
 #include <wolfHAL/spi/stm32wb_spi.h>
 #include <wolfHAL/flash/stm32wb_flash.h>
 #include <wolfHAL/rng/stm32wb_rng.h>
 #include <wolfHAL/crypto/stm32wb_aes.h>
+#include <wolfHAL/dma/stm32wb_dma.h>
 
 /*
  * @file stm32wb55xx.h
@@ -79,6 +81,30 @@
     },                                  \
     .driver = &whal_Stm32wbFlash_Driver
 
+#define WHAL_STM32WB55_DMA1_DEVICE      \
+    .regmap = {                         \
+        .base = 0x40020000,             \
+        .size = 0x400,                  \
+    },                                  \
+    .driver = &whal_Stm32wbDma_Driver
+
+#define WHAL_STM32WB55_DMA2_DEVICE      \
+    .regmap = {                         \
+        .base = 0x40020400,             \
+        .size = 0x400,                  \
+    },                                  \
+    .driver = &whal_Stm32wbDma_Driver
+
+#define WHAL_STM32WB55_DMA1_CFG         \
+    .dmamuxBase = 0x40020800,           \
+    .dmamuxChOffset = 0,                \
+    .numChannels = 7
+
+#define WHAL_STM32WB55_DMA2_CFG         \
+    .dmamuxBase = 0x40020800,           \
+    .dmamuxChOffset = 7,                \
+    .numChannels = 5
+
 
 #define WHAL_STM32WB55_PLL_CLOCK    \
     .regOffset = 0x00,              \
@@ -124,6 +150,35 @@
     .regOffset = 0x60,              \
     .enableMask = (1UL << 12),      \
     .enablePos = 12
+
+#define WHAL_STM32WB55_DMA1_CLOCK   \
+    .regOffset = 0x48,              \
+    .enableMask = (1UL << 0),       \
+    .enablePos = 0
+
+#define WHAL_STM32WB55_DMA2_CLOCK   \
+    .regOffset = 0x48,              \
+    .enableMask = (1UL << 1),       \
+    .enablePos = 1
+
+#define WHAL_STM32WB55_UART1_TX_DMA_CFG     \
+    .dir = WHAL_STM32WB_DMA_DIR_MEM_TO_PERIPH, \
+    .width = WHAL_STM32WB_DMA_WIDTH_8BIT,      \
+    .srcInc = WHAL_STM32WB_DMA_INC_ENABLE,     \
+    .dstInc = WHAL_STM32WB_DMA_INC_DISABLE,    \
+    .dmamuxReqId = 15
+
+#define WHAL_STM32WB55_UART1_RX_DMA_CFG     \
+    .dir = WHAL_STM32WB_DMA_DIR_PERIPH_TO_MEM, \
+    .width = WHAL_STM32WB_DMA_WIDTH_8BIT,      \
+    .srcInc = WHAL_STM32WB_DMA_INC_DISABLE,    \
+    .dstInc = WHAL_STM32WB_DMA_INC_ENABLE,     \
+    .dmamuxReqId = 14
+
+#define WHAL_STM32WB55_DMAMUX1_CLOCK \
+    .regOffset = 0x48,               \
+    .enableMask = (1UL << 2),        \
+    .enablePos = 2
 
 
 #endif /* WHAL_STM32WB55XX_H */

@@ -38,3 +38,21 @@ inline whal_Error whal_Uart_Recv(whal_Uart *uartDev, void *data, size_t dataSz)
     return uartDev->driver->Recv(uartDev, data, dataSz);
 }
 
+inline whal_Error whal_Uart_SendAsync(whal_Uart *uartDev, const void *data, size_t dataSz)
+{
+    if (!uartDev || !uartDev->driver || !uartDev->driver->SendAsync || !data) {
+        return WHAL_EINVAL;
+    }
+
+    return uartDev->driver->SendAsync(uartDev, data, dataSz);
+}
+
+inline whal_Error whal_Uart_RecvAsync(whal_Uart *uartDev, void *data, size_t dataSz)
+{
+    if (!uartDev || !uartDev->driver || !uartDev->driver->RecvAsync || !data) {
+        return WHAL_EINVAL;
+    }
+
+    return uartDev->driver->RecvAsync(uartDev, data, dataSz);
+}
+

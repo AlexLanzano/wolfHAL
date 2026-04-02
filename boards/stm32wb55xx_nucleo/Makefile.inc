@@ -9,7 +9,8 @@ OBJCOPY = $(GCC_PATH)arm-none-eabi-objcopy
 
 CFLAGS += -Wall -Werror $(INCLUDE) -g3 \
           -ffreestanding -nostdlib -mcpu=cortex-m4 \
-          -DPLATFORM_STM32WB -MMD -MP
+          -DPLATFORM_STM32WB -MMD -MP \
+          $(if $(DMA),-DBOARD_DMA)
 LDFLAGS = --omagic -static
 
 LINKER_SCRIPT ?= $(_BOARD_DIR)/linker.ld
@@ -29,6 +30,9 @@ BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/spi.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/rng.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/crypto.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/block.c)
+BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/dma.c)
+BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/irq.c)
+BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/irq/cortex_m4_nvic.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/stm32wb_*.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/systick.c)
 
