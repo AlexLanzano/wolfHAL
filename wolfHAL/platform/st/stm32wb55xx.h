@@ -12,6 +12,7 @@
 #include <wolfHAL/rng/stm32wb_rng.h>
 #include <wolfHAL/crypto/stm32wb_aes.h>
 #include <wolfHAL/dma/stm32wb_dma.h>
+#include <wolfHAL/i2c/stm32wb_i2c.h>
 
 /*
  * @file stm32wb55xx.h
@@ -74,6 +75,20 @@
     },                                  \
     .driver = &whal_Stm32wbAes_Driver
 
+#define WHAL_STM32WB55_I2C1_DEVICE      \
+    .regmap = {                         \
+        .base = 0x40005400,             \
+        .size = 0x400,                  \
+    },                                  \
+    .driver = &whal_Stm32wbI2c_Driver
+
+#define WHAL_STM32WB55_I2C3_DEVICE      \
+    .regmap = {                         \
+        .base = 0x40005C00,             \
+        .size = 0x400,                  \
+    },                                  \
+    .driver = &whal_Stm32wbI2c_Driver
+
 #define WHAL_STM32WB55_FLASH_DEVICE     \
     .regmap = {                         \
         .base = 0x58004000,             \
@@ -135,6 +150,16 @@
     .regOffset = 0x50,              \
     .enableMask = (1UL << 25),      \
     .enablePos = 25
+
+#define WHAL_STM32WB55_I2C1_CLOCK   \
+    .regOffset = 0x58,              \
+    .enableMask = (1UL << 21),      \
+    .enablePos = 21
+
+#define WHAL_STM32WB55_I2C3_CLOCK   \
+    .regOffset = 0x58,              \
+    .enableMask = (1UL << 23),      \
+    .enablePos = 23
 
 #define WHAL_STM32WB55_LPUART1_CLOCK    \
     .regOffset = 0x5C,                  \

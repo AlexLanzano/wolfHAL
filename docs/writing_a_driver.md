@@ -542,6 +542,97 @@ After the loop, wait for the bus to go idle before returning.
 
 ---
 
+## I2C
+
+Header: `wolfHAL/i2c/i2c.h`
+
+The I2C driver provides inter-integrated circuit bus communication. A
+communication session is bracketed by `StartCom` / `EndCom`, which configure
+the peripheral for a specific target address and bus frequency. The message-based
+`Transfer` API gives full control over bus conditions (START, STOP, direction).
+
+Convenience helpers `whal_I2c_WriteReg` and `whal_I2c_ReadReg` are provided
+as inline functions for the common register read/write patterns.
+
+### Init
+
+Perform one-time I2C peripheral configuration (noise filters, enable). Do not
+configure timing or address here — these are applied per-session via `StartCom`.
+
+The board must enable the peripheral clock before calling Init.
+
+### Deinit
+
+Disable the I2C peripheral.
+
+### StartCom
+
+Begin a communication session. Configures the peripheral from the
+platform-independent `whal_I2c_ComCfg` struct:
+
+- `freq` — bus frequency in Hz (100000, 400000, 1000000)
+- `addr` — target device address (7-bit or 10-bit)
+- `addrSz` — address size in bits (7 or 10)
+
+The driver should compute timing parameters from `freq` and the peripheral
+clock, then write the target address into the appropriate hardware register.
+
+### EndCom
+
+End the current communication session by clearing the target address.
+
+### Transfer
+
+Execute a sequence of I2C messages. Each message has a data buffer, size, and
+flags that control bus conditions:
+
+- `WHAL_I2C_MSG_WRITE` (0) — master write
+- `WHAL_I2C_MSG_READ` — master read
+- `WHAL_I2C_MSG_START` — generate START (or repeated START)
+- `WHAL_I2C_MSG_STOP` — generate STOP after this message
+
+The driver processes messages sequentially. When the current message has no
+STOP and the next message has no START, use hardware RELOAD to continue the
+same transfer without re-addressing (for multi-part writes). When the next
+message has START, use TC (transfer complete) so the hardware can generate a
+repeated START for direction changes.
+
+For messages larger than 255 bytes, the driver must split into chunks using
+the hardware RELOAD mechanism internally.
+
+---
+
+## Sensor
+
+Header: `wolfHAL/sensor/sensor.h`
+
+The sensor driver provides a bus-agnostic API for reading sensor data. Each
+sensor driver implements the vtable and uses the appropriate bus (I2C, SPI,
+etc.) internally. The `Read` function fills a driver-defined data struct
+passed as a void pointer.
+
+### Init
+
+Initialize the sensor hardware. This may involve loading configuration data,
+verifying device identity, and configuring operating parameters. The driver
+should call `StartCom` / `EndCom` on its bus device to bracket I2C/SPI access.
+
+### Deinit
+
+Shut down the sensor (e.g., soft reset). Should bracket bus access with
+`StartCom` / `EndCom`.
+
+### Read
+
+Read sensor data into a driver-defined struct. The driver fetches a new sample
+from the hardware and fills the struct. The struct type is defined by each
+sensor driver (e.g., `whal_Bmi270_Data` with `accelX/Y/Z`, `gyroX/Y/Z`).
+
+Each `Read` call should bracket its bus access with `StartCom` / `EndCom` so
+the bus is released between reads and other devices can use it.
+
+---
+
 ## Flash
 
 Header: `wolfHAL/flash/flash.h`

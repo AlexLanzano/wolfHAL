@@ -22,7 +22,7 @@ Peripherals are organized by device type under `boards/peripheral/`:
 ```
 boards/peripheral/
   peripheral.h          # Registry structs and extern arrays
-  peripheral.c          # Registry arrays (g_peripheralBlock[], g_peripheralFlash[])
+  peripheral.c          # Registry arrays (g_peripheralBlock[], g_peripheralFlash[], g_peripheralSensor[])
   Makefile.inc          # Conditional build rules
   block/
     sdhc_spi_sdcard32gb.h
@@ -30,6 +30,9 @@ boards/peripheral/
   flash/
     spi_nor_w25q64.h
     spi_nor_w25q64.c
+  sensor/imu/
+    bmi270.h
+    bmi270.c
 ```
 
 ## Step 1: Create the Device Configuration
@@ -120,6 +123,7 @@ The registry structs are defined in `peripheral.h`:
 
 - `whal_PeripheralBlock_Cfg` for block devices (`g_peripheralBlock[]`)
 - `whal_PeripheralFlash_Cfg` for flash devices (`g_peripheralFlash[]`)
+- `whal_PeripheralSensor_Cfg` for sensor devices (`g_peripheralSensor[]`)
 
 Each array is terminated by a zero sentinel so that board init and test code
 can iterate without knowing the count.
@@ -127,31 +131,32 @@ can iterate without knowing the count.
 ## Step 3: Add Build Rules
 
 In `boards/peripheral/Makefile.inc`, add a conditional block for your
-peripheral:
+peripheral. The block checks whether the peripheral name appears in the
+`PERIPHERALS` variable and adds the define, config source, and driver source:
 
 ```makefile
-ifdef PERIPHERAL_SPI_NOR_W25Q64
-CFLAGS += -DPERIPHERAL_SPI_NOR_W25Q64
-BOARD_SOURCE += $(_PERIPHERAL_DIR)/flash/spi_nor_w25q64.c
-BOARD_SOURCE += $(WHAL_DIR)/src/flash/spi_nor.c
+ifneq ($(filter mydevice,$(PERIPHERALS)),)
+CFLAGS += -DPERIPHERAL_MYDEVICE
+BOARD_SOURCE += $(_PERIPHERAL_DIR)/type/mydevice.c
+BOARD_SOURCE += $(WHAL_DIR)/src/type/mydevice_driver.c
 endif
 ```
 
 This compiles both the peripheral configuration and the underlying driver
-source when the flag is set.
+source when the peripheral is enabled.
 
 ## Building
 
-Enable the peripheral by setting its flag when building:
+Enable peripherals using the `PERIPHERALS` variable:
 
 ```
-make BOARD=stm32wb55xx_nucleo PERIPHERAL_SPI_NOR_W25Q64=1
+make BOARD=stm32wb55xx_nucleo PERIPHERALS="spi_nor_w25q64"
 ```
 
 Multiple peripherals can be enabled simultaneously:
 
 ```
-make BOARD=stm32wb55xx_nucleo PERIPHERAL_SPI_NOR_W25Q64=1 PERIPHERAL_SDHC_SPI_SDCARD32GB=1
+make BOARD=stm32wb55xx_nucleo PERIPHERALS="spi_nor_w25q64 bmi270"
 ```
 
 ## Testing
@@ -163,7 +168,8 @@ framework.
 
 ## Naming Convention
 
-- Flag: `PERIPHERAL_<DRIVER>_<DEVICE>` (e.g., `PERIPHERAL_SPI_NOR_W25Q64`)
-- Directory: `boards/peripheral/<type>/` (e.g., `flash/`, `block/`)
-- Files: `<driver>_<device>.h` and `<driver>_<device>.c`
-- Global instance: `g_whal<Driver><Device>` (e.g., `g_whalSpiNorW25q64`)
+- Flag: `PERIPHERAL_<NAME>` (e.g., `PERIPHERAL_BMI270`)
+- PERIPHERALS variable: lowercase name (e.g., `bmi270`, `spi_nor_w25q64`)
+- Directory: `boards/peripheral/<type>/` (e.g., `flash/`, `block/`, `sensor/imu/`)
+- Files: `<name>.h` and `<name>.c`
+- Global instance: `g_whal<Name>` (e.g., `g_whalBmi270`, `g_whalSpiNorW25q64`)

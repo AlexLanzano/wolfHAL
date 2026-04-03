@@ -16,6 +16,7 @@
 #include <wolfHAL/block/block.h>
 #include <wolfHAL/rng/rng.h>
 #include <wolfHAL/spi/spi.h>
+#include <wolfHAL/i2c/i2c.h>
 #include <wolfHAL/timer/timer.h>
 #include <wolfHAL/ipc/ipc.h>
 #include <wolfHAL/supply/supply.h>
@@ -25,5 +26,6 @@
 #include <wolfHAL/irq/irq.h>
 #include <wolfHAL/eth/eth.h>
 #include <wolfHAL/eth_phy/eth_phy.h>
+#include <wolfHAL/sensor/sensor.h>
 
 #endif /* WOLFHAL_H */
