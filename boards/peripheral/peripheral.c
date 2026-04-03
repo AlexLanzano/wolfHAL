@@ -8,6 +8,10 @@
 #include "flash/spi_nor_w25q64.h"
 #endif
 
+#ifdef PERIPHERAL_BMI270
+#include "sensor/imu/bmi270.h"
+#endif
+
 whal_PeripheralBlock_Cfg g_peripheralBlock[] = {
 #ifdef PERIPHERAL_SDHC_SPI_SDCARD32GB
     {
@@ -33,6 +37,16 @@ whal_PeripheralFlash_Cfg g_peripheralFlash[] = {
     {0}, /* sentinel */
 };
 
+whal_PeripheralSensor_Cfg g_peripheralSensor[] = {
+#ifdef PERIPHERAL_BMI270
+    {
+        .name = "bmi270",
+        .dev = &g_whalBmi270,
+    },
+#endif
+    {0}, /* sentinel */
+};
+
 whal_Error Peripheral_Init(void)
 {
     whal_Error err;
@@ -49,12 +63,28 @@ whal_Error Peripheral_Init(void)
             return err;
     }
 
+#if PERIPHERAL_SENSOR_COUNT > 0
+    for (size_t i = 0; g_peripheralSensor[i].dev; i++) {
+        err = whal_Sensor_Init(g_peripheralSensor[i].dev);
+        if (err)
+            return err;
+    }
+#endif
+
     return WHAL_SUCCESS;
 }
 
 whal_Error Peripheral_Deinit(void)
 {
     whal_Error err;
+
+#if PERIPHERAL_SENSOR_COUNT > 0
+    for (size_t i = 0; g_peripheralSensor[i].dev; i++) {
+        err = whal_Sensor_Deinit(g_peripheralSensor[i].dev);
+        if (err)
+            return err;
+    }
+#endif
 
     for (size_t i = 0; g_peripheralFlash[i].dev; i++) {
         err = whal_Flash_Deinit(g_peripheralFlash[i].dev);

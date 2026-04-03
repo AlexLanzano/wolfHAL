@@ -14,8 +14,8 @@ CFLAGS += $(foreach t,$(TESTS),$(if $(wildcard $(t)/test_$(PLATFORM)_$(t).c),-DW
 
 SOURCE = main.c
 SOURCE += $(BOARD_SOURCE)
-SOURCE += $(foreach t,$(TESTS),$(t)/test_$(t).c)
-SOURCE += $(foreach t,$(TESTS),$(wildcard $(t)/test_$(PLATFORM)_$(t).c))
+SOURCE += $(foreach t,$(TESTS),$(shell find . -name 'test_$(t).c'))
+SOURCE += $(foreach t,$(TESTS),$(shell find . -name 'test_$(PLATFORM)_$(t).c'))
 
 OBJECTS = $(patsubst %.c,$(BUILD_DIR)/%.o,$(SOURCE))
 DEPENDS = $(OBJECTS:.o=.d)

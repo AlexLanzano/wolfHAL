@@ -13,6 +13,7 @@ extern whal_Spi g_whalSpi;
 extern whal_Flash g_whalFlash;
 extern whal_Rng g_whalRng;
 extern whal_Crypto g_whalCrypto;
+extern whal_I2c g_whalI2c;
 extern whal_Irq g_whalIrq;
 
 extern whal_Timeout g_whalTimeout;
@@ -26,6 +27,8 @@ enum {
     SPI_MISO_PIN,
     SPI_MOSI_PIN,
     SPI_CS_PIN,
+    I2C_SCL_PIN,
+    I2C_SDA_PIN,
     PIN_COUNT,
 };
 

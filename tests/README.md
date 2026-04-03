@@ -48,16 +48,18 @@ Board support (device instances, linker scripts, etc.) lives in the top-level
 
 ### Peripheral Devices
 
-External peripheral drivers (SPI-NOR flash, SD cards, etc.) are opt-in. Enable
-them by setting the corresponding variable when building:
+External peripheral drivers (SPI-NOR flash, SD cards, IMUs, etc.) are opt-in.
+Enable them using the `PERIPHERALS` variable when building:
 
 ```
-make BOARD=stm32wb55xx_nucleo PERIPHERAL_SPI_NOR_W25Q64=1
-make BOARD=stm32wb55xx_nucleo PERIPHERAL_SDHC_SPI_SDCARD32GB=1
+make BOARD=stm32wb55xx_nucleo PERIPHERALS="spi_nor_w25q64"
+make BOARD=stm32wb55xx_nucleo PERIPHERALS="bmi270" TESTS="bmi270"
+make BOARD=stm32wb55xx_nucleo PERIPHERALS="spi_nor_w25q64 bmi270"
 ```
 
 Peripheral devices are automatically tested by their matching test suite (e.g.,
-`flash` tests iterate all entries in `g_peripheralFlash[]`).
+`flash` tests iterate all entries in `g_peripheralFlash[]`, `bmi270` tests
+use `g_peripheralSensor[]`).
 
 ## Core Tests
 

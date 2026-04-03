@@ -42,18 +42,26 @@ jobs:
         working-directory: tests
         run: CFLAGS="${{ matrix.extra_cflags }}" make BOARD=${{ matrix.board }}
 
-  peripheral-drivers:
+  peripheral-tests:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        source:
-          - src/block/sdhc_spi.c
-          - src/flash/spi_nor.c
+        include:
+          - board: stm32wb55xx_nucleo
+            peripherals: bmi270
+            tests: bmi270
+          - board: stm32wb55xx_nucleo
+            peripherals: spi_nor_w25q64
+            tests: flash
+          - board: stm32wb55xx_nucleo
+            peripherals: sdhc_spi_sdcard32gb
+            tests: block
     steps:
       - uses: actions/checkout@v4
 
       - name: Install ARM toolchain
         run: sudo apt-get update && sudo apt-get install -y gcc-arm-none-eabi
 
-      - name: Compile ${{ matrix.source }}
-        run: arm-none-eabi-gcc -c -I. -Wall -Werror ${{ matrix.source }} -o /dev/null
+      - name: Build tests
+        working-directory: tests
+        run: make BOARD=${{ matrix.board }} PERIPHERALS="${{ matrix.peripherals }}" TESTS="${{ matrix.tests }}"

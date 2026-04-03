@@ -9,16 +9,10 @@
 
 /* SysTick timing */
 volatile uint32_t g_tick = 0;
-volatile uint8_t g_waiting = 0;
-volatile uint8_t g_tickOverflow = 0;
 
-void SysTick_Handler()
+void SysTick_Handler(void)
 {
-    uint32_t tickBefore = g_tick++;
-    if (g_waiting) {
-        if (tickBefore > g_tick)
-            g_tickOverflow = 1;
-    }
+    g_tick++;
 }
 
 uint32_t Board_GetTick(void)
@@ -64,6 +58,7 @@ static const whal_Stm32wbRcc_Clk g_clocks[] = {
     {WHAL_STM32WB55_SPI1_CLOCK},
     {WHAL_STM32WB55_RNG_CLOCK},
     {WHAL_STM32WB55_AES1_CLOCK},
+    {WHAL_STM32WB55_I2C1_CLOCK},
 };
 #define CLOCK_COUNT (sizeof(g_clocks) / sizeof(g_clocks[0]))
 
@@ -135,8 +130,36 @@ whal_Gpio g_whalGpio = {
                 .speed = WHAL_STM32WB_GPIO_SPEED_FAST,
                 .pull = WHAL_STM32WB_GPIO_PULL_UP,
             },
+            [I2C_SCL_PIN] = { /* I2C1 SCL */
+                .port = WHAL_STM32WB_GPIO_PORT_B,
+                .pin = 8,
+                .mode = WHAL_STM32WB_GPIO_MODE_ALTFN,
+                .outType = WHAL_STM32WB_GPIO_OUTTYPE_OPENDRAIN,
+                .speed = WHAL_STM32WB_GPIO_SPEED_FAST,
+                .pull = WHAL_STM32WB_GPIO_PULL_UP,
+                .altFn = 4,
+            },
+            [I2C_SDA_PIN] = { /* I2C1 SDA */
+                .port = WHAL_STM32WB_GPIO_PORT_B,
+                .pin = 9,
+                .mode = WHAL_STM32WB_GPIO_MODE_ALTFN,
+                .outType = WHAL_STM32WB_GPIO_OUTTYPE_OPENDRAIN,
+                .speed = WHAL_STM32WB_GPIO_SPEED_FAST,
+                .pull = WHAL_STM32WB_GPIO_PULL_UP,
+                .altFn = 4,
+            },
         },
         .pinCount = PIN_COUNT,
+    },
+};
+
+/* I2C */
+whal_I2c g_whalI2c = {
+    WHAL_STM32WB55_I2C1_DEVICE,
+
+    .cfg = &(whal_Stm32wbI2c_Cfg) {
+        .pclk = 64000000,
+        .timeout = &g_whalTimeout,
     },
 };
 
@@ -259,20 +282,7 @@ whal_Crypto g_whalCrypto = {
 void Board_WaitMs(size_t ms)
 {
     uint32_t startCount = g_tick;
-    g_waiting = 1;
-    while (1) {
-        uint32_t currentCount = g_tick;
-        if (g_tickOverflow) {
-            if ((UINT32_MAX - startCount) + currentCount > ms) {
-                break;
-            }
-        } else if (currentCount - startCount > ms) {
-            break;
-        }
-    }
-
-    g_waiting = 0;
-    g_tickOverflow = 0;
+    while (g_tick - startCount < ms);
 }
 
 whal_Error Board_Init(void)
@@ -347,6 +357,11 @@ whal_Error Board_Init(void)
         return err;
     }
 
+    err = whal_I2c_Init(&g_whalI2c);
+    if (err) {
+        return err;
+    }
+
     err = whal_Flash_Init(&g_whalFlash);
     if (err) {
         return err;
@@ -410,6 +425,11 @@ whal_Error Board_Deinit(void)
     }
 
     err = whal_Flash_Deinit(&g_whalFlash);
+    if (err) {
+        return err;
+    }
+
+    err = whal_I2c_Deinit(&g_whalI2c);
     if (err) {
         return err;
     }
