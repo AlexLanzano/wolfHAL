@@ -32,7 +32,6 @@ typedef struct {
  * @brief STM32H5 Ethernet MAC configuration.
  */
 typedef struct whal_Stm32h5Eth_Cfg {
-    uint8_t macAddr[6];                   /* MAC address */
     whal_Stm32h5Eth_TxDesc *txDescs;     /* TX descriptor ring (pre-allocated) */
     uint8_t *txBufs;                      /* TX frame buffers (pre-allocated) */
     size_t txDescCount;                   /* Number of TX descriptors */

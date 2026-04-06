@@ -54,60 +54,36 @@ whal_Gpio g_whalGpio = {
 
     .cfg = &(whal_Stm32c0Gpio_Cfg) {
         .pinCfg = (whal_Stm32c0Gpio_PinCfg[PIN_COUNT]) {
-            [LED_PIN] = { /* LD4 Green LED on PA5 */
-                .port = WHAL_STM32C0_GPIO_PORT_A,
-                .pin = 5,
-                .mode = WHAL_STM32C0_GPIO_MODE_OUT,
-                .outType = WHAL_STM32C0_GPIO_OUTTYPE_PUSHPULL,
-                .speed = WHAL_STM32C0_GPIO_SPEED_LOW,
-                .pull = WHAL_STM32C0_GPIO_PULL_NONE,
-                .altFn = 0,
-            },
-            [UART_TX_PIN] = { /* USART1 TX on PB6, AF1 */
-                .port = WHAL_STM32C0_GPIO_PORT_B,
-                .pin = 6,
-                .mode = WHAL_STM32C0_GPIO_MODE_ALTFN,
-                .outType = WHAL_STM32C0_GPIO_OUTTYPE_PUSHPULL,
-                .speed = WHAL_STM32C0_GPIO_SPEED_FAST,
-                .pull = WHAL_STM32C0_GPIO_PULL_UP,
-                .altFn = 0,
-            },
-            [UART_RX_PIN] = { /* USART1 RX on PB7, AF1 */
-                .port = WHAL_STM32C0_GPIO_PORT_B,
-                .pin = 7,
-                .mode = WHAL_STM32C0_GPIO_MODE_ALTFN,
-                .outType = WHAL_STM32C0_GPIO_OUTTYPE_PUSHPULL,
-                .speed = WHAL_STM32C0_GPIO_SPEED_FAST,
-                .pull = WHAL_STM32C0_GPIO_PULL_UP,
-                .altFn = 0,
-            },
-            [SPI_SCK_PIN] = { /* SPI1 SCK on PA1, AF0 */
-                .port = WHAL_STM32C0_GPIO_PORT_A,
-                .pin = 1,
-                .mode = WHAL_STM32C0_GPIO_MODE_ALTFN,
-                .outType = WHAL_STM32C0_GPIO_OUTTYPE_PUSHPULL,
-                .speed = WHAL_STM32C0_GPIO_SPEED_FAST,
-                .pull = WHAL_STM32C0_GPIO_PULL_NONE,
-                .altFn = 0,
-            },
-            [SPI_MISO_PIN] = { /* SPI1 MISO on PA6, AF0 */
-                .port = WHAL_STM32C0_GPIO_PORT_A,
-                .pin = 6,
-                .mode = WHAL_STM32C0_GPIO_MODE_ALTFN,
-                .outType = WHAL_STM32C0_GPIO_OUTTYPE_PUSHPULL,
-                .speed = WHAL_STM32C0_GPIO_SPEED_FAST,
-                .pull = WHAL_STM32C0_GPIO_PULL_NONE,
-                .altFn = 0,
-            },
-            [SPI_MOSI_PIN] = { /* SPI1 MOSI on PA7, AF0 */
-                .port = WHAL_STM32C0_GPIO_PORT_A,
-                .pin = 7,
-                .mode = WHAL_STM32C0_GPIO_MODE_ALTFN,
-                .outType = WHAL_STM32C0_GPIO_OUTTYPE_PUSHPULL,
-                .speed = WHAL_STM32C0_GPIO_SPEED_FAST,
-                .pull = WHAL_STM32C0_GPIO_PULL_NONE,
-                .altFn = 0,
-            },
+            /* LD4 Green LED on PA5 */
+            [LED_PIN] = WHAL_STM32C0_GPIO_PIN(
+                WHAL_STM32C0_GPIO_PORT_A, 5, WHAL_STM32C0_GPIO_MODE_OUT,
+                WHAL_STM32C0_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32C0_GPIO_SPEED_LOW,
+                WHAL_STM32C0_GPIO_PULL_NONE, 0),
+            /* USART1 TX on PB6, AF0 */
+            [UART_TX_PIN] = WHAL_STM32C0_GPIO_PIN(
+                WHAL_STM32C0_GPIO_PORT_B, 6, WHAL_STM32C0_GPIO_MODE_ALTFN,
+                WHAL_STM32C0_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32C0_GPIO_SPEED_FAST,
+                WHAL_STM32C0_GPIO_PULL_UP, 0),
+            /* USART1 RX on PB7, AF0 */
+            [UART_RX_PIN] = WHAL_STM32C0_GPIO_PIN(
+                WHAL_STM32C0_GPIO_PORT_B, 7, WHAL_STM32C0_GPIO_MODE_ALTFN,
+                WHAL_STM32C0_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32C0_GPIO_SPEED_FAST,
+                WHAL_STM32C0_GPIO_PULL_UP, 0),
+            /* SPI1 SCK on PA1, AF0 */
+            [SPI_SCK_PIN] = WHAL_STM32C0_GPIO_PIN(
+                WHAL_STM32C0_GPIO_PORT_A, 1, WHAL_STM32C0_GPIO_MODE_ALTFN,
+                WHAL_STM32C0_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32C0_GPIO_SPEED_FAST,
+                WHAL_STM32C0_GPIO_PULL_NONE, 0),
+            /* SPI1 MISO on PA6, AF0 */
+            [SPI_MISO_PIN] = WHAL_STM32C0_GPIO_PIN(
+                WHAL_STM32C0_GPIO_PORT_A, 6, WHAL_STM32C0_GPIO_MODE_ALTFN,
+                WHAL_STM32C0_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32C0_GPIO_SPEED_FAST,
+                WHAL_STM32C0_GPIO_PULL_NONE, 0),
+            /* SPI1 MOSI on PA7, AF0 */
+            [SPI_MOSI_PIN] = WHAL_STM32C0_GPIO_PIN(
+                WHAL_STM32C0_GPIO_PORT_A, 7, WHAL_STM32C0_GPIO_MODE_ALTFN,
+                WHAL_STM32C0_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32C0_GPIO_SPEED_FAST,
+                WHAL_STM32C0_GPIO_PULL_NONE, 0),
         },
         .pinCount = PIN_COUNT,
     },

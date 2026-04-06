@@ -59,4 +59,10 @@ typedef whal_Stm32wbGpio_PinCfg whal_Stm32c0Gpio_PinCfg;
 #define WHAL_STM32C0_GPIO_PORT_D WHAL_STM32WB_GPIO_PORT_D
 #define WHAL_STM32C0_GPIO_PORT_F WHAL_STM32WB_GPIO_PORT_F
 
+/*
+ * @brief Pack a GPIO pin configuration into a single word (re-exported from
+ * STM32WB).
+ */
+#define WHAL_STM32C0_GPIO_PIN WHAL_STM32WB_GPIO_PIN
+
 #endif /* WHAL_STM32C0_GPIO_H */

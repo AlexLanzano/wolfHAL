@@ -206,13 +206,13 @@ whal_Error whal_Stm32h5Eth_Init(whal_Eth *ethDev)
 
     /* MAC address */
     whal_Reg_Write(base, ETH_MACA0LR_REG,
-                   ((uint32_t)cfg->macAddr[3] << 24) |
-                   ((uint32_t)cfg->macAddr[2] << 16) |
-                   ((uint32_t)cfg->macAddr[1] << 8) |
-                   ((uint32_t)cfg->macAddr[0]));
+                   ((uint32_t)ethDev->macAddr[3] << 24) |
+                   ((uint32_t)ethDev->macAddr[2] << 16) |
+                   ((uint32_t)ethDev->macAddr[1] << 8) |
+                   ((uint32_t)ethDev->macAddr[0]));
     whal_Reg_Write(base, ETH_MACA0HR_REG,
-                   ((uint32_t)cfg->macAddr[5] << 8) |
-                   ((uint32_t)cfg->macAddr[4]));
+                   ((uint32_t)ethDev->macAddr[5] << 8) |
+                   ((uint32_t)ethDev->macAddr[4]));
 
     /* Reset ring tracking state */
     cfg->txHead = 0;

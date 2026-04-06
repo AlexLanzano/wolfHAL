@@ -56,6 +56,7 @@ struct whal_Eth {
     const whal_Regmap regmap;
     const whal_EthDriver *driver;
     void *cfg;
+    uint8_t macAddr[6];
 };
 
 /*

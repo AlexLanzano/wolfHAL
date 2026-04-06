@@ -292,18 +292,15 @@ whal_Error whal_Stm32h5Flash_Erase(whal_Flash *flashDev, size_t addr,
         size_t bank = (sector >= FLASH_SECTORS_PER_BANK) ? 1 : 0;
         size_t sectorInBank = sector - (bank * FLASH_SECTORS_PER_BANK);
 
-        /* Configure: sector erase, sector number, bank select */
+        /* Configure and start sector erase in one write */
         whal_Reg_Update(regmap->base, FLASH_NSCR_REG,
                         FLASH_NSCR_SER_Msk | FLASH_NSCR_SNB_Msk |
-                        FLASH_NSCR_BKSEL_Msk,
+                        FLASH_NSCR_BKSEL_Msk | FLASH_NSCR_STRT_Msk,
                         whal_SetBits(FLASH_NSCR_SER_Msk, FLASH_NSCR_SER_Pos, 1) |
                         whal_SetBits(FLASH_NSCR_SNB_Msk, FLASH_NSCR_SNB_Pos,
                                      sectorInBank) |
                         whal_SetBits(FLASH_NSCR_BKSEL_Msk, FLASH_NSCR_BKSEL_Pos,
-                                     bank));
-
-        /* Start erase */
-        whal_Reg_Update(regmap->base, FLASH_NSCR_REG, FLASH_NSCR_STRT_Msk,
+                                     bank) |
                         whal_SetBits(FLASH_NSCR_STRT_Msk, FLASH_NSCR_STRT_Pos, 1));
 
         err = WaitNotBusy(regmap->base, cfg->timeout);
@@ -320,6 +317,20 @@ cleanup:
     whal_Reg_Update(regmap->base, FLASH_NSCR_REG, FLASH_NSCR_SER_Msk, 0);
 
     return err;
+}
+
+#define FLASH_ACR_LATENCY_WRHIGHFREQ_Msk 0x3FUL
+
+whal_Error whal_Stm32h5Flash_Ext_SetLatency(whal_Flash *flashDev,
+                                             uint8_t latency)
+{
+    if (!flashDev)
+        return WHAL_EINVAL;
+
+    whal_Reg_Update(flashDev->regmap.base, FLASH_ACR_REG,
+                    FLASH_ACR_LATENCY_WRHIGHFREQ_Msk, latency);
+
+    return WHAL_SUCCESS;
 }
 
 const whal_FlashDriver whal_Stm32h5Flash_Driver = {
