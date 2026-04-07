@@ -122,4 +122,21 @@ whal_Error whal_Stm32h5Flash_Write(whal_Flash *flashDev, size_t addr,
 whal_Error whal_Stm32h5Flash_Erase(whal_Flash *flashDev, size_t addr,
                                     size_t dataSz);
 
+/*
+ * @brief Set flash access latency (wait states) and write high-frequency mode.
+ *
+ * Must be called before increasing the system clock to avoid flash access
+ * faults. The value is written directly to FLASH_ACR[7:0]:
+ *   bits [3:0] = LATENCY (wait states, 0-15)
+ *   bits [5:4] = WRHIGHFREQ (0-2, based on frequency range)
+ *
+ * @param flashDev Flash device instance.
+ * @param latency  Combined LATENCY | (WRHIGHFREQ << 4) value.
+ *
+ * @retval WHAL_SUCCESS Latency updated.
+ * @retval WHAL_EINVAL  Invalid arguments.
+ */
+whal_Error whal_Stm32h5Flash_Ext_SetLatency(whal_Flash *flashDev,
+                                             uint8_t latency);
+
 #endif /* WHAL_STM32H5_FLASH_H */

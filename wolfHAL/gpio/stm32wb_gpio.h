@@ -21,79 +21,81 @@
  */
 
 /*
- * @brief GPIO port identifiers.
+ * @brief Packed per-pin GPIO configuration (uint32_t).
  *
- * Port index is used to calculate register offset: base + (port * 0x400)
- */
-typedef enum {
-    WHAL_STM32WB_GPIO_PORT_A,
-    WHAL_STM32WB_GPIO_PORT_B,
-    WHAL_STM32WB_GPIO_PORT_C,
-    WHAL_STM32WB_GPIO_PORT_D,
-    WHAL_STM32WB_GPIO_PORT_E,
-    WHAL_STM32WB_GPIO_PORT_F,
-    WHAL_STM32WB_GPIO_PORT_G,
-    WHAL_STM32WB_GPIO_PORT_H,
-} whal_Stm32wbGpio_Port;
-
-/*
- * @brief GPIO pin mode selection.
+ * Bit layout:
+ *   [3:0]   port    — GPIO port A-I (4 bits)
+ *   [7:4]   pin     — Pin number 0-15 (4 bits)
+ *   [9:8]   mode    — Pin mode (2 bits)
+ *   [10]    outType — Output type (1 bit)
+ *   [12:11] speed   — Output speed (2 bits)
+ *   [14:13] pull    — Pull resistor (2 bits)
+ *   [18:15] altFn   — Alternate function 0-15 (4 bits)
  *
- * Determines the basic function of the pin.
+ * Use WHAL_STM32WB_GPIO_PIN() to build values and
+ * WHAL_STM32WB_GPIO_GET_*() to extract fields.
  */
-typedef enum {
-    WHAL_STM32WB_GPIO_MODE_IN,     /* Digital input */
-    WHAL_STM32WB_GPIO_MODE_OUT,    /* Digital output */
-    WHAL_STM32WB_GPIO_MODE_ALTFN,  /* Alternate function (peripheral control) */
-    WHAL_STM32WB_GPIO_MODE_ANALOG, /* Analog mode (ADC/DAC) */
-} whal_Stm32wbGpio_Mode;
+typedef uint32_t whal_Stm32wbGpio_PinCfg;
 
-/*
- * @brief Output driver type.
- */
-typedef enum {
-    WHAL_STM32WB_GPIO_OUTTYPE_PUSHPULL,  /* Push-pull output */
-    WHAL_STM32WB_GPIO_OUTTYPE_OPENDRAIN, /* Open-drain output */
-} whal_Stm32wbGpio_OutType;
+/* Field positions */
+#define WHAL_STM32WB_GPIO_PORT_Pos      0
+#define WHAL_STM32WB_GPIO_PIN_Pos       4
+#define WHAL_STM32WB_GPIO_MODE_Pos      8
+#define WHAL_STM32WB_GPIO_OUTTYPE_Pos   10
+#define WHAL_STM32WB_GPIO_SPEED_Pos     11
+#define WHAL_STM32WB_GPIO_PULL_Pos      13
+#define WHAL_STM32WB_GPIO_ALTFN_Pos     15
 
-/*
- * @brief Output speed settings.
- *
- * Higher speeds allow faster edge transitions but increase EMI and power.
- * Use the lowest speed that meets timing requirements.
- */
-typedef enum {
-    WHAL_STM32WB_GPIO_SPEED_LOW,
-    WHAL_STM32WB_GPIO_SPEED_MEDIUM,
-    WHAL_STM32WB_GPIO_SPEED_FAST,
-    WHAL_STM32WB_GPIO_SPEED_HIGH,
-} whal_Stm32wbGpio_Speed;
+/* Port values */
+#define WHAL_STM32WB_GPIO_PORT_A    0
+#define WHAL_STM32WB_GPIO_PORT_B    1
+#define WHAL_STM32WB_GPIO_PORT_C    2
+#define WHAL_STM32WB_GPIO_PORT_D    3
+#define WHAL_STM32WB_GPIO_PORT_E    4
+#define WHAL_STM32WB_GPIO_PORT_F    5
+#define WHAL_STM32WB_GPIO_PORT_G    6
+#define WHAL_STM32WB_GPIO_PORT_H    7
+#define WHAL_STM32WB_GPIO_PORT_I    8
 
-/*
- * @brief Internal pull resistor configuration.
- */
-typedef enum {
-    WHAL_STM32WB_GPIO_PULL_NONE, /* No pull resistor (floating) */
-    WHAL_STM32WB_GPIO_PULL_UP,   /* Internal pull-up */
-    WHAL_STM32WB_GPIO_PULL_DOWN, /* Internal pull-down */
-} whal_Stm32wbGpio_Pull;
+/* Mode values */
+#define WHAL_STM32WB_GPIO_MODE_IN       0
+#define WHAL_STM32WB_GPIO_MODE_OUT      1
+#define WHAL_STM32WB_GPIO_MODE_ALTFN    2
+#define WHAL_STM32WB_GPIO_MODE_ANALOG   3
 
-/*
- * @brief Per-pin GPIO configuration.
- *
- * For alternate function mode, consult the datasheet's "Alternate function
- * mapping" table to find the correct altFn value for your peripheral.
- * For example, USART1_TX on PA9 uses AF7.
- */
-typedef struct {
-    whal_Stm32wbGpio_Port port;      /* GPIO port (A-H) */
-    uint8_t pin;                      /* Pin number (0-15) */
-    whal_Stm32wbGpio_Mode mode;      /* Pin mode */
-    whal_Stm32wbGpio_OutType outType; /* Output type (push-pull/open-drain) */
-    whal_Stm32wbGpio_Speed speed;    /* Output speed */
-    whal_Stm32wbGpio_Pull pull;      /* Pull resistor config */
-    uint8_t altFn;                    /* Alternate function (0-15, AF0-AF15) */
-} whal_Stm32wbGpio_PinCfg;
+/* Output type values */
+#define WHAL_STM32WB_GPIO_OUTTYPE_PUSHPULL   0
+#define WHAL_STM32WB_GPIO_OUTTYPE_OPENDRAIN  1
+
+/* Speed values */
+#define WHAL_STM32WB_GPIO_SPEED_LOW     0
+#define WHAL_STM32WB_GPIO_SPEED_MEDIUM  1
+#define WHAL_STM32WB_GPIO_SPEED_FAST    2
+#define WHAL_STM32WB_GPIO_SPEED_HIGH    3
+
+/* Pull values */
+#define WHAL_STM32WB_GPIO_PULL_NONE     0
+#define WHAL_STM32WB_GPIO_PULL_UP       1
+#define WHAL_STM32WB_GPIO_PULL_DOWN     2
+
+/* Pack a pin configuration into a uint32_t */
+#define WHAL_STM32WB_GPIO_PIN(port, pin, mode, outType, speed, pull, altFn) \
+    ((((uint32_t)(port)    & 0xFu) << WHAL_STM32WB_GPIO_PORT_Pos)    | \
+     (((uint32_t)(pin)     & 0xFu) << WHAL_STM32WB_GPIO_PIN_Pos)     | \
+     (((uint32_t)(mode)    & 0x3u) << WHAL_STM32WB_GPIO_MODE_Pos)    | \
+     (((uint32_t)(outType) & 0x1u) << WHAL_STM32WB_GPIO_OUTTYPE_Pos) | \
+     (((uint32_t)(speed)   & 0x3u) << WHAL_STM32WB_GPIO_SPEED_Pos)   | \
+     (((uint32_t)(pull)    & 0x3u) << WHAL_STM32WB_GPIO_PULL_Pos)    | \
+     (((uint32_t)(altFn)   & 0xFu) << WHAL_STM32WB_GPIO_ALTFN_Pos))
+
+/* Extract individual fields */
+#define WHAL_STM32WB_GPIO_GET_PORT(cfg)    (((cfg) >> WHAL_STM32WB_GPIO_PORT_Pos) & 0xF)
+#define WHAL_STM32WB_GPIO_GET_PIN(cfg)     (((cfg) >> WHAL_STM32WB_GPIO_PIN_Pos) & 0xF)
+#define WHAL_STM32WB_GPIO_GET_MODE(cfg)    (((cfg) >> WHAL_STM32WB_GPIO_MODE_Pos) & 0x3)
+#define WHAL_STM32WB_GPIO_GET_OUTTYPE(cfg) (((cfg) >> WHAL_STM32WB_GPIO_OUTTYPE_Pos) & 0x1)
+#define WHAL_STM32WB_GPIO_GET_SPEED(cfg)   (((cfg) >> WHAL_STM32WB_GPIO_SPEED_Pos) & 0x3)
+#define WHAL_STM32WB_GPIO_GET_PULL(cfg)    (((cfg) >> WHAL_STM32WB_GPIO_PULL_Pos) & 0x3)
+#define WHAL_STM32WB_GPIO_GET_ALTFN(cfg)   (((cfg) >> WHAL_STM32WB_GPIO_ALTFN_Pos) & 0xF)
 
 /*
  * @brief GPIO device configuration.

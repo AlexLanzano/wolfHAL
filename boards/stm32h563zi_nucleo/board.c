@@ -69,140 +69,86 @@ whal_Gpio g_whalGpio = {
 
     .cfg = &(whal_Stm32h5Gpio_Cfg) {
         .pinCfg = (whal_Stm32h5Gpio_PinCfg[PIN_COUNT]) {
-            [LED_PIN] = { /* LD1 Green LED on PB0 */
-                .port = WHAL_STM32H5_GPIO_PORT_B,
-                .pin = 0,
-                .mode = WHAL_STM32H5_GPIO_MODE_OUT,
-                .outType = WHAL_STM32H5_GPIO_OUTTYPE_PUSHPULL,
-                .speed = WHAL_STM32H5_GPIO_SPEED_LOW,
-                .pull = WHAL_STM32H5_GPIO_PULL_NONE,
-                .altFn = 0,
-            },
-            [UART_TX_PIN] = { /* USART2 TX on PD5 */
-                .port = WHAL_STM32H5_GPIO_PORT_D,
-                .pin = 5,
-                .mode = WHAL_STM32H5_GPIO_MODE_ALTFN,
-                .outType = WHAL_STM32H5_GPIO_OUTTYPE_PUSHPULL,
-                .speed = WHAL_STM32H5_GPIO_SPEED_FAST,
-                .pull = WHAL_STM32H5_GPIO_PULL_UP,
-                .altFn = 7,
-            },
-            [UART_RX_PIN] = { /* USART2 RX on PD6 */
-                .port = WHAL_STM32H5_GPIO_PORT_D,
-                .pin = 6,
-                .mode = WHAL_STM32H5_GPIO_MODE_ALTFN,
-                .outType = WHAL_STM32H5_GPIO_OUTTYPE_PUSHPULL,
-                .speed = WHAL_STM32H5_GPIO_SPEED_FAST,
-                .pull = WHAL_STM32H5_GPIO_PULL_UP,
-                .altFn = 7,
-            },
-            [SPI_SCK_PIN] = { /* SPI1 SCK on PA5 */
-                .port = WHAL_STM32H5_GPIO_PORT_A,
-                .pin = 5,
-                .mode = WHAL_STM32H5_GPIO_MODE_ALTFN,
-                .outType = WHAL_STM32H5_GPIO_OUTTYPE_PUSHPULL,
-                .speed = WHAL_STM32H5_GPIO_SPEED_FAST,
-                .pull = WHAL_STM32H5_GPIO_PULL_NONE,
-                .altFn = 5,
-            },
-            [SPI_MISO_PIN] = { /* SPI1 MISO on PG9 */
-                .port = WHAL_STM32H5_GPIO_PORT_G,
-                .pin = 9,
-                .mode = WHAL_STM32H5_GPIO_MODE_ALTFN,
-                .outType = WHAL_STM32H5_GPIO_OUTTYPE_PUSHPULL,
-                .speed = WHAL_STM32H5_GPIO_SPEED_FAST,
-                .pull = WHAL_STM32H5_GPIO_PULL_NONE,
-                .altFn = 5,
-            },
-            [SPI_MOSI_PIN] = { /* SPI1 MOSI on PB5 */
-                .port = WHAL_STM32H5_GPIO_PORT_B,
-                .pin = 5,
-                .mode = WHAL_STM32H5_GPIO_MODE_ALTFN,
-                .outType = WHAL_STM32H5_GPIO_OUTTYPE_PUSHPULL,
-                .speed = WHAL_STM32H5_GPIO_SPEED_FAST,
-                .pull = WHAL_STM32H5_GPIO_PULL_NONE,
-                .altFn = 5,
-            },
-            [SPI_CS_PIN] = { /* SPI CS on PD14 */
-                .port = WHAL_STM32H5_GPIO_PORT_D,
-                .pin = 14,
-                .mode = WHAL_STM32H5_GPIO_MODE_OUT,
-                .outType = WHAL_STM32H5_GPIO_OUTTYPE_PUSHPULL,
-                .speed = WHAL_STM32H5_GPIO_SPEED_FAST,
-                .pull = WHAL_STM32H5_GPIO_PULL_UP,
-            },
-            [ETH_RMII_REF_CLK_PIN] = { /* RMII REF_CLK on PA1 */
-                .port = WHAL_STM32H5_GPIO_PORT_A,
-                .pin = 1,
-                .mode = WHAL_STM32H5_GPIO_MODE_ALTFN,
-                .speed = WHAL_STM32H5_GPIO_SPEED_HIGH,
-                .pull = WHAL_STM32H5_GPIO_PULL_NONE,
-                .altFn = 11,
-            },
-            [ETH_RMII_MDIO_PIN] = { /* RMII MDIO on PA2 */
-                .port = WHAL_STM32H5_GPIO_PORT_A,
-                .pin = 2,
-                .mode = WHAL_STM32H5_GPIO_MODE_ALTFN,
-                .speed = WHAL_STM32H5_GPIO_SPEED_HIGH,
-                .pull = WHAL_STM32H5_GPIO_PULL_NONE,
-                .altFn = 11,
-            },
-            [ETH_RMII_MDC_PIN] = { /* RMII MDC on PC1 */
-                .port = WHAL_STM32H5_GPIO_PORT_C,
-                .pin = 1,
-                .mode = WHAL_STM32H5_GPIO_MODE_ALTFN,
-                .speed = WHAL_STM32H5_GPIO_SPEED_HIGH,
-                .pull = WHAL_STM32H5_GPIO_PULL_NONE,
-                .altFn = 11,
-            },
-            [ETH_RMII_CRS_DV_PIN] = { /* RMII CRS_DV on PA7 */
-                .port = WHAL_STM32H5_GPIO_PORT_A,
-                .pin = 7,
-                .mode = WHAL_STM32H5_GPIO_MODE_ALTFN,
-                .speed = WHAL_STM32H5_GPIO_SPEED_HIGH,
-                .pull = WHAL_STM32H5_GPIO_PULL_NONE,
-                .altFn = 11,
-            },
-            [ETH_RMII_RXD0_PIN] = { /* RMII RXD0 on PC4 */
-                .port = WHAL_STM32H5_GPIO_PORT_C,
-                .pin = 4,
-                .mode = WHAL_STM32H5_GPIO_MODE_ALTFN,
-                .speed = WHAL_STM32H5_GPIO_SPEED_HIGH,
-                .pull = WHAL_STM32H5_GPIO_PULL_NONE,
-                .altFn = 11,
-            },
-            [ETH_RMII_RXD1_PIN] = { /* RMII RXD1 on PC5 */
-                .port = WHAL_STM32H5_GPIO_PORT_C,
-                .pin = 5,
-                .mode = WHAL_STM32H5_GPIO_MODE_ALTFN,
-                .speed = WHAL_STM32H5_GPIO_SPEED_HIGH,
-                .pull = WHAL_STM32H5_GPIO_PULL_NONE,
-                .altFn = 11,
-            },
-            [ETH_RMII_TX_EN_PIN] = { /* RMII TX_EN on PG11 */
-                .port = WHAL_STM32H5_GPIO_PORT_G,
-                .pin = 11,
-                .mode = WHAL_STM32H5_GPIO_MODE_ALTFN,
-                .speed = WHAL_STM32H5_GPIO_SPEED_HIGH,
-                .pull = WHAL_STM32H5_GPIO_PULL_NONE,
-                .altFn = 11,
-            },
-            [ETH_RMII_TXD0_PIN] = { /* RMII TXD0 on PG13 */
-                .port = WHAL_STM32H5_GPIO_PORT_G,
-                .pin = 13,
-                .mode = WHAL_STM32H5_GPIO_MODE_ALTFN,
-                .speed = WHAL_STM32H5_GPIO_SPEED_HIGH,
-                .pull = WHAL_STM32H5_GPIO_PULL_NONE,
-                .altFn = 11,
-            },
-            [ETH_RMII_TXD1_PIN] = { /* RMII TXD1 on PB15 */
-                .port = WHAL_STM32H5_GPIO_PORT_B,
-                .pin = 15,
-                .mode = WHAL_STM32H5_GPIO_MODE_ALTFN,
-                .speed = WHAL_STM32H5_GPIO_SPEED_HIGH,
-                .pull = WHAL_STM32H5_GPIO_PULL_NONE,
-                .altFn = 11,
-            },
+            /* LD1 Green LED on PB0 */
+            [LED_PIN] = WHAL_STM32H5_GPIO_PIN(
+                WHAL_STM32H5_GPIO_PORT_B, 0, WHAL_STM32H5_GPIO_MODE_OUT,
+                WHAL_STM32H5_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32H5_GPIO_SPEED_LOW,
+                WHAL_STM32H5_GPIO_PULL_NONE, 0),
+            /* USART2 TX on PD5 */
+            [UART_TX_PIN] = WHAL_STM32H5_GPIO_PIN(
+                WHAL_STM32H5_GPIO_PORT_D, 5, WHAL_STM32H5_GPIO_MODE_ALTFN,
+                WHAL_STM32H5_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32H5_GPIO_SPEED_FAST,
+                WHAL_STM32H5_GPIO_PULL_UP, 7),
+            /* USART2 RX on PD6 */
+            [UART_RX_PIN] = WHAL_STM32H5_GPIO_PIN(
+                WHAL_STM32H5_GPIO_PORT_D, 6, WHAL_STM32H5_GPIO_MODE_ALTFN,
+                WHAL_STM32H5_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32H5_GPIO_SPEED_FAST,
+                WHAL_STM32H5_GPIO_PULL_UP, 7),
+            /* SPI1 SCK on PA5 */
+            [SPI_SCK_PIN] = WHAL_STM32H5_GPIO_PIN(
+                WHAL_STM32H5_GPIO_PORT_A, 5, WHAL_STM32H5_GPIO_MODE_ALTFN,
+                WHAL_STM32H5_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32H5_GPIO_SPEED_FAST,
+                WHAL_STM32H5_GPIO_PULL_NONE, 5),
+            /* SPI1 MISO on PG9 */
+            [SPI_MISO_PIN] = WHAL_STM32H5_GPIO_PIN(
+                WHAL_STM32H5_GPIO_PORT_G, 9, WHAL_STM32H5_GPIO_MODE_ALTFN,
+                WHAL_STM32H5_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32H5_GPIO_SPEED_FAST,
+                WHAL_STM32H5_GPIO_PULL_NONE, 5),
+            /* SPI1 MOSI on PB5 */
+            [SPI_MOSI_PIN] = WHAL_STM32H5_GPIO_PIN(
+                WHAL_STM32H5_GPIO_PORT_B, 5, WHAL_STM32H5_GPIO_MODE_ALTFN,
+                WHAL_STM32H5_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32H5_GPIO_SPEED_FAST,
+                WHAL_STM32H5_GPIO_PULL_NONE, 5),
+            /* SPI CS on PD14 */
+            [SPI_CS_PIN] = WHAL_STM32H5_GPIO_PIN(
+                WHAL_STM32H5_GPIO_PORT_D, 14, WHAL_STM32H5_GPIO_MODE_OUT,
+                WHAL_STM32H5_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32H5_GPIO_SPEED_FAST,
+                WHAL_STM32H5_GPIO_PULL_UP, 0),
+            /* RMII REF_CLK on PA1 */
+            [ETH_RMII_REF_CLK_PIN] = WHAL_STM32H5_GPIO_PIN(
+                WHAL_STM32H5_GPIO_PORT_A, 1, WHAL_STM32H5_GPIO_MODE_ALTFN,
+                WHAL_STM32H5_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32H5_GPIO_SPEED_HIGH,
+                WHAL_STM32H5_GPIO_PULL_NONE, 11),
+            /* RMII MDIO on PA2 */
+            [ETH_RMII_MDIO_PIN] = WHAL_STM32H5_GPIO_PIN(
+                WHAL_STM32H5_GPIO_PORT_A, 2, WHAL_STM32H5_GPIO_MODE_ALTFN,
+                WHAL_STM32H5_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32H5_GPIO_SPEED_HIGH,
+                WHAL_STM32H5_GPIO_PULL_NONE, 11),
+            /* RMII MDC on PC1 */
+            [ETH_RMII_MDC_PIN] = WHAL_STM32H5_GPIO_PIN(
+                WHAL_STM32H5_GPIO_PORT_C, 1, WHAL_STM32H5_GPIO_MODE_ALTFN,
+                WHAL_STM32H5_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32H5_GPIO_SPEED_HIGH,
+                WHAL_STM32H5_GPIO_PULL_NONE, 11),
+            /* RMII CRS_DV on PA7 */
+            [ETH_RMII_CRS_DV_PIN] = WHAL_STM32H5_GPIO_PIN(
+                WHAL_STM32H5_GPIO_PORT_A, 7, WHAL_STM32H5_GPIO_MODE_ALTFN,
+                WHAL_STM32H5_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32H5_GPIO_SPEED_HIGH,
+                WHAL_STM32H5_GPIO_PULL_NONE, 11),
+            /* RMII RXD0 on PC4 */
+            [ETH_RMII_RXD0_PIN] = WHAL_STM32H5_GPIO_PIN(
+                WHAL_STM32H5_GPIO_PORT_C, 4, WHAL_STM32H5_GPIO_MODE_ALTFN,
+                WHAL_STM32H5_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32H5_GPIO_SPEED_HIGH,
+                WHAL_STM32H5_GPIO_PULL_NONE, 11),
+            /* RMII RXD1 on PC5 */
+            [ETH_RMII_RXD1_PIN] = WHAL_STM32H5_GPIO_PIN(
+                WHAL_STM32H5_GPIO_PORT_C, 5, WHAL_STM32H5_GPIO_MODE_ALTFN,
+                WHAL_STM32H5_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32H5_GPIO_SPEED_HIGH,
+                WHAL_STM32H5_GPIO_PULL_NONE, 11),
+            /* RMII TX_EN on PG11 */
+            [ETH_RMII_TX_EN_PIN] = WHAL_STM32H5_GPIO_PIN(
+                WHAL_STM32H5_GPIO_PORT_G, 11, WHAL_STM32H5_GPIO_MODE_ALTFN,
+                WHAL_STM32H5_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32H5_GPIO_SPEED_HIGH,
+                WHAL_STM32H5_GPIO_PULL_NONE, 11),
+            /* RMII TXD0 on PG13 */
+            [ETH_RMII_TXD0_PIN] = WHAL_STM32H5_GPIO_PIN(
+                WHAL_STM32H5_GPIO_PORT_G, 13, WHAL_STM32H5_GPIO_MODE_ALTFN,
+                WHAL_STM32H5_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32H5_GPIO_SPEED_HIGH,
+                WHAL_STM32H5_GPIO_PULL_NONE, 11),
+            /* RMII TXD1 on PB15 */
+            [ETH_RMII_TXD1_PIN] = WHAL_STM32H5_GPIO_PIN(
+                WHAL_STM32H5_GPIO_PORT_B, 15, WHAL_STM32H5_GPIO_MODE_ALTFN,
+                WHAL_STM32H5_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32H5_GPIO_SPEED_HIGH,
+                WHAL_STM32H5_GPIO_PULL_NONE, 11),
         },
         .pinCount = PIN_COUNT,
     },
@@ -278,8 +224,8 @@ static uint8_t ethRxBufs[ETH_RX_DESC_COUNT * ETH_RX_BUF_SIZE]
 whal_Eth g_whalEth = {
     WHAL_STM32H563_ETH_DEVICE,
 
+    .macAddr = {0x00, 0x80, 0xE1, 0x00, 0x00, 0x01},
     .cfg = &(whal_Stm32h5Eth_Cfg) {
-        .macAddr = {0x00, 0x80, 0xE1, 0x00, 0x00, 0x01},
         .txDescs = ethTxDescs,
         .txBufs = ethTxBufs,
         .txDescCount = ETH_TX_DESC_COUNT,

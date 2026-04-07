@@ -11,6 +11,22 @@
 #define GPIOx_MODE_REG    0x00
 #define GPIOx_ODR_REG     0x14
 
+static void Test_Gpio_PinCfgRoundTrip(void)
+{
+    whal_Stm32wbGpio_PinCfg cfg = WHAL_STM32WB_GPIO_PIN(
+        WHAL_STM32WB_GPIO_PORT_C, 13, WHAL_STM32WB_GPIO_MODE_ALTFN,
+        WHAL_STM32WB_GPIO_OUTTYPE_OPENDRAIN, WHAL_STM32WB_GPIO_SPEED_HIGH,
+        WHAL_STM32WB_GPIO_PULL_DOWN, 9);
+
+    WHAL_ASSERT_EQ(WHAL_STM32WB_GPIO_GET_PORT(cfg), WHAL_STM32WB_GPIO_PORT_C);
+    WHAL_ASSERT_EQ(WHAL_STM32WB_GPIO_GET_PIN(cfg), 13);
+    WHAL_ASSERT_EQ(WHAL_STM32WB_GPIO_GET_MODE(cfg), WHAL_STM32WB_GPIO_MODE_ALTFN);
+    WHAL_ASSERT_EQ(WHAL_STM32WB_GPIO_GET_OUTTYPE(cfg), WHAL_STM32WB_GPIO_OUTTYPE_OPENDRAIN);
+    WHAL_ASSERT_EQ(WHAL_STM32WB_GPIO_GET_SPEED(cfg), WHAL_STM32WB_GPIO_SPEED_HIGH);
+    WHAL_ASSERT_EQ(WHAL_STM32WB_GPIO_GET_PULL(cfg), WHAL_STM32WB_GPIO_PULL_DOWN);
+    WHAL_ASSERT_EQ(WHAL_STM32WB_GPIO_GET_ALTFN(cfg), 9);
+}
+
 static void Test_Gpio_NoDuplicatePins(void)
 {
     whal_Stm32wbGpio_Cfg *cfg = (whal_Stm32wbGpio_Cfg *)g_whalGpio.cfg;
@@ -18,9 +34,10 @@ static void Test_Gpio_NoDuplicatePins(void)
 
     for (size_t i = 0; i < cfg->pinCount; i++) {
         for (size_t j = i + 1; j < cfg->pinCount; j++) {
-            if (pins[i].port == pins[j].port &&
-                pins[i].pin == pins[j].pin) {
-                WHAL_ASSERT_NEQ(pins[i].port, pins[j].port);
+            if (WHAL_STM32WB_GPIO_GET_PORT(pins[i]) == WHAL_STM32WB_GPIO_GET_PORT(pins[j]) &&
+                WHAL_STM32WB_GPIO_GET_PIN(pins[i]) == WHAL_STM32WB_GPIO_GET_PIN(pins[j])) {
+                WHAL_ASSERT_NEQ(WHAL_STM32WB_GPIO_GET_PORT(pins[i]),
+                                WHAL_STM32WB_GPIO_GET_PORT(pins[j]));
             }
         }
     }
@@ -61,6 +78,7 @@ static void Test_Gpio_SetLowReg(void)
 
 void whal_Test_Gpio_Platform(void)
 {
+    WHAL_TEST(Test_Gpio_PinCfgRoundTrip);
     WHAL_TEST(Test_Gpio_NoDuplicatePins);
     WHAL_TEST(Test_Gpio_ModeRegister);
     WHAL_TEST(Test_Gpio_SetHighReg);
