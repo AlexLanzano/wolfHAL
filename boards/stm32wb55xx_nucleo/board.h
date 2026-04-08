@@ -15,6 +15,7 @@ extern whal_Rng g_whalRng;
 extern whal_Crypto g_whalCrypto;
 extern whal_I2c g_whalI2c;
 extern whal_Irq g_whalIrq;
+extern whal_Watchdog g_whalWatchdog;
 
 extern whal_Timeout g_whalTimeout;
 extern volatile uint32_t g_tick;

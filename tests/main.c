@@ -65,6 +65,10 @@ void whal_Test_Eth_Platform(void);
 void whal_Test_Bmi270(void);
 #endif
 
+#ifdef WHAL_TEST_ENABLE_WATCHDOG
+void whal_Test_Watchdog(void);
+#endif
+
 int g_whalTestPassed;
 int g_whalTestFailed;
 int g_whalTestSkipped;
@@ -156,6 +160,10 @@ void main(void)
 
 #ifdef WHAL_TEST_ENABLE_BMI270
     whal_Test_Bmi270();
+#endif
+
+#ifdef WHAL_TEST_ENABLE_WATCHDOG
+    whal_Test_Watchdog();
 #endif
 
     WHAL_TEST_SUMMARY();

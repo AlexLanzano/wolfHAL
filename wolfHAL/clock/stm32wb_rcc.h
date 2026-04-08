@@ -219,4 +219,17 @@ whal_Error whal_Stm32wbRccMsi_GetRate(whal_Clock *clkDev, size_t *rateOut);
  */
 whal_Error whal_Stm32wbRcc_Ext_EnableHsi48(whal_Clock *clkDev, uint8_t enable);
 
+/*
+ * @brief Enable or disable the LSI oscillator required by the IWDG.
+ *
+ * When enabled, blocks until LSI1RDY is set.
+ *
+ * @param clkDev Clock controller instance.
+ * @param enable 1 to enable, 0 to disable.
+ *
+ * @retval WHAL_SUCCESS LSI enabled and ready, or disabled.
+ * @retval WHAL_EINVAL  Invalid arguments.
+ */
+whal_Error whal_Stm32wbRcc_Ext_EnableLsi(whal_Clock *clkDev, uint8_t enable);
+
 #endif /* WHAL_STM32WB_RCC_H */

@@ -24,6 +24,7 @@
 #include <wolfHAL/crypto/crypto.h>
 #include <wolfHAL/dma/dma.h>
 #include <wolfHAL/irq/irq.h>
+#include <wolfHAL/watchdog/watchdog.h>
 #include <wolfHAL/eth/eth.h>
 #include <wolfHAL/eth_phy/eth_phy.h>
 #include <wolfHAL/sensor/sensor.h>

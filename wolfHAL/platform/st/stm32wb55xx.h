@@ -13,6 +13,8 @@
 #include <wolfHAL/crypto/stm32wb_aes.h>
 #include <wolfHAL/dma/stm32wb_dma.h>
 #include <wolfHAL/i2c/stm32wb_i2c.h>
+#include <wolfHAL/watchdog/stm32wb_iwdg.h>
+#include <wolfHAL/watchdog/stm32wb_wwdg.h>
 
 /*
  * @file stm32wb55xx.h
@@ -89,6 +91,20 @@
     },                                  \
     .driver = &whal_Stm32wbI2c_Driver
 
+#define WHAL_STM32WB55_IWDG_DEVICE      \
+    .regmap = {                         \
+        .base = 0x40003000,             \
+        .size = 0x400,                  \
+    },                                  \
+    .driver = &whal_Stm32wbIwdg_Driver
+
+#define WHAL_STM32WB55_WWDG_DEVICE     \
+    .regmap = {                         \
+        .base = 0x40002C00,             \
+        .size = 0x400,                  \
+    },                                  \
+    .driver = &whal_Stm32wbWwdg_Driver
+
 #define WHAL_STM32WB55_FLASH_DEVICE     \
     .regmap = {                         \
         .base = 0x58004000,             \
@@ -140,6 +156,11 @@
     .regOffset = 0x4C,               \
     .enableMask = (1UL << 16),       \
     .enablePos = 16
+
+#define WHAL_STM32WB55_WWDG_CLOCK   \
+    .regOffset = 0x58,              \
+    .enableMask = (1UL << 11),      \
+    .enablePos = 11
 
 #define WHAL_STM32WB55_RNG_CLOCK    \
     .regOffset = 0x50,              \

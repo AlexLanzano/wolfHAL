@@ -106,7 +106,18 @@ whal_Error Board_Init(void)
 
     return WHAL_SUCCESS;
 }
+```
 
+The watchdog is intentionally excluded from `Board_Init()` and `Board_Deinit()`.
+Once started, most watchdog peripherals cannot be stopped — if `Board_Init()`
+starts the watchdog, any delay before the application begins refreshing it will
+cause an unexpected reset. The application or test should call
+`whal_Watchdog_Init()` directly when it is ready to begin refreshing. The board
+still defines the `g_whalWatchdog` instance and enables any required clocks
+(e.g., WWDG APB clock, IWDG LSI oscillator) so the watchdog is ready to be
+started.
+
+```c
 whal_Error Board_Deinit(void)
 {
     whal_Error err;
