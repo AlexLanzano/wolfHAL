@@ -131,6 +131,14 @@
 #define RCC_APB1ENR2_LPTIM2EN_Pos 5                                                   /* LPTIM2 clock enable */
 #define RCC_APB1ENR2_LPTIM2EN_Msk (1UL << RCC_APB1ENR2_LPTIM2EN_Pos)
 
+/* Control/Status Register - LSI oscillator control */
+#define RCC_CSR_REG 0x094
+#define RCC_CSR_LSI1ON_Pos 0                                                      /* LSI1 oscillator enable */
+#define RCC_CSR_LSI1ON_Msk (1UL << RCC_CSR_LSI1ON_Pos)
+
+#define RCC_CSR_LSI1RDY_Pos 1                                                     /* LSI1 oscillator ready */
+#define RCC_CSR_LSI1RDY_Msk (1UL << RCC_CSR_LSI1RDY_Pos)
+
 /* Clock Recovery RC Register - HSI48 oscillator control */
 #define RCC_CRRCR_REG 0x098
 #define RCC_CRRCR_HSI48ON_Pos 0                                                   /* HSI48 oscillator enable */
@@ -355,6 +363,26 @@ whal_Error whal_Stm32wbRcc_Ext_EnableHsi48(whal_Clock *clkDev, uint8_t enable)
         do {
             whal_Reg_Get(clkDev->regmap.base, RCC_CRRCR_REG,
                          RCC_CRRCR_HSI48RDY_Msk, RCC_CRRCR_HSI48RDY_Pos, &rdy);
+        } while (!rdy);
+    }
+
+    return WHAL_SUCCESS;
+}
+
+whal_Error whal_Stm32wbRcc_Ext_EnableLsi(whal_Clock *clkDev, uint8_t enable)
+{
+    if (!clkDev) {
+        return WHAL_EINVAL;
+    }
+
+    whal_Reg_Update(clkDev->regmap.base, RCC_CSR_REG, RCC_CSR_LSI1ON_Msk,
+                    whal_SetBits(RCC_CSR_LSI1ON_Msk, RCC_CSR_LSI1ON_Pos, enable));
+
+    if (enable) {
+        size_t rdy;
+        do {
+            whal_Reg_Get(clkDev->regmap.base, RCC_CSR_REG,
+                         RCC_CSR_LSI1RDY_Msk, RCC_CSR_LSI1RDY_Pos, &rdy);
         } while (!rdy);
     }
 

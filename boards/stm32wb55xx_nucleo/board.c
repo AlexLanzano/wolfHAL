@@ -59,6 +59,9 @@ static const whal_Stm32wbRcc_Clk g_clocks[] = {
     {WHAL_STM32WB55_RNG_CLOCK},
     {WHAL_STM32WB55_AES1_CLOCK},
     {WHAL_STM32WB55_I2C1_CLOCK},
+#ifdef BOARD_WATCHDOG_WWDG
+    {WHAL_STM32WB55_WWDG_CLOCK},
+#endif
 };
 #define CLOCK_COUNT (sizeof(g_clocks) / sizeof(g_clocks[0]))
 
@@ -244,6 +247,28 @@ whal_Crypto g_whalCrypto = {
     },
 };
 
+#ifdef BOARD_WATCHDOG_IWDG
+whal_Watchdog g_whalWatchdog = {
+    WHAL_STM32WB55_IWDG_DEVICE,
+
+    .cfg = &(whal_Stm32wbIwdg_Cfg) {
+        .prescaler = WHAL_STM32WB_IWDG_PR_32,
+        .reload = 100,
+        .timeout = &g_whalTimeout,
+    },
+};
+#elif defined(BOARD_WATCHDOG_WWDG)
+whal_Watchdog g_whalWatchdog = {
+    WHAL_STM32WB55_WWDG_DEVICE,
+
+    .cfg = &(whal_Stm32wbWwdg_Cfg) {
+        .prescaler = WHAL_STM32WB_WWDG_TB_128,
+        .window = 0x7F,
+        .counter = 0x7F,
+    },
+};
+#endif
+
 void Board_WaitMs(size_t ms)
 {
     uint32_t startCount = g_tick;
@@ -275,6 +300,14 @@ whal_Error Board_Init(void)
     if (err) {
         return err;
     }
+
+#ifdef BOARD_WATCHDOG_IWDG
+    /* Enable LSI osc required by the IWDG */
+    err = whal_Stm32wbRcc_Ext_EnableLsi(&g_whalClock, 1);
+    if (err) {
+        return err;
+    }
+#endif
 
     /* Enable clocks */
     for (size_t i = 0; i < CLOCK_COUNT; i++) {
@@ -444,6 +477,13 @@ whal_Error Board_Deinit(void)
     if (err) {
         return err;
     }
+
+#ifdef BOARD_WATCHDOG_IWDG
+    err = whal_Stm32wbRcc_Ext_EnableLsi(&g_whalClock, 0);
+    if (err) {
+        return err;
+    }
+#endif
 
     err = whal_Clock_Deinit(&g_whalClock);
     if (err) {

@@ -1053,6 +1053,50 @@ a transfer needs to be cancelled.
 
 ---
 
+## Watchdog
+
+Header: `wolfHAL/watchdog/watchdog.h`
+
+The watchdog driver provides access to hardware watchdog timers that reset the
+system if not periodically refreshed. On most hardware, the watchdog cannot be
+stopped once started — only a system reset clears it.
+
+### Init
+
+Configure and start the watchdog. This typically involves:
+
+- Setting the prescaler and reload/counter values from the configuration
+- Enabling the watchdog peripheral
+
+On some hardware (e.g., STM32 IWDG), the watchdog must be started before its
+configuration registers can be written. The driver should handle this ordering
+internally.
+
+The board must enable any required clocks before calling Init. For example, the
+STM32 WWDG requires an APB clock, while the IWDG requires the LSI oscillator.
+
+The watchdog is NOT initialized in `Board_Init` — the test or application
+controls when it starts, since once started it cannot be stopped.
+
+### Deinit
+
+Shut down the watchdog. On hardware where the watchdog cannot be stopped (e.g.,
+STM32 IWDG), this function is a no-op.
+
+### Refresh
+
+Reload the watchdog counter to prevent a reset. Must be called periodically
+within the configured timeout window. The exact mechanism is hardware-specific
+(e.g., writing a reload key to IWDG_KR, or writing the counter value back to
+WWDG_CR).
+
+For window watchdogs, the refresh must occur within the valid window — refreshing
+too early or too late triggers a reset. The driver does not enforce window timing;
+it writes the reload value unconditionally and relies on the hardware to enforce
+the window.
+
+---
+
 ## EthPhy
 
 Header: `wolfHAL/eth_phy/eth_phy.h`

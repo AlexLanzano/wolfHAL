@@ -10,7 +10,9 @@ OBJCOPY = $(GCC_PATH)arm-none-eabi-objcopy
 CFLAGS += -Wall -Werror $(INCLUDE) -g3 \
           -ffreestanding -nostdlib -mcpu=cortex-m4 \
           -DPLATFORM_STM32WB -MMD -MP \
-          $(if $(DMA),-DBOARD_DMA)
+          $(if $(DMA),-DBOARD_DMA) \
+          $(if $(filter iwdg,$(WATCHDOG)),-DBOARD_WATCHDOG_IWDG) \
+          $(if $(filter wwdg,$(WATCHDOG)),-DBOARD_WATCHDOG_WWDG)
 LDFLAGS = --omagic -static
 
 LINKER_SCRIPT ?= $(_BOARD_DIR)/linker.ld
@@ -29,6 +31,7 @@ BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/flash.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/spi.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/i2c.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/sensor.c)
+BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/watchdog.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/rng.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/crypto.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/block.c)
