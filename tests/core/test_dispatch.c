@@ -13,14 +13,11 @@ static whal_Error MockClockInit(whal_Clock *d) { (void)d; return WHAL_SUCCESS; }
 static whal_Error MockClockDeinit(whal_Clock *d) { (void)d; return WHAL_SUCCESS; }
 static whal_Error MockClockEnable(whal_Clock *d, const void *c) { (void)d; (void)c; return WHAL_SUCCESS; }
 static whal_Error MockClockDisable(whal_Clock *d, const void *c) { (void)d; (void)c; return WHAL_SUCCESS; }
-static whal_Error MockClockGetRate(whal_Clock *d, size_t *r) { (void)d; *r = 64000000; return WHAL_SUCCESS; }
-
 static const whal_ClockDriver mockClockDriver = {
     .Init = MockClockInit,
     .Deinit = MockClockDeinit,
     .Enable = MockClockEnable,
     .Disable = MockClockDisable,
-    .GetRate = MockClockGetRate,
 };
 
 static whal_Error MockGpioInit(whal_Gpio *d) { (void)d; return WHAL_SUCCESS; }
@@ -109,8 +106,6 @@ static void Test_Clock_NullDev(void)
     WHAL_ASSERT_EQ(whal_Clock_Deinit(NULL), WHAL_EINVAL);
     WHAL_ASSERT_EQ(whal_Clock_Enable(NULL, NULL), WHAL_EINVAL);
     WHAL_ASSERT_EQ(whal_Clock_Disable(NULL, NULL), WHAL_EINVAL);
-    size_t rate;
-    WHAL_ASSERT_EQ(whal_Clock_GetRate(NULL, &rate), WHAL_EINVAL);
 }
 
 static void Test_Clock_NullDriver(void)
@@ -133,9 +128,6 @@ static void Test_Clock_ValidDispatch(void)
     WHAL_ASSERT_EQ(whal_Clock_Deinit(&dev), WHAL_SUCCESS);
     WHAL_ASSERT_EQ(whal_Clock_Enable(&dev, NULL), WHAL_SUCCESS);
     WHAL_ASSERT_EQ(whal_Clock_Disable(&dev, NULL), WHAL_SUCCESS);
-    size_t rate;
-    WHAL_ASSERT_EQ(whal_Clock_GetRate(&dev, &rate), WHAL_SUCCESS);
-    WHAL_ASSERT_EQ(rate, 64000000);
 }
 
 /* --- GPIO dispatch tests --- */

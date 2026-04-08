@@ -111,17 +111,4 @@ whal_Error whal_Stm32c0Rcc_Enable(whal_Clock *clkDev, const void *clk);
  */
 whal_Error whal_Stm32c0Rcc_Disable(whal_Clock *clkDev, const void *clk);
 
-/*
- * @brief Compute the current system clock rate.
- *
- * Returns 48 MHz divided by the configured HSIDIV setting.
- *
- * @param clkDev  Clock device instance.
- * @param rateOut Output for the computed rate in Hz.
- *
- * @retval WHAL_SUCCESS Rate computed.
- * @retval WHAL_EINVAL  Invalid arguments.
- */
-whal_Error whal_Stm32c0Rcc_GetRate(whal_Clock *clkDev, size_t *rateOut);
-
 #endif /* WHAL_STM32C0_RCC_H */

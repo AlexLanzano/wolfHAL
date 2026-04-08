@@ -332,12 +332,6 @@ driver should handle all of these.
 Disable a peripheral clock gate. The inverse of Enable — clear the enable bit(s)
 for the given clock descriptor.
 
-### GetRate
-
-Report the current system clock frequency in Hz. The driver should compute this
-from the configured source, PLL coefficients, and divider settings. Store the
-result in the output pointer.
-
 ---
 
 ## GPIO

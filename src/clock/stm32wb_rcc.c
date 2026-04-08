@@ -262,93 +262,6 @@ whal_Error whal_Stm32wbRcc_Disable(whal_Clock *clkDev, const void *clk)
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_Stm32wbRccPll_GetRate(whal_Clock *clkDev, size_t *rateOut)
-{
-    whal_Stm32wbRcc_Cfg *cfg;
-
-    if (!clkDev || !clkDev->cfg) {
-        return WHAL_EINVAL;
-    }
-
-    cfg = (whal_Stm32wbRcc_Cfg *)clkDev->cfg;
-    whal_Stm32wbRcc_PllClkCfg *pllClkCfg = cfg->sysClkCfg;
-
-    /*
-     * Calculate PLL output frequency:
-     *   f_pllr = ((f_src / (m + 1)) * n) / (r + 1)
-     */
-    size_t srcFreq;
-    size_t pllm = pllClkCfg->m + 1;
-    size_t plln = pllClkCfg->n;
-    size_t pllr = pllClkCfg->r + 1;
-
-    /* Determine source frequency based on PLL input selection */
-    if (pllClkCfg->clkSrc == WHAL_STM32WB_RCC_PLLCLK_SRC_MSI) {
-        srcFreq = 4000000;
-    }
-    else {
-        return WHAL_EINVAL;
-    }
-
-    *rateOut = ((srcFreq / pllm) * plln) / pllr;
-    return WHAL_SUCCESS;
-}
-
-whal_Error whal_Stm32wbRccMsi_GetRate(whal_Clock *clkDev, size_t *rateOut)
-{
-    size_t msiRange;
-
-    if (!clkDev || !rateOut) {
-        return WHAL_EINVAL;
-    }
-
-    /* Read current MSI range from hardware */
-    whal_Reg_Get(clkDev->regmap.base, RCC_CR_REG, RCC_CR_MSIRANGE_Msk,
-                 RCC_CR_MSIRANGE_Pos, &msiRange);
-
-    /* Map range setting to frequency in Hz */
-    switch (msiRange) {
-    case WHAL_STM32WB_RCC_MSIRANGE_100kHz:
-        *rateOut = 100000;
-        break;
-    case WHAL_STM32WB_RCC_MSIRANGE_200kHz:
-        *rateOut = 200000;
-        break;
-    case WHAL_STM32WB_RCC_MSIRANGE_400kHz:
-        *rateOut = 400000;
-        break;
-    case WHAL_STM32WB_RCC_MSIRANGE_800kHz:
-        *rateOut = 800000;
-        break;
-    case WHAL_STM32WB_RCC_MSIRANGE_1MHz:
-        *rateOut = 1000000;
-        break;
-    case WHAL_STM32WB_RCC_MSIRANGE_2MHz:
-        *rateOut = 2000000;
-        break;
-    case WHAL_STM32WB_RCC_MSIRANGE_4MHz:
-        *rateOut = 4000000;
-        break;
-    case WHAL_STM32WB_RCC_MSIRANGE_8MHz:
-        *rateOut = 8000000;
-        break;
-    case WHAL_STM32WB_RCC_MSIRANGE_16MHz:
-        *rateOut = 16000000;
-        break;
-    case WHAL_STM32WB_RCC_MSIRANGE_24MHz:
-        *rateOut = 24000000;
-        break;
-    case WHAL_STM32WB_RCC_MSIRANGE_32MHz:
-        *rateOut = 32000000;
-        break;
-    case WHAL_STM32WB_RCC_MSIRANGE_48MHz:
-        *rateOut = 48000000;
-        break;
-    }
-
-    return WHAL_SUCCESS;
-}
-
 whal_Error whal_Stm32wbRcc_Ext_EnableHsi48(whal_Clock *clkDev, uint8_t enable)
 {
     if (!clkDev) {
@@ -394,7 +307,6 @@ const whal_ClockDriver whal_Stm32wbRccPll_Driver = {
     .Deinit = whal_Stm32wbRccPll_Deinit,
     .Enable = whal_Stm32wbRcc_Enable,
     .Disable = whal_Stm32wbRcc_Disable,
-    .GetRate = whal_Stm32wbRccPll_GetRate,
 };
 
 const whal_ClockDriver whal_Stm32wbRccMsi_Driver = {
@@ -402,5 +314,4 @@ const whal_ClockDriver whal_Stm32wbRccMsi_Driver = {
     .Deinit = whal_Stm32wbRccMsi_Deinit,
     .Enable = whal_Stm32wbRcc_Enable,
     .Disable = whal_Stm32wbRcc_Disable,
-    .GetRate = whal_Stm32wbRccMsi_GetRate,
 };
