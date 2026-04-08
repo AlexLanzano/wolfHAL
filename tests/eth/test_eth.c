@@ -17,6 +17,30 @@
 #define PHY_REG_PHYIDR1 2
 #define PHY_REG_PHYIDR2 3
 
+static void Test_Eth_Api(void)
+{
+    uint8_t buf[64];
+    size_t len = sizeof(buf);
+    uint16_t val;
+
+    WHAL_ASSERT_EQ(whal_Eth_Init(NULL), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Eth_Deinit(NULL), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Eth_Start(NULL, 100, 1), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Eth_Stop(NULL), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Eth_Send(NULL, buf, sizeof(buf)), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Eth_Recv(NULL, buf, &len), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Eth_MdioRead(NULL, 0, 0, &val), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Eth_MdioWrite(NULL, 0, 0, 0), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Eth_Send(&g_whalEth, NULL, 64), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Eth_Recv(&g_whalEth, NULL, &len), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Eth_Recv(&g_whalEth, buf, NULL), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Eth_MdioRead(&g_whalEth, 0, 0, NULL), WHAL_EINVAL);
+
+    WHAL_ASSERT_EQ(whal_EthPhy_Init(NULL), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_EthPhy_Deinit(NULL), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_EthPhy_GetLinkState(NULL, NULL, NULL, NULL), WHAL_EINVAL);
+}
+
 static void Test_Eth_MdioReadPhyId(void)
 {
     uint16_t id1 = 0;
@@ -56,6 +80,7 @@ static void Test_Eth_PhyGetLinkState(void)
 void whal_Test_Eth(void)
 {
     WHAL_TEST_SUITE_START("eth");
+    WHAL_TEST(Test_Eth_Api);
     WHAL_TEST(Test_Eth_MdioReadPhyId);
     WHAL_TEST(Test_Eth_PhyGetLinkState);
     WHAL_TEST_SUITE_END();

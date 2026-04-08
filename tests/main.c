@@ -69,6 +69,30 @@ void whal_Test_Bmi270(void);
 void whal_Test_Watchdog(void);
 #endif
 
+#ifdef WHAL_TEST_ENABLE_UART
+void whal_Test_Uart(void);
+#endif
+
+#ifdef WHAL_TEST_ENABLE_I2C
+void whal_Test_I2c(void);
+#endif
+
+#ifdef WHAL_TEST_ENABLE_DMA
+void whal_Test_Dma(void);
+#endif
+
+#ifdef WHAL_TEST_ENABLE_IRQ
+void whal_Test_Irq(void);
+#endif
+
+#ifdef WHAL_TEST_ENABLE_SUPPLY
+void whal_Test_Supply(void);
+#endif
+
+#ifdef WHAL_TEST_ENABLE_SENSOR
+void whal_Test_Sensor(void);
+#endif
+
 int g_whalTestPassed;
 int g_whalTestFailed;
 int g_whalTestSkipped;
@@ -164,6 +188,30 @@ void main(void)
 
 #ifdef WHAL_TEST_ENABLE_WATCHDOG
     whal_Test_Watchdog();
+#endif
+
+#ifdef WHAL_TEST_ENABLE_UART
+    whal_Test_Uart();
+#endif
+
+#ifdef WHAL_TEST_ENABLE_I2C
+    whal_Test_I2c();
+#endif
+
+#ifdef WHAL_TEST_ENABLE_DMA
+    whal_Test_Dma();
+#endif
+
+#ifdef WHAL_TEST_ENABLE_IRQ
+    whal_Test_Irq();
+#endif
+
+#ifdef WHAL_TEST_ENABLE_SUPPLY
+    whal_Test_Supply();
+#endif
+
+#ifdef WHAL_TEST_ENABLE_SENSOR
+    whal_Test_Sensor();
 #endif
 
     WHAL_TEST_SUMMARY();

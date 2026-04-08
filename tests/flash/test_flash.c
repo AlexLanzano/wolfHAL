@@ -12,6 +12,21 @@ static size_t g_testFlashStartAddr;
 static size_t g_testFlashSize;
 #endif
 
+static void Test_Flash_Api(void)
+{
+    uint8_t buf[8];
+
+    WHAL_ASSERT_EQ(whal_Flash_Init(NULL), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Flash_Deinit(NULL), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Flash_Lock(NULL, 0, 0), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Flash_Unlock(NULL, 0, 0), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Flash_Read(NULL, 0, buf, sizeof(buf)), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Flash_Write(NULL, 0, buf, sizeof(buf)), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Flash_Erase(NULL, 0, sizeof(buf)), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Flash_Read(g_testFlashDev, 0, NULL, 8), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Flash_Write(g_testFlashDev, 0, NULL, 8), WHAL_EINVAL);
+}
+
 static void Test_Flash_EraseBlank(void)
 {
     uint8_t readback[8] = {0};
@@ -92,6 +107,7 @@ static void run_flash_tests(const char *name)
     WHAL_TEST_SUITE_START("flash");
     if (name)
         whal_Test_Printf("  device: %s\n", name);
+    WHAL_TEST(Test_Flash_Api);
     WHAL_TEST(Test_Flash_EraseBlank);
     WHAL_TEST(Test_Flash_WriteRead);
 #ifdef BOARD_FLASH_SIZE

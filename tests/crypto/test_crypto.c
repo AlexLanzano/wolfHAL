@@ -464,9 +464,20 @@ static void Test_Crypto_AesCcm_KnownAnswer(void)
     WHAL_ASSERT_MEM_EQ(tag, ccmTag, sizeof(ccmTag));
 }
 
+static void Test_Crypto_Api(void)
+{
+    whal_Crypto_AesEcbArgs args = {0};
+
+    WHAL_ASSERT_EQ(whal_Crypto_Init(NULL), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Crypto_Deinit(NULL), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Crypto_Op(NULL, 0, &args), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Crypto_Op(&g_whalCrypto, 0, NULL), WHAL_EINVAL);
+}
+
 void whal_Test_Crypto(void)
 {
     WHAL_TEST_SUITE_START("crypto");
+    WHAL_TEST(Test_Crypto_Api);
     WHAL_TEST(Test_Crypto_AesEcb_Basic);
     WHAL_TEST(Test_Crypto_AesEcb_KnownAnswer);
     WHAL_TEST(Test_Crypto_AesCbc_Basic);

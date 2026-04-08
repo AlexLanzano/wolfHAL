@@ -1,7 +1,7 @@
 _BOARD_DIR := $(patsubst %/,%,$(dir $(lastword $(MAKEFILE_LIST))))
 
 PLATFORM = stm32wb
-TESTS ?= clock gpio flash timer rng crypto block
+TESTS ?= clock gpio flash timer rng crypto block uart i2c dma irq
 
 GCC = $(GCC_PATH)arm-none-eabi-gcc
 LD = $(GCC_PATH)arm-none-eabi-ld
