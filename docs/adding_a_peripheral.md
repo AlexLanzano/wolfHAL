@@ -50,7 +50,7 @@ Declare the global device instance:
 
 #include <wolfHAL/wolfHAL.h>
 #include <wolfHAL/flash/flash.h>
-#include <wolfHAL/flash/spi_nor.h>
+#include <wolfHAL/flash/spi_nor_flash.h>
 
 extern whal_Flash g_whalSpiNorW25q64;
 
@@ -65,7 +65,7 @@ globals (`g_whalSpi`, `g_whalGpio`, `SPI_CS_PIN`, `g_whalTimeout`) from
 
 ```c
 #include "spi_nor_w25q64.h"
-#include <wolfHAL/flash/spi_nor.h>
+#include <wolfHAL/flash/spi_nor_flash.h>
 #include "board.h"
 
 #define W25Q64_PAGE_SZ  256
@@ -168,8 +168,16 @@ framework.
 
 ## Naming Convention
 
-- Flag: `PERIPHERAL_<NAME>` (e.g., `PERIPHERAL_BMI270`)
-- PERIPHERALS variable: lowercase name (e.g., `bmi270`, `spi_nor_w25q64`)
+Instance files are named `<driver>_<instance>`:
+
+- `sdhc_spi_sdcard32gb` — sdhc_spi driver, 32GB SD card
+- `spi_nor_w25q64` — spi_nor driver, W25Q64 chip
+- `bmi270` — bmi270 driver (single instance, no qualifier needed)
+
+Summary:
+
 - Directory: `boards/peripheral/<type>/` (e.g., `flash/`, `block/`, `sensor/imu/`)
-- Files: `<name>.h` and `<name>.c`
-- Global instance: `g_whal<Name>` (e.g., `g_whalBmi270`, `g_whalSpiNorW25q64`)
+- Files: `<driver>.h` and `<driver>.c` for single-instance peripherals; otherwise `<driver>_<instance>.h` and `<driver>_<instance>.c`
+- Flag: `PERIPHERAL_<NAME>` (e.g., `PERIPHERAL_SPI_NOR_W25Q64`)
+- PERIPHERALS variable: lowercase name (e.g., `spi_nor_w25q64`, `bmi270`)
+- Global instance: `g_whal<Name>` (e.g., `g_whalSpiNorW25q64`, `g_whalBmi270`)

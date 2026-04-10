@@ -1,5 +1,5 @@
 #include "bmi270.h"
-#include <wolfHAL/sensor/imu/bmi270.h>
+#include <wolfHAL/sensor/imu/bmi270_sensor.h>
 #include <wolfHAL/sensor/imu/bmi270_config_data.h>
 #include "board.h"
 

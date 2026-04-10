@@ -3,7 +3,7 @@
 
 #include <wolfHAL/wolfHAL.h>
 #include <wolfHAL/block/block.h>
-#include <wolfHAL/block/sdhc_spi.h>
+#include <wolfHAL/block/sdhc_spi_block.h>
 
 extern whal_Block g_whalSdhcSpiSdcard32gb;
 

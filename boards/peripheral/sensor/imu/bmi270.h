@@ -3,7 +3,7 @@
 
 #include <wolfHAL/wolfHAL.h>
 #include <wolfHAL/sensor/sensor.h>
-#include <wolfHAL/sensor/imu/bmi270.h>
+#include <wolfHAL/sensor/imu/bmi270_sensor.h>
 
 extern whal_Sensor g_whalBmi270;
 

@@ -1,5 +1,5 @@
 #include "sdhc_spi_sdcard32gb.h"
-#include <wolfHAL/block/sdhc_spi.h>
+#include <wolfHAL/block/sdhc_spi_block.h>
 #include "board.h"
 
 static whal_Spi_ComCfg g_sdcardComCfg = {

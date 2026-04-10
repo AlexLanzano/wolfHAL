@@ -1,5 +1,5 @@
 #include "spi_nor_w25q64.h"
-#include <wolfHAL/flash/spi_nor.h>
+#include <wolfHAL/flash/spi_nor_flash.h>
 #include "board.h"
 
 /*
