@@ -146,18 +146,4 @@ whal_Error whal_Stm32f4Rcc_Enable(whal_Clock *clkDev, const void *clk);
  */
 whal_Error whal_Stm32f4Rcc_Disable(whal_Clock *clkDev, const void *clk);
 
-/*
- * @brief Compute the current system clock rate (PLL mode).
- *
- * Calculates the PLL output frequency from the configured source,
- * multiplier, and dividers.
- *
- * @param clkDev  Clock device instance.
- * @param rateOut Output for the computed rate in Hz.
- *
- * @retval WHAL_SUCCESS Rate computed.
- * @retval WHAL_EINVAL  Invalid arguments.
- */
-whal_Error whal_Stm32f4RccPll_GetRate(whal_Clock *clkDev, size_t *rateOut);
-
 #endif /* WHAL_STM32F4_RCC_H */

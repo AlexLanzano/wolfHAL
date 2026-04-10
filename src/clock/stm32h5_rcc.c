@@ -102,29 +102,6 @@
 /* HSI base frequency */
 #define HSI_FREQ 64000000UL
 
-/*
- * Compute the input reference frequency for PLL source selection.
- * Returns the HSI frequency accounting for the divider if HSI is selected.
- */
-static size_t Stm32h5Rcc_GetPllInputFreq(size_t rccBase,
-                                          whal_Stm32h5Rcc_PllClockSrc src)
-{
-    size_t hsidiv;
-
-    switch (src) {
-    case WHAL_STM32H5_RCC_PLLCLK_SRC_HSI:
-        whal_Reg_Get(rccBase, RCC_CR_REG, RCC_CR_HSIDIV_Msk,
-                     RCC_CR_HSIDIV_Pos, &hsidiv);
-        return HSI_FREQ >> hsidiv;
-    case WHAL_STM32H5_RCC_PLLCLK_SRC_CSI:
-        return 4000000;
-    case WHAL_STM32H5_RCC_PLLCLK_SRC_HSE:
-        return 8000000; /* TODO: Make configurable per board */
-    default:
-        return 0;
-    }
-}
-
 whal_Error whal_Stm32h5RccPll_Init(whal_Clock *clkDev)
 {
     whal_Stm32h5Rcc_Cfg *cfg;
@@ -333,63 +310,11 @@ whal_Error whal_Stm32h5Rcc_Disable(whal_Clock *clkDev, const void *clk)
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_Stm32h5RccPll_GetRate(whal_Clock *clkDev, size_t *rateOut)
-{
-    whal_Stm32h5Rcc_Cfg *cfg;
-    whal_Stm32h5Rcc_PllClkCfg *pllCfg;
-    size_t srcFreq;
-    size_t pllm;
-    size_t plln;
-    size_t pllp;
-
-    if (!clkDev || !clkDev->cfg || !rateOut)
-        return WHAL_EINVAL;
-
-    cfg = (whal_Stm32h5Rcc_Cfg *)clkDev->cfg;
-    pllCfg = (whal_Stm32h5Rcc_PllClkCfg *)cfg->sysClkCfg;
-
-    srcFreq = Stm32h5Rcc_GetPllInputFreq(clkDev->regmap.base, pllCfg->clkSrc);
-    if (srcFreq == 0)
-        return WHAL_EINVAL;
-
-    /*
-     * PLL1 output (pll1_p_ck):
-     *   f_vco = (f_src / m) * (n + 1)
-     *   f_pllp = f_vco / (p + 1)
-     *
-     * PLL1M: register value is the divisor directly (1-63, 0=disabled)
-     * PLL1N: register value + 1 is the multiplier (3=4x, 4=5x, ...)
-     * PLL1P: register value + 1 is the divisor (1=/2, 2=/3, ...)
-     */
-    pllm = pllCfg->m;
-    plln = pllCfg->n + 1;
-    pllp = pllCfg->p + 1;
-
-    *rateOut = ((srcFreq / pllm) * plln) / pllp;
-    return WHAL_SUCCESS;
-}
-
-whal_Error whal_Stm32h5RccHsi_GetRate(whal_Clock *clkDev, size_t *rateOut)
-{
-    size_t hsidiv;
-
-    if (!clkDev || !rateOut)
-        return WHAL_EINVAL;
-
-    whal_Reg_Get(clkDev->regmap.base, RCC_CR_REG, RCC_CR_HSIDIV_Msk,
-                 RCC_CR_HSIDIV_Pos, &hsidiv);
-
-    /* HSI divider: 0=div1(64MHz), 1=div2(32MHz), 2=div4(16MHz), 3=div8(8MHz) */
-    *rateOut = HSI_FREQ >> hsidiv;
-    return WHAL_SUCCESS;
-}
-
 const whal_ClockDriver whal_Stm32h5RccPll_Driver = {
     .Init = whal_Stm32h5RccPll_Init,
     .Deinit = whal_Stm32h5RccPll_Deinit,
     .Enable = whal_Stm32h5Rcc_Enable,
     .Disable = whal_Stm32h5Rcc_Disable,
-    .GetRate = whal_Stm32h5RccPll_GetRate,
 };
 
 const whal_ClockDriver whal_Stm32h5RccHsi_Driver = {
@@ -397,7 +322,6 @@ const whal_ClockDriver whal_Stm32h5RccHsi_Driver = {
     .Deinit = whal_Stm32h5RccHsi_Deinit,
     .Enable = whal_Stm32h5Rcc_Enable,
     .Disable = whal_Stm32h5Rcc_Disable,
-    .GetRate = whal_Stm32h5RccHsi_GetRate,
 };
 
 whal_Error whal_Stm32h5Rcc_Ext_EnableHsi48(whal_Clock *clkDev, uint8_t enable)

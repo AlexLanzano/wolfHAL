@@ -1,6 +1,6 @@
 #include <wolfHAL/wolfHAL.h>
 #include <wolfHAL/sensor/sensor.h>
-#include <wolfHAL/sensor/imu/bmi270.h>
+#include <wolfHAL/sensor/imu/bmi270_sensor.h>
 #include "board.h"
 #include "peripheral.h"
 #include "test.h"
@@ -44,7 +44,7 @@ static void Test_Bmi270_ReadMultiple(void)
     WHAL_ASSERT_NEQ(data2.accelX | data2.accelY | data2.accelZ, 0);
 }
 
-void whal_Test_Bmi270(void)
+void whal_Test_Bmi270_Sensor(void)
 {
     WHAL_TEST_SUITE_START("bmi270");
     WHAL_TEST(Test_Bmi270_Read);

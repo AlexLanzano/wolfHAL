@@ -3,7 +3,7 @@
 
 #include <wolfHAL/wolfHAL.h>
 #include <wolfHAL/flash/flash.h>
-#include <wolfHAL/flash/spi_nor.h>
+#include <wolfHAL/flash/spi_nor_flash.h>
 
 extern whal_Flash g_whalSpiNorW25q64;
 

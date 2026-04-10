@@ -1,4 +1,4 @@
-#include <wolfHAL/eth_phy/lan8742a.h>
+#include <wolfHAL/eth_phy/lan8742a_eth_phy.h>
 #include <wolfHAL/eth/eth.h>
 #include <wolfHAL/error.h>
 

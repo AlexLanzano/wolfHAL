@@ -1,5 +1,5 @@
 #include <stdint.h>
-#include <wolfHAL/flash/spi_nor.h>
+#include <wolfHAL/flash/spi_nor_flash.h>
 #include <wolfHAL/flash/flash.h>
 #include <wolfHAL/spi/spi.h>
 #include <wolfHAL/gpio/gpio.h>

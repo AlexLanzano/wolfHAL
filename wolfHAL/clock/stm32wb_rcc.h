@@ -189,26 +189,6 @@ whal_Error whal_Stm32wbRcc_Enable(whal_Clock *clkDev, const void *clk);
  */
 whal_Error whal_Stm32wbRcc_Disable(whal_Clock *clkDev, const void *clk);
 /*
- * @brief Compute the current system clock rate.
- *
- * @param clkDev  Clock device instance.
- * @param rateOut Output for the computed rate in Hz.
- *
- * @retval WHAL_SUCCESS Rate computed.
- * @retval WHAL_EINVAL  Invalid arguments.
- */
-whal_Error whal_Stm32wbRccPll_GetRate(whal_Clock *clkDev, size_t *rateOut);
-/*
- * @brief Compute the current system clock rate.
- *
- * @param clkDev  Clock device instance.
- * @param rateOut Output for the computed rate in Hz.
- *
- * @retval WHAL_SUCCESS Rate computed.
- * @retval WHAL_EINVAL  Invalid arguments.
- */
-whal_Error whal_Stm32wbRccMsi_GetRate(whal_Clock *clkDev, size_t *rateOut);
-/*
  * @brief Enable or disable the HSI48 oscillator required by the RNG peripheral.
  *
  * @param clkDev Clock controller instance.

@@ -3,6 +3,16 @@
 #include "board.h"
 #include "test.h"
 
+static void Test_Rng_Api(void)
+{
+    uint8_t buf[8];
+
+    WHAL_ASSERT_EQ(whal_Rng_Init(NULL), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Rng_Deinit(NULL), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Rng_Generate(NULL, buf, sizeof(buf)), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Rng_Generate(&g_whalRng, NULL, 8), WHAL_EINVAL);
+}
+
 static void Test_Rng_GenerateNonzero(void)
 {
     uint8_t buf[32] = {0};
@@ -43,6 +53,7 @@ static void Test_Rng_GenerateUnique(void)
 void whal_Test_Rng(void)
 {
     WHAL_TEST_SUITE_START("rng");
+    WHAL_TEST(Test_Rng_Api);
     WHAL_TEST(Test_Rng_GenerateNonzero);
     WHAL_TEST(Test_Rng_GenerateUnique);
     WHAL_TEST_SUITE_END();

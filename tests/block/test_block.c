@@ -81,11 +81,25 @@ static void Test_Block_MultiWriteRead(void)
     }
 }
 
+static void Test_Block_Api(void)
+{
+    uint8_t buf[8];
+
+    WHAL_ASSERT_EQ(whal_Block_Init(NULL), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Block_Deinit(NULL), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Block_Read(NULL, 0, buf, 1), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Block_Write(NULL, 0, buf, 1), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Block_Erase(NULL, 0, 1), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Block_Read(g_testBlockDev, 0, NULL, 1), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Block_Write(g_testBlockDev, 0, NULL, 1), WHAL_EINVAL);
+}
+
 static void run_block_tests(const char *name)
 {
     WHAL_TEST_SUITE_START("block");
     if (name)
         whal_Test_Printf("  device: %s\n", name);
+    WHAL_TEST(Test_Block_Api);
     WHAL_TEST(Test_Block_EraseBlank);
     WHAL_TEST(Test_Block_WriteRead);
     WHAL_TEST(Test_Block_MultiWriteRead);

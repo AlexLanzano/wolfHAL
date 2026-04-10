@@ -1,5 +1,5 @@
 #include <stdint.h>
-#include <wolfHAL/sensor/imu/bmi270.h>
+#include <wolfHAL/sensor/imu/bmi270_sensor.h>
 #include <wolfHAL/sensor/sensor.h>
 #include <wolfHAL/i2c/i2c.h>
 #include <wolfHAL/error.h>

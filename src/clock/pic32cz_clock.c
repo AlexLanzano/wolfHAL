@@ -238,21 +238,9 @@ whal_Error whal_Pic32czClock_Disable(whal_Clock *clkDev, const void *clk)
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_Pic32czClock_GetRate(whal_Clock *clkDev, size_t *rateOut)
-{
-    if (!clkDev || !rateOut) {
-        return WHAL_EINVAL;
-    }
-
-    /* TODO: Calculate actual clock rate from PLL and divider settings */
-    *rateOut = 0;
-    return WHAL_SUCCESS;
-}
-
 const whal_ClockDriver whal_Pic32czClockPll_Driver = {
     .Init = whal_Pic32czClockPll_Init,
     .Deinit = whal_Pic32czClockPll_Deinit,
     .Enable = whal_Pic32czClock_Enable,
     .Disable = whal_Pic32czClock_Disable,
-    .GetRate = whal_Pic32czClock_GetRate,
 };

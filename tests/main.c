@@ -26,6 +26,9 @@ void whal_Test_Flash_Platform(void);
 
 #ifdef WHAL_TEST_ENABLE_TIMER
 void whal_Test_Timer(void);
+#ifdef WHAL_TEST_ENABLE_TIMER_PLATFORM
+void whal_Test_Timer_Platform(void);
+#endif
 #endif
 
 #ifdef WHAL_TEST_ENABLE_RNG
@@ -44,10 +47,16 @@ void whal_Test_Ipc_Platform(void);
 
 #ifdef WHAL_TEST_ENABLE_SPI_LOOPBACK
 void whal_Test_Spi_Loopback(void);
+#ifdef WHAL_TEST_ENABLE_SPI_LOOPBACK_PLATFORM
+void whal_Test_Spi_Loopback_Platform(void);
+#endif
 #endif
 
 #ifdef WHAL_TEST_ENABLE_CRYPTO
 void whal_Test_Crypto(void);
+#ifdef WHAL_TEST_ENABLE_CRYPTO_PLATFORM
+void whal_Test_Crypto_Platform(void);
+#endif
 #endif
 
 #ifdef WHAL_TEST_ENABLE_BLOCK
@@ -61,12 +70,54 @@ void whal_Test_Eth_Platform(void);
 #endif
 #endif
 
-#ifdef WHAL_TEST_ENABLE_BMI270
-void whal_Test_Bmi270(void);
+#ifdef WHAL_TEST_ENABLE_BMI270_SENSOR
+void whal_Test_Bmi270_Sensor(void);
 #endif
 
 #ifdef WHAL_TEST_ENABLE_WATCHDOG
 void whal_Test_Watchdog(void);
+#ifdef WHAL_TEST_ENABLE_WATCHDOG_PLATFORM
+void whal_Test_Watchdog_Platform(void);
+#endif
+#endif
+
+#ifdef WHAL_TEST_ENABLE_UART
+void whal_Test_Uart(void);
+#ifdef WHAL_TEST_ENABLE_UART_PLATFORM
+void whal_Test_Uart_Platform(void);
+#endif
+#endif
+
+#ifdef WHAL_TEST_ENABLE_I2C
+void whal_Test_I2c(void);
+#ifdef WHAL_TEST_ENABLE_I2C_PLATFORM
+void whal_Test_I2c_Platform(void);
+#endif
+#endif
+
+#ifdef WHAL_TEST_ENABLE_DMA
+void whal_Test_Dma(void);
+#ifdef WHAL_TEST_ENABLE_DMA_PLATFORM
+void whal_Test_Dma_Platform(void);
+#endif
+#endif
+
+#ifdef WHAL_TEST_ENABLE_IRQ
+void whal_Test_Irq(void);
+#ifdef WHAL_TEST_ENABLE_IRQ_PLATFORM
+void whal_Test_Irq_Platform(void);
+#endif
+#endif
+
+#ifdef WHAL_TEST_ENABLE_SUPPLY
+void whal_Test_Supply(void);
+#ifdef WHAL_TEST_ENABLE_SUPPLY_PLATFORM
+void whal_Test_Supply_Platform(void);
+#endif
+#endif
+
+#ifdef WHAL_TEST_ENABLE_SENSOR
+void whal_Test_Sensor(void);
 #endif
 
 int g_whalTestPassed;
@@ -123,6 +174,9 @@ void main(void)
 
 #ifdef WHAL_TEST_ENABLE_TIMER
     whal_Test_Timer();
+#ifdef WHAL_TEST_ENABLE_TIMER_PLATFORM
+    whal_Test_Timer_Platform();
+#endif
 #endif
 
 #ifdef WHAL_TEST_ENABLE_RNG
@@ -141,10 +195,16 @@ void main(void)
 
 #ifdef WHAL_TEST_ENABLE_SPI_LOOPBACK
     whal_Test_Spi_Loopback();
+#ifdef WHAL_TEST_ENABLE_SPI_LOOPBACK_PLATFORM
+    whal_Test_Spi_Loopback_Platform();
+#endif
 #endif
 
 #ifdef WHAL_TEST_ENABLE_CRYPTO
     whal_Test_Crypto();
+#ifdef WHAL_TEST_ENABLE_CRYPTO_PLATFORM
+    whal_Test_Crypto_Platform();
+#endif
 #endif
 
 #ifdef WHAL_TEST_ENABLE_BLOCK
@@ -158,12 +218,54 @@ void main(void)
 #endif
 #endif
 
-#ifdef WHAL_TEST_ENABLE_BMI270
-    whal_Test_Bmi270();
+#ifdef WHAL_TEST_ENABLE_BMI270_SENSOR
+    whal_Test_Bmi270_Sensor();
 #endif
 
 #ifdef WHAL_TEST_ENABLE_WATCHDOG
     whal_Test_Watchdog();
+#ifdef WHAL_TEST_ENABLE_WATCHDOG_PLATFORM
+    whal_Test_Watchdog_Platform();
+#endif
+#endif
+
+#ifdef WHAL_TEST_ENABLE_UART
+    whal_Test_Uart();
+#ifdef WHAL_TEST_ENABLE_UART_PLATFORM
+    whal_Test_Uart_Platform();
+#endif
+#endif
+
+#ifdef WHAL_TEST_ENABLE_I2C
+    whal_Test_I2c();
+#ifdef WHAL_TEST_ENABLE_I2C_PLATFORM
+    whal_Test_I2c_Platform();
+#endif
+#endif
+
+#ifdef WHAL_TEST_ENABLE_DMA
+    whal_Test_Dma();
+#ifdef WHAL_TEST_ENABLE_DMA_PLATFORM
+    whal_Test_Dma_Platform();
+#endif
+#endif
+
+#ifdef WHAL_TEST_ENABLE_IRQ
+    whal_Test_Irq();
+#ifdef WHAL_TEST_ENABLE_IRQ_PLATFORM
+    whal_Test_Irq_Platform();
+#endif
+#endif
+
+#ifdef WHAL_TEST_ENABLE_SUPPLY
+    whal_Test_Supply();
+#ifdef WHAL_TEST_ENABLE_SUPPLY_PLATFORM
+    whal_Test_Supply_Platform();
+#endif
+#endif
+
+#ifdef WHAL_TEST_ENABLE_SENSOR
+    whal_Test_Sensor();
 #endif
 
     WHAL_TEST_SUMMARY();

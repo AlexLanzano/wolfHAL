@@ -72,9 +72,6 @@
 #define RCC_CFGR_PPRE2_Pos 13
 #define RCC_CFGR_PPRE2_Msk (WHAL_BITMASK(3) << RCC_CFGR_PPRE2_Pos)
 
-/* PLLP register value to actual divider: 0->2, 1->4, 2->6, 3->8 */
-static const uint8_t pllp_div[] = { 2, 4, 6, 8 };
-
 whal_Error whal_Stm32f4RccPll_Init(whal_Clock *clkDev)
 {
     whal_Stm32f4Rcc_Cfg *cfg;
@@ -211,39 +208,9 @@ whal_Error whal_Stm32f4Rcc_Disable(whal_Clock *clkDev, const void *clk)
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_Stm32f4RccPll_GetRate(whal_Clock *clkDev, size_t *rateOut)
-{
-    whal_Stm32f4Rcc_Cfg *cfg;
-    whal_Stm32f4Rcc_PllClkCfg *pllCfg;
-    size_t srcFreq;
-    size_t pllm;
-    size_t plln;
-    size_t pllp;
-
-    if (!clkDev || !clkDev->cfg || !rateOut)
-        return WHAL_EINVAL;
-
-    cfg = (whal_Stm32f4Rcc_Cfg *)clkDev->cfg;
-    pllCfg = (whal_Stm32f4Rcc_PllClkCfg *)cfg->sysClkCfg;
-
-    /* Determine source frequency */
-    if (pllCfg->clkSrc == WHAL_STM32F4_RCC_PLLCLK_SRC_HSI)
-        srcFreq = 16000000;
-    else
-        srcFreq = 25000000;
-
-    pllm = pllCfg->m;
-    plln = pllCfg->n;
-    pllp = pllp_div[pllCfg->p & 0x3];
-
-    *rateOut = ((srcFreq / pllm) * plln) / pllp;
-    return WHAL_SUCCESS;
-}
-
 const whal_ClockDriver whal_Stm32f4RccPll_Driver = {
     .Init = whal_Stm32f4RccPll_Init,
     .Deinit = whal_Stm32f4RccPll_Deinit,
     .Enable = whal_Stm32f4Rcc_Enable,
     .Disable = whal_Stm32f4Rcc_Disable,
-    .GetRate = whal_Stm32f4RccPll_GetRate,
 };

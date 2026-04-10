@@ -186,33 +186,6 @@ whal_Error whal_Stm32h5Rcc_Enable(whal_Clock *clkDev, const void *clk);
 whal_Error whal_Stm32h5Rcc_Disable(whal_Clock *clkDev, const void *clk);
 
 /*
- * @brief Compute the current system clock rate (PLL1 mode).
- *
- * Calculates the PLL1 output frequency from the configured source,
- * multiplier, and dividers.
- *
- * @param clkDev  Clock device instance.
- * @param rateOut Output for the computed rate in Hz.
- *
- * @retval WHAL_SUCCESS Rate computed.
- * @retval WHAL_EINVAL  Invalid arguments.
- */
-whal_Error whal_Stm32h5RccPll_GetRate(whal_Clock *clkDev, size_t *rateOut);
-
-/*
- * @brief Compute the current system clock rate (HSI mode).
- *
- * Returns 64 MHz divided by the configured HSI divider.
- *
- * @param clkDev  Clock device instance.
- * @param rateOut Output for the computed rate in Hz.
- *
- * @retval WHAL_SUCCESS Rate computed.
- * @retval WHAL_EINVAL  Invalid arguments.
- */
-whal_Error whal_Stm32h5RccHsi_GetRate(whal_Clock *clkDev, size_t *rateOut);
-
-/*
  * @brief Enable or disable the HSI48 oscillator.
  *
  * The HSI48 provides a 48 MHz clock used as kernel clock for the RNG

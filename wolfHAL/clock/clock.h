@@ -24,8 +24,6 @@ typedef struct {
     whal_Error (*Enable)(whal_Clock *clkDev, const void *clk);
     /* Disable the clock output. */
     whal_Error (*Disable)(whal_Clock *clkDev, const void *clk);
-    /* Read back the effective clock rate. */
-    whal_Error (*GetRate)(whal_Clock *clkDev, size_t *rate);
 } whal_ClockDriver;
 
 /*
@@ -50,7 +48,6 @@ struct whal_Clock {
 #define whal_Clock_Deinit(clkDev) ((clkDev)->driver->Deinit((clkDev)))
 #define whal_Clock_Enable(clkDev, clk) ((clkDev)->driver->Enable((clkDev), (clk)))
 #define whal_Clock_Disable(clkDev, clk) ((clkDev)->driver->Disable((clkDev), (clk)))
-#define whal_Clock_GetRate(clkDev, rate) ((clkDev)->driver->GetRate((clkDev), (rate)))
 #else
 /*
  * @brief Initializes a clock device and its backing driver.
@@ -88,16 +85,6 @@ whal_Error whal_Clock_Enable(whal_Clock *clkDev, const void *clk);
  * @retval WHAL_EINVAL  Null pointer or driver-specific disable failed.
  */
 whal_Error whal_Clock_Disable(whal_Clock *clkDev, const void *clk);
-/*
- * @brief Reports the current output rate for a clock device.
- *
- * @param clkDev  Pointer to the clock instance being queried.
- * @param rate    Storage for the computed frequency in Hz.
- *
- * @retval WHAL_SUCCESS Result stored in @p rate.
- * @retval WHAL_EINVAL  Null pointer or driver could not provide a rate.
- */
-whal_Error whal_Clock_GetRate(whal_Clock *clkDev, size_t *rate);
 #endif
 
 #endif /* WHAL_CLOCK_H */

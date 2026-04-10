@@ -1,5 +1,5 @@
 #include <stdint.h>
-#include <wolfHAL/block/sdhc_spi.h>
+#include <wolfHAL/block/sdhc_spi_block.h>
 #include <wolfHAL/block/block.h>
 #include <wolfHAL/spi/spi.h>
 #include <wolfHAL/gpio/gpio.h>

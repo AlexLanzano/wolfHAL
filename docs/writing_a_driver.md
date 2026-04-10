@@ -1,15 +1,35 @@
 # Writing a Driver
 
-This guide covers how to implement a wolfHAL driver for a specific platform.
+This guide covers how to implement wolfHAL drivers.
+
+## Driver Categories
+
+wolfHAL has two categories of drivers:
+
+**Platform drivers** operate directly on SoC hardware registers at fixed memory
+addresses. They are tied to a specific microcontroller family and use the
+`whal_Reg_*` helpers to read and write peripheral registers. Examples:
+`stm32wb_uart`, `stm32wb_gpio`, `stm32wb_dma`, `pic32cz_clock`.
+
+**Peripheral drivers** communicate with external chips over a bus (SPI, I2C,
+MDIO). They call platform drivers (e.g., `whal_Spi_SendRecv`) to reach the
+hardware and are portable across any SoC that provides the required bus.
+Examples: `spi_nor_flash` (SPI flash), `sdhc_spi_block` (SD card over SPI),
+`bmi270_sensor` (IMU over I2C), `lan8742a_eth_phy` (Ethernet PHY over MDIO).
+
+Both categories implement the same vtable interface — the application calls
+`whal_Flash_Read()` whether the flash is on-chip (platform driver) or
+external SPI NOR (peripheral driver). The distinction matters for driver
+authors, not for application code.
 
 ## Common Pattern
 
 Every device type in wolfHAL follows the same structure:
 
-1. A **driver vtable** — a struct of function pointers that the platform driver
-   must populate.
+1. A **driver vtable** — a struct of function pointers that the driver must
+   populate.
 2. A **device struct** — contains a register map, a pointer to the driver
-   vtable, and a pointer to platform-specific configuration.
+   vtable, and a pointer to driver-specific configuration.
 3. A **generic dispatch layer** — validates inputs and calls through the vtable.
 
 To write a driver for a device type, you implement the functions defined in that
@@ -17,10 +37,15 @@ type's vtable and expose them as a const driver instance.
 
 ### File Layout
 
-For a device type `foo` on platform `myplatform`:
+For a platform driver implementing device type `foo` on platform `myplatform`:
 
 - `wolfHAL/foo/myplatform_foo.h` — configuration types and driver extern
 - `src/foo/myplatform_foo.c` — driver implementation and vtable definition
+
+For a peripheral driver implementing device type `foo` for chip `mychip`:
+
+- `wolfHAL/foo/mychip_foo.h` — configuration types and driver extern
+- `src/foo/mychip_foo.c` — driver implementation and vtable definition
 
 ### Driver Vtable
 
@@ -51,18 +76,17 @@ static whal_Error whal_MyplatformFoo_Init(whal_Foo *fooDev)
 
 ### No Cross-Driver Calls
 
-Register-level drivers must not call other wolfHAL drivers. A UART driver
-must not call the clock driver to enable its own clock, and a clock driver
-must not call the flash driver to set wait states. The board is responsible
-for all cross-peripheral dependencies — enabling clocks, configuring power
-supplies, and setting flash latency — before calling a driver's Init.
+Platform drivers should only touch their own registers. The board handles all
+cross-peripheral setup — clock enables, power supply sequencing, flash wait
+states — before calling Init.
 
-This ensures drivers are pure register-level abstractions with no hidden
-dependencies, making them usable with or without the vtable dispatch layer.
+There are two exceptions:
 
-Bus-device drivers (e.g., SPI flash) are the exception — they inherently
-need to call their underlying bus driver (SPI, I2C) to communicate with the
-device.
+- **Peripheral drivers** call their underlying bus driver (SPI, I2C, MDIO) to
+  communicate with the external chip.
+- **DMA-backed platform drivers** (e.g., `stm32wb_uart_dma`) call the DMA
+  driver to set up and start transfers. The DMA device is passed through the
+  driver's configuration struct.
 
 ### Register Access
 
@@ -331,12 +355,6 @@ driver should handle all of these.
 
 Disable a peripheral clock gate. The inverse of Enable — clear the enable bit(s)
 for the given clock descriptor.
-
-### GetRate
-
-Report the current system clock frequency in Hz. The driver should compute this
-from the configured source, PLL coefficients, and divider settings. Store the
-result in the output pointer.
 
 ---
 
@@ -707,7 +725,7 @@ Erase a flash region. Flash erase operates at sector/page granularity
 - Validate that the region is unlocked before erasing
 
 The `addr` does not need to be page-aligned — the driver should erase all pages
-that overlap with the requested range. Bus-device flash drivers (e.g., SPI-NOR)
+that overlap with the requested range. Peripheral flash drivers (e.g., SPI-NOR)
 may enforce stricter alignment requirements where the underlying hardware
 requires aligned erase addresses.
 
@@ -722,9 +740,8 @@ SD cards and eMMC. Unlike flash, block devices are addressed by block number
 rather than byte address, and all operations work in units of fixed-size blocks
 (e.g. 512 bytes).
 
-Block drivers are bus-device drivers — they call their underlying bus driver
-(SPI, SDIO) to communicate with the storage device. This is the expected
-exception to the no-cross-driver-calls rule.
+Block drivers are peripheral drivers — they call their underlying bus driver
+(SPI, SDIO) to communicate with the storage device.
 
 ### Init
 

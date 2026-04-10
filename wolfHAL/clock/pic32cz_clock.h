@@ -248,15 +248,5 @@ whal_Error whal_Pic32czClock_Enable(whal_Clock *clkDev, const void *clk);
  * @retval WHAL_EINVAL  Invalid arguments.
  */
 whal_Error whal_Pic32czClock_Disable(whal_Clock *clkDev, const void *clk);
-/*
- * @brief Report the PIC32CZ oscillator clock rate.
- *
- * @param clkDev  Clock device instance to query.
- * @param rateOut Storage for the clock rate.
- *
- * @retval WHAL_SUCCESS Rate reported.
- * @retval WHAL_EINVAL  Invalid arguments.
- */
-whal_Error whal_Pic32czClock_GetRate(whal_Clock *clkDev, size_t *rateOut);
 
 #endif /* WHAL_PIC32CZ_CLOCK_H */

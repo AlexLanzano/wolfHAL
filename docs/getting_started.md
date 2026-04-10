@@ -277,7 +277,7 @@ This eliminates the vtable indirection and lets the compiler inline or optimize
 the calls more aggressively.
 
 Register-level drivers do not call other drivers internally, so this works
-without any caveats. Bus-device drivers (e.g., SPI flash) still call their
+without any caveats. Peripheral drivers (e.g., SPI flash) still call their
 bus driver through the vtable.
 
 ## Next Steps

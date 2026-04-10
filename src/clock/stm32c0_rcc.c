@@ -114,26 +114,9 @@ whal_Error whal_Stm32c0Rcc_Disable(whal_Clock *clkDev, const void *clk)
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_Stm32c0Rcc_GetRate(whal_Clock *clkDev, size_t *rateOut)
-{
-    whal_Stm32c0Rcc_Cfg *cfg;
-
-    if (!clkDev || !clkDev->cfg || !rateOut) {
-        return WHAL_EINVAL;
-    }
-
-    cfg = (whal_Stm32c0Rcc_Cfg *)clkDev->cfg;
-
-    /* HSI48 base frequency divided by HSIDIV (1 << hsidiv) */
-    *rateOut = 48000000 / (1 << cfg->hsidiv);
-
-    return WHAL_SUCCESS;
-}
-
 const whal_ClockDriver whal_Stm32c0Rcc_Driver = {
     .Init = whal_Stm32c0Rcc_Init,
     .Deinit = whal_Stm32c0Rcc_Deinit,
     .Enable = whal_Stm32c0Rcc_Enable,
     .Disable = whal_Stm32c0Rcc_Disable,
-    .GetRate = whal_Stm32c0Rcc_GetRate,
 };

@@ -4,7 +4,7 @@
 #include <stddef.h>
 #include "board.h"
 #include <wolfHAL/platform/st/stm32h563xx.h>
-#include <wolfHAL/eth_phy/lan8742a.h>
+#include <wolfHAL/eth_phy/lan8742a_eth_phy.h>
 #include "peripheral.h"
 
 /* SysTick timing */

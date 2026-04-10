@@ -10,7 +10,7 @@ include $(BOARD_DIR)/Makefile.inc
 
 uc = $(shell echo $(1) | tr a-z A-Z)
 CFLAGS += $(foreach t,$(TESTS),-DWHAL_TEST_ENABLE_$(call uc,$(t)))
-CFLAGS += $(foreach t,$(TESTS),$(if $(wildcard $(t)/test_$(PLATFORM)_$(t).c),-DWHAL_TEST_ENABLE_$(call uc,$(t))_PLATFORM))
+CFLAGS += $(foreach t,$(TESTS),$(if $(shell find . -name 'test_$(PLATFORM)_$(t).c'),-DWHAL_TEST_ENABLE_$(call uc,$(t))_PLATFORM))
 
 SOURCE = main.c
 SOURCE += $(BOARD_SOURCE)

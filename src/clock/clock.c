@@ -37,14 +37,3 @@ inline whal_Error whal_Clock_Disable(whal_Clock *clkDev, const void *clk)
     return clkDev->driver->Disable(clkDev, clk);
 }
 
-inline whal_Error whal_Clock_GetRate(whal_Clock *clkDev, size_t *rateOut)
-{
-    if (!clkDev || !clkDev->driver || !clkDev->driver->GetRate ||
-        !rateOut) 
-    {
-        return WHAL_EINVAL;
-    }
-
-    return clkDev->driver->GetRate(clkDev, rateOut);
-}
-
