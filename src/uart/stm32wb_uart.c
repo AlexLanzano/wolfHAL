@@ -16,6 +16,9 @@
 #define UART_CR1_TE_Pos 3
 #define UART_CR1_TE_Msk (1UL << UART_CR1_TE_Pos)
 
+#define UART_CR1_FIFOEN_Pos 29
+#define UART_CR1_FIFOEN_Msk (1UL << UART_CR1_FIFOEN_Pos)
+
 #define UART_BRR_REG 0x0C
 #define UART_BRR_Pos 0
 #define UART_BRR_Msk (WHAL_BITMASK(20) << UART_BRR_Pos)
@@ -73,10 +76,12 @@ whal_Error whal_Stm32wbUart_Init(whal_Uart *uartDev)
                     UART_BRR_Msk,
                     whal_SetBits(UART_BRR_Msk, UART_BRR_Pos, brr));
     whal_Reg_Update(reg->base, UART_CR1_REG,
-                    UART_CR1_UE_Msk | UART_CR1_RE_Msk | UART_CR1_TE_Msk,
+                    UART_CR1_UE_Msk | UART_CR1_RE_Msk | UART_CR1_TE_Msk |
+                    UART_CR1_FIFOEN_Msk,
                     whal_SetBits(UART_CR1_UE_Msk, UART_CR1_UE_Pos, 1) |
                     whal_SetBits(UART_CR1_RE_Msk, UART_CR1_RE_Pos, 1) |
-                    whal_SetBits(UART_CR1_TE_Msk, UART_CR1_TE_Pos, 1));
+                    whal_SetBits(UART_CR1_TE_Msk, UART_CR1_TE_Pos, 1) |
+                    whal_SetBits(UART_CR1_FIFOEN_Msk, UART_CR1_FIFOEN_Pos, 1));
 
     return WHAL_SUCCESS;
 }

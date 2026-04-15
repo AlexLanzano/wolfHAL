@@ -27,6 +27,7 @@ BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/timer.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/flash.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/rng.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/block.c)
+BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/sensor.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/pic32cz_*.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/systick.c)
 

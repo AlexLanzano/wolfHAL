@@ -172,6 +172,7 @@ whal_Error whal_Stm32wbAes_Deinit(whal_Crypto *cryptoDev)
     return WHAL_SUCCESS;
 }
 
+#ifdef WHAL_CFG_CRYPTO_AES_ECB
 static whal_Error StartOp_AesEcb(whal_Crypto *cryptoDev, void *opArgs)
 {
     whal_Crypto_AesEcbArgs *args = (whal_Crypto_AesEcbArgs *)opArgs;
@@ -208,7 +209,9 @@ static whal_Error StartOp_AesEcb(whal_Crypto *cryptoDev, void *opArgs)
 
     return WHAL_SUCCESS;
 }
+#endif /* WHAL_CFG_CRYPTO_AES_ECB */
 
+#ifdef WHAL_CFG_CRYPTO_AES_CBC
 static whal_Error StartOp_AesCbc(whal_Crypto *cryptoDev, void *opArgs)
 {
     whal_Crypto_AesCbcArgs *args = (whal_Crypto_AesCbcArgs *)opArgs;
@@ -246,7 +249,9 @@ static whal_Error StartOp_AesCbc(whal_Crypto *cryptoDev, void *opArgs)
 
     return WHAL_SUCCESS;
 }
+#endif /* WHAL_CFG_CRYPTO_AES_CBC */
 
+#ifdef WHAL_CFG_CRYPTO_AES_CTR
 static whal_Error StartOp_AesCtr(whal_Crypto *cryptoDev, void *opArgs)
 {
     whal_Crypto_AesCtrArgs *args = (whal_Crypto_AesCtrArgs *)opArgs;
@@ -282,7 +287,10 @@ static whal_Error StartOp_AesCtr(whal_Crypto *cryptoDev, void *opArgs)
 
     return WHAL_SUCCESS;
 }
+#endif /* WHAL_CFG_CRYPTO_AES_CTR */
 
+#if defined(WHAL_CFG_CRYPTO_AES_ECB) || defined(WHAL_CFG_CRYPTO_AES_CBC) || \
+    defined(WHAL_CFG_CRYPTO_AES_CTR)
 static whal_Error Process_BlockCipher(whal_Crypto *cryptoDev,
                                       const uint8_t *in, uint8_t *out,
                                       size_t sz)
@@ -321,7 +329,9 @@ static whal_Error EndOp_BlockCipher(whal_Crypto *cryptoDev)
 
     return WHAL_SUCCESS;
 }
+#endif /* WHAL_CFG_CRYPTO_AES_ECB || CBC || CTR */
 
+#ifdef WHAL_CFG_CRYPTO_AES_GCM
 static whal_Error StartOp_AesGcm(whal_Crypto *cryptoDev, void *opArgs)
 {
     whal_Error err;
@@ -329,11 +339,16 @@ static whal_Error StartOp_AesGcm(whal_Crypto *cryptoDev, void *opArgs)
     const whal_Stm32wbAes_Cfg *cfg =
         (const whal_Stm32wbAes_Cfg *)cryptoDev->cfg;
     size_t base = cryptoDev->regmap.base;
+    const uint8_t *iv;
+    const uint8_t *aad;
     size_t keySizeBit;
     size_t i;
 
-    if (!args->key || !args->iv || !args->tag)
+    if (!args->key || !args->iv)
         return WHAL_EINVAL;
+
+    iv = (const uint8_t *)args->iv;
+    aad = (const uint8_t *)args->aad;
 
     if (args->keySz != 16 && args->keySz != 32)
         return WHAL_ENOTSUP;
@@ -345,9 +360,6 @@ static whal_Error StartOp_AesGcm(whal_Crypto *cryptoDev, void *opArgs)
         return WHAL_EINVAL;
 
     if (args->aadSz > 0 && !args->aad)
-        return WHAL_EINVAL;
-
-    if (args->tagSz == 0 || args->tagSz > 16)
         return WHAL_EINVAL;
 
     keySizeBit = (args->keySz == 32) ? 1 : 0;
@@ -371,9 +383,9 @@ static whal_Error StartOp_AesGcm(whal_Crypto *cryptoDev, void *opArgs)
 
     WriteKey(base, args->key, args->keySz);
 
-    whal_Reg_Write(base, AES_IVR3_REG, whal_LoadBe32(args->iv));
-    whal_Reg_Write(base, AES_IVR2_REG, whal_LoadBe32(args->iv + 4));
-    whal_Reg_Write(base, AES_IVR1_REG, whal_LoadBe32(args->iv + 8));
+    whal_Reg_Write(base, AES_IVR3_REG, whal_LoadBe32(iv));
+    whal_Reg_Write(base, AES_IVR2_REG, whal_LoadBe32(iv + 4));
+    whal_Reg_Write(base, AES_IVR1_REG, whal_LoadBe32(iv + 8));
     whal_Reg_Write(base, AES_IVR0_REG, 0x00000002);
 
     whal_Reg_Update(base, AES_CR_REG, AES_CR_EN_Msk, AES_CR_EN_Msk);
@@ -393,16 +405,16 @@ static whal_Error StartOp_AesGcm(whal_Crypto *cryptoDev, void *opArgs)
         whal_Reg_Update(base, AES_CR_REG, AES_CR_EN_Msk, AES_CR_EN_Msk);
 
         for (i = 0; i < args->aadSz; i += 16) {
-            const uint8_t *aad = args->aad + i;
+            const uint8_t *blkAad = aad + i;
             size_t remain = args->aadSz - i;
             uint8_t block[16] = {0};
             size_t j;
 
             if (remain >= 16) {
-                WriteBlock(base, aad);
+                WriteBlock(base, blkAad);
             } else {
                 for (j = 0; j < remain; j++)
-                    block[j] = aad[j];
+                    block[j] = blkAad[j];
                 WriteBlock(base, block);
             }
 
@@ -448,8 +460,8 @@ static whal_Error Process_AesGcm(whal_Crypto *cryptoDev, void *opArgs)
         whal_Reg_Update(base, AES_CR_REG, AES_CR_EN_Msk, AES_CR_EN_Msk);
 
     for (i = 0; i < args->sz; i += 16) {
-        const uint8_t *in = args->in + i;
-        uint8_t *out = args->out + i;
+        const uint8_t *in = (const uint8_t *)args->in + i;
+        uint8_t *out = (uint8_t *)args->out + i;
         size_t remain = args->sz - i;
         uint8_t block[16] = {0};
         size_t j;
@@ -490,9 +502,15 @@ static whal_Error EndOp_AesGcm(whal_Crypto *cryptoDev, void *opArgs)
     const whal_Stm32wbAes_Cfg *cfg =
         (const whal_Stm32wbAes_Cfg *)cryptoDev->cfg;
     size_t base = cryptoDev->regmap.base;
+    uint8_t *tag;
     whal_Error err;
     uint8_t tagBuf[16];
     size_t i;
+
+    if (!args->tag || args->tagSz == 0 || args->tagSz > 16)
+        return WHAL_EINVAL;
+
+    tag = (uint8_t *)args->tag;
 
     whal_Reg_Update(base, AES_CR_REG,
                     AES_CR_MODE_Msk | AES_CR_GCMPH_Msk,
@@ -516,14 +534,16 @@ static whal_Error EndOp_AesGcm(whal_Crypto *cryptoDev, void *opArgs)
     ReadBlock(base, tagBuf);
 
     for (i = 0; i < args->tagSz; i++)
-        args->tag[i] = tagBuf[i];
+        tag[i] = tagBuf[i];
 
 cleanup:
     whal_Reg_Update(base, AES_CR_REG, AES_CR_EN_Msk, 0);
 
     return err;
 }
+#endif /* WHAL_CFG_CRYPTO_AES_GCM */
 
+#ifdef WHAL_CFG_CRYPTO_AES_GMAC
 static whal_Error StartOp_AesGmac(whal_Crypto *cryptoDev, void *opArgs)
 {
     whal_Error err;
@@ -531,11 +551,16 @@ static whal_Error StartOp_AesGmac(whal_Crypto *cryptoDev, void *opArgs)
     const whal_Stm32wbAes_Cfg *cfg =
         (const whal_Stm32wbAes_Cfg *)cryptoDev->cfg;
     size_t base = cryptoDev->regmap.base;
+    const uint8_t *iv;
+    const uint8_t *aad;
     size_t keySizeBit;
     size_t i;
 
-    if (!args->key || !args->iv || !args->tag)
+    if (!args->key || !args->iv)
         return WHAL_EINVAL;
+
+    iv = (const uint8_t *)args->iv;
+    aad = (const uint8_t *)args->aad;
 
     if (args->keySz != 16 && args->keySz != 32)
         return WHAL_ENOTSUP;
@@ -544,9 +569,6 @@ static whal_Error StartOp_AesGmac(whal_Crypto *cryptoDev, void *opArgs)
         return WHAL_ENOTSUP;
 
     if (args->aadSz > 0 && !args->aad)
-        return WHAL_EINVAL;
-
-    if (args->tagSz == 0 || args->tagSz > 16)
         return WHAL_EINVAL;
 
     keySizeBit = (args->keySz == 32) ? 1 : 0;
@@ -570,9 +592,9 @@ static whal_Error StartOp_AesGmac(whal_Crypto *cryptoDev, void *opArgs)
 
     WriteKey(base, args->key, args->keySz);
 
-    whal_Reg_Write(base, AES_IVR3_REG, whal_LoadBe32(args->iv));
-    whal_Reg_Write(base, AES_IVR2_REG, whal_LoadBe32(args->iv + 4));
-    whal_Reg_Write(base, AES_IVR1_REG, whal_LoadBe32(args->iv + 8));
+    whal_Reg_Write(base, AES_IVR3_REG, whal_LoadBe32(iv));
+    whal_Reg_Write(base, AES_IVR2_REG, whal_LoadBe32(iv + 4));
+    whal_Reg_Write(base, AES_IVR1_REG, whal_LoadBe32(iv + 8));
     whal_Reg_Write(base, AES_IVR0_REG, 0x00000002);
 
     whal_Reg_Update(base, AES_CR_REG, AES_CR_EN_Msk, AES_CR_EN_Msk);
@@ -592,16 +614,16 @@ static whal_Error StartOp_AesGmac(whal_Crypto *cryptoDev, void *opArgs)
         whal_Reg_Update(base, AES_CR_REG, AES_CR_EN_Msk, AES_CR_EN_Msk);
 
         for (i = 0; i < args->aadSz; i += 16) {
-            const uint8_t *aad = args->aad + i;
+            const uint8_t *blkAad = aad + i;
             size_t remain = args->aadSz - i;
             uint8_t block[16] = {0};
             size_t j;
 
             if (remain >= 16) {
-                WriteBlock(base, aad);
+                WriteBlock(base, blkAad);
             } else {
                 for (j = 0; j < remain; j++)
-                    block[j] = aad[j];
+                    block[j] = blkAad[j];
                 WriteBlock(base, block);
             }
 
@@ -624,9 +646,15 @@ static whal_Error EndOp_AesGmac(whal_Crypto *cryptoDev, void *opArgs)
     const whal_Stm32wbAes_Cfg *cfg =
         (const whal_Stm32wbAes_Cfg *)cryptoDev->cfg;
     size_t base = cryptoDev->regmap.base;
+    uint8_t *tag;
     whal_Error err;
     uint8_t tagBuf[16];
     size_t i;
+
+    if (!args->tag || args->tagSz == 0 || args->tagSz > 16)
+        return WHAL_EINVAL;
+
+    tag = (uint8_t *)args->tag;
 
     whal_Reg_Update(base, AES_CR_REG,
                     AES_CR_MODE_Msk | AES_CR_GCMPH_Msk,
@@ -650,14 +678,16 @@ static whal_Error EndOp_AesGmac(whal_Crypto *cryptoDev, void *opArgs)
     ReadBlock(base, tagBuf);
 
     for (i = 0; i < args->tagSz; i++)
-        args->tag[i] = tagBuf[i];
+        tag[i] = tagBuf[i];
 
 cleanup:
     whal_Reg_Update(base, AES_CR_REG, AES_CR_EN_Msk, 0);
 
     return err;
 }
+#endif /* WHAL_CFG_CRYPTO_AES_GMAC */
 
+#ifdef WHAL_CFG_CRYPTO_AES_CCM
 static whal_Error StartOp_AesCcm(whal_Crypto *cryptoDev, void *opArgs)
 {
     whal_Error err;
@@ -665,11 +695,13 @@ static whal_Error StartOp_AesCcm(whal_Crypto *cryptoDev, void *opArgs)
     const whal_Stm32wbAes_Cfg *cfg =
         (const whal_Stm32wbAes_Cfg *)cryptoDev->cfg;
     size_t base = cryptoDev->regmap.base;
+    const uint8_t *nonce = (const uint8_t *)args->nonce;
+    const uint8_t *aad = (const uint8_t *)args->aad;
     size_t keySizeBit;
     size_t i;
     uint8_t b0[16];
 
-    if (!args->key || !args->nonce || !args->tag)
+    if (!args->key || !args->nonce)
         return WHAL_EINVAL;
 
     if (args->keySz != 16 && args->keySz != 32)
@@ -697,7 +729,7 @@ static whal_Error StartOp_AesCcm(whal_Crypto *cryptoDev, void *opArgs)
                                   (q - 1));
         b0[0] = flags;
         for (i = 0; i < args->nonceSz; i++)
-            b0[1 + i] = args->nonce[i];
+            b0[1 + i] = nonce[i];
 
         {
             size_t msgLen = args->sz;
@@ -756,7 +788,7 @@ static whal_Error StartOp_AesCcm(whal_Crypto *cryptoDev, void *opArgs)
             hdrOff = 2;
 
             while (hdrOff < 16 && aadOff < args->aadSz) {
-                hdrBuf[hdrOff++] = args->aad[aadOff++];
+                hdrBuf[hdrOff++] = aad[aadOff++];
             }
 
             WriteBlock(base, hdrBuf);
@@ -768,7 +800,7 @@ static whal_Error StartOp_AesCcm(whal_Crypto *cryptoDev, void *opArgs)
                 uint8_t block[16] = {0};
 
                 for (j = 0; j < 16 && aadOff < args->aadSz; j++)
-                    block[j] = args->aad[aadOff++];
+                    block[j] = aad[aadOff++];
 
                 WriteBlock(base, block);
                 err = WaitForCCF(base, cfg->timeout);
@@ -814,8 +846,8 @@ static whal_Error Process_AesCcm(whal_Crypto *cryptoDev, void *opArgs)
         whal_Reg_Update(base, AES_CR_REG, AES_CR_EN_Msk, AES_CR_EN_Msk);
 
     for (i = 0; i < args->sz; i += 16) {
-        const uint8_t *in = args->in + i;
-        uint8_t *out = args->out + i;
+        const uint8_t *in = (const uint8_t *)args->in + i;
+        uint8_t *out = (uint8_t *)args->out + i;
         size_t remain = args->sz - i;
         uint8_t block[16] = {0};
         size_t j;
@@ -856,9 +888,16 @@ static whal_Error EndOp_AesCcm(whal_Crypto *cryptoDev, void *opArgs)
     const whal_Stm32wbAes_Cfg *cfg =
         (const whal_Stm32wbAes_Cfg *)cryptoDev->cfg;
     size_t base = cryptoDev->regmap.base;
+    uint8_t *tag;
     whal_Error err;
     uint8_t tagBuf[16];
     size_t i;
+
+    if (!args->tag || args->tagSz < 4 || args->tagSz > 16 ||
+        (args->tagSz & 1) != 0)
+        return WHAL_EINVAL;
+
+    tag = (uint8_t *)args->tag;
 
     whal_Reg_Update(base, AES_CR_REG,
                     AES_CR_MODE_Msk | AES_CR_GCMPH_Msk,
@@ -882,15 +921,14 @@ static whal_Error EndOp_AesCcm(whal_Crypto *cryptoDev, void *opArgs)
     ReadBlock(base, tagBuf);
 
     for (i = 0; i < args->tagSz; i++)
-        args->tag[i] = tagBuf[i];
+        tag[i] = tagBuf[i];
 
 cleanup:
     whal_Reg_Update(base, AES_CR_REG, AES_CR_EN_Msk, 0);
 
     return err;
 }
-
-
+#endif /* WHAL_CFG_CRYPTO_AES_CCM */
 
 
 whal_Error whal_Stm32wbAes_StartOp(whal_Crypto *cryptoDev, size_t opId,
@@ -900,20 +938,32 @@ whal_Error whal_Stm32wbAes_StartOp(whal_Crypto *cryptoDev, size_t opId,
         return WHAL_EINVAL;
 
     switch (opId) {
+#ifdef WHAL_CFG_CRYPTO_AES_ECB
     case WHAL_CRYPTO_AES_ECB:
         return StartOp_AesEcb(cryptoDev, opArgs);
+#endif
+#ifdef WHAL_CFG_CRYPTO_AES_CBC
     case WHAL_CRYPTO_AES_CBC:
         return StartOp_AesCbc(cryptoDev, opArgs);
+#endif
+#ifdef WHAL_CFG_CRYPTO_AES_CTR
     case WHAL_CRYPTO_AES_CTR:
         return StartOp_AesCtr(cryptoDev, opArgs);
+#endif
+#ifdef WHAL_CFG_CRYPTO_AES_GCM
     case WHAL_CRYPTO_AES_GCM:
         return StartOp_AesGcm(cryptoDev, opArgs);
+#endif
+#ifdef WHAL_CFG_CRYPTO_AES_GMAC
     case WHAL_CRYPTO_AES_GMAC:
         return StartOp_AesGmac(cryptoDev, opArgs);
+#endif
+#ifdef WHAL_CFG_CRYPTO_AES_CCM
     case WHAL_CRYPTO_AES_CCM:
         return StartOp_AesCcm(cryptoDev, opArgs);
+#endif
     default:
-        return WHAL_EINVAL;
+        return WHAL_ENOTSUP;
     }
 }
 
@@ -924,26 +974,38 @@ whal_Error whal_Stm32wbAes_Process(whal_Crypto *cryptoDev, size_t opId,
         return WHAL_EINVAL;
 
     switch (opId) {
+#ifdef WHAL_CFG_CRYPTO_AES_ECB
     case WHAL_CRYPTO_AES_ECB: {
         whal_Crypto_AesEcbArgs *args = (whal_Crypto_AesEcbArgs *)opArgs;
         return Process_BlockCipher(cryptoDev, args->in, args->out, args->sz);
     }
+#endif
+#ifdef WHAL_CFG_CRYPTO_AES_CBC
     case WHAL_CRYPTO_AES_CBC: {
         whal_Crypto_AesCbcArgs *args = (whal_Crypto_AesCbcArgs *)opArgs;
         return Process_BlockCipher(cryptoDev, args->in, args->out, args->sz);
     }
+#endif
+#ifdef WHAL_CFG_CRYPTO_AES_CTR
     case WHAL_CRYPTO_AES_CTR: {
         whal_Crypto_AesCtrArgs *args = (whal_Crypto_AesCtrArgs *)opArgs;
         return Process_BlockCipher(cryptoDev, args->in, args->out, args->sz);
     }
+#endif
+#ifdef WHAL_CFG_CRYPTO_AES_GCM
     case WHAL_CRYPTO_AES_GCM:
         return Process_AesGcm(cryptoDev, opArgs);
+#endif
+#ifdef WHAL_CFG_CRYPTO_AES_GMAC
     case WHAL_CRYPTO_AES_GMAC:
         return WHAL_SUCCESS;
+#endif
+#ifdef WHAL_CFG_CRYPTO_AES_CCM
     case WHAL_CRYPTO_AES_CCM:
         return Process_AesCcm(cryptoDev, opArgs);
+#endif
     default:
-        return WHAL_EINVAL;
+        return WHAL_ENOTSUP;
     }
 }
 
@@ -954,18 +1016,32 @@ whal_Error whal_Stm32wbAes_EndOp(whal_Crypto *cryptoDev, size_t opId,
         return WHAL_EINVAL;
 
     switch (opId) {
+#ifdef WHAL_CFG_CRYPTO_AES_ECB
     case WHAL_CRYPTO_AES_ECB:
+        return EndOp_BlockCipher(cryptoDev);
+#endif
+#ifdef WHAL_CFG_CRYPTO_AES_CBC
     case WHAL_CRYPTO_AES_CBC:
+        return EndOp_BlockCipher(cryptoDev);
+#endif
+#ifdef WHAL_CFG_CRYPTO_AES_CTR
     case WHAL_CRYPTO_AES_CTR:
         return EndOp_BlockCipher(cryptoDev);
+#endif
+#ifdef WHAL_CFG_CRYPTO_AES_GCM
     case WHAL_CRYPTO_AES_GCM:
         return EndOp_AesGcm(cryptoDev, opArgs);
+#endif
+#ifdef WHAL_CFG_CRYPTO_AES_GMAC
     case WHAL_CRYPTO_AES_GMAC:
         return EndOp_AesGmac(cryptoDev, opArgs);
+#endif
+#ifdef WHAL_CFG_CRYPTO_AES_CCM
     case WHAL_CRYPTO_AES_CCM:
         return EndOp_AesCcm(cryptoDev, opArgs);
+#endif
     default:
-        return WHAL_EINVAL;
+        return WHAL_ENOTSUP;
     }
 }
 
