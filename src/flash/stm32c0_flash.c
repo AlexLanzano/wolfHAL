@@ -85,6 +85,16 @@
 #define FLASH_CR_LOCK_Pos 31         /* Lock flash control */
 #define FLASH_CR_LOCK_Msk (1UL << FLASH_CR_LOCK_Pos)
 
+#ifdef WHAL_CFG_FLASH_API_MAPPING_STM32C0
+#define whal_Stm32c0Flash_Init   whal_Flash_Init
+#define whal_Stm32c0Flash_Deinit whal_Flash_Deinit
+#define whal_Stm32c0Flash_Lock   whal_Flash_Lock
+#define whal_Stm32c0Flash_Unlock whal_Flash_Unlock
+#define whal_Stm32c0Flash_Read   whal_Flash_Read
+#define whal_Stm32c0Flash_Write  whal_Flash_Write
+#define whal_Stm32c0Flash_Erase  whal_Flash_Erase
+#endif /* WHAL_CFG_FLASH_API_MAPPING_STM32C0 */
+
 whal_Error whal_Stm32c0Flash_Init(whal_Flash *flashDev)
 {
     (void)flashDev;
@@ -292,6 +302,7 @@ whal_Error whal_Stm32c0Flash_Ext_SetLatency(whal_Flash *flashDev, enum whal_Stm3
     return WHAL_SUCCESS;
 }
 
+#ifndef WHAL_CFG_FLASH_API_MAPPING_STM32C0
 const whal_FlashDriver whal_Stm32c0Flash_Driver = {
     .Init = whal_Stm32c0Flash_Init,
     .Deinit = whal_Stm32c0Flash_Deinit,
@@ -301,3 +312,4 @@ const whal_FlashDriver whal_Stm32c0Flash_Driver = {
     .Write = whal_Stm32c0Flash_Write,
     .Erase = whal_Stm32c0Flash_Erase,
 };
+#endif /* !WHAL_CFG_FLASH_API_MAPPING_STM32C0 */

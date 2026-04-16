@@ -41,6 +41,12 @@
 /* Data Register - 32-bit random value */
 #define RNG_DR_REG  0x08
 
+#ifdef WHAL_CFG_RNG_API_MAPPING_STM32WB
+#define whal_Stm32wbRng_Init     whal_Rng_Init
+#define whal_Stm32wbRng_Deinit   whal_Rng_Deinit
+#define whal_Stm32wbRng_Generate whal_Rng_Generate
+#endif /* WHAL_CFG_RNG_API_MAPPING_STM32WB */
+
 whal_Error whal_Stm32wbRng_Init(whal_Rng *rngDev)
 {
     if (!rngDev || !rngDev->cfg) {
@@ -124,8 +130,10 @@ exit:
     return err;
 }
 
+#ifndef WHAL_CFG_RNG_API_MAPPING_STM32WB
 const whal_RngDriver whal_Stm32wbRng_Driver = {
     .Init = whal_Stm32wbRng_Init,
     .Deinit = whal_Stm32wbRng_Deinit,
     .Generate = whal_Stm32wbRng_Generate,
 };
+#endif /* !WHAL_CFG_RNG_API_MAPPING_STM32WB */

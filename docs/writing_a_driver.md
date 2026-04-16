@@ -61,6 +61,41 @@ const whal_FooDriver whal_MyplatformFoo_Driver = {
 };
 ```
 
+### Direct API Mapping
+
+Every driver should include a rename-at-definition block that lets the build
+system map chip-specific function names to the top-level API. Place this
+`#ifdef` block after your register defines and before the first function
+definition:
+
+```c
+#ifdef WHAL_CFG_FOO_API_MAPPING_MYPLATFORM
+#define whal_MyplatformFoo_Init   whal_Foo_Init
+#define whal_MyplatformFoo_Deinit whal_Foo_Deinit
+/* ... one #define per mapped function ... */
+#endif
+```
+
+When the flag is defined, the preprocessor renames each function to its
+generic API name at the definition site. The driver source uses chip-specific
+names everywhere — the macros handle the rest.
+
+Wrap the vtable in `#ifndef` since it is unused when mapping is active:
+
+```c
+#ifndef WHAL_CFG_FOO_API_MAPPING_MYPLATFORM
+const whal_FooDriver whal_MyplatformFoo_Driver = {
+    .Init   = whal_MyplatformFoo_Init,
+    .Deinit = whal_MyplatformFoo_Deinit,
+};
+#endif
+```
+
+In the chip header, wrap the mapped function prototypes and extern vtable
+declaration in the same `#ifndef` guard. Types and configuration structs
+stay unconditional. Extension functions (`Ext_*`) that have no generic
+equivalent are never mapped and stay unconditional.
+
 ### Configuration
 
 The device struct's `cfg` field points to your platform-specific configuration.
@@ -238,7 +273,9 @@ platform that re-export the existing driver under platform-specific names.
 #### Header
 
 The alias header `typedef`s the config structs and `#define`s the driver
-instance, functions, and any enum constants:
+instance, functions, and any enum constants. The driver and function aliases
+are wrapped in `#ifndef` so they are omitted when direct API mapping is active
+for the alias platform:
 
 ```c
 #ifndef WHAL_STM32H5_GPIO_H
@@ -249,11 +286,13 @@ instance, functions, and any enum constants:
 typedef whal_Stm32wbGpio_Cfg    whal_Stm32h5Gpio_Cfg;
 typedef whal_Stm32wbGpio_PinCfg whal_Stm32h5Gpio_PinCfg;
 
+#ifndef WHAL_CFG_GPIO_API_MAPPING_STM32H5
 #define whal_Stm32h5Gpio_Driver whal_Stm32wbGpio_Driver
 #define whal_Stm32h5Gpio_Init   whal_Stm32wbGpio_Init
 #define whal_Stm32h5Gpio_Deinit whal_Stm32wbGpio_Deinit
 #define whal_Stm32h5Gpio_Get    whal_Stm32wbGpio_Get
 #define whal_Stm32h5Gpio_Set    whal_Stm32wbGpio_Set
+#endif
 
 /* Re-export enum constants under the new platform name */
 #define WHAL_STM32H5_GPIO_MODE_OUT WHAL_STM32WB_GPIO_MODE_OUT
@@ -288,17 +327,31 @@ field, different reset value that affects behavior), write a new driver. A
 partial alias that papers over register differences with workarounds is worse
 than a clean separate implementation.
 
-### Platform Device Macro
+### Platform Device Macros
 
-Add a device macro to your platform header
+Add regmap and driver macros to your platform header
 (`wolfHAL/platform/<vendor>/<device>.h`) so that board configs can instantiate
 devices without knowing the register addresses or driver symbols:
 
 ```c
-#define WHAL_MYPLATFORM_FOO_DEVICE \
-    .regmap = { .base = 0x40000000, .size = 0x400 }, \
-    .driver = &whal_MyplatformFoo_Driver
+#define WHAL_MYPLATFORM_FOO_REGMAP \
+    .base = 0x40000000, \
+    .size = 0x400
+#define WHAL_MYPLATFORM_FOO_DRIVER &whal_MyplatformFoo_Driver
 ```
+
+The board uses these in device struct initializers:
+
+```c
+whal_Foo g_whalFoo = {
+    .regmap = { WHAL_MYPLATFORM_FOO_REGMAP },
+    .driver = WHAL_MYPLATFORM_FOO_DRIVER,
+    .cfg = &fooCfg,
+};
+```
+
+When direct API mapping is active for a device type, the board omits the
+`.driver` field since the vtable is unused.
 
 ---
 
@@ -462,8 +515,10 @@ transfer. The buffer must remain valid until the transfer completes. The
 driver signals completion through a platform-specific mechanism.
 
 Drivers that do not support async should set SendAsync to NULL in the vtable.
-The dispatch layer returns WHAL_EINVAL when the caller tries to use a NULL
-async function.
+The dispatch layer returns WHAL_ENOTIMPL when the caller tries to use any
+NULL vtable entry (or when the driver pointer itself is NULL). When direct
+API mapping is active, polled drivers provide stub implementations that
+return WHAL_ENOTIMPL directly.
 
 ### RecvAsync
 
@@ -472,7 +527,8 @@ transfer. The buffer must remain valid until the transfer completes.
 
 The async variants are optional — a driver vtable only needs to populate
 them if the platform supports non-blocking transfers. Polled-only drivers
-leave these NULL.
+leave these NULL (the dispatch layer returns WHAL_ENOTIMPL) or provide
+stubs returning WHAL_ENOTIMPL (direct API mapping).
 
 ---
 

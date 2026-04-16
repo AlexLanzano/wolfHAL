@@ -94,6 +94,7 @@ typedef struct whal_Stm32f4Rcc_Cfg {
     uint8_t ppre2; /* APB2 prescaler (0=/1, 4=/2, 5=/4, 6=/8, 7=/16) */
 } whal_Stm32f4Rcc_Cfg;
 
+#ifndef WHAL_CFG_CLOCK_API_MAPPING_STM32F4_PLL
 /*
  * @brief Driver instance for the STM32F4 RCC PLL clock controller.
  */
@@ -145,5 +146,6 @@ whal_Error whal_Stm32f4Rcc_Enable(whal_Clock *clkDev, const void *clk);
  * @retval WHAL_EINVAL  Invalid arguments.
  */
 whal_Error whal_Stm32f4Rcc_Disable(whal_Clock *clkDev, const void *clk);
+#endif /* !WHAL_CFG_CLOCK_API_MAPPING_STM32F4_PLL */
 
 #endif /* WHAL_STM32F4_RCC_H */

@@ -94,6 +94,16 @@
 #define FCW_DWORD_SIZE          8
 #define FCW_QDWORD_SIZE         32
 
+#ifdef WHAL_CFG_FLASH_API_MAPPING_PIC32CZ
+#define whal_Pic32czFlash_Init   whal_Flash_Init
+#define whal_Pic32czFlash_Deinit whal_Flash_Deinit
+#define whal_Pic32czFlash_Lock   whal_Flash_Lock
+#define whal_Pic32czFlash_Unlock whal_Flash_Unlock
+#define whal_Pic32czFlash_Read   whal_Flash_Read
+#define whal_Pic32czFlash_Write  whal_Flash_Write
+#define whal_Pic32czFlash_Erase  whal_Flash_Erase
+#endif /* WHAL_CFG_FLASH_API_MAPPING_PIC32CZ */
+
 static whal_Error whal_Pic32czFlash_MutexLock(const whal_Regmap *reg,
                                               whal_Timeout *timeout)
 {
@@ -403,6 +413,7 @@ whal_Error whal_Pic32czFlash_Erase(whal_Flash *flashDev, size_t addr, size_t dat
     return WHAL_SUCCESS;
 }
 
+#ifndef WHAL_CFG_FLASH_API_MAPPING_PIC32CZ
 const whal_FlashDriver whal_Pic32czFlash_Driver = {
     .Init = whal_Pic32czFlash_Init,
     .Deinit = whal_Pic32czFlash_Deinit,
@@ -412,3 +423,4 @@ const whal_FlashDriver whal_Pic32czFlash_Driver = {
     .Write = whal_Pic32czFlash_Write,
     .Erase = whal_Pic32czFlash_Erase,
 };
+#endif /* !WHAL_CFG_FLASH_API_MAPPING_PIC32CZ */

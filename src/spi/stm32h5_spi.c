@@ -89,6 +89,14 @@
 #define SPI_TXDR_REG 0x020
 #define SPI_RXDR_REG 0x030
 
+#ifdef WHAL_CFG_SPI_API_MAPPING_STM32H5
+#define whal_Stm32h5Spi_Init     whal_Spi_Init
+#define whal_Stm32h5Spi_Deinit   whal_Spi_Deinit
+#define whal_Stm32h5Spi_StartCom whal_Spi_StartCom
+#define whal_Stm32h5Spi_EndCom   whal_Spi_EndCom
+#define whal_Stm32h5Spi_SendRecv whal_Spi_SendRecv
+#endif /* WHAL_CFG_SPI_API_MAPPING_STM32H5 */
+
 /*
  * Calculate the baud rate prescaler index for a target baud rate.
  * SPI baud rate = fPCLK / (2 ^ (MBR + 1))
@@ -269,6 +277,7 @@ whal_Error whal_Stm32h5Spi_SendRecv(whal_Spi *spiDev,
     return WHAL_SUCCESS;
 }
 
+#ifndef WHAL_CFG_SPI_API_MAPPING_STM32H5
 const whal_SpiDriver whal_Stm32h5Spi_Driver = {
     .Init = whal_Stm32h5Spi_Init,
     .Deinit = whal_Stm32h5Spi_Deinit,
@@ -276,3 +285,4 @@ const whal_SpiDriver whal_Stm32h5Spi_Driver = {
     .EndCom = whal_Stm32h5Spi_EndCom,
     .SendRecv = whal_Stm32h5Spi_SendRecv,
 };
+#endif /* !WHAL_CFG_SPI_API_MAPPING_STM32H5 */

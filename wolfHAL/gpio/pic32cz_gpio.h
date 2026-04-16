@@ -89,6 +89,7 @@ typedef struct whal_Pic32czGpio_Cfg {
     whal_Pic32czGpio_PinCfg *pinCfg; /* Array of pin configurations */
 } whal_Pic32czGpio_Cfg;
 
+#ifndef WHAL_CFG_GPIO_API_MAPPING_PIC32CZ
 /*
  * @brief Driver instance for PIC32CZ GPIO.
  */
@@ -134,5 +135,6 @@ whal_Error whal_Pic32czGpio_Get(whal_Gpio *gpioDev, size_t pin, size_t *value);
  * @retval WHAL_EINVAL  Invalid arguments.
  */
 whal_Error whal_Pic32czGpio_Set(whal_Gpio *gpioDev, size_t pin, size_t value);
+#endif /* !WHAL_CFG_GPIO_API_MAPPING_PIC32CZ */
 
 #endif /* WHAL_PIC32CZ_GPIO_H */

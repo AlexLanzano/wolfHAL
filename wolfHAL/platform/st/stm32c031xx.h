@@ -25,47 +25,35 @@
 
 /* --- Device macros --- */
 
-#define WHAL_STM32C031_RCC_DEVICE       \
-    .regmap = {                         \
-        .base = 0x40021000,             \
-        .size = 0x400,                  \
-    },                                  \
-    .driver = &whal_Stm32c0Rcc_Driver
+#define WHAL_STM32C031_RCC_REGMAP       \
+    .base = 0x40021000,                 \
+    .size = 0x400
+#define WHAL_STM32C031_RCC_DRIVER &whal_Stm32c0Rcc_Driver
 
-#define WHAL_STM32C031_GPIO_DEVICE      \
-    .regmap = {                         \
-        .base = 0x50000000,             \
-        .size = 0x1800,                 \
-    },                                  \
-    .driver = &whal_Stm32c0Gpio_Driver
+#define WHAL_STM32C031_GPIO_REGMAP      \
+    .base = 0x50000000,                 \
+    .size = 0x1800
+#define WHAL_STM32C031_GPIO_DRIVER &whal_Stm32c0Gpio_Driver
 
-#define WHAL_STM32C031_USART1_DEVICE    \
-    .regmap = {                         \
-        .base = 0x40013800,             \
-        .size = 0x400,                  \
-    },                                  \
-    .driver = &whal_Stm32c0Uart_Driver
+#define WHAL_STM32C031_USART1_REGMAP    \
+    .base = 0x40013800,                 \
+    .size = 0x400
+#define WHAL_STM32C031_USART1_DRIVER &whal_Stm32c0Uart_Driver
 
-#define WHAL_STM32C031_USART2_DEVICE    \
-    .regmap = {                         \
-        .base = 0x40004400,             \
-        .size = 0x400,                  \
-    },                                  \
-    .driver = &whal_Stm32c0Uart_Driver
+#define WHAL_STM32C031_USART2_REGMAP    \
+    .base = 0x40004400,                 \
+    .size = 0x400
+#define WHAL_STM32C031_USART2_DRIVER &whal_Stm32c0Uart_Driver
 
-#define WHAL_STM32C031_SPI1_DEVICE      \
-    .regmap = {                         \
-        .base = 0x40013000,             \
-        .size = 0x400,                  \
-    },                                  \
-    .driver = &whal_Stm32c0Spi_Driver
+#define WHAL_STM32C031_SPI1_REGMAP      \
+    .base = 0x40013000,                 \
+    .size = 0x400
+#define WHAL_STM32C031_SPI1_DRIVER &whal_Stm32c0Spi_Driver
 
-#define WHAL_STM32C031_FLASH_DEVICE     \
-    .regmap = {                         \
-        .base = 0x40022000,             \
-        .size = 0x400,                  \
-    },                                  \
-    .driver = &whal_Stm32c0Flash_Driver
+#define WHAL_STM32C031_FLASH_REGMAP     \
+    .base = 0x40022000,                 \
+    .size = 0x400
+#define WHAL_STM32C031_FLASH_DRIVER &whal_Stm32c0Flash_Driver
 
 /* --- Clock gate macros --- */
 

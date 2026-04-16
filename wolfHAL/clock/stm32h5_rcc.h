@@ -104,6 +104,7 @@ typedef struct whal_Stm32h5Rcc_Cfg {
     void *sysClkCfg; /* Pointer to PllClkCfg or HsiClkCfg based on driver */
 } whal_Stm32h5Rcc_Cfg;
 
+#if !defined(WHAL_CFG_CLOCK_API_MAPPING_STM32H5_PLL) && !defined(WHAL_CFG_CLOCK_API_MAPPING_STM32H5_HSI)
 /*
  * @brief Driver instance for PLL1 clock source.
  */
@@ -184,6 +185,7 @@ whal_Error whal_Stm32h5Rcc_Enable(whal_Clock *clkDev, const void *clk);
  * @retval WHAL_EINVAL  Invalid arguments.
  */
 whal_Error whal_Stm32h5Rcc_Disable(whal_Clock *clkDev, const void *clk);
+#endif /* !WHAL_CFG_CLOCK_API_MAPPING_STM32H5_PLL && !WHAL_CFG_CLOCK_API_MAPPING_STM32H5_HSI */
 
 /*
  * @brief Enable or disable the HSI48 oscillator.

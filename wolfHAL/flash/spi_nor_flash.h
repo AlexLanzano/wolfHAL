@@ -53,10 +53,6 @@ typedef struct whal_SpiNor_Cfg {
  */
 extern const whal_FlashDriver whal_SpiNor_Driver;
 
-/* -------------------------------------------------------------------- */
-/*  Init / Deinit                                                       */
-/* -------------------------------------------------------------------- */
-
 /*
  * @brief Initialize a SPI-NOR device in 3-byte address mode.
  *
@@ -73,22 +69,6 @@ extern const whal_FlashDriver whal_SpiNor_Driver;
 whal_Error whal_SpiNor_Init(whal_Flash *flashDev);
 
 /*
- * @brief Initialize a SPI-NOR device and enter 4-byte address mode.
- *
- * Performs standard initialization via whal_SpiNor_Init(), then sends the
- * Enter 4-Byte Address Mode command (0xB7). After this call, all 4bMode
- * variant functions can be used. The device remains in 4-byte mode until
- * power cycle or an explicit exit command.
- *
- * @param flashDev Flash device instance.
- *
- * @retval WHAL_SUCCESS    Device initialized and 4-byte mode command sent.
- * @retval WHAL_EINVAL     Null pointer or invalid configuration.
- * @retval WHAL_EHARDWARE  No device detected.
- */
-whal_Error whal_SpiNor4bMode_Init(whal_Flash *flashDev);
-
-/*
  * @brief Deinitialize a SPI-NOR device.
  *
  * Deasserts chip select. Does not send any commands to the device.
@@ -99,10 +79,6 @@ whal_Error whal_SpiNor4bMode_Init(whal_Flash *flashDev);
  * @retval WHAL_EINVAL  Null pointer.
  */
 whal_Error whal_SpiNor_Deinit(whal_Flash *flashDev);
-
-/* -------------------------------------------------------------------- */
-/*  Lock / Unlock                                                       */
-/* -------------------------------------------------------------------- */
 
 /*
  * @brief Lock the entire device by setting all block protect bits.
@@ -135,6 +111,26 @@ whal_Error whal_SpiNor_Lock(whal_Flash *flashDev, size_t addr, size_t len);
  * @retval WHAL_EHARDWARE  Write enable failed.
  */
 whal_Error whal_SpiNor_Unlock(whal_Flash *flashDev, size_t addr, size_t len);
+
+/* -------------------------------------------------------------------- */
+/*  Init / Deinit — 4-byte address mode                                 */
+/* -------------------------------------------------------------------- */
+
+/*
+ * @brief Initialize a SPI-NOR device and enter 4-byte address mode.
+ *
+ * Performs standard initialization via whal_SpiNor_Init(), then sends the
+ * Enter 4-Byte Address Mode command (0xB7). After this call, all 4bMode
+ * variant functions can be used. The device remains in 4-byte mode until
+ * power cycle or an explicit exit command.
+ *
+ * @param flashDev Flash device instance.
+ *
+ * @retval WHAL_SUCCESS    Device initialized and 4-byte mode command sent.
+ * @retval WHAL_EINVAL     Null pointer or invalid configuration.
+ * @retval WHAL_EHARDWARE  No device detected.
+ */
+whal_Error whal_SpiNor4bMode_Init(whal_Flash *flashDev);
 
 /* -------------------------------------------------------------------- */
 /*  Read — 3-byte address                                               */

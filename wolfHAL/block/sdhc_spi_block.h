@@ -32,6 +32,7 @@ typedef struct whal_SdhcSpi_Cfg {
     whal_Timeout *timeout;
 } whal_SdhcSpi_Cfg;
 
+#ifndef WHAL_CFG_BLOCK_API_MAPPING_SDHC_SPI
 extern const whal_BlockDriver whal_SdhcSpi_Driver;
 
 whal_Error whal_SdhcSpi_Init(whal_Block *blockDev);
@@ -42,5 +43,6 @@ whal_Error whal_SdhcSpi_Write(whal_Block *blockDev, uint32_t block,
                                const void *data, uint32_t blockCount);
 whal_Error whal_SdhcSpi_Erase(whal_Block *blockDev, uint32_t block,
                                uint32_t blockCount);
+#endif /* !WHAL_CFG_BLOCK_API_MAPPING_SDHC_SPI */
 
 #endif /* WHAL_SDHC_SPI_H */

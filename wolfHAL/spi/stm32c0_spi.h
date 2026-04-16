@@ -14,11 +14,13 @@
 
 typedef whal_Stm32wbSpi_Cfg whal_Stm32c0Spi_Cfg;
 
+#ifndef WHAL_CFG_SPI_API_MAPPING_STM32C0
 #define whal_Stm32c0Spi_Driver   whal_Stm32wbSpi_Driver
 #define whal_Stm32c0Spi_Init     whal_Stm32wbSpi_Init
 #define whal_Stm32c0Spi_Deinit   whal_Stm32wbSpi_Deinit
 #define whal_Stm32c0Spi_StartCom whal_Stm32wbSpi_StartCom
 #define whal_Stm32c0Spi_EndCom   whal_Stm32wbSpi_EndCom
 #define whal_Stm32c0Spi_SendRecv whal_Stm32wbSpi_SendRecv
+#endif /* !WHAL_CFG_SPI_API_MAPPING_STM32C0 */
 
 #endif /* WHAL_STM32C0_SPI_H */

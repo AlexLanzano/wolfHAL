@@ -32,6 +32,16 @@
 /* Alternate function high register - 4 bits per pin for pins 8-15 */
 #define GPIO_ALTFNH_REG   0x24
 
+#if defined(WHAL_CFG_GPIO_API_MAPPING_STM32WB) || \
+    defined(WHAL_CFG_GPIO_API_MAPPING_STM32F4) || \
+    defined(WHAL_CFG_GPIO_API_MAPPING_STM32H5) || \
+    defined(WHAL_CFG_GPIO_API_MAPPING_STM32C0)
+#define whal_Stm32wbGpio_Init   whal_Gpio_Init
+#define whal_Stm32wbGpio_Deinit whal_Gpio_Deinit
+#define whal_Stm32wbGpio_Get    whal_Gpio_Get
+#define whal_Stm32wbGpio_Set    whal_Gpio_Set
+#endif /* WHAL_CFG_GPIO_API_MAPPING */
+
 /*
  * Configure alternate function for a pin.
  *
@@ -164,9 +174,14 @@ whal_Error whal_Stm32wbGpio_Set(whal_Gpio *gpioDev, size_t pin, size_t value)
     return whal_Stm32wbGpio_SetOrGet(gpioDev, pin, &value, 1);
 }
 
+#if !defined(WHAL_CFG_GPIO_API_MAPPING_STM32WB) && \
+    !defined(WHAL_CFG_GPIO_API_MAPPING_STM32F4) && \
+    !defined(WHAL_CFG_GPIO_API_MAPPING_STM32H5) && \
+    !defined(WHAL_CFG_GPIO_API_MAPPING_STM32C0)
 const whal_GpioDriver whal_Stm32wbGpio_Driver = {
     .Init = whal_Stm32wbGpio_Init,
     .Deinit = whal_Stm32wbGpio_Deinit,
     .Get = whal_Stm32wbGpio_Get,
     .Set = whal_Stm32wbGpio_Set,
 };
+#endif /* !WHAL_CFG_GPIO_API_MAPPING */

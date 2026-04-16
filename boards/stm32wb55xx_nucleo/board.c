@@ -27,12 +27,14 @@ whal_Timeout g_whalTimeout = {
 
 /* IRQ */
 whal_Irq g_whalIrq = {
-    WHAL_CORTEX_M4_NVIC_DEVICE,
+    .regmap = { WHAL_CORTEX_M4_NVIC_REGMAP },
+    .driver = WHAL_CORTEX_M4_NVIC_DRIVER,
 };
 
 /* Clock */
 whal_Clock g_whalClock = {
-    WHAL_STM32WB55_RCC_PLL_DEVICE,
+    .regmap = { WHAL_STM32WB55_RCC_PLL_REGMAP },
+    /* .driver: direct API mapping */
 
     .cfg = &(whal_Stm32wbRcc_Cfg) {
         .sysClkSrc = WHAL_STM32WB_RCC_SYSCLK_SRC_PLL,
@@ -67,7 +69,8 @@ static const whal_Stm32wbRcc_Clk g_clocks[] = {
 
 /* GPIO */
 whal_Gpio g_whalGpio = {
-    WHAL_STM32WB55_GPIO_DEVICE,
+    .regmap = { WHAL_STM32WB55_GPIO_REGMAP },
+    /* .driver: direct API mapping */
 
     .cfg = &(whal_Stm32wbGpio_Cfg) {
         .pinCfg = (whal_Stm32wbGpio_PinCfg[PIN_COUNT]) {
@@ -123,7 +126,8 @@ whal_Gpio g_whalGpio = {
 
 /* I2C */
 whal_I2c g_whalI2c = {
-    WHAL_STM32WB55_I2C1_DEVICE,
+    .regmap = { WHAL_STM32WB55_I2C1_REGMAP },
+    /* .driver: direct API mapping */
 
     .cfg = &(whal_Stm32wbI2c_Cfg) {
         .pclk = 64000000,
@@ -133,7 +137,8 @@ whal_I2c g_whalI2c = {
 
 /* SPI */
 whal_Spi g_whalSpi = {
-    WHAL_STM32WB55_SPI1_DEVICE,
+    .regmap = { WHAL_STM32WB55_SPI1_REGMAP },
+    /* .driver: direct API mapping */
 
     .cfg = &(whal_Stm32wbSpi_Cfg) {
         .pclk = 64000000,
@@ -143,7 +148,8 @@ whal_Spi g_whalSpi = {
 
 /* Timer */
 whal_Timer g_whalTimer = {
-    WHAL_CORTEX_M4_SYSTICK_DEVICE,
+    .regmap = { WHAL_CORTEX_M4_SYSTICK_REGMAP },
+    .driver = WHAL_CORTEX_M4_SYSTICK_DRIVER,
 
     .cfg = &(whal_SysTick_Cfg) {
         .cyclesPerTick = 64000000 / 1000,
@@ -156,7 +162,8 @@ whal_Timer g_whalTimer = {
 #ifdef BOARD_DMA
 
 whal_Dma g_whalDma1 = {
-    WHAL_STM32WB55_DMA1_DEVICE,
+    .regmap = { WHAL_STM32WB55_DMA1_REGMAP },
+    /* .driver: direct API mapping */
     .cfg = &(whal_Stm32wbDma_Cfg){WHAL_STM32WB55_DMA1_CFG},
 };
 
@@ -179,8 +186,8 @@ void DMA1_Channel5_IRQHandler(void)
 /* UART */
 #ifdef BOARD_DMA
 whal_Uart g_whalUart = {
-    WHAL_STM32WB55_UART1_DEVICE,
-    .driver = &whal_Stm32wbUartDma_Driver,
+    .regmap = { WHAL_STM32WB55_UART1_REGMAP },
+    /* .driver: direct API mapping */
     .cfg = &(whal_Stm32wbUartDma_Cfg) {
         .base = {
             .brr = WHAL_STM32WB_UART_BRR(64000000, 115200),
@@ -195,7 +202,8 @@ whal_Uart g_whalUart = {
 };
 #else
 whal_Uart g_whalUart = {
-    WHAL_STM32WB55_UART1_DEVICE,
+    .regmap = { WHAL_STM32WB55_UART1_REGMAP },
+    /* .driver: direct API mapping */
 
     .cfg = &(whal_Stm32wbUart_Cfg) {
         .timeout = &g_whalTimeout,
@@ -207,7 +215,8 @@ whal_Uart g_whalUart = {
 
 /* Flash */
 whal_Flash g_whalFlash = {
-    WHAL_STM32WB55_FLASH_DEVICE,
+    .regmap = { WHAL_STM32WB55_FLASH_REGMAP },
+    .driver = WHAL_STM32WB55_FLASH_DRIVER,
 
     .cfg = &(whal_Stm32wbFlash_Cfg) {
         .timeout = &g_whalTimeout,
@@ -219,7 +228,8 @@ whal_Flash g_whalFlash = {
 
 /* RNG */
 whal_Rng g_whalRng = {
-    WHAL_STM32WB55_RNG_DEVICE,
+    .regmap = { WHAL_STM32WB55_RNG_REGMAP },
+    /* .driver: direct API mapping */
 
     .cfg = &(whal_Stm32wbRng_Cfg) {
         .timeout = &g_whalTimeout,
@@ -237,7 +247,8 @@ static const whal_Crypto_OpFunc cryptoOps[BOARD_CRYPTO_OP_COUNT] = {
 };
 
 whal_Crypto g_whalCrypto = {
-    WHAL_STM32WB55_AES1_DEVICE,
+    .regmap = { WHAL_STM32WB55_AES1_REGMAP },
+    /* .driver: direct API mapping */
 
     .ops = cryptoOps,
     .opsCount = BOARD_CRYPTO_OP_COUNT,
@@ -249,7 +260,8 @@ whal_Crypto g_whalCrypto = {
 
 #ifdef BOARD_WATCHDOG_IWDG
 whal_Watchdog g_whalWatchdog = {
-    WHAL_STM32WB55_IWDG_DEVICE,
+    .regmap = { WHAL_STM32WB55_IWDG_REGMAP },
+    .driver = WHAL_STM32WB55_IWDG_DRIVER,
 
     .cfg = &(whal_Stm32wbIwdg_Cfg) {
         .prescaler = WHAL_STM32WB_IWDG_PR_32,
@@ -259,7 +271,8 @@ whal_Watchdog g_whalWatchdog = {
 };
 #elif defined(BOARD_WATCHDOG_WWDG)
 whal_Watchdog g_whalWatchdog = {
-    WHAL_STM32WB55_WWDG_DEVICE,
+    .regmap = { WHAL_STM32WB55_WWDG_REGMAP },
+    .driver = WHAL_STM32WB55_WWDG_DRIVER,
 
     .cfg = &(whal_Stm32wbWwdg_Cfg) {
         .prescaler = WHAL_STM32WB_WWDG_TB_128,

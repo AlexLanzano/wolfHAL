@@ -32,6 +32,7 @@ typedef struct whal_Pic32czFlash_Cfg {
     whal_Timeout *timeout;
 } whal_Pic32czFlash_Cfg;
 
+#ifndef WHAL_CFG_FLASH_API_MAPPING_PIC32CZ
 /*
  * @brief Driver instance for PIC32CZ flash.
  */
@@ -120,5 +121,6 @@ whal_Error whal_Pic32czFlash_Write(whal_Flash *flashDev, size_t addr, const void
  * @retval WHAL_EINVAL  Invalid arguments.
  */
 whal_Error whal_Pic32czFlash_Erase(whal_Flash *flashDev, size_t addr, size_t dataSz);
+#endif /* !WHAL_CFG_FLASH_API_MAPPING_PIC32CZ */
 
 #endif /* WHAL_PIC32CZ_FLASH_H */

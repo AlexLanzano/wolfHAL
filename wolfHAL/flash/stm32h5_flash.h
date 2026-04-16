@@ -24,6 +24,7 @@ typedef struct whal_Stm32h5Flash_Cfg {
     whal_Timeout *timeout;
 } whal_Stm32h5Flash_Cfg;
 
+#ifndef WHAL_CFG_FLASH_API_MAPPING_STM32H5
 /*
  * @brief Driver instance for STM32H5 flash.
  */
@@ -121,6 +122,7 @@ whal_Error whal_Stm32h5Flash_Write(whal_Flash *flashDev, size_t addr,
  */
 whal_Error whal_Stm32h5Flash_Erase(whal_Flash *flashDev, size_t addr,
                                     size_t dataSz);
+#endif /* !WHAL_CFG_FLASH_API_MAPPING_STM32H5 */
 
 /*
  * @brief Set flash access latency (wait states) and write high-frequency mode.

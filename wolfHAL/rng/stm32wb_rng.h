@@ -21,6 +21,7 @@ typedef struct whal_Stm32wbRng_Cfg {
     whal_Timeout *timeout;
 } whal_Stm32wbRng_Cfg;
 
+#ifndef WHAL_CFG_RNG_API_MAPPING_STM32WB
 /*
  * @brief Driver instance for STM32WB RNG peripheral.
  */
@@ -55,5 +56,6 @@ whal_Error whal_Stm32wbRng_Deinit(whal_Rng *rngDev);
  * @retval WHAL_EINVAL  Invalid arguments or seed/clock error detected.
  */
 whal_Error whal_Stm32wbRng_Generate(whal_Rng *rngDev, void *rngData, size_t rngDataSz);
+#endif /* !WHAL_CFG_RNG_API_MAPPING_STM32WB */
 
 #endif /* WHAL_STM32WB_RNG_H */

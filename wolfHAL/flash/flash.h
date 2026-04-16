@@ -48,7 +48,8 @@ struct whal_Flash {
  * @param flashDev Flash instance to initialize.
  *
  * @retval WHAL_SUCCESS Driver-specific init completed.
- * @retval WHAL_EINVAL  Null pointer or missing driver function.
+ * @retval WHAL_EINVAL   Null pointer.
+ * @retval WHAL_ENOTIMPL Operation not implemented by this driver.
  */
 #ifdef WHAL_CFG_DIRECT_CALLBACKS
 #define whal_Flash_Init(flashDev) ((flashDev)->driver->Init((flashDev)))
@@ -65,7 +66,8 @@ struct whal_Flash {
  * @param flashDev Flash instance to initialize.
  *
  * @retval WHAL_SUCCESS Driver-specific init completed.
- * @retval WHAL_EINVAL  Null pointer or missing driver function.
+ * @retval WHAL_EINVAL   Null pointer.
+ * @retval WHAL_ENOTIMPL Operation not implemented by this driver.
  */
 whal_Error whal_Flash_Init(whal_Flash *flashDev);
 /*
@@ -74,7 +76,8 @@ whal_Error whal_Flash_Init(whal_Flash *flashDev);
  * @param flashDev Flash instance to deinitialize.
  *
  * @retval WHAL_SUCCESS Driver-specific deinit completed.
- * @retval WHAL_EINVAL  Null pointer or missing driver function.
+ * @retval WHAL_EINVAL   Null pointer.
+ * @retval WHAL_ENOTIMPL Operation not implemented by this driver.
  */
 whal_Error whal_Flash_Deinit(whal_Flash *flashDev);
 /*
@@ -85,7 +88,8 @@ whal_Error whal_Flash_Deinit(whal_Flash *flashDev);
  * @param len      Number of bytes to lock.
  *
  * @retval WHAL_SUCCESS Lock applied.
- * @retval WHAL_EINVAL  Null pointer or missing driver function.
+ * @retval WHAL_EINVAL   Null pointer.
+ * @retval WHAL_ENOTIMPL Operation not implemented by this driver.
  */
 whal_Error whal_Flash_Lock(whal_Flash *flashDev, size_t addr, size_t len);
 /*
@@ -96,7 +100,8 @@ whal_Error whal_Flash_Lock(whal_Flash *flashDev, size_t addr, size_t len);
  * @param len      Number of bytes to unlock.
  *
  * @retval WHAL_SUCCESS Unlock applied.
- * @retval WHAL_EINVAL  Null pointer or missing driver function.
+ * @retval WHAL_EINVAL   Null pointer.
+ * @retval WHAL_ENOTIMPL Operation not implemented by this driver.
  */
 whal_Error whal_Flash_Unlock(whal_Flash *flashDev, size_t addr, size_t len);
 /*
@@ -108,7 +113,8 @@ whal_Error whal_Flash_Unlock(whal_Flash *flashDev, size_t addr, size_t len);
  * @param dataSz   Number of bytes to read.
  *
  * @retval WHAL_SUCCESS Read completed.
- * @retval WHAL_EINVAL  Null pointer or missing driver function.
+ * @retval WHAL_EINVAL   Null pointer.
+ * @retval WHAL_ENOTIMPL Operation not implemented by this driver.
  */
 whal_Error whal_Flash_Read(whal_Flash *flashDev, size_t addr, void *data, size_t dataSz);
 /*
@@ -120,7 +126,8 @@ whal_Error whal_Flash_Read(whal_Flash *flashDev, size_t addr, void *data, size_t
  * @param dataSz   Number of bytes to write.
  *
  * @retval WHAL_SUCCESS Write accepted or completed.
- * @retval WHAL_EINVAL  Null pointer, missing driver function, or bad arguments.
+ * @retval WHAL_EINVAL   Null pointer or bad arguments.
+ * @retval WHAL_ENOTIMPL Operation not implemented by this driver.
  */
 whal_Error whal_Flash_Write(whal_Flash *flashDev, size_t addr, const void *data, size_t dataSz);
 /*
@@ -131,7 +138,8 @@ whal_Error whal_Flash_Write(whal_Flash *flashDev, size_t addr, const void *data,
  * @param dataSz   Number of bytes (or sector-aligned size) to erase.
  *
  * @retval WHAL_SUCCESS Erase accepted or completed.
- * @retval WHAL_EINVAL  Null pointer or missing driver function.
+ * @retval WHAL_EINVAL   Null pointer.
+ * @retval WHAL_ENOTIMPL Operation not implemented by this driver.
  */
 whal_Error whal_Flash_Erase(whal_Flash *flashDev, size_t addr, size_t dataSz);
 #endif

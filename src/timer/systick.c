@@ -20,7 +20,15 @@
 #define SYSTICK_RVR_RELOAD_Pos 0
 #define SYSTICK_RVR_RELOAD_Msk (WHAL_BITMASK(24) << SYSTICK_RVR_RELOAD_Pos)
 
-whal_Error SysTick_Init(whal_Timer *timerDev)
+#ifdef WHAL_CFG_TIMER_API_MAPPING_SYSTICK
+#define whal_SysTick_Init   whal_Timer_Init
+#define whal_SysTick_Deinit whal_Timer_Deinit
+#define whal_SysTick_Start  whal_Timer_Start
+#define whal_SysTick_Stop   whal_Timer_Stop
+#define whal_SysTick_Reset  whal_Timer_Reset
+#endif /* WHAL_CFG_TIMER_API_MAPPING_SYSTICK */
+
+whal_Error whal_SysTick_Init(whal_Timer *timerDev)
 {
     whal_SysTick_Cfg *cfg;
     const whal_Regmap *reg = &timerDev->regmap;
@@ -43,12 +51,12 @@ whal_Error SysTick_Init(whal_Timer *timerDev)
     return WHAL_SUCCESS;
 }
 
-whal_Error SysTick_Deinit(whal_Timer *timerDev)
+whal_Error whal_SysTick_Deinit(whal_Timer *timerDev)
 {
     return WHAL_SUCCESS;
 }
 
-whal_Error SysTick_Start(whal_Timer *timerDev)
+whal_Error whal_SysTick_Start(whal_Timer *timerDev)
 {
     const whal_Regmap *reg = &timerDev->regmap;
 
@@ -62,7 +70,7 @@ whal_Error SysTick_Start(whal_Timer *timerDev)
     return WHAL_SUCCESS;
 }
 
-whal_Error SysTick_Stop(whal_Timer *timerDev)
+whal_Error whal_SysTick_Stop(whal_Timer *timerDev)
 {
     const whal_Regmap *reg = &timerDev->regmap;
 
@@ -76,16 +84,18 @@ whal_Error SysTick_Stop(whal_Timer *timerDev)
     return WHAL_SUCCESS;
 }
 
-whal_Error SysTick_Reset(whal_Timer *timerDev)
+whal_Error whal_SysTick_Reset(whal_Timer *timerDev)
 {
 
     return WHAL_SUCCESS;
 }
 
+#ifndef WHAL_CFG_TIMER_API_MAPPING_SYSTICK
 const whal_TimerDriver whal_SysTick_Driver = {
-    .Init = SysTick_Init,
-    .Deinit = SysTick_Deinit,
-    .Start = SysTick_Start,
-    .Stop = SysTick_Stop,
-    .Reset = SysTick_Reset,
+    .Init = whal_SysTick_Init,
+    .Deinit = whal_SysTick_Deinit,
+    .Start = whal_SysTick_Start,
+    .Stop = whal_SysTick_Stop,
+    .Reset = whal_SysTick_Reset,
 };
+#endif /* !WHAL_CFG_TIMER_API_MAPPING_SYSTICK */

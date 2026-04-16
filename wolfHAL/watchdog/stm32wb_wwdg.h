@@ -36,6 +36,7 @@ typedef struct {
     uint8_t counter;      /* 7-bit counter value (must be > 0x3F) */
 } whal_Stm32wbWwdg_Cfg;
 
+#ifndef WHAL_CFG_WATCHDOG_API_MAPPING_STM32WB_WWDG
 /*
  * @brief Driver instance for STM32WB WWDG.
  */
@@ -76,5 +77,6 @@ whal_Error whal_Stm32wbWwdg_Deinit(whal_Watchdog *wdgDev);
  * @retval WHAL_EINVAL  Null pointer.
  */
 whal_Error whal_Stm32wbWwdg_Refresh(whal_Watchdog *wdgDev);
+#endif /* !WHAL_CFG_WATCHDOG_API_MAPPING_STM32WB_WWDG */
 
 #endif /* WHAL_STM32WB_WWDG_H */

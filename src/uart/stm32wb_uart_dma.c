@@ -22,6 +22,19 @@
 
 #define UART_TDR_REG 0x28
 
+#if defined(WHAL_CFG_UART_API_MAPPING_STM32WB) || \
+    defined(WHAL_CFG_UART_API_MAPPING_STM32WB_DMA)
+#define whal_Stm32wbUart_Init   whal_Uart_Init
+#define whal_Stm32wbUart_Deinit whal_Uart_Deinit
+#endif
+
+#ifdef WHAL_CFG_UART_API_MAPPING_STM32WB_DMA
+#define whal_Stm32wbUartDma_Send      whal_Uart_Send
+#define whal_Stm32wbUartDma_Recv      whal_Uart_Recv
+#define whal_Stm32wbUartDma_SendAsync whal_Uart_SendAsync
+#define whal_Stm32wbUartDma_RecvAsync whal_Uart_RecvAsync
+#endif /* WHAL_CFG_UART_API_MAPPING_STM32WB_DMA */
+
 whal_Error whal_Stm32wbUartDma_SendAsync(whal_Uart *uartDev, const void *data,
                                          size_t dataSz)
 {
@@ -190,6 +203,7 @@ void whal_Stm32wbUartDma_RxCallback(void *ctx, whal_Error err)
     cfg->rxResult = err;
 }
 
+#ifndef WHAL_CFG_UART_API_MAPPING_STM32WB_DMA
 const whal_UartDriver whal_Stm32wbUartDma_Driver = {
     .Init = whal_Stm32wbUart_Init,
     .Deinit = whal_Stm32wbUart_Deinit,
@@ -198,3 +212,5 @@ const whal_UartDriver whal_Stm32wbUartDma_Driver = {
     .SendAsync = whal_Stm32wbUartDma_SendAsync,
     .RecvAsync = whal_Stm32wbUartDma_RecvAsync,
 };
+#endif /* !WHAL_CFG_UART_API_MAPPING_STM32WB_DMA */
+

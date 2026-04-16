@@ -21,110 +21,80 @@
  * @brief Convenience initializers for STM32WB55xx device instances.
  */
 
-#define WHAL_STM32WB55_LPUART1_DEVICE   \
-    .regmap = {                         \
-        .base = 0x40008000,             \
-        .size = 0x400,                  \
-    },                                  \
-    .driver = &whal_Stm32wbUart_Driver
+#define WHAL_STM32WB55_LPUART1_REGMAP   \
+    .base = 0x40008000,                 \
+    .size = 0x400
+#define WHAL_STM32WB55_LPUART1_DRIVER &whal_Stm32wbUart_Driver
 
-#define WHAL_STM32WB55_SPI1_DEVICE      \
-    .regmap = {                         \
-        .base = 0x40013000,             \
-        .size = 0x400,                  \
-    },                                  \
-    .driver = &whal_Stm32wbSpi_Driver
+#define WHAL_STM32WB55_SPI1_REGMAP      \
+    .base = 0x40013000,                 \
+    .size = 0x400
+#define WHAL_STM32WB55_SPI1_DRIVER &whal_Stm32wbSpi_Driver
 
-#define WHAL_STM32WB55_UART1_DEVICE     \
-    .regmap = {                         \
-        .base = 0x40013800,             \
-        .size = 0x400,                  \
-    },                                  \
-    .driver = &whal_Stm32wbUart_Driver
+#define WHAL_STM32WB55_UART1_REGMAP     \
+    .base = 0x40013800,                 \
+    .size = 0x400
+#define WHAL_STM32WB55_UART1_DRIVER &whal_Stm32wbUart_Driver
 
-#define WHAL_STM32WB55_GPIO_DEVICE      \
-    .regmap = {                         \
-        .base = 0x48000000,             \
-        .size = 0x400,                  \
-    },                                  \
-    .driver = &whal_Stm32wbGpio_Driver
+#define WHAL_STM32WB55_GPIO_REGMAP      \
+    .base = 0x48000000,                 \
+    .size = 0x400
+#define WHAL_STM32WB55_GPIO_DRIVER &whal_Stm32wbGpio_Driver
 
-#define WHAL_STM32WB55_RCC_PLL_DEVICE   \
-    .regmap = {                         \
-        .base = 0x58000000,             \
-        .size = 0x400,                  \
-    },                                  \
-    .driver = &whal_Stm32wbRccPll_Driver
+#define WHAL_STM32WB55_RCC_PLL_REGMAP   \
+    .base = 0x58000000,                 \
+    .size = 0x400
+#define WHAL_STM32WB55_RCC_PLL_DRIVER &whal_Stm32wbRccPll_Driver
 
-#define WHAL_STM32WB55_RCC_MSI_DEVICE   \
-    .regmap = {                         \
-        .base = 0x58000000,             \
-        .size = 0x400,                  \
-    },                                  \
-    .driver = &whal_Stm32wbRccPll_Driver
+#define WHAL_STM32WB55_RCC_MSI_REGMAP   \
+    .base = 0x58000000,                 \
+    .size = 0x400
+#define WHAL_STM32WB55_RCC_MSI_DRIVER &whal_Stm32wbRccMsi_Driver
 
-#define WHAL_STM32WB55_RNG_DEVICE       \
-    .regmap = {                         \
-        .base = 0x58001000,             \
-        .size = 0x400,                  \
-    },                                  \
-    .driver = &whal_Stm32wbRng_Driver
+#define WHAL_STM32WB55_RNG_REGMAP       \
+    .base = 0x58001000,                 \
+    .size = 0x400
+#define WHAL_STM32WB55_RNG_DRIVER &whal_Stm32wbRng_Driver
 
-#define WHAL_STM32WB55_AES1_DEVICE      \
-    .regmap = {                         \
-        .base = 0x50060000,             \
-        .size = 0x400,                  \
-    },                                  \
-    .driver = &whal_Stm32wbAes_Driver
+#define WHAL_STM32WB55_AES1_REGMAP      \
+    .base = 0x50060000,                 \
+    .size = 0x400
+#define WHAL_STM32WB55_AES1_DRIVER &whal_Stm32wbAes_Driver
 
-#define WHAL_STM32WB55_I2C1_DEVICE      \
-    .regmap = {                         \
-        .base = 0x40005400,             \
-        .size = 0x400,                  \
-    },                                  \
-    .driver = &whal_Stm32wbI2c_Driver
+#define WHAL_STM32WB55_I2C1_REGMAP      \
+    .base = 0x40005400,                 \
+    .size = 0x400
+#define WHAL_STM32WB55_I2C1_DRIVER &whal_Stm32wbI2c_Driver
 
-#define WHAL_STM32WB55_I2C3_DEVICE      \
-    .regmap = {                         \
-        .base = 0x40005C00,             \
-        .size = 0x400,                  \
-    },                                  \
-    .driver = &whal_Stm32wbI2c_Driver
+#define WHAL_STM32WB55_I2C3_REGMAP      \
+    .base = 0x40005C00,                 \
+    .size = 0x400
+#define WHAL_STM32WB55_I2C3_DRIVER &whal_Stm32wbI2c_Driver
 
-#define WHAL_STM32WB55_IWDG_DEVICE      \
-    .regmap = {                         \
-        .base = 0x40003000,             \
-        .size = 0x400,                  \
-    },                                  \
-    .driver = &whal_Stm32wbIwdg_Driver
+#define WHAL_STM32WB55_IWDG_REGMAP      \
+    .base = 0x40003000,                 \
+    .size = 0x400
+#define WHAL_STM32WB55_IWDG_DRIVER &whal_Stm32wbIwdg_Driver
 
-#define WHAL_STM32WB55_WWDG_DEVICE     \
-    .regmap = {                         \
-        .base = 0x40002C00,             \
-        .size = 0x400,                  \
-    },                                  \
-    .driver = &whal_Stm32wbWwdg_Driver
+#define WHAL_STM32WB55_WWDG_REGMAP      \
+    .base = 0x40002C00,                 \
+    .size = 0x400
+#define WHAL_STM32WB55_WWDG_DRIVER &whal_Stm32wbWwdg_Driver
 
-#define WHAL_STM32WB55_FLASH_DEVICE     \
-    .regmap = {                         \
-        .base = 0x58004000,             \
-        .size = 0x400,                  \
-    },                                  \
-    .driver = &whal_Stm32wbFlash_Driver
+#define WHAL_STM32WB55_FLASH_REGMAP     \
+    .base = 0x58004000,                 \
+    .size = 0x400
+#define WHAL_STM32WB55_FLASH_DRIVER &whal_Stm32wbFlash_Driver
 
-#define WHAL_STM32WB55_DMA1_DEVICE      \
-    .regmap = {                         \
-        .base = 0x40020000,             \
-        .size = 0x400,                  \
-    },                                  \
-    .driver = &whal_Stm32wbDma_Driver
+#define WHAL_STM32WB55_DMA1_REGMAP      \
+    .base = 0x40020000,                 \
+    .size = 0x400
+#define WHAL_STM32WB55_DMA1_DRIVER &whal_Stm32wbDma_Driver
 
-#define WHAL_STM32WB55_DMA2_DEVICE      \
-    .regmap = {                         \
-        .base = 0x40020400,             \
-        .size = 0x400,                  \
-    },                                  \
-    .driver = &whal_Stm32wbDma_Driver
+#define WHAL_STM32WB55_DMA2_REGMAP      \
+    .base = 0x40020400,                 \
+    .size = 0x400
+#define WHAL_STM32WB55_DMA2_DRIVER &whal_Stm32wbDma_Driver
 
 #define WHAL_STM32WB55_DMA1_CFG         \
     .dmamuxBase = 0x40020800,           \

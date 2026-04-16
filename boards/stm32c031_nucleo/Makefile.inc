@@ -9,7 +9,11 @@ OBJCOPY = $(GCC_PATH)arm-none-eabi-objcopy
 
 CFLAGS += -Wall -Werror $(INCLUDE) -g3 \
           -ffreestanding -nostdlib -mcpu=cortex-m0plus -mthumb \
-          -DPLATFORM_STM32C0 -MMD -MP
+          -DPLATFORM_STM32C0 -MMD -MP \
+          -DWHAL_CFG_GPIO_API_MAPPING_STM32C0 \
+          -DWHAL_CFG_CLOCK_API_MAPPING_STM32C0 \
+          -DWHAL_CFG_UART_API_MAPPING_STM32C0 \
+          -DWHAL_CFG_SPI_API_MAPPING_STM32C0
 LDFLAGS = -mcpu=cortex-m0plus -mthumb -ffreestanding -nostartfiles \
           -Wl,--omagic -static
 
@@ -20,13 +24,9 @@ INCLUDE += -I$(_BOARD_DIR) -I$(WHAL_DIR)/boards/peripheral
 BOARD_SOURCE = $(_BOARD_DIR)/ivt.c
 BOARD_SOURCE += $(_BOARD_DIR)/board.c
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*.c)
-BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/gpio.c)
-BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/clock.c)
-BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/uart.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/timer.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/supply.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/flash.c)
-BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/spi.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/rng.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/crypto.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/block.c)

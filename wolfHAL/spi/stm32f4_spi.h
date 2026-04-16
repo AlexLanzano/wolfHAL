@@ -31,6 +31,7 @@ typedef struct whal_Stm32f4Spi_Cfg {
     whal_Timeout *timeout;
 } whal_Stm32f4Spi_Cfg;
 
+#ifndef WHAL_CFG_SPI_API_MAPPING_STM32F4
 /*
  * @brief Driver instance for STM32F4 SPI peripheral.
  */
@@ -97,5 +98,6 @@ whal_Error whal_Stm32f4Spi_EndCom(whal_Spi *spiDev);
 whal_Error whal_Stm32f4Spi_SendRecv(whal_Spi *spiDev,
                                      const void *tx, size_t txLen,
                                      void *rx, size_t rxLen);
+#endif /* !WHAL_CFG_SPI_API_MAPPING_STM32F4 */
 
 #endif /* WHAL_STM32F4_SPI_H */

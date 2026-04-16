@@ -75,17 +75,21 @@ struct whal_Gpio {
 - **cfg** — points to a platform-specific configuration struct that the driver
   reads during Init
 
-Platform headers provide device macros that fill in the `regmap` and `driver`
-fields, so you only need to provide the `cfg`:
+Platform headers provide `_REGMAP` and `_DRIVER` macros for each peripheral,
+so you only need to fill in the `cfg`:
 
 ```c
 #include <wolfHAL/platform/st/stm32wb55xx.h>
 
 whal_Gpio g_whalGpio = {
-    WHAL_STM32WB55_GPIO_DEVICE,
+    .regmap = { WHAL_STM32WB55_GPIO_REGMAP },
+    .driver = WHAL_STM32WB55_GPIO_DRIVER,
     .cfg = &gpioConfig,
 };
 ```
+
+When direct API mapping is active for a device type, the `.driver` field is
+omitted since calls go directly to the driver implementation.
 
 ## Configuring Peripherals
 
@@ -95,7 +99,8 @@ and a pin configuration table:
 
 ```c
 whal_Gpio g_whalGpio = {
-    WHAL_STM32WB55_GPIO_DEVICE,
+    .regmap = { WHAL_STM32WB55_GPIO_REGMAP },
+    .driver = WHAL_STM32WB55_GPIO_DRIVER,
 
     .cfg = &(whal_Stm32wbGpio_Cfg) {
         .pinCfg = (whal_Stm32wbGpio_PinCfg[]) {
@@ -116,7 +121,8 @@ A UART driver might need a pre-computed baud rate register value and a timeout:
 
 ```c
 whal_Uart g_whalUart = {
-    WHAL_STM32WB55_UART1_DEVICE,
+    .regmap = { WHAL_STM32WB55_UART1_REGMAP },
+    .driver = WHAL_STM32WB55_UART1_DRIVER,
 
     .cfg = &(whal_Stm32wbUart_Cfg) {
         .timeout = &g_whalTimeout,
@@ -220,10 +226,11 @@ operation completed. The error codes are:
 | Code | Meaning |
 |------|---------|
 | `WHAL_SUCCESS` | Operation completed successfully |
-| `WHAL_EINVAL` | Invalid argument or unsupported operation |
+| `WHAL_EINVAL` | Invalid argument (null device pointer, null data pointer) |
 | `WHAL_ENOTREADY` | Resource is busy or not yet available |
 | `WHAL_EHARDWARE` | Hardware error (e.g., RNG entropy failure) |
 | `WHAL_ETIMEOUT` | Operation timed out waiting for hardware |
+| `WHAL_ENOTIMPL` | Operation not implemented by this driver |
 
 ## Optimizing for Size
 
@@ -236,6 +243,33 @@ Define `WHAL_CFG_DIRECT_CALLBACKS` to bypass the generic dispatch layer. API
 calls compile down to direct function pointer calls with no input validation,
 eliminating the dispatch source files entirely.
 
+### Direct API Mapping
+
+Each platform driver source provides an `#ifdef` block that renames its
+driver functions to the top-level API names. When the corresponding
+`WHAL_CFG_<TYPE>_API_MAPPING_<VARIANT>` flag is defined, the driver file
+itself provides the definition of the top-level API — no wrapper, no vtable
+indirection, no runtime null-check.
+
+For example, `-DWHAL_CFG_UART_API_MAPPING_STM32WB` causes
+`src/uart/stm32wb_uart.c` to emit external symbols named `whal_Uart_Init`,
+`whal_Uart_Deinit`, `whal_Uart_Send`, and `whal_Uart_Recv`, each bound to
+the polled STM32WB UART driver body. Application code calling
+`whal_Uart_Send(&dev, buf, sz)` links directly to the platform driver.
+
+All boards enable direct API mapping unconditionally for device types that
+have only one driver in the build. Device types where a peripheral driver
+could coexist (flash, block, sensor) are not mapped — they keep the vtable
+dispatch so multiple drivers can be linked simultaneously.
+
+**The dispatch source `src/<type>/<type>.c` must not be compiled when the
+corresponding mapping flag is active.** Both the dispatch source and the
+mapped driver source provide the same top-level symbols, which would cause
+a multiple-definition link error. Exclude the dispatch source from the
+board's source list.
+
+Only one mapping flag may be active per device type per build.
+
 ### Custom Vtables
 
 The platform drivers provide a pre-built vtable with all operations populated.
@@ -247,7 +281,7 @@ static const whal_GpioDriver myGpioDriver = {
     .Init   = whal_Stm32wbGpio_Init,
     .Deinit = whal_Stm32wbGpio_Deinit,
     .Set    = whal_Stm32wbGpio_Set,
-    /* Get left as NULL — not needed, saves pulling in that code */
+    /* Get left as NULL — calls return WHAL_ENOTIMPL, saves pulling in that code */
 };
 
 whal_Gpio g_whalGpio = {

@@ -14,7 +14,14 @@
 #define NVIC_IPR_REG(irq)    (0x300 + (((irq) >> 2) << 2))
 #define NVIC_IPR_SHIFT(irq)  (((irq) & 0x3) << 3)
 
-static whal_Error whal_Nvic_Init(whal_Irq *irqDev)
+#ifdef WHAL_CFG_IRQ_API_MAPPING_NVIC
+#define whal_Nvic_Init    whal_Irq_Init
+#define whal_Nvic_Deinit  whal_Irq_Deinit
+#define whal_Nvic_Enable  whal_Irq_Enable
+#define whal_Nvic_Disable whal_Irq_Disable
+#endif /* WHAL_CFG_IRQ_API_MAPPING_NVIC */
+
+whal_Error whal_Nvic_Init(whal_Irq *irqDev)
 {
     if (!irqDev) {
         return WHAL_EINVAL;
@@ -23,7 +30,7 @@ static whal_Error whal_Nvic_Init(whal_Irq *irqDev)
     return WHAL_SUCCESS;
 }
 
-static whal_Error whal_Nvic_Deinit(whal_Irq *irqDev)
+whal_Error whal_Nvic_Deinit(whal_Irq *irqDev)
 {
     if (!irqDev) {
         return WHAL_EINVAL;
@@ -32,7 +39,7 @@ static whal_Error whal_Nvic_Deinit(whal_Irq *irqDev)
     return WHAL_SUCCESS;
 }
 
-static whal_Error whal_Nvic_Enable(whal_Irq *irqDev, size_t irq,
+whal_Error whal_Nvic_Enable(whal_Irq *irqDev, size_t irq,
                                     const void *irqCfg)
 {
     if (!irqDev) {
@@ -56,7 +63,7 @@ static whal_Error whal_Nvic_Enable(whal_Irq *irqDev, size_t irq,
     return WHAL_SUCCESS;
 }
 
-static whal_Error whal_Nvic_Disable(whal_Irq *irqDev, size_t irq)
+whal_Error whal_Nvic_Disable(whal_Irq *irqDev, size_t irq)
 {
     if (!irqDev) {
         return WHAL_EINVAL;
@@ -69,9 +76,11 @@ static whal_Error whal_Nvic_Disable(whal_Irq *irqDev, size_t irq)
     return WHAL_SUCCESS;
 }
 
+#ifndef WHAL_CFG_IRQ_API_MAPPING_NVIC
 const whal_IrqDriver whal_Nvic_Driver = {
     .Init = whal_Nvic_Init,
     .Deinit = whal_Nvic_Deinit,
     .Enable = whal_Nvic_Enable,
     .Disable = whal_Nvic_Disable,
 };
+#endif /* !WHAL_CFG_IRQ_API_MAPPING_NVIC */

@@ -20,6 +20,7 @@ typedef struct whal_Pic32czSupc_Supply {
     size_t enablePos;
 } whal_Pic32czSupc_Supply;
 
+#ifndef WHAL_CFG_SUPPLY_API_MAPPING_PIC32CZ
 /*
  * @brief Driver instance for PIC32CZ SUPC peripheral.
  */
@@ -61,5 +62,6 @@ whal_Error whal_Pic32czSupc_Enable(whal_Supply *supplyCtrl, void *supply);
  * @retval WHAL_EINVAL  Invalid arguments.
  */
 whal_Error whal_Pic32czSupc_Disable(whal_Supply *supplyCtrl, void *supply);
+#endif /* !WHAL_CFG_SUPPLY_API_MAPPING_PIC32CZ */
 
 #endif /* WHAL_PIC32CZ_SUPC_H */

@@ -35,6 +35,7 @@ typedef struct {
     whal_Timeout *timeout;
 } whal_Stm32wbIwdg_Cfg;
 
+#ifndef WHAL_CFG_WATCHDOG_API_MAPPING_STM32WB_IWDG
 /*
  * @brief Driver instance for STM32WB IWDG.
  */
@@ -76,5 +77,6 @@ whal_Error whal_Stm32wbIwdg_Deinit(whal_Watchdog *wdgDev);
  * @retval WHAL_EINVAL  Null pointer.
  */
 whal_Error whal_Stm32wbIwdg_Refresh(whal_Watchdog *wdgDev);
+#endif /* !WHAL_CFG_WATCHDOG_API_MAPPING_STM32WB_IWDG */
 
 #endif /* WHAL_STM32WB_IWDG_H */

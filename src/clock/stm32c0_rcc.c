@@ -35,6 +35,13 @@
 /* HSISYS clock source selection value */
 #define RCC_CFGR_SW_HSISYS 0
 
+#ifdef WHAL_CFG_CLOCK_API_MAPPING_STM32C0
+#define whal_Stm32c0Rcc_Init    whal_Clock_Init
+#define whal_Stm32c0Rcc_Deinit  whal_Clock_Deinit
+#define whal_Stm32c0Rcc_Enable  whal_Clock_Enable
+#define whal_Stm32c0Rcc_Disable whal_Clock_Disable
+#endif /* WHAL_CFG_CLOCK_API_MAPPING_STM32C0 */
+
 whal_Error whal_Stm32c0Rcc_Init(whal_Clock *clkDev)
 {
     whal_Stm32c0Rcc_Cfg *cfg;
@@ -114,9 +121,11 @@ whal_Error whal_Stm32c0Rcc_Disable(whal_Clock *clkDev, const void *clk)
     return WHAL_SUCCESS;
 }
 
+#ifndef WHAL_CFG_CLOCK_API_MAPPING_STM32C0
 const whal_ClockDriver whal_Stm32c0Rcc_Driver = {
     .Init = whal_Stm32c0Rcc_Init,
     .Deinit = whal_Stm32c0Rcc_Deinit,
     .Enable = whal_Stm32c0Rcc_Enable,
     .Disable = whal_Stm32c0Rcc_Disable,
 };
+#endif /* !WHAL_CFG_CLOCK_API_MAPPING_STM32C0 */

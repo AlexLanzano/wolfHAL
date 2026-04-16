@@ -149,6 +149,11 @@ static whal_Error WaitForCCF(size_t base, whal_Timeout *timeout)
 }
 
 
+#ifdef WHAL_CFG_CRYPTO_API_MAPPING_STM32WB_AES
+#define whal_Stm32wbAes_Init   whal_Crypto_Init
+#define whal_Stm32wbAes_Deinit whal_Crypto_Deinit
+#endif /* WHAL_CFG_CRYPTO_API_MAPPING_STM32WB_AES */
+
 whal_Error whal_Stm32wbAes_Init(whal_Crypto *cryptoDev)
 {
     if (!cryptoDev || !cryptoDev->cfg) {
@@ -922,7 +927,9 @@ cleanup:
     return err;
 }
 
+#ifndef WHAL_CFG_CRYPTO_API_MAPPING_STM32WB_AES
 const whal_CryptoDriver whal_Stm32wbAes_Driver = {
     .Init = whal_Stm32wbAes_Init,
     .Deinit = whal_Stm32wbAes_Deinit,
 };
+#endif /* !WHAL_CFG_CRYPTO_API_MAPPING_STM32WB_AES */

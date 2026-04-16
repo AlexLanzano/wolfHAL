@@ -24,6 +24,12 @@
 #define CFR_WDGTB_Pos 11
 #define CFR_WDGTB_Msk (WHAL_BITMASK(3) << CFR_WDGTB_Pos)
 
+#ifdef WHAL_CFG_WATCHDOG_API_MAPPING_STM32WB_WWDG
+#define whal_Stm32wbWwdg_Init    whal_Watchdog_Init
+#define whal_Stm32wbWwdg_Deinit  whal_Watchdog_Deinit
+#define whal_Stm32wbWwdg_Refresh whal_Watchdog_Refresh
+#endif /* WHAL_CFG_WATCHDOG_API_MAPPING_STM32WB_WWDG */
+
 whal_Error whal_Stm32wbWwdg_Init(whal_Watchdog *wdgDev)
 {
     size_t base;
@@ -74,8 +80,10 @@ whal_Error whal_Stm32wbWwdg_Refresh(whal_Watchdog *wdgDev)
     return WHAL_SUCCESS;
 }
 
+#ifndef WHAL_CFG_WATCHDOG_API_MAPPING_STM32WB_WWDG
 const whal_WatchdogDriver whal_Stm32wbWwdg_Driver = {
     .Init = whal_Stm32wbWwdg_Init,
     .Deinit = whal_Stm32wbWwdg_Deinit,
     .Refresh = whal_Stm32wbWwdg_Refresh,
 };
+#endif /* !WHAL_CFG_WATCHDOG_API_MAPPING_STM32WB_WWDG */

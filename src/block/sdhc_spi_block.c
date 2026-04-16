@@ -36,6 +36,14 @@
 
 #define DUMMY 0xFF
 
+#ifdef WHAL_CFG_BLOCK_API_MAPPING_SDHC_SPI
+#define whal_SdhcSpi_Init   whal_Block_Init
+#define whal_SdhcSpi_Deinit whal_Block_Deinit
+#define whal_SdhcSpi_Read   whal_Block_Read
+#define whal_SdhcSpi_Write  whal_Block_Write
+#define whal_SdhcSpi_Erase  whal_Block_Erase
+#endif /* WHAL_CFG_BLOCK_API_MAPPING_SDHC_SPI */
+
 static whal_Error SdhcSpi_CsAssert(whal_SdhcSpi_Cfg *cfg)
 {
     uint8_t dummy = DUMMY;
@@ -479,6 +487,7 @@ cleanup:
     return err;
 }
 
+#ifndef WHAL_CFG_BLOCK_API_MAPPING_SDHC_SPI
 const whal_BlockDriver whal_SdhcSpi_Driver = {
     .Init = whal_SdhcSpi_Init,
     .Deinit = whal_SdhcSpi_Deinit,
@@ -486,3 +495,4 @@ const whal_BlockDriver whal_SdhcSpi_Driver = {
     .Write = whal_SdhcSpi_Write,
     .Erase = whal_SdhcSpi_Erase,
 };
+#endif /* !WHAL_CFG_BLOCK_API_MAPPING_SDHC_SPI */

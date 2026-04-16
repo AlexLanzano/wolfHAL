@@ -92,6 +92,13 @@
 /* Peripheral Clock Mask Registers - enable/disable bus clocks to peripherals */
 #define MCLK_CLKxMSK_REG(enableInst) (MCLK + 0x3C + (enableInst * 0x4))
 
+#ifdef WHAL_CFG_CLOCK_API_MAPPING_PIC32CZ_PLL
+#define whal_Pic32czClockPll_Init   whal_Clock_Init
+#define whal_Pic32czClockPll_Deinit whal_Clock_Deinit
+#define whal_Pic32czClock_Enable    whal_Clock_Enable
+#define whal_Pic32czClock_Disable   whal_Clock_Disable
+#endif /* WHAL_CFG_CLOCK_API_MAPPING_PIC32CZ_PLL */
+
 whal_Error whal_Pic32czClockPll_Init(whal_Clock *clkDev)
 {
     whal_Pic32czClock_Cfg *cfg;
@@ -238,9 +245,11 @@ whal_Error whal_Pic32czClock_Disable(whal_Clock *clkDev, const void *clk)
     return WHAL_SUCCESS;
 }
 
+#ifndef WHAL_CFG_CLOCK_API_MAPPING_PIC32CZ_PLL
 const whal_ClockDriver whal_Pic32czClockPll_Driver = {
     .Init = whal_Pic32czClockPll_Init,
     .Deinit = whal_Pic32czClockPll_Deinit,
     .Enable = whal_Pic32czClock_Enable,
     .Disable = whal_Pic32czClock_Disable,
 };
+#endif /* !WHAL_CFG_CLOCK_API_MAPPING_PIC32CZ_PLL */

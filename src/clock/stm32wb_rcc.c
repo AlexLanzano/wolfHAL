@@ -147,6 +147,22 @@
 #define RCC_CRRCR_HSI48RDY_Pos 1                                                  /* HSI48 oscillator ready */
 #define RCC_CRRCR_HSI48RDY_Msk (1UL << RCC_CRRCR_HSI48RDY_Pos)
 
+#if defined(WHAL_CFG_CLOCK_API_MAPPING_STM32WB_PLL) || \
+    defined(WHAL_CFG_CLOCK_API_MAPPING_STM32WB_MSI)
+#define whal_Stm32wbRcc_Enable  whal_Clock_Enable
+#define whal_Stm32wbRcc_Disable whal_Clock_Disable
+#endif
+
+#ifdef WHAL_CFG_CLOCK_API_MAPPING_STM32WB_PLL
+#define whal_Stm32wbRccPll_Init   whal_Clock_Init
+#define whal_Stm32wbRccPll_Deinit whal_Clock_Deinit
+#endif /* WHAL_CFG_CLOCK_API_MAPPING_STM32WB_PLL */
+
+#ifdef WHAL_CFG_CLOCK_API_MAPPING_STM32WB_MSI
+#define whal_Stm32wbRccMsi_Init   whal_Clock_Init
+#define whal_Stm32wbRccMsi_Deinit whal_Clock_Deinit
+#endif /* WHAL_CFG_CLOCK_API_MAPPING_STM32WB_MSI */
+
 whal_Error whal_Stm32wbRccPll_Init(whal_Clock *clkDev)
 {
     whal_Stm32wbRcc_Cfg *cfg;
@@ -302,6 +318,7 @@ whal_Error whal_Stm32wbRcc_Ext_EnableLsi(whal_Clock *clkDev, uint8_t enable)
     return WHAL_SUCCESS;
 }
 
+#if !defined(WHAL_CFG_CLOCK_API_MAPPING_STM32WB_PLL) && !defined(WHAL_CFG_CLOCK_API_MAPPING_STM32WB_MSI)
 const whal_ClockDriver whal_Stm32wbRccPll_Driver = {
     .Init = whal_Stm32wbRccPll_Init,
     .Deinit = whal_Stm32wbRccPll_Deinit,
@@ -315,3 +332,4 @@ const whal_ClockDriver whal_Stm32wbRccMsi_Driver = {
     .Enable = whal_Stm32wbRcc_Enable,
     .Disable = whal_Stm32wbRcc_Disable,
 };
+#endif /* !WHAL_CFG_CLOCK_API_MAPPING_STM32WB_PLL && !WHAL_CFG_CLOCK_API_MAPPING_STM32WB_MSI */

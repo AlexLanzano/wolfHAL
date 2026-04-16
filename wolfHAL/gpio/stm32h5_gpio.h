@@ -15,11 +15,13 @@
 typedef whal_Stm32wbGpio_Cfg    whal_Stm32h5Gpio_Cfg;
 typedef whal_Stm32wbGpio_PinCfg whal_Stm32h5Gpio_PinCfg;
 
+#ifndef WHAL_CFG_GPIO_API_MAPPING_STM32H5
 #define whal_Stm32h5Gpio_Driver whal_Stm32wbGpio_Driver
 #define whal_Stm32h5Gpio_Init   whal_Stm32wbGpio_Init
 #define whal_Stm32h5Gpio_Deinit whal_Stm32wbGpio_Deinit
 #define whal_Stm32h5Gpio_Get    whal_Stm32wbGpio_Get
 #define whal_Stm32h5Gpio_Set    whal_Stm32wbGpio_Set
+#endif /* !WHAL_CFG_GPIO_API_MAPPING_STM32H5 */
 
 /*
  * @brief GPIO mode selection (re-exported from STM32WB).

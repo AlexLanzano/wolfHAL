@@ -76,10 +76,38 @@ typedef struct {
     uint8_t numChannels;     /* Number of channels (7 for DMA1, 5 for DMA2) */
 } whal_Stm32wbDma_Cfg;
 
+#ifndef WHAL_CFG_DMA_API_MAPPING_STM32WB
 /*
  * @brief Driver instance for STM32WB DMA.
  */
 extern const whal_DmaDriver whal_Stm32wbDma_Driver;
+
+/*
+ * @brief Initialize the STM32WB DMA controller.
+ */
+whal_Error whal_Stm32wbDma_Init(whal_Dma *dmaDev);
+
+/*
+ * @brief Deinitialize the STM32WB DMA controller.
+ */
+whal_Error whal_Stm32wbDma_Deinit(whal_Dma *dmaDev);
+
+/*
+ * @brief Configure a DMA channel with platform-specific settings.
+ */
+whal_Error whal_Stm32wbDma_Configure(whal_Dma *dmaDev, size_t ch,
+                                     const void *chCfg);
+
+/*
+ * @brief Start a previously configured DMA channel.
+ */
+whal_Error whal_Stm32wbDma_Start(whal_Dma *dmaDev, size_t ch);
+
+/*
+ * @brief Stop a DMA channel.
+ */
+whal_Error whal_Stm32wbDma_Stop(whal_Dma *dmaDev, size_t ch);
+#endif /* !WHAL_CFG_DMA_API_MAPPING_STM32WB */
 
 /*
  * @brief DMA callback type.

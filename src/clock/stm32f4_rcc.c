@@ -72,6 +72,13 @@
 #define RCC_CFGR_PPRE2_Pos 13
 #define RCC_CFGR_PPRE2_Msk (WHAL_BITMASK(3) << RCC_CFGR_PPRE2_Pos)
 
+#ifdef WHAL_CFG_CLOCK_API_MAPPING_STM32F4_PLL
+#define whal_Stm32f4RccPll_Init   whal_Clock_Init
+#define whal_Stm32f4RccPll_Deinit whal_Clock_Deinit
+#define whal_Stm32f4Rcc_Enable    whal_Clock_Enable
+#define whal_Stm32f4Rcc_Disable   whal_Clock_Disable
+#endif /* WHAL_CFG_CLOCK_API_MAPPING_STM32F4_PLL */
+
 whal_Error whal_Stm32f4RccPll_Init(whal_Clock *clkDev)
 {
     whal_Stm32f4Rcc_Cfg *cfg;
@@ -208,9 +215,11 @@ whal_Error whal_Stm32f4Rcc_Disable(whal_Clock *clkDev, const void *clk)
     return WHAL_SUCCESS;
 }
 
+#ifndef WHAL_CFG_CLOCK_API_MAPPING_STM32F4_PLL
 const whal_ClockDriver whal_Stm32f4RccPll_Driver = {
     .Init = whal_Stm32f4RccPll_Init,
     .Deinit = whal_Stm32f4RccPll_Deinit,
     .Enable = whal_Stm32f4Rcc_Enable,
     .Disable = whal_Stm32f4Rcc_Disable,
 };
+#endif /* !WHAL_CFG_CLOCK_API_MAPPING_STM32F4_PLL */

@@ -39,7 +39,8 @@ static const whal_Stm32f4Flash_Sector g_flashSectors[] = {
 
 /* Clock */
 whal_Clock g_whalClock = {
-    WHAL_STM32F411_RCC_PLL_DEVICE,
+    .regmap = { WHAL_STM32F411_RCC_PLL_REGMAP },
+    /* .driver: direct API mapping */
 
     .cfg = &(whal_Stm32f4Rcc_Cfg) {
         .sysClkSrc = WHAL_STM32F4_RCC_SYSCLK_SRC_PLL,
@@ -66,7 +67,8 @@ static const whal_Stm32f4Rcc_Clk g_clocks[] = {
 
 /* GPIO */
 whal_Gpio g_whalGpio = {
-    WHAL_STM32F411_GPIO_DEVICE,
+    .regmap = { WHAL_STM32F411_GPIO_REGMAP },
+    /* .driver: direct API mapping */
 
     .cfg = &(whal_Stm32f4Gpio_Cfg) {
         .pinCfg = (whal_Stm32f4Gpio_PinCfg[PIN_COUNT]) {
@@ -107,7 +109,8 @@ whal_Gpio g_whalGpio = {
 
 /* Timer */
 whal_Timer g_whalTimer = {
-    WHAL_CORTEX_M4_SYSTICK_DEVICE,
+    .regmap = { WHAL_CORTEX_M4_SYSTICK_REGMAP },
+    .driver = WHAL_CORTEX_M4_SYSTICK_DRIVER,
 
     .cfg = &(whal_SysTick_Cfg) {
         .cyclesPerTick = 100000000 / 1000, /* 100 MHz / 1 kHz = 1 ms tick */
@@ -118,7 +121,8 @@ whal_Timer g_whalTimer = {
 
 /* UART */
 whal_Uart g_whalUart = {
-    WHAL_STM32F411_USART2_DEVICE,
+    .regmap = { WHAL_STM32F411_USART2_REGMAP },
+    /* .driver: direct API mapping */
 
     .cfg = &(whal_Stm32f4Uart_Cfg) {
         .timeout = &g_whalTimeout,
@@ -128,7 +132,8 @@ whal_Uart g_whalUart = {
 
 /* SPI */
 whal_Spi g_whalSpi = {
-    WHAL_STM32F411_SPI1_DEVICE,
+    .regmap = { WHAL_STM32F411_SPI1_REGMAP },
+    /* .driver: direct API mapping */
 
     .cfg = &(whal_Stm32f4Spi_Cfg) {
         .pclk = 100000000,
@@ -138,7 +143,8 @@ whal_Spi g_whalSpi = {
 
 /* Flash */
 whal_Flash g_whalFlash = {
-    WHAL_STM32F411_FLASH_DEVICE,
+    .regmap = { WHAL_STM32F411_FLASH_REGMAP },
+    .driver = WHAL_STM32F411_FLASH_DRIVER,
 
     .cfg = &(whal_Stm32f4Flash_Cfg) {
         .startAddr = 0x08000000,

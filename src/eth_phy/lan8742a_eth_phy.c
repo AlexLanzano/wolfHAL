@@ -21,6 +21,12 @@
 #define PHY_PHYSCSR_100HD  (2UL << 2)
 #define PHY_PHYSCSR_100FD  (6UL << 2)
 
+#ifdef WHAL_CFG_ETH_PHY_API_MAPPING_LAN8742A
+#define whal_Lan8742a_Init         whal_EthPhy_Init
+#define whal_Lan8742a_Deinit       whal_EthPhy_Deinit
+#define whal_Lan8742a_GetLinkState whal_EthPhy_GetLinkState
+#endif /* WHAL_CFG_ETH_PHY_API_MAPPING_LAN8742A */
+
 whal_Error whal_Lan8742a_Init(whal_EthPhy *phyDev)
 {
     whal_Lan8742a_Cfg *cfg;
@@ -121,8 +127,10 @@ whal_Error whal_Lan8742a_GetLinkState(whal_EthPhy *phyDev, uint8_t *up,
     return WHAL_SUCCESS;
 }
 
+#ifndef WHAL_CFG_ETH_PHY_API_MAPPING_LAN8742A
 const whal_EthPhyDriver whal_Lan8742a_Driver = {
     .Init = whal_Lan8742a_Init,
     .Deinit = whal_Lan8742a_Deinit,
     .GetLinkState = whal_Lan8742a_GetLinkState,
 };
+#endif /* !WHAL_CFG_ETH_PHY_API_MAPPING_LAN8742A */

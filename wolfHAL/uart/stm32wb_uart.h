@@ -30,6 +30,10 @@ typedef struct whal_Stm32wbUart_Cfg {
     whal_Timeout *timeout;
 } whal_Stm32wbUart_Cfg;
 
+#if !defined(WHAL_CFG_UART_API_MAPPING_STM32WB) && \
+    !defined(WHAL_CFG_UART_API_MAPPING_STM32WB_DMA) && \
+    !defined(WHAL_CFG_UART_API_MAPPING_STM32H5) && \
+    !defined(WHAL_CFG_UART_API_MAPPING_STM32C0)
 /*
  * @brief Polled UART driver. Implements Init, Deinit, Send, Recv.
  */
@@ -78,5 +82,6 @@ whal_Error whal_Stm32wbUart_Send(whal_Uart *uartDev, const void *data, size_t da
  * @retval WHAL_EINVAL  Invalid arguments.
  */
 whal_Error whal_Stm32wbUart_Recv(whal_Uart *uartDev, void *data, size_t dataSz);
+#endif /* !WHAL_CFG_UART_API_MAPPING */
 
 #endif /* WHAL_STM32WB_UART_H */
