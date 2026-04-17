@@ -43,7 +43,8 @@ struct whal_Timer{
  * @param timerDev Timer instance to initialize.
  *
  * @retval WHAL_SUCCESS Driver-specific init completed.
- * @retval WHAL_EINVAL  Null pointer or missing driver function.
+ * @retval WHAL_EINVAL   Null pointer.
+ * @retval WHAL_ENOTIMPL Operation not implemented by this driver.
  */
 #ifdef WHAL_CFG_DIRECT_CALLBACKS
 #define whal_Timer_Init(timerDev) ((timerDev)->driver->Init((timerDev)))
@@ -58,7 +59,8 @@ struct whal_Timer{
  * @param timerDev Timer instance to initialize.
  *
  * @retval WHAL_SUCCESS Driver-specific init completed.
- * @retval WHAL_EINVAL  Null pointer or missing driver function.
+ * @retval WHAL_EINVAL   Null pointer.
+ * @retval WHAL_ENOTIMPL Operation not implemented by this driver.
  */
 whal_Error whal_Timer_Init(whal_Timer *timerDev);
 /*
@@ -67,7 +69,8 @@ whal_Error whal_Timer_Init(whal_Timer *timerDev);
  * @param timerDev Timer instance to deinitialize.
  *
  * @retval WHAL_SUCCESS Driver-specific deinit completed.
- * @retval WHAL_EINVAL  Null pointer or missing driver function.
+ * @retval WHAL_EINVAL   Null pointer.
+ * @retval WHAL_ENOTIMPL Operation not implemented by this driver.
  */
 whal_Error whal_Timer_Deinit(whal_Timer *timerDev);
 /*
@@ -76,7 +79,8 @@ whal_Error whal_Timer_Deinit(whal_Timer *timerDev);
  * @param timerDev Timer instance to start.
  *
  * @retval WHAL_SUCCESS Timer started.
- * @retval WHAL_EINVAL  Null pointer or missing driver function.
+ * @retval WHAL_EINVAL   Null pointer.
+ * @retval WHAL_ENOTIMPL Operation not implemented by this driver.
  */
 whal_Error whal_Timer_Start(whal_Timer *timerDev);
 /*
@@ -85,7 +89,8 @@ whal_Error whal_Timer_Start(whal_Timer *timerDev);
  * @param timerDev Timer instance to stop.
  *
  * @retval WHAL_SUCCESS Timer stopped.
- * @retval WHAL_EINVAL  Null pointer or missing driver function.
+ * @retval WHAL_EINVAL   Null pointer.
+ * @retval WHAL_ENOTIMPL Operation not implemented by this driver.
  */
 whal_Error whal_Timer_Stop(whal_Timer *timerDev);
 /*
@@ -94,7 +99,8 @@ whal_Error whal_Timer_Stop(whal_Timer *timerDev);
  * @param timerDev Timer instance to reset.
  *
  * @retval WHAL_SUCCESS Timer reset.
- * @retval WHAL_EINVAL  Null pointer or missing driver function.
+ * @retval WHAL_EINVAL   Null pointer.
+ * @retval WHAL_ENOTIMPL Operation not implemented by this driver.
  */
 whal_Error whal_Timer_Reset(whal_Timer *timerDev);
 #endif

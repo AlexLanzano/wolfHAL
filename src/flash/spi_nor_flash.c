@@ -48,6 +48,7 @@
 
 #define DUMMY 0xFF
 
+
 static whal_Error SpiNor_CsAssert(whal_SpiNor_Cfg *cfg)
 {
     return whal_Gpio_Set(cfg->gpioDev, cfg->csPin, 0);

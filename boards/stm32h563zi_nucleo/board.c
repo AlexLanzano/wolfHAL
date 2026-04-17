@@ -27,7 +27,8 @@ whal_Timeout g_whalTimeout = {
 
 /* Clock */
 whal_Clock g_whalClock = {
-    WHAL_STM32H563_RCC_PLL_DEVICE,
+    .regmap = { WHAL_STM32H563_RCC_PLL_REGMAP },
+    /* .driver: direct API mapping */
 
     .cfg = &(whal_Stm32h5Rcc_Cfg) {
         .sysClkSrc = WHAL_STM32H5_RCC_SYSCLK_SRC_PLL1,
@@ -65,7 +66,8 @@ static const whal_Stm32h5Rcc_Clk g_ethClocks[] = {
 
 /* GPIO */
 whal_Gpio g_whalGpio = {
-    WHAL_STM32H563_GPIO_DEVICE,
+    .regmap = { WHAL_STM32H563_GPIO_REGMAP },
+    /* .driver: direct API mapping */
 
     .cfg = &(whal_Stm32h5Gpio_Cfg) {
         .pinCfg = (whal_Stm32h5Gpio_PinCfg[PIN_COUNT]) {
@@ -156,7 +158,8 @@ whal_Gpio g_whalGpio = {
 
 /* Timer */
 whal_Timer g_whalTimer = {
-    WHAL_CORTEX_M33_SYSTICK_DEVICE,
+    .regmap = { WHAL_CORTEX_M33_SYSTICK_REGMAP },
+    .driver = WHAL_CORTEX_M33_SYSTICK_DRIVER,
 
     .cfg = &(whal_SysTick_Cfg) {
         .cyclesPerTick = 168000000 / 1000, /* 168 MHz / 1 kHz = 1 ms tick */
@@ -167,7 +170,8 @@ whal_Timer g_whalTimer = {
 
 /* UART */
 whal_Uart g_whalUart = {
-    WHAL_STM32H563_USART2_DEVICE,
+    .regmap = { WHAL_STM32H563_USART2_REGMAP },
+    /* .driver: direct API mapping */
 
     .cfg = &(whal_Stm32h5Uart_Cfg) {
         .timeout = &g_whalTimeout,
@@ -177,7 +181,8 @@ whal_Uart g_whalUart = {
 
 /* SPI */
 whal_Spi g_whalSpi = {
-    WHAL_STM32H563_SPI1_DEVICE,
+    .regmap = { WHAL_STM32H563_SPI1_REGMAP },
+    /* .driver: direct API mapping */
 
     .cfg = &(whal_Stm32h5Spi_Cfg) {
         .pclk = 168000000,
@@ -187,7 +192,8 @@ whal_Spi g_whalSpi = {
 
 /* RNG */
 whal_Rng g_whalRng = {
-    WHAL_STM32H563_RNG_DEVICE,
+    .regmap = { WHAL_STM32H563_RNG_REGMAP },
+    /* .driver: direct API mapping */
 
     .cfg = &(whal_Stm32h5Rng_Cfg) {
         .timeout = &g_whalTimeout,
@@ -197,7 +203,8 @@ whal_Rng g_whalRng = {
 
 /* Flash */
 whal_Flash g_whalFlash = {
-    WHAL_STM32H563_FLASH_DEVICE,
+    .regmap = { WHAL_STM32H563_FLASH_REGMAP },
+    .driver = WHAL_STM32H563_FLASH_DRIVER,
 
     .cfg = &(whal_Stm32h5Flash_Cfg) {
         .startAddr = 0x08000000,
@@ -222,7 +229,8 @@ static uint8_t ethRxBufs[ETH_RX_DESC_COUNT * ETH_RX_BUF_SIZE]
     __attribute__((aligned(4)));
 
 whal_Eth g_whalEth = {
-    WHAL_STM32H563_ETH_DEVICE,
+    .regmap = { WHAL_STM32H563_ETH_REGMAP },
+    /* .driver: direct API mapping */
 
     .macAddr = {0x00, 0x80, 0xE1, 0x00, 0x00, 0x01},
     .cfg = &(whal_Stm32h5Eth_Cfg) {
@@ -242,7 +250,7 @@ whal_Eth g_whalEth = {
 whal_EthPhy g_whalEthPhy = {
     .eth = &g_whalEth,
     .addr = BOARD_ETH_PHY_ADDR,
-    .driver = &whal_Lan8742a_Driver,
+    /* .driver: direct API mapping */
 
     .cfg = &(whal_Lan8742a_Cfg) {
         .timeout = &g_whalTimeout,

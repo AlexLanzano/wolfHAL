@@ -46,6 +46,7 @@ typedef struct whal_Stm32h5Eth_Cfg {
     size_t rxHead;                        /* Next RX descriptor to check */
 } whal_Stm32h5Eth_Cfg;
 
+#ifndef WHAL_CFG_ETH_API_MAPPING_STM32H5
 /*
  * @brief Driver instance for STM32H5 Ethernet MAC.
  */
@@ -163,6 +164,7 @@ whal_Error whal_Stm32h5Eth_MdioRead(whal_Eth *ethDev, uint8_t phyAddr,
  */
 whal_Error whal_Stm32h5Eth_MdioWrite(whal_Eth *ethDev, uint8_t phyAddr,
                                        uint8_t reg, uint16_t val);
+#endif /* !WHAL_CFG_ETH_API_MAPPING_STM32H5 */
 
 /*
  * @brief Enable or disable MAC-internal loopback.

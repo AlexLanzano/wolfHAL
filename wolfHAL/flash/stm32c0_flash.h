@@ -40,6 +40,7 @@ typedef enum whal_Stm32c0Flash_Latency {
     WHAL_STM32C0_FLASH_LATENCY_1, /* 1 wait state */
 } whal_Stm32c0Flash_Latency;
 
+#ifndef WHAL_CFG_FLASH_API_MAPPING_STM32C0
 /*
  * @brief Driver instance for STM32C0 flash.
  */
@@ -132,6 +133,7 @@ whal_Error whal_Stm32c0Flash_Write(whal_Flash *flashDev, size_t addr, const void
  * @retval WHAL_EINVAL  Invalid arguments.
  */
 whal_Error whal_Stm32c0Flash_Erase(whal_Flash *flashDev, size_t addr, size_t dataSz);
+#endif /* !WHAL_CFG_FLASH_API_MAPPING_STM32C0 */
 
 /*
  * @brief Update flash latency wait states.

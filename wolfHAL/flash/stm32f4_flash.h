@@ -61,6 +61,7 @@ typedef enum whal_Stm32f4Flash_Latency {
     WHAL_STM32F4_FLASH_LATENCY_3, /* 3 wait states */
 } whal_Stm32f4Flash_Latency;
 
+#ifndef WHAL_CFG_FLASH_API_MAPPING_STM32F4
 /*
  * @brief Driver instance for STM32F4 flash.
  */
@@ -158,6 +159,7 @@ whal_Error whal_Stm32f4Flash_Write(whal_Flash *flashDev, size_t addr,
  */
 whal_Error whal_Stm32f4Flash_Erase(whal_Flash *flashDev, size_t addr,
                                     size_t dataSz);
+#endif /* !WHAL_CFG_FLASH_API_MAPPING_STM32F4 */
 
 /*
  * @brief Update flash latency wait states.

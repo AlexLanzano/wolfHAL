@@ -111,14 +111,14 @@ static void Test_Clock_NullDev(void)
 static void Test_Clock_NullDriver(void)
 {
     whal_Clock dev = { .driver = NULL };
-    WHAL_ASSERT_EQ(whal_Clock_Init(&dev), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Clock_Init(&dev), WHAL_ENOTIMPL);
 }
 
 static void Test_Clock_NullVtableEntry(void)
 {
     static const whal_ClockDriver emptyDriver = { 0 };
     whal_Clock dev = { .driver = &emptyDriver };
-    WHAL_ASSERT_EQ(whal_Clock_Init(&dev), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Clock_Init(&dev), WHAL_ENOTIMPL);
 }
 
 static void Test_Clock_ValidDispatch(void)
@@ -143,7 +143,7 @@ static void Test_Gpio_NullDev(void)
 static void Test_Gpio_NullDriver(void)
 {
     whal_Gpio dev = { .driver = NULL };
-    WHAL_ASSERT_EQ(whal_Gpio_Init(&dev), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Gpio_Init(&dev), WHAL_ENOTIMPL);
 }
 
 static void Test_Gpio_ValidDispatch(void)
@@ -171,15 +171,15 @@ static void Test_Uart_NullDev(void)
 static void Test_Uart_NullDriver(void)
 {
     whal_Uart dev = { .driver = NULL };
-    WHAL_ASSERT_EQ(whal_Uart_Init(&dev), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Uart_Init(&dev), WHAL_ENOTIMPL);
 }
 
 static void Test_Uart_NullAsyncVtable(void)
 {
     whal_Uart dev = { .driver = &mockUartDriver };
     uint8_t buf[1] = {0};
-    WHAL_ASSERT_EQ(whal_Uart_SendAsync(&dev, buf, 1), WHAL_EINVAL);
-    WHAL_ASSERT_EQ(whal_Uart_RecvAsync(&dev, buf, 1), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Uart_SendAsync(&dev, buf, 1), WHAL_ENOTIMPL);
+    WHAL_ASSERT_EQ(whal_Uart_RecvAsync(&dev, buf, 1), WHAL_ENOTIMPL);
 }
 
 static void Test_Uart_ValidDispatch(void)
@@ -211,7 +211,7 @@ static void Test_Flash_NullDev(void)
 static void Test_Flash_NullDriver(void)
 {
     whal_Flash dev = { .driver = NULL };
-    WHAL_ASSERT_EQ(whal_Flash_Init(&dev), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Flash_Init(&dev), WHAL_ENOTIMPL);
 }
 
 static void Test_Flash_ValidDispatch(void)
@@ -239,7 +239,7 @@ static void Test_Timer_NullDev(void)
 static void Test_Timer_NullDriver(void)
 {
     whal_Timer dev = { .driver = NULL };
-    WHAL_ASSERT_EQ(whal_Timer_Init(&dev), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Timer_Init(&dev), WHAL_ENOTIMPL);
 }
 
 static void Test_Timer_ValidDispatch(void)
@@ -264,7 +264,7 @@ static void Test_Rng_NullDev(void)
 static void Test_Rng_NullDriver(void)
 {
     whal_Rng dev = { .driver = NULL };
-    WHAL_ASSERT_EQ(whal_Rng_Init(&dev), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Rng_Init(&dev), WHAL_ENOTIMPL);
 }
 
 static void Test_Rng_ValidDispatch(void)
@@ -306,7 +306,7 @@ static void Test_Spi_NullDev(void)
 static void Test_Spi_NullDriver(void)
 {
     whal_Spi dev = { .driver = NULL };
-    WHAL_ASSERT_EQ(whal_Spi_Init(&dev), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Spi_Init(&dev), WHAL_ENOTIMPL);
 }
 
 static void Test_Spi_ValidDispatch(void)
@@ -350,7 +350,7 @@ static void Test_Block_NullDev(void)
 static void Test_Block_NullDriver(void)
 {
     whal_Block dev = { .driver = NULL };
-    WHAL_ASSERT_EQ(whal_Block_Init(&dev), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Block_Init(&dev), WHAL_ENOTIMPL);
 }
 
 static void Test_Block_ValidDispatch(void)

@@ -159,6 +159,15 @@
 #define USART_DATA_Pos              0
 #define USART_DATA_Msk              (WHAL_BITMASK(9) << USART_DATA_Pos)
 
+#ifdef WHAL_CFG_UART_API_MAPPING_PIC32CZ
+#define whal_Pic32czUart_Init      whal_Uart_Init
+#define whal_Pic32czUart_Deinit    whal_Uart_Deinit
+#define whal_Pic32czUart_Send      whal_Uart_Send
+#define whal_Pic32czUart_Recv      whal_Uart_Recv
+#define whal_Pic32czUart_SendAsync whal_Uart_SendAsync
+#define whal_Pic32czUart_RecvAsync whal_Uart_RecvAsync
+#endif /* WHAL_CFG_UART_API_MAPPING_PIC32CZ */
+
 whal_Error whal_Pic32czUart_Init(whal_Uart *uartDev)
 {
     whal_Error err;
@@ -351,9 +360,29 @@ whal_Error whal_Pic32czUart_Recv(whal_Uart *uartDev, void *data, size_t dataSz)
     return WHAL_SUCCESS;
 }
 
+whal_Error whal_Pic32czUart_SendAsync(whal_Uart *uartDev, const void *data, size_t dataSz)
+{
+    (void)dataSz;
+    if (!uartDev || !data)
+        return WHAL_EINVAL;
+    return WHAL_ENOTIMPL;
+}
+
+whal_Error whal_Pic32czUart_RecvAsync(whal_Uart *uartDev, void *data, size_t dataSz)
+{
+    (void)dataSz;
+    if (!uartDev || !data)
+        return WHAL_EINVAL;
+    return WHAL_ENOTIMPL;
+}
+
+#ifndef WHAL_CFG_UART_API_MAPPING_PIC32CZ
 const whal_UartDriver whal_Pic32czUart_Driver = {
     .Init = whal_Pic32czUart_Init,
     .Deinit = whal_Pic32czUart_Deinit,
     .Send = whal_Pic32czUart_Send,
     .Recv = whal_Pic32czUart_Recv,
+    .SendAsync = whal_Pic32czUart_SendAsync,
+    .RecvAsync = whal_Pic32czUart_RecvAsync,
 };
+#endif /* !WHAL_CFG_UART_API_MAPPING_PIC32CZ */

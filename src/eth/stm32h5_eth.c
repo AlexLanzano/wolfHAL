@@ -123,6 +123,17 @@
 /* MDIO clock range for 168 MHz AHB: CR=4 gives /102 ≈ 1.6 MHz */
 #define ETH_MDIO_CR 4
 
+#ifdef WHAL_CFG_ETH_API_MAPPING_STM32H5
+#define whal_Stm32h5Eth_Init      whal_Eth_Init
+#define whal_Stm32h5Eth_Deinit    whal_Eth_Deinit
+#define whal_Stm32h5Eth_Start     whal_Eth_Start
+#define whal_Stm32h5Eth_Stop      whal_Eth_Stop
+#define whal_Stm32h5Eth_Send      whal_Eth_Send
+#define whal_Stm32h5Eth_Recv      whal_Eth_Recv
+#define whal_Stm32h5Eth_MdioRead  whal_Eth_MdioRead
+#define whal_Stm32h5Eth_MdioWrite whal_Eth_MdioWrite
+#endif /* WHAL_CFG_ETH_API_MAPPING_STM32H5 */
+
 static whal_Error MdioPoll(size_t base, whal_Timeout *timeout)
 {
     return whal_Reg_ReadPoll(base, ETH_MACMDIOAR_REG,
@@ -490,6 +501,7 @@ whal_Error whal_Stm32h5Eth_Ext_EnableLoopback(whal_Eth *ethDev,
     return WHAL_SUCCESS;
 }
 
+#ifndef WHAL_CFG_ETH_API_MAPPING_STM32H5
 const whal_EthDriver whal_Stm32h5Eth_Driver = {
     .Init = whal_Stm32h5Eth_Init,
     .Deinit = whal_Stm32h5Eth_Deinit,
@@ -500,3 +512,4 @@ const whal_EthDriver whal_Stm32h5Eth_Driver = {
     .MdioRead = whal_Stm32h5Eth_MdioRead,
     .MdioWrite = whal_Stm32h5Eth_MdioWrite,
 };
+#endif /* !WHAL_CFG_ETH_API_MAPPING_STM32H5 */

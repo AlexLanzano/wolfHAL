@@ -42,6 +42,7 @@ typedef struct whal_Stm32f4Uart_Cfg {
     whal_Timeout *timeout;
 } whal_Stm32f4Uart_Cfg;
 
+#ifndef WHAL_CFG_UART_API_MAPPING_STM32F4
 /*
  * @brief Driver instance for STM32F4 UART peripheral.
  */
@@ -90,5 +91,6 @@ whal_Error whal_Stm32f4Uart_Send(whal_Uart *uartDev, const void *data, size_t da
  * @retval WHAL_EINVAL  Invalid arguments.
  */
 whal_Error whal_Stm32f4Uart_Recv(whal_Uart *uartDev, void *data, size_t dataSz);
+#endif /* !WHAL_CFG_UART_API_MAPPING_STM32F4 */
 
 #endif /* WHAL_STM32F4_UART_H */

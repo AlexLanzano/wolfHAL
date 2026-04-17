@@ -34,6 +34,12 @@
 #define IWDG_SR_RVU_Pos 1       /* Reload value update */
 #define IWDG_SR_RVU_Msk (1UL << IWDG_SR_RVU_Pos)
 
+#ifdef WHAL_CFG_WATCHDOG_API_MAPPING_STM32WB_IWDG
+#define whal_Stm32wbIwdg_Init    whal_Watchdog_Init
+#define whal_Stm32wbIwdg_Deinit  whal_Watchdog_Deinit
+#define whal_Stm32wbIwdg_Refresh whal_Watchdog_Refresh
+#endif /* WHAL_CFG_WATCHDOG_API_MAPPING_STM32WB_IWDG */
+
 whal_Error whal_Stm32wbIwdg_Init(whal_Watchdog *wdgDev)
 {
     const whal_Regmap *reg;
@@ -93,8 +99,10 @@ whal_Error whal_Stm32wbIwdg_Refresh(whal_Watchdog *wdgDev)
     return WHAL_SUCCESS;
 }
 
+#ifndef WHAL_CFG_WATCHDOG_API_MAPPING_STM32WB_IWDG
 const whal_WatchdogDriver whal_Stm32wbIwdg_Driver = {
     .Init = whal_Stm32wbIwdg_Init,
     .Deinit = whal_Stm32wbIwdg_Deinit,
     .Refresh = whal_Stm32wbIwdg_Refresh,
 };
+#endif /* !WHAL_CFG_WATCHDOG_API_MAPPING_STM32WB_IWDG */

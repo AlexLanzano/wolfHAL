@@ -21,9 +21,16 @@ typedef struct {
     uint8_t priority;
 } whal_Nvic_Cfg;
 
+#ifndef WHAL_CFG_IRQ_API_MAPPING_NVIC
 /*
  * @brief Driver instance for Cortex-M4 NVIC.
  */
 extern const whal_IrqDriver whal_Nvic_Driver;
+
+whal_Error whal_Nvic_Init(whal_Irq *irqDev);
+whal_Error whal_Nvic_Deinit(whal_Irq *irqDev);
+whal_Error whal_Nvic_Enable(whal_Irq *irqDev, size_t irq, const void *irqCfg);
+whal_Error whal_Nvic_Disable(whal_Irq *irqDev, size_t irq);
+#endif /* !WHAL_CFG_IRQ_API_MAPPING_NVIC */
 
 #endif /* WHAL_CORTEX_M4_NVIC_H */

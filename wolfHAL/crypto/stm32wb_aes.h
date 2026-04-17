@@ -21,6 +21,7 @@ typedef struct {
     whal_Timeout *timeout;
 } whal_Stm32wbAes_Cfg;
 
+#ifndef WHAL_CFG_CRYPTO_API_MAPPING_STM32WB_AES
 /*
  * @brief Driver instance for STM32WB AES peripheral.
  */
@@ -45,6 +46,7 @@ whal_Error whal_Stm32wbAes_Init(whal_Crypto *cryptoDev);
  * @retval WHAL_EINVAL  Invalid arguments.
  */
 whal_Error whal_Stm32wbAes_Deinit(whal_Crypto *cryptoDev);
+#endif /* !WHAL_CFG_CRYPTO_API_MAPPING_STM32WB_AES */
 
 
 /*

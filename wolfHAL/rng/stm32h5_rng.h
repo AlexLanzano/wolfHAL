@@ -22,6 +22,7 @@ typedef struct whal_Stm32h5Rng_Cfg {
     whal_Timeout *timeout;
 } whal_Stm32h5Rng_Cfg;
 
+#ifndef WHAL_CFG_RNG_API_MAPPING_STM32H5
 /*
  * @brief Driver instance for STM32H5 RNG peripheral.
  */
@@ -64,5 +65,6 @@ whal_Error whal_Stm32h5Rng_Deinit(whal_Rng *rngDev);
  */
 whal_Error whal_Stm32h5Rng_Generate(whal_Rng *rngDev, void *rngData,
                                      size_t rngDataSz);
+#endif /* !WHAL_CFG_RNG_API_MAPPING_STM32H5 */
 
 #endif /* WHAL_STM32H5_RNG_H */

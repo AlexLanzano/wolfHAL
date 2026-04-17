@@ -60,6 +60,15 @@
 #define SPI_DR_Pos 0
 #define SPI_DR_Msk (WHAL_BITMASK(8) << SPI_DR_Pos)
 
+#if defined(WHAL_CFG_SPI_API_MAPPING_STM32WB) || \
+    defined(WHAL_CFG_SPI_API_MAPPING_STM32C0)
+#define whal_Stm32wbSpi_Init     whal_Spi_Init
+#define whal_Stm32wbSpi_Deinit   whal_Spi_Deinit
+#define whal_Stm32wbSpi_StartCom whal_Spi_StartCom
+#define whal_Stm32wbSpi_EndCom   whal_Spi_EndCom
+#define whal_Stm32wbSpi_SendRecv whal_Spi_SendRecv
+#endif /* WHAL_CFG_SPI_API_MAPPING */
+
 /*
  * Calculate the baud rate prescaler index for a target baud rate.
  *
@@ -239,6 +248,8 @@ whal_Error whal_Stm32wbSpi_SendRecv(whal_Spi *spiDev,
                              cfg->timeout);
 }
 
+#if !defined(WHAL_CFG_SPI_API_MAPPING_STM32WB) && \
+    !defined(WHAL_CFG_SPI_API_MAPPING_STM32C0)
 const whal_SpiDriver whal_Stm32wbSpi_Driver = {
     .Init = whal_Stm32wbSpi_Init,
     .Deinit = whal_Stm32wbSpi_Deinit,
@@ -246,3 +257,4 @@ const whal_SpiDriver whal_Stm32wbSpi_Driver = {
     .EndCom = whal_Stm32wbSpi_EndCom,
     .SendRecv = whal_Stm32wbSpi_SendRecv,
 };
+#endif /* !WHAL_CFG_SPI_API_MAPPING */

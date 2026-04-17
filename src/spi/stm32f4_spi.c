@@ -56,6 +56,14 @@
 /* Data Register - 8/16-bit access */
 #define SPI_DR_REG  0x0C
 
+#ifdef WHAL_CFG_SPI_API_MAPPING_STM32F4
+#define whal_Stm32f4Spi_Init     whal_Spi_Init
+#define whal_Stm32f4Spi_Deinit   whal_Spi_Deinit
+#define whal_Stm32f4Spi_StartCom whal_Spi_StartCom
+#define whal_Stm32f4Spi_EndCom   whal_Spi_EndCom
+#define whal_Stm32f4Spi_SendRecv whal_Spi_SendRecv
+#endif /* WHAL_CFG_SPI_API_MAPPING_STM32F4 */
+
 /*
  * Calculate the baud rate prescaler index for a target baud rate.
  *
@@ -219,6 +227,7 @@ whal_Error whal_Stm32f4Spi_SendRecv(whal_Spi *spiDev,
                              cfg->timeout);
 }
 
+#ifndef WHAL_CFG_SPI_API_MAPPING_STM32F4
 const whal_SpiDriver whal_Stm32f4Spi_Driver = {
     .Init = whal_Stm32f4Spi_Init,
     .Deinit = whal_Stm32f4Spi_Deinit,
@@ -226,3 +235,4 @@ const whal_SpiDriver whal_Stm32f4Spi_Driver = {
     .EndCom = whal_Stm32f4Spi_EndCom,
     .SendRecv = whal_Stm32f4Spi_SendRecv,
 };
+#endif /* !WHAL_CFG_SPI_API_MAPPING_STM32F4 */

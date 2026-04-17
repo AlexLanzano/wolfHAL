@@ -27,6 +27,7 @@ typedef struct whal_Stm32wbI2c_Cfg {
     whal_Timeout *timeout;
 } whal_Stm32wbI2c_Cfg;
 
+#ifndef WHAL_CFG_I2C_API_MAPPING_STM32WB
 /*
  * @brief Driver instance for STM32WB I2C peripheral.
  */
@@ -96,5 +97,6 @@ whal_Error whal_Stm32wbI2c_EndCom(whal_I2c *i2cDev);
  */
 whal_Error whal_Stm32wbI2c_Transfer(whal_I2c *i2cDev, whal_I2c_Msg *msgs,
                                      size_t numMsgs);
+#endif /* !WHAL_CFG_I2C_API_MAPPING_STM32WB */
 
 #endif /* WHAL_STM32WB_I2C_H */

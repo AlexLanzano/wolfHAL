@@ -107,6 +107,10 @@ typedef struct {
     size_t pinCount;                  /* Number of pins to configure */
 } whal_Stm32wbGpio_Cfg;
 
+#if !defined(WHAL_CFG_GPIO_API_MAPPING_STM32WB) && \
+    !defined(WHAL_CFG_GPIO_API_MAPPING_STM32F4) && \
+    !defined(WHAL_CFG_GPIO_API_MAPPING_STM32H5) && \
+    !defined(WHAL_CFG_GPIO_API_MAPPING_STM32C0)
 /*
  * @brief Driver instance for STM32 GPIO.
  */
@@ -152,5 +156,6 @@ whal_Error whal_Stm32wbGpio_Get(whal_Gpio *gpioDev, size_t pin, size_t *value);
  * @retval WHAL_EINVAL  Invalid arguments.
  */
 whal_Error whal_Stm32wbGpio_Set(whal_Gpio *gpioDev, size_t pin, size_t value);
+#endif /* !WHAL_CFG_GPIO_API_MAPPING */
 
 #endif /* WHAL_STM32WB_GPIO_H */

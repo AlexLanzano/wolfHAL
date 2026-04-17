@@ -102,6 +102,22 @@
 /* HSI base frequency */
 #define HSI_FREQ 64000000UL
 
+#if defined(WHAL_CFG_CLOCK_API_MAPPING_STM32H5_PLL) || \
+    defined(WHAL_CFG_CLOCK_API_MAPPING_STM32H5_HSI)
+#define whal_Stm32h5Rcc_Enable  whal_Clock_Enable
+#define whal_Stm32h5Rcc_Disable whal_Clock_Disable
+#endif
+
+#ifdef WHAL_CFG_CLOCK_API_MAPPING_STM32H5_PLL
+#define whal_Stm32h5RccPll_Init   whal_Clock_Init
+#define whal_Stm32h5RccPll_Deinit whal_Clock_Deinit
+#endif /* WHAL_CFG_CLOCK_API_MAPPING_STM32H5_PLL */
+
+#ifdef WHAL_CFG_CLOCK_API_MAPPING_STM32H5_HSI
+#define whal_Stm32h5RccHsi_Init   whal_Clock_Init
+#define whal_Stm32h5RccHsi_Deinit whal_Clock_Deinit
+#endif /* WHAL_CFG_CLOCK_API_MAPPING_STM32H5_HSI */
+
 whal_Error whal_Stm32h5RccPll_Init(whal_Clock *clkDev)
 {
     whal_Stm32h5Rcc_Cfg *cfg;
@@ -310,6 +326,7 @@ whal_Error whal_Stm32h5Rcc_Disable(whal_Clock *clkDev, const void *clk)
     return WHAL_SUCCESS;
 }
 
+#if !defined(WHAL_CFG_CLOCK_API_MAPPING_STM32H5_PLL) && !defined(WHAL_CFG_CLOCK_API_MAPPING_STM32H5_HSI)
 const whal_ClockDriver whal_Stm32h5RccPll_Driver = {
     .Init = whal_Stm32h5RccPll_Init,
     .Deinit = whal_Stm32h5RccPll_Deinit,
@@ -323,6 +340,7 @@ const whal_ClockDriver whal_Stm32h5RccHsi_Driver = {
     .Enable = whal_Stm32h5Rcc_Enable,
     .Disable = whal_Stm32h5Rcc_Disable,
 };
+#endif /* !WHAL_CFG_CLOCK_API_MAPPING_STM32H5_PLL && !WHAL_CFG_CLOCK_API_MAPPING_STM32H5_HSI */
 
 whal_Error whal_Stm32h5Rcc_Ext_EnableHsi48(whal_Clock *clkDev, uint8_t enable)
 {

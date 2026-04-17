@@ -30,10 +30,12 @@ typedef whal_Stm32wbUart_Cfg whal_Stm32c0Uart_Cfg;
  */
 #define WHAL_STM32C0_LPUART_BRR(clk, baud) WHAL_STM32WB_LPUART_BRR(clk, baud)
 
+#ifndef WHAL_CFG_UART_API_MAPPING_STM32C0
 #define whal_Stm32c0Uart_Driver whal_Stm32wbUart_Driver
 #define whal_Stm32c0Uart_Init   whal_Stm32wbUart_Init
 #define whal_Stm32c0Uart_Deinit whal_Stm32wbUart_Deinit
 #define whal_Stm32c0Uart_Send   whal_Stm32wbUart_Send
 #define whal_Stm32c0Uart_Recv   whal_Stm32wbUart_Recv
+#endif /* !WHAL_CFG_UART_API_MAPPING_STM32C0 */
 
 #endif /* WHAL_STM32C0_UART_H */

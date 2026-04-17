@@ -45,6 +45,15 @@
 #define UART_CR1_UE_Pos 13                                             /* USART enable */
 #define UART_CR1_UE_Msk (1UL << UART_CR1_UE_Pos)
 
+#ifdef WHAL_CFG_UART_API_MAPPING_STM32F4
+#define whal_Stm32f4Uart_Init      whal_Uart_Init
+#define whal_Stm32f4Uart_Deinit    whal_Uart_Deinit
+#define whal_Stm32f4Uart_Send      whal_Uart_Send
+#define whal_Stm32f4Uart_Recv      whal_Uart_Recv
+#define whal_Stm32f4Uart_SendAsync whal_Uart_SendAsync
+#define whal_Stm32f4Uart_RecvAsync whal_Uart_RecvAsync
+#endif /* WHAL_CFG_UART_API_MAPPING_STM32F4 */
+
 whal_Error whal_Stm32f4Uart_Init(whal_Uart *uartDev)
 {
     whal_Stm32f4Uart_Cfg *cfg;
@@ -157,9 +166,29 @@ whal_Error whal_Stm32f4Uart_Recv(whal_Uart *uartDev, void *data, size_t dataSz)
     return WHAL_SUCCESS;
 }
 
+whal_Error whal_Stm32f4Uart_SendAsync(whal_Uart *uartDev, const void *data, size_t dataSz)
+{
+    (void)dataSz;
+    if (!uartDev || !data)
+        return WHAL_EINVAL;
+    return WHAL_ENOTIMPL;
+}
+
+whal_Error whal_Stm32f4Uart_RecvAsync(whal_Uart *uartDev, void *data, size_t dataSz)
+{
+    (void)dataSz;
+    if (!uartDev || !data)
+        return WHAL_EINVAL;
+    return WHAL_ENOTIMPL;
+}
+
+#ifndef WHAL_CFG_UART_API_MAPPING_STM32F4
 const whal_UartDriver whal_Stm32f4Uart_Driver = {
     .Init = whal_Stm32f4Uart_Init,
     .Deinit = whal_Stm32f4Uart_Deinit,
     .Send = whal_Stm32f4Uart_Send,
+    .SendAsync = whal_Stm32f4Uart_SendAsync,
+    .RecvAsync = whal_Stm32f4Uart_RecvAsync,
     .Recv = whal_Stm32f4Uart_Recv,
 };
+#endif /* !WHAL_CFG_UART_API_MAPPING_STM32F4 */

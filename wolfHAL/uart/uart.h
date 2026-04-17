@@ -25,9 +25,9 @@ typedef struct {
     whal_Error (*Send)(whal_Uart *uartDev, const void *data, size_t dataSz);
     /* Receive into a buffer. */
     whal_Error (*Recv)(whal_Uart *uartDev, void *data, size_t dataSz);
-    /* Start an asynchronous transmit. Returns immediately. */
+    /* Start an asynchronous transmit. NULL if not supported. */
     whal_Error (*SendAsync)(whal_Uart *uartDev, const void *data, size_t dataSz);
-    /* Start an asynchronous receive. Returns immediately. */
+    /* Start an asynchronous receive. NULL if not supported. */
     whal_Error (*RecvAsync)(whal_Uart *uartDev, void *data, size_t dataSz);
 } whal_UartDriver;
 
@@ -53,8 +53,9 @@ struct whal_Uart {
  *
  * @param uartDev Pointer to the UART instance to initialize.
  *
- * @retval WHAL_SUCCESS Driver-specific init completed.
- * @retval WHAL_EINVAL  Null pointer or driver rejected configuration.
+ * @retval WHAL_SUCCESS  Driver-specific init completed.
+ * @retval WHAL_EINVAL   Null pointer.
+ * @retval WHAL_ENOTIMPL Operation not implemented by this driver.
  */
 whal_Error whal_Uart_Init(whal_Uart *uartDev);
 
@@ -63,8 +64,9 @@ whal_Error whal_Uart_Init(whal_Uart *uartDev);
  *
  * @param uartDev Pointer to the UART instance to deinitialize.
  *
- * @retval WHAL_SUCCESS Driver-specific deinit completed.
- * @retval WHAL_EINVAL  Null pointer or driver refused to deinit.
+ * @retval WHAL_SUCCESS  Driver-specific deinit completed.
+ * @retval WHAL_EINVAL   Null pointer.
+ * @retval WHAL_ENOTIMPL Operation not implemented by this driver.
  */
 whal_Error whal_Uart_Deinit(whal_Uart *uartDev);
 
@@ -75,8 +77,9 @@ whal_Error whal_Uart_Deinit(whal_Uart *uartDev);
  * @param data    Buffer to transmit.
  * @param dataSz  Number of bytes to send.
  *
- * @retval WHAL_SUCCESS Buffer was queued or transmitted.
- * @retval WHAL_EINVAL  Null pointer or driver failed to send.
+ * @retval WHAL_SUCCESS  Buffer was queued or transmitted.
+ * @retval WHAL_EINVAL   Null pointer.
+ * @retval WHAL_ENOTIMPL Operation not implemented by this driver.
  */
 whal_Error whal_Uart_Send(whal_Uart *uartDev, const void *data, size_t dataSz);
 
@@ -87,8 +90,9 @@ whal_Error whal_Uart_Send(whal_Uart *uartDev, const void *data, size_t dataSz);
  * @param data    Destination buffer.
  * @param dataSz  Maximum number of bytes to read.
  *
- * @retval WHAL_SUCCESS Buffer was filled or receive started.
- * @retval WHAL_EINVAL  Null pointer or driver failed to receive.
+ * @retval WHAL_SUCCESS  Buffer was filled or receive started.
+ * @retval WHAL_EINVAL   Null pointer.
+ * @retval WHAL_ENOTIMPL Operation not implemented by this driver.
  */
 whal_Error whal_Uart_Recv(whal_Uart *uartDev, void *data, size_t dataSz);
 
@@ -97,15 +101,15 @@ whal_Error whal_Uart_Recv(whal_Uart *uartDev, void *data, size_t dataSz);
  *
  * Returns immediately. The buffer must remain valid until the transfer
  * completes. Completion signaling is driver-specific (e.g., a status
- * field in the driver config). Drivers that do not support async return
- * WHAL_EINVAL.
+ * field in the driver config).
  *
  * @param uartDev Pointer to the UART instance.
  * @param data    Buffer to transmit. Must remain valid until completion.
  * @param dataSz  Number of bytes to send.
  *
- * @retval WHAL_SUCCESS Transfer started.
- * @retval WHAL_EINVAL  Null pointer or async not supported.
+ * @retval WHAL_SUCCESS   Transfer started.
+ * @retval WHAL_EINVAL    Invalid arguments.
+ * @retval WHAL_ENOTIMPL  Async not supported by this driver.
  */
 whal_Error whal_Uart_SendAsync(whal_Uart *uartDev, const void *data, size_t dataSz);
 
@@ -114,15 +118,15 @@ whal_Error whal_Uart_SendAsync(whal_Uart *uartDev, const void *data, size_t data
  *
  * Returns immediately. The buffer must remain valid until the transfer
  * completes. Completion signaling is driver-specific (e.g., a status
- * field in the driver config). Drivers that do not support async return
- * WHAL_EINVAL.
+ * field in the driver config).
  *
  * @param uartDev Pointer to the UART instance.
  * @param data    Receive buffer. Must remain valid until completion.
  * @param dataSz  Number of bytes to receive.
  *
- * @retval WHAL_SUCCESS Receive started.
- * @retval WHAL_EINVAL  Null pointer or async not supported.
+ * @retval WHAL_SUCCESS   Receive started.
+ * @retval WHAL_EINVAL    Invalid arguments.
+ * @retval WHAL_ENOTIMPL  Async not supported by this driver.
  */
 whal_Error whal_Uart_RecvAsync(whal_Uart *uartDev, void *data, size_t dataSz);
 #endif

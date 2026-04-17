@@ -64,7 +64,8 @@ struct whal_Spi {
  * @param spiDev Pointer to the SPI instance to initialize.
  *
  * @retval WHAL_SUCCESS Driver-specific init completed.
- * @retval WHAL_EINVAL  Null pointer or driver rejected configuration.
+ * @retval WHAL_EINVAL   Null pointer.
+ * @retval WHAL_ENOTIMPL Operation not implemented by this driver.
  */
 #ifdef WHAL_CFG_DIRECT_CALLBACKS
 #define whal_Spi_Init(spiDev) ((spiDev)->driver->Init((spiDev)))
@@ -81,7 +82,8 @@ struct whal_Spi {
  * @param spiDev Pointer to the SPI instance to initialize.
  *
  * @retval WHAL_SUCCESS Driver-specific init completed.
- * @retval WHAL_EINVAL  Null pointer or driver rejected configuration.
+ * @retval WHAL_EINVAL   Null pointer.
+ * @retval WHAL_ENOTIMPL Operation not implemented by this driver.
  */
 whal_Error whal_Spi_Init(whal_Spi *spiDev);
 /*
@@ -90,7 +92,8 @@ whal_Error whal_Spi_Init(whal_Spi *spiDev);
  * @param spiDev Pointer to the SPI instance to deinitialize.
  *
  * @retval WHAL_SUCCESS Driver-specific deinit completed.
- * @retval WHAL_EINVAL  Null pointer or driver refused to deinit.
+ * @retval WHAL_EINVAL   Null pointer.
+ * @retval WHAL_ENOTIMPL Operation not implemented by this driver.
  */
 whal_Error whal_Spi_Deinit(whal_Spi *spiDev);
 /*
@@ -103,7 +106,8 @@ whal_Error whal_Spi_Deinit(whal_Spi *spiDev);
  * @param comCfg  Per-session communication parameters.
  *
  * @retval WHAL_SUCCESS Communication session started.
- * @retval WHAL_EINVAL  Null pointer or invalid parameters.
+ * @retval WHAL_EINVAL   Null pointer or invalid parameters.
+ * @retval WHAL_ENOTIMPL Operation not implemented by this driver.
  */
 whal_Error whal_Spi_StartCom(whal_Spi *spiDev, whal_Spi_ComCfg *comCfg);
 /*
@@ -115,7 +119,8 @@ whal_Error whal_Spi_StartCom(whal_Spi *spiDev, whal_Spi_ComCfg *comCfg);
  * @param spiDev Pointer to the SPI instance.
  *
  * @retval WHAL_SUCCESS Communication session ended.
- * @retval WHAL_EINVAL  Null pointer or driver error.
+ * @retval WHAL_EINVAL   Null pointer.
+ * @retval WHAL_ENOTIMPL Operation not implemented by this driver.
  */
 whal_Error whal_Spi_EndCom(whal_Spi *spiDev);
 /*
@@ -133,7 +138,8 @@ whal_Error whal_Spi_EndCom(whal_Spi *spiDev);
  * @param rxLen  Number of bytes to receive (0 when rx is NULL).
  *
  * @retval WHAL_SUCCESS Transfer completed.
- * @retval WHAL_EINVAL  Null spiDev or driver failed to transfer.
+ * @retval WHAL_EINVAL   Null pointer.
+ * @retval WHAL_ENOTIMPL Operation not implemented by this driver.
  */
 whal_Error whal_Spi_SendRecv(whal_Spi *spiDev, const void *tx, size_t txLen, void *rx, size_t rxLen);
 #endif

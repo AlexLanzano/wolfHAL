@@ -43,6 +43,7 @@ typedef struct whal_Pic32czUart_Cfg {
     whal_Timeout *timeout;
 } whal_Pic32czUart_Cfg;
 
+#ifndef WHAL_CFG_UART_API_MAPPING_PIC32CZ
 /*
  * @brief Driver instance for PIC32CZ UART.
  */
@@ -88,5 +89,6 @@ whal_Error whal_Pic32czUart_Send(whal_Uart *uartDev, const void *data, size_t da
  * @retval WHAL_EINVAL  Invalid arguments.
  */
 whal_Error whal_Pic32czUart_Recv(whal_Uart *uartDev, void *data, size_t dataSz);
+#endif /* !WHAL_CFG_UART_API_MAPPING_PIC32CZ */
 
 #endif /* WHAL_PIC32CZ_UART_H */

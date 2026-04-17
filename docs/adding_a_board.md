@@ -59,7 +59,7 @@ static whal_MyplatformGpio_Cfg gpioConfig = {
 };
 
 whal_Gpio g_whalGpio = {
-    WHAL_MYPLATFORM_GPIO_DEVICE,
+    .regmap = { WHAL_MYPLATFORM_GPIO_REGMAP },
     .cfg = &gpioConfig,
 };
 
@@ -156,7 +156,10 @@ GCC     = arm-none-eabi-gcc
 LD      = arm-none-eabi-gcc
 OBJCOPY = arm-none-eabi-objcopy
 
-CFLAGS  = -mcpu=cortex-m4 -mthumb -Os -Wall -MMD $(INCLUDE) -I$(_BOARD_DIR)
+CFLAGS  = -mcpu=cortex-m4 -mthumb -Os -Wall -MMD $(INCLUDE) -I$(_BOARD_DIR) \
+          -DWHAL_CFG_GPIO_API_MAPPING_MYPLATFORM \
+          -DWHAL_CFG_CLOCK_API_MAPPING_MYPLATFORM_PLL \
+          -DWHAL_CFG_UART_API_MAPPING_MYPLATFORM
 LDFLAGS = -mcpu=cortex-m4 -mthumb -nostdlib -lgcc
 
 LINKER_SCRIPT = $(_BOARD_DIR)/linker.ld
@@ -165,8 +168,14 @@ INCLUDE += -I$(_BOARD_DIR) -I$(WHAL_DIR)/boards/peripheral
 
 BOARD_SOURCE  = $(_BOARD_DIR)/board.c
 BOARD_SOURCE += $(_BOARD_DIR)/ivt.c
+BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*.c)
+# Dispatch sources for mapped types are excluded; keep dispatch sources
+# for types that may have peripheral drivers (flash, block, sensor).
+BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/timer.c)
+BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/flash.c)
+BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/block.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/myplatform_*.c)
-BOARD_SOURCE += $(WHAL_DIR)/src/timer/systick.c
+BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/systick.c)
 
 # Peripheral devices
 include $(WHAL_DIR)/boards/peripheral/Makefile.inc

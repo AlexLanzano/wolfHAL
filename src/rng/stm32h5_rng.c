@@ -55,6 +55,12 @@
 /* Magic value required to unlock HTCR writes */
 #define RNG_HTCR_MAGIC     0x17590ABCUL
 
+#ifdef WHAL_CFG_RNG_API_MAPPING_STM32H5
+#define whal_Stm32h5Rng_Init     whal_Rng_Init
+#define whal_Stm32h5Rng_Deinit   whal_Rng_Deinit
+#define whal_Stm32h5Rng_Generate whal_Rng_Generate
+#endif /* WHAL_CFG_RNG_API_MAPPING_STM32H5 */
+
 whal_Error whal_Stm32h5Rng_Init(whal_Rng *rngDev)
 {
     whal_Stm32h5Rng_Cfg *cfg;
@@ -158,8 +164,10 @@ exit:
     return err;
 }
 
+#ifndef WHAL_CFG_RNG_API_MAPPING_STM32H5
 const whal_RngDriver whal_Stm32h5Rng_Driver = {
     .Init = whal_Stm32h5Rng_Init,
     .Deinit = whal_Stm32h5Rng_Deinit,
     .Generate = whal_Stm32h5Rng_Generate,
 };
+#endif /* !WHAL_CFG_RNG_API_MAPPING_STM32H5 */

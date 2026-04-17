@@ -88,7 +88,15 @@
 #define DMAMUX_CxCR_DMAREQ_ID_Pos  0
 #define DMAMUX_CxCR_DMAREQ_ID_Msk  (WHAL_BITMASK(6) << DMAMUX_CxCR_DMAREQ_ID_Pos)
 
-static whal_Error whal_Stm32wbDma_Init(whal_Dma *dmaDev)
+#ifdef WHAL_CFG_DMA_API_MAPPING_STM32WB
+#define whal_Stm32wbDma_Init      whal_Dma_Init
+#define whal_Stm32wbDma_Deinit    whal_Dma_Deinit
+#define whal_Stm32wbDma_Configure whal_Dma_Configure
+#define whal_Stm32wbDma_Start     whal_Dma_Start
+#define whal_Stm32wbDma_Stop      whal_Dma_Stop
+#endif /* WHAL_CFG_DMA_API_MAPPING_STM32WB */
+
+whal_Error whal_Stm32wbDma_Init(whal_Dma *dmaDev)
 {
     whal_Stm32wbDma_Cfg *cfg;
     size_t base;
@@ -112,7 +120,7 @@ static whal_Error whal_Stm32wbDma_Init(whal_Dma *dmaDev)
     return WHAL_SUCCESS;
 }
 
-static whal_Error whal_Stm32wbDma_Deinit(whal_Dma *dmaDev)
+whal_Error whal_Stm32wbDma_Deinit(whal_Dma *dmaDev)
 {
     whal_Stm32wbDma_Cfg *cfg;
     size_t base;
@@ -142,7 +150,7 @@ static whal_Error whal_Stm32wbDma_Deinit(whal_Dma *dmaDev)
     return WHAL_SUCCESS;
 }
 
-static whal_Error whal_Stm32wbDma_Configure(whal_Dma *dmaDev, size_t ch,
+whal_Error whal_Stm32wbDma_Configure(whal_Dma *dmaDev, size_t ch,
                                              const void *chCfg)
 {
     whal_Stm32wbDma_Cfg *cfg;
@@ -262,7 +270,7 @@ static whal_Error whal_Stm32wbDma_Configure(whal_Dma *dmaDev, size_t ch,
     return WHAL_SUCCESS;
 }
 
-static whal_Error whal_Stm32wbDma_Start(whal_Dma *dmaDev, size_t ch)
+whal_Error whal_Stm32wbDma_Start(whal_Dma *dmaDev, size_t ch)
 {
     whal_Stm32wbDma_Cfg *cfg;
     size_t base;
@@ -292,7 +300,7 @@ static whal_Error whal_Stm32wbDma_Start(whal_Dma *dmaDev, size_t ch)
     return WHAL_SUCCESS;
 }
 
-static whal_Error whal_Stm32wbDma_Stop(whal_Dma *dmaDev, size_t ch)
+whal_Error whal_Stm32wbDma_Stop(whal_Dma *dmaDev, size_t ch)
 {
     whal_Stm32wbDma_Cfg *cfg;
     size_t base;
@@ -347,6 +355,7 @@ void whal_Stm32wbDma_IRQHandler(whal_Dma *dmaDev, size_t ch,
     }
 }
 
+#ifndef WHAL_CFG_DMA_API_MAPPING_STM32WB
 const whal_DmaDriver whal_Stm32wbDma_Driver = {
     .Init = whal_Stm32wbDma_Init,
     .Deinit = whal_Stm32wbDma_Deinit,
@@ -354,3 +363,4 @@ const whal_DmaDriver whal_Stm32wbDma_Driver = {
     .Start = whal_Stm32wbDma_Start,
     .Stop = whal_Stm32wbDma_Stop,
 };
+#endif /* !WHAL_CFG_DMA_API_MAPPING_STM32WB */

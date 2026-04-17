@@ -205,6 +205,7 @@ typedef struct whal_Pic32czClock_Clk {
     size_t mclkEnablePos;     /* Bit position within the MCLK mask register */
 } whal_Pic32czClock_Clk;
 
+#ifndef WHAL_CFG_CLOCK_API_MAPPING_PIC32CZ_PLL
 /*
  * @brief Driver instance for PIC32CZ oscillator clock.
  */
@@ -248,5 +249,6 @@ whal_Error whal_Pic32czClock_Enable(whal_Clock *clkDev, const void *clk);
  * @retval WHAL_EINVAL  Invalid arguments.
  */
 whal_Error whal_Pic32czClock_Disable(whal_Clock *clkDev, const void *clk);
+#endif /* !WHAL_CFG_CLOCK_API_MAPPING_PIC32CZ_PLL */
 
 #endif /* WHAL_PIC32CZ_CLOCK_H */

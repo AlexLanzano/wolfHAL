@@ -60,6 +60,7 @@ typedef struct whal_Stm32c0Rcc_Cfg {
     whal_Stm32c0Rcc_HsiDiv hsidiv; /* HSI divider for HSISYS frequency */
 } whal_Stm32c0Rcc_Cfg;
 
+#ifndef WHAL_CFG_CLOCK_API_MAPPING_STM32C0
 /*
  * @brief Driver instance for the STM32C0 RCC clock controller.
  */
@@ -110,5 +111,6 @@ whal_Error whal_Stm32c0Rcc_Enable(whal_Clock *clkDev, const void *clk);
  * @retval WHAL_EINVAL  Invalid arguments.
  */
 whal_Error whal_Stm32c0Rcc_Disable(whal_Clock *clkDev, const void *clk);
+#endif /* !WHAL_CFG_CLOCK_API_MAPPING_STM32C0 */
 
 #endif /* WHAL_STM32C0_RCC_H */

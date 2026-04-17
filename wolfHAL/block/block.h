@@ -48,7 +48,8 @@ struct whal_Block {
  * @param blockDev Block device instance to initialize.
  *
  * @retval WHAL_SUCCESS Driver-specific init completed.
- * @retval WHAL_EINVAL  Null pointer or missing driver function.
+ * @retval WHAL_EINVAL   Null pointer.
+ * @retval WHAL_ENOTIMPL Operation not implemented by this driver.
  */
 #ifdef WHAL_CFG_DIRECT_CALLBACKS
 #define whal_Block_Init(blockDev) ((blockDev)->driver->Init((blockDev)))
@@ -63,7 +64,8 @@ struct whal_Block {
  * @param blockDev Block device instance to initialize.
  *
  * @retval WHAL_SUCCESS Driver-specific init completed.
- * @retval WHAL_EINVAL  Null pointer or missing driver function.
+ * @retval WHAL_EINVAL   Null pointer.
+ * @retval WHAL_ENOTIMPL Operation not implemented by this driver.
  */
 whal_Error whal_Block_Init(whal_Block *blockDev);
 /*
@@ -72,7 +74,8 @@ whal_Error whal_Block_Init(whal_Block *blockDev);
  * @param blockDev Block device instance to deinitialize.
  *
  * @retval WHAL_SUCCESS Driver-specific deinit completed.
- * @retval WHAL_EINVAL  Null pointer or missing driver function.
+ * @retval WHAL_EINVAL   Null pointer.
+ * @retval WHAL_ENOTIMPL Operation not implemented by this driver.
  */
 whal_Error whal_Block_Deinit(whal_Block *blockDev);
 /*
@@ -84,7 +87,8 @@ whal_Error whal_Block_Deinit(whal_Block *blockDev);
  * @param blockCount Number of blocks to read.
  *
  * @retval WHAL_SUCCESS Read completed.
- * @retval WHAL_EINVAL  Null pointer or missing driver function.
+ * @retval WHAL_EINVAL   Null pointer.
+ * @retval WHAL_ENOTIMPL Operation not implemented by this driver.
  */
 whal_Error whal_Block_Read(whal_Block *blockDev, uint32_t block, void *data,
                            uint32_t blockCount);
@@ -97,7 +101,8 @@ whal_Error whal_Block_Read(whal_Block *blockDev, uint32_t block, void *data,
  * @param blockCount Number of blocks to write.
  *
  * @retval WHAL_SUCCESS Write accepted or completed.
- * @retval WHAL_EINVAL  Null pointer or missing driver function.
+ * @retval WHAL_EINVAL   Null pointer.
+ * @retval WHAL_ENOTIMPL Operation not implemented by this driver.
  */
 whal_Error whal_Block_Write(whal_Block *blockDev, uint32_t block,
                             const void *data, uint32_t blockCount);
@@ -109,7 +114,8 @@ whal_Error whal_Block_Write(whal_Block *blockDev, uint32_t block,
  * @param blockCount Number of blocks to erase.
  *
  * @retval WHAL_SUCCESS Erase accepted or completed.
- * @retval WHAL_EINVAL  Null pointer or missing driver function.
+ * @retval WHAL_EINVAL   Null pointer.
+ * @retval WHAL_ENOTIMPL Operation not implemented by this driver.
  */
 whal_Error whal_Block_Erase(whal_Block *blockDev, uint32_t block,
                             uint32_t blockCount);

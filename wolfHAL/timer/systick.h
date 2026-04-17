@@ -34,6 +34,7 @@ typedef struct {
     whal_SysTick_TickInt tickInt;
 } whal_SysTick_Cfg;
 
+#ifndef WHAL_CFG_TIMER_API_MAPPING_SYSTICK
 /*
  * @brief Driver instance for the Cortex-M SysTick timer.
  */
@@ -47,7 +48,7 @@ extern const whal_TimerDriver whal_SysTick_Driver;
  * @retval WHAL_SUCCESS Initialization completed.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error SysTick_Init(whal_Timer *timerDev);
+whal_Error whal_SysTick_Init(whal_Timer *timerDev);
 /*
  * @brief Deinitialize the SysTick timer.
  *
@@ -56,7 +57,7 @@ whal_Error SysTick_Init(whal_Timer *timerDev);
  * @retval WHAL_SUCCESS Deinit completed.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error SysTick_Deinit(whal_Timer *timerDev);
+whal_Error whal_SysTick_Deinit(whal_Timer *timerDev);
 /*
  * @brief Start the SysTick counter.
  *
@@ -65,7 +66,7 @@ whal_Error SysTick_Deinit(whal_Timer *timerDev);
  * @retval WHAL_SUCCESS Timer started.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error SysTick_Start(whal_Timer *timerDev);
+whal_Error whal_SysTick_Start(whal_Timer *timerDev);
 /*
  * @brief Stop the SysTick counter.
  *
@@ -74,7 +75,7 @@ whal_Error SysTick_Start(whal_Timer *timerDev);
  * @retval WHAL_SUCCESS Timer stopped.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error SysTick_Stop(whal_Timer *timerDev);
+whal_Error whal_SysTick_Stop(whal_Timer *timerDev);
 /*
  * @brief Reset the SysTick counter state.
  *
@@ -83,6 +84,7 @@ whal_Error SysTick_Stop(whal_Timer *timerDev);
  * @retval WHAL_SUCCESS Timer reset.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error SysTick_Reset(whal_Timer *timerDev);
+whal_Error whal_SysTick_Reset(whal_Timer *timerDev);
+#endif /* !WHAL_CFG_TIMER_API_MAPPING_SYSTICK */
 
 #endif /* WHAL_SYSTICK_H */

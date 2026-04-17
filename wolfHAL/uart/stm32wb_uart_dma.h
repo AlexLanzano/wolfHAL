@@ -29,6 +29,7 @@ typedef struct {
     volatile whal_Error rxResult;
 } whal_Stm32wbUartDma_Cfg;
 
+#ifndef WHAL_CFG_UART_API_MAPPING_STM32WB_DMA
 /*
  * @brief DMA-backed UART driver. Implements Init, Deinit, Send, Recv,
  *        SendAsync, RecvAsync.
@@ -100,6 +101,7 @@ whal_Error whal_Stm32wbUartDma_SendAsync(whal_Uart *uartDev, const void *data,
  */
 whal_Error whal_Stm32wbUartDma_RecvAsync(whal_Uart *uartDev, void *data,
                                           size_t dataSz);
+#endif /* !WHAL_CFG_UART_API_MAPPING_STM32WB_DMA */
 
 /*
  * @brief DMA TX completion callback for use with whal_Stm32wbDma_IRQHandler.

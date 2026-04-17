@@ -126,6 +126,7 @@ typedef struct whal_Stm32wbRcc_Cfg {
     void *sysClkCfg; /* Pointer to PllClkCfg or MsiClkCfg based on driver */
 } whal_Stm32wbRcc_Cfg;
 
+#if !defined(WHAL_CFG_CLOCK_API_MAPPING_STM32WB_PLL) && !defined(WHAL_CFG_CLOCK_API_MAPPING_STM32WB_MSI)
 /*
  * @brief Driver instance for the STM32 RCC clock controller.
  */
@@ -188,6 +189,7 @@ whal_Error whal_Stm32wbRcc_Enable(whal_Clock *clkDev, const void *clk);
  * @retval WHAL_EINVAL  Invalid arguments.
  */
 whal_Error whal_Stm32wbRcc_Disable(whal_Clock *clkDev, const void *clk);
+#endif /* !WHAL_CFG_CLOCK_API_MAPPING_STM32WB_PLL && !WHAL_CFG_CLOCK_API_MAPPING_STM32WB_MSI */
 /*
  * @brief Enable or disable the HSI48 oscillator required by the RNG peripheral.
  *

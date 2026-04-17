@@ -27,47 +27,35 @@
 
 /* --- Device macros --- */
 
-#define WHAL_STM32H563_RCC_PLL_DEVICE   \
-    .regmap = {                         \
-        .base = 0x44020C00,             \
-        .size = 0x400,                  \
-    },                                  \
-    .driver = &whal_Stm32h5RccPll_Driver
+#define WHAL_STM32H563_RCC_PLL_REGMAP   \
+    .base = 0x44020C00,                 \
+    .size = 0x400
+#define WHAL_STM32H563_RCC_PLL_DRIVER &whal_Stm32h5RccPll_Driver
 
-#define WHAL_STM32H563_RCC_HSI_DEVICE   \
-    .regmap = {                         \
-        .base = 0x44020C00,             \
-        .size = 0x400,                  \
-    },                                  \
-    .driver = &whal_Stm32h5RccHsi_Driver
+#define WHAL_STM32H563_RCC_HSI_REGMAP   \
+    .base = 0x44020C00,                 \
+    .size = 0x400
+#define WHAL_STM32H563_RCC_HSI_DRIVER &whal_Stm32h5RccHsi_Driver
 
-#define WHAL_STM32H563_GPIO_DEVICE      \
-    .regmap = {                         \
-        .base = 0x42020000,             \
-        .size = 0x2400,                 \
-    },                                  \
-    .driver = &whal_Stm32h5Gpio_Driver
+#define WHAL_STM32H563_GPIO_REGMAP      \
+    .base = 0x42020000,                 \
+    .size = 0x2400
+#define WHAL_STM32H563_GPIO_DRIVER &whal_Stm32h5Gpio_Driver
 
-#define WHAL_STM32H563_USART1_DEVICE    \
-    .regmap = {                         \
-        .base = 0x40013800,             \
-        .size = 0x400,                  \
-    },                                  \
-    .driver = &whal_Stm32h5Uart_Driver
+#define WHAL_STM32H563_USART1_REGMAP    \
+    .base = 0x40013800,                 \
+    .size = 0x400
+#define WHAL_STM32H563_USART1_DRIVER &whal_Stm32h5Uart_Driver
 
-#define WHAL_STM32H563_USART2_DEVICE    \
-    .regmap = {                         \
-        .base = 0x40004400,             \
-        .size = 0x400,                  \
-    },                                  \
-    .driver = &whal_Stm32h5Uart_Driver
+#define WHAL_STM32H563_USART2_REGMAP    \
+    .base = 0x40004400,                 \
+    .size = 0x400
+#define WHAL_STM32H563_USART2_DRIVER &whal_Stm32h5Uart_Driver
 
-#define WHAL_STM32H563_USART3_DEVICE    \
-    .regmap = {                         \
-        .base = 0x40004800,             \
-        .size = 0x400,                  \
-    },                                  \
-    .driver = &whal_Stm32h5Uart_Driver
+#define WHAL_STM32H563_USART3_REGMAP    \
+    .base = 0x40004800,                 \
+    .size = 0x400
+#define WHAL_STM32H563_USART3_DRIVER &whal_Stm32h5Uart_Driver
 
 /* --- Clock gate macros --- */
 /* RCC_AHB2ENR (offset 0x08C) */
@@ -150,21 +138,17 @@
 
 /* SPI device macros */
 
-#define WHAL_STM32H563_SPI1_DEVICE  \
-    .regmap = {                     \
-        .base = 0x40013000,         \
-        .size = 0x400,              \
-    },                              \
-    .driver = &whal_Stm32h5Spi_Driver
+#define WHAL_STM32H563_SPI1_REGMAP  \
+    .base = 0x40013000,             \
+    .size = 0x400
+#define WHAL_STM32H563_SPI1_DRIVER &whal_Stm32h5Spi_Driver
 
 /* RNG device macros */
 
-#define WHAL_STM32H563_RNG_DEVICE   \
-    .regmap = {                     \
-        .base = 0x420C0800,         \
-        .size = 0x400,              \
-    },                              \
-    .driver = &whal_Stm32h5Rng_Driver
+#define WHAL_STM32H563_RNG_REGMAP   \
+    .base = 0x420C0800,             \
+    .size = 0x400
+#define WHAL_STM32H563_RNG_DRIVER &whal_Stm32h5Rng_Driver
 
 /* RCC_AHB2ENR (offset 0x08C), bit 18 */
 #define WHAL_STM32H563_RNG_CLOCK    \
@@ -174,12 +158,10 @@
 
 /* Flash device macros */
 
-#define WHAL_STM32H563_FLASH_DEVICE \
-    .regmap = {                     \
-        .base = 0x40022000,         \
-        .size = 0x400,              \
-    },                              \
-    .driver = &whal_Stm32h5Flash_Driver
+#define WHAL_STM32H563_FLASH_REGMAP \
+    .base = 0x40022000,             \
+    .size = 0x400
+#define WHAL_STM32H563_FLASH_DRIVER &whal_Stm32h5Flash_Driver
 
 /* RCC_APB3ENR (offset 0x0A8), bit 1 */
 #define WHAL_STM32H563_SBS_CLOCK    \
@@ -189,12 +171,10 @@
 
 /* Ethernet device macros */
 
-#define WHAL_STM32H563_ETH_DEVICE   \
-    .regmap = {                     \
-        .base = 0x40028000,         \
-        .size = 0x1200,             \
-    },                              \
-    .driver = &whal_Stm32h5Eth_Driver
+#define WHAL_STM32H563_ETH_REGMAP   \
+    .base = 0x40028000,             \
+    .size = 0x1200
+#define WHAL_STM32H563_ETH_DRIVER &whal_Stm32h5Eth_Driver
 
 /* RCC_AHB1ENR (offset 0x088), bit 19 */
 #define WHAL_STM32H563_ETH_CLOCK    \

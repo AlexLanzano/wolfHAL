@@ -12,7 +12,15 @@ CFLAGS += -Wall -Werror $(INCLUDE) -g3 \
           -DPLATFORM_STM32WB -MMD -MP \
           $(if $(DMA),-DBOARD_DMA) \
           $(if $(filter iwdg,$(WATCHDOG)),-DBOARD_WATCHDOG_IWDG) \
-          $(if $(filter wwdg,$(WATCHDOG)),-DBOARD_WATCHDOG_WWDG)
+          $(if $(filter wwdg,$(WATCHDOG)),-DBOARD_WATCHDOG_WWDG) \
+          $(if $(DMA),-DWHAL_CFG_UART_API_MAPPING_STM32WB_DMA,-DWHAL_CFG_UART_API_MAPPING_STM32WB) \
+          -DWHAL_CFG_GPIO_API_MAPPING_STM32WB \
+          -DWHAL_CFG_SPI_API_MAPPING_STM32WB \
+          -DWHAL_CFG_I2C_API_MAPPING_STM32WB \
+          -DWHAL_CFG_CLOCK_API_MAPPING_STM32WB_PLL \
+          -DWHAL_CFG_RNG_API_MAPPING_STM32WB \
+          -DWHAL_CFG_DMA_API_MAPPING_STM32WB \
+          -DWHAL_CFG_CRYPTO_API_MAPPING_STM32WB_AES
 LDFLAGS = --omagic -static
 
 LINKER_SCRIPT ?= $(_BOARD_DIR)/linker.ld
@@ -22,20 +30,13 @@ INCLUDE += -I$(_BOARD_DIR) -I$(WHAL_DIR)/boards/peripheral
 BOARD_SOURCE = $(_BOARD_DIR)/ivt.c
 BOARD_SOURCE += $(_BOARD_DIR)/board.c
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*.c)
-BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/gpio.c)
-BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/clock.c)
-BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/uart.c)
+BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/crypto.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/timer.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/supply.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/flash.c)
-BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/spi.c)
-BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/i2c.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/sensor.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/watchdog.c)
-BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/rng.c)
-BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/crypto.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/block.c)
-BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/dma.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/irq.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/irq/cortex_m4_nvic.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/stm32wb_*.c)
