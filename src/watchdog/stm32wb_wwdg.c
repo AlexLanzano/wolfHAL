@@ -59,7 +59,10 @@ whal_Error whal_Stm32wbWwdg_Init(whal_Watchdog *wdgDev)
 
 whal_Error whal_Stm32wbWwdg_Deinit(whal_Watchdog *wdgDev)
 {
-    (void)wdgDev;
+    if (!wdgDev) {
+        return WHAL_EINVAL;
+    }
+
     return WHAL_SUCCESS;
 }
 

@@ -7,7 +7,7 @@ inline whal_Error whal_Rng_Init(whal_Rng *rngDev)
     if (!rngDev)
         return WHAL_EINVAL;
     if (!rngDev->driver || !rngDev->driver->Init)
-        return WHAL_ENOTIMPL;
+        return WHAL_ENOTSUP;
 
     return rngDev->driver->Init(rngDev);
 }
@@ -17,7 +17,7 @@ inline whal_Error whal_Rng_Deinit(whal_Rng *rngDev)
     if (!rngDev)
         return WHAL_EINVAL;
     if (!rngDev->driver || !rngDev->driver->Deinit)
-        return WHAL_ENOTIMPL;
+        return WHAL_ENOTSUP;
 
     return rngDev->driver->Deinit(rngDev);
 }
@@ -27,7 +27,7 @@ inline whal_Error whal_Rng_Generate(whal_Rng *rngDev, void *rngData, size_t rngD
     if (!rngDev || !rngData)
         return WHAL_EINVAL;
     if (!rngDev->driver || !rngDev->driver->Generate)
-        return WHAL_ENOTIMPL;
+        return WHAL_ENOTSUP;
 
     return rngDev->driver->Generate(rngDev, rngData, rngDataSz);
 }

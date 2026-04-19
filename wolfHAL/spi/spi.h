@@ -65,7 +65,7 @@ struct whal_Spi {
  *
  * @retval WHAL_SUCCESS Driver-specific init completed.
  * @retval WHAL_EINVAL   Null pointer.
- * @retval WHAL_ENOTIMPL Operation not implemented by this driver.
+ * @retval WHAL_ENOTSUP Operation not implemented by this driver.
  */
 #ifdef WHAL_CFG_DIRECT_CALLBACKS
 #define whal_Spi_Init(spiDev) ((spiDev)->driver->Init((spiDev)))
@@ -83,7 +83,7 @@ struct whal_Spi {
  *
  * @retval WHAL_SUCCESS Driver-specific init completed.
  * @retval WHAL_EINVAL   Null pointer.
- * @retval WHAL_ENOTIMPL Operation not implemented by this driver.
+ * @retval WHAL_ENOTSUP Operation not implemented by this driver.
  */
 whal_Error whal_Spi_Init(whal_Spi *spiDev);
 /*
@@ -93,7 +93,7 @@ whal_Error whal_Spi_Init(whal_Spi *spiDev);
  *
  * @retval WHAL_SUCCESS Driver-specific deinit completed.
  * @retval WHAL_EINVAL   Null pointer.
- * @retval WHAL_ENOTIMPL Operation not implemented by this driver.
+ * @retval WHAL_ENOTSUP Operation not implemented by this driver.
  */
 whal_Error whal_Spi_Deinit(whal_Spi *spiDev);
 /*
@@ -107,7 +107,7 @@ whal_Error whal_Spi_Deinit(whal_Spi *spiDev);
  *
  * @retval WHAL_SUCCESS Communication session started.
  * @retval WHAL_EINVAL   Null pointer or invalid parameters.
- * @retval WHAL_ENOTIMPL Operation not implemented by this driver.
+ * @retval WHAL_ENOTSUP Operation not implemented by this driver.
  */
 whal_Error whal_Spi_StartCom(whal_Spi *spiDev, whal_Spi_ComCfg *comCfg);
 /*
@@ -120,7 +120,7 @@ whal_Error whal_Spi_StartCom(whal_Spi *spiDev, whal_Spi_ComCfg *comCfg);
  *
  * @retval WHAL_SUCCESS Communication session ended.
  * @retval WHAL_EINVAL   Null pointer.
- * @retval WHAL_ENOTIMPL Operation not implemented by this driver.
+ * @retval WHAL_ENOTSUP Operation not implemented by this driver.
  */
 whal_Error whal_Spi_EndCom(whal_Spi *spiDev);
 /*
@@ -139,7 +139,7 @@ whal_Error whal_Spi_EndCom(whal_Spi *spiDev);
  *
  * @retval WHAL_SUCCESS Transfer completed.
  * @retval WHAL_EINVAL   Null pointer.
- * @retval WHAL_ENOTIMPL Operation not implemented by this driver.
+ * @retval WHAL_ENOTSUP Operation not implemented by this driver.
  */
 whal_Error whal_Spi_SendRecv(whal_Spi *spiDev, const void *tx, size_t txLen, void *rx, size_t rxLen);
 #endif

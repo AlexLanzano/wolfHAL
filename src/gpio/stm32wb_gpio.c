@@ -119,7 +119,9 @@ whal_Error whal_Stm32wbGpio_Init(whal_Gpio *gpioDev)
 
 whal_Error whal_Stm32wbGpio_Deinit(whal_Gpio *gpioDev)
 {
-    (void)gpioDev;
+    if (!gpioDev) {
+        return WHAL_EINVAL;
+    }
 
     return WHAL_SUCCESS;
 }
@@ -138,7 +140,7 @@ static whal_Error whal_Stm32wbGpio_SetOrGet(whal_Gpio *gpioDev, size_t idx,
     uint8_t port, pin;
     size_t portBase, mask;
 
-    if (!gpioDev || !gpioDev->cfg) {
+    if (!gpioDev || !gpioDev->cfg || !value) {
         return WHAL_EINVAL;
     }
 

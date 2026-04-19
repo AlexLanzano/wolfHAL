@@ -258,9 +258,14 @@ whal_Error whal_Stm32wbRccMsi_Deinit(whal_Clock *clkDev)
 
 whal_Error whal_Stm32wbRcc_Enable(whal_Clock *clkDev, const void *clk)
 {
-    whal_Stm32wbRcc_Clk *stClk = (whal_Stm32wbRcc_Clk *)clk;
+    whal_Stm32wbRcc_Clk *stClk;
 
-    /* Set the peripheral's enable bit in the appropriate RCC enable register */
+    if (!clkDev || !clk) {
+        return WHAL_EINVAL;
+    }
+
+    stClk = (whal_Stm32wbRcc_Clk *)clk;
+
     whal_Reg_Update(clkDev->regmap.base, stClk->regOffset, stClk->enableMask,
                     whal_SetBits(stClk->enableMask, stClk->enablePos, 1));
 
@@ -269,9 +274,14 @@ whal_Error whal_Stm32wbRcc_Enable(whal_Clock *clkDev, const void *clk)
 
 whal_Error whal_Stm32wbRcc_Disable(whal_Clock *clkDev, const void *clk)
 {
-    whal_Stm32wbRcc_Clk *stClk = (whal_Stm32wbRcc_Clk *)clk;
+    whal_Stm32wbRcc_Clk *stClk;
 
-    /* Clear the peripheral's enable bit to gate its clock */
+    if (!clkDev || !clk) {
+        return WHAL_EINVAL;
+    }
+
+    stClk = (whal_Stm32wbRcc_Clk *)clk;
+
     whal_Reg_Update(clkDev->regmap.base, stClk->regOffset, stClk->enableMask,
                     whal_SetBits(stClk->enableMask, stClk->enablePos, 0));
 

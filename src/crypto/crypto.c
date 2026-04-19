@@ -4,32 +4,54 @@
 #ifndef WHAL_CFG_CRYPTO_API_MAPPING_STM32WB_AES
 whal_Error whal_Crypto_Init(whal_Crypto *cryptoDev)
 {
-    if (!cryptoDev || !cryptoDev->driver || !cryptoDev->driver->Init) {
+    if (!cryptoDev)
         return WHAL_EINVAL;
-    }
+    if (!cryptoDev->driver || !cryptoDev->driver->Init)
+        return WHAL_ENOTSUP;
 
     return cryptoDev->driver->Init(cryptoDev);
 }
 
 whal_Error whal_Crypto_Deinit(whal_Crypto *cryptoDev)
 {
-    if (!cryptoDev || !cryptoDev->driver || !cryptoDev->driver->Deinit) {
+    if (!cryptoDev)
         return WHAL_EINVAL;
-    }
+    if (!cryptoDev->driver || !cryptoDev->driver->Deinit)
+        return WHAL_ENOTSUP;
 
     return cryptoDev->driver->Deinit(cryptoDev);
 }
-#endif
 
-whal_Error whal_Crypto_Op(whal_Crypto *cryptoDev, size_t op, void *opArgs)
+whal_Error whal_Crypto_StartOp(whal_Crypto *cryptoDev, size_t opId,
+                               void *opArgs)
 {
-    if (!cryptoDev || !cryptoDev->ops || !opArgs) {
+    if (!cryptoDev || !opArgs)
         return WHAL_EINVAL;
-    }
+    if (!cryptoDev->driver || !cryptoDev->driver->StartOp)
+        return WHAL_ENOTSUP;
 
-    if (op >= cryptoDev->opsCount || !cryptoDev->ops[op]) {
-        return WHAL_EINVAL;
-    }
-
-    return cryptoDev->ops[op](cryptoDev, opArgs);
+    return cryptoDev->driver->StartOp(cryptoDev, opId, opArgs);
 }
+
+whal_Error whal_Crypto_Process(whal_Crypto *cryptoDev, size_t opId,
+                               void *opArgs)
+{
+    if (!cryptoDev || !opArgs)
+        return WHAL_EINVAL;
+    if (!cryptoDev->driver || !cryptoDev->driver->Process)
+        return WHAL_ENOTSUP;
+
+    return cryptoDev->driver->Process(cryptoDev, opId, opArgs);
+}
+
+whal_Error whal_Crypto_EndOp(whal_Crypto *cryptoDev, size_t opId,
+                             void *opArgs)
+{
+    if (!cryptoDev || !opArgs)
+        return WHAL_EINVAL;
+    if (!cryptoDev->driver || !cryptoDev->driver->EndOp)
+        return WHAL_ENOTSUP;
+
+    return cryptoDev->driver->EndOp(cryptoDev, opId, opArgs);
+}
+#endif

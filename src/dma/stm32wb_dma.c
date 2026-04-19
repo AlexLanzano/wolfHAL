@@ -337,6 +337,9 @@ void whal_Stm32wbDma_IRQHandler(whal_Dma *dmaDev, size_t ch,
     size_t hw_ch;
     size_t isr;
 
+    if (!dmaDev)
+        return;
+
     base = dmaDev->regmap.base;
     hw_ch = ch + 1;
 

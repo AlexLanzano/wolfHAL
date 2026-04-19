@@ -515,10 +515,10 @@ transfer. The buffer must remain valid until the transfer completes. The
 driver signals completion through a platform-specific mechanism.
 
 Drivers that do not support async should set SendAsync to NULL in the vtable.
-The dispatch layer returns WHAL_ENOTIMPL when the caller tries to use any
+The dispatch layer returns WHAL_ENOTSUP when the caller tries to use any
 NULL vtable entry (or when the driver pointer itself is NULL). When direct
 API mapping is active, polled drivers provide stub implementations that
-return WHAL_ENOTIMPL directly.
+return WHAL_ENOTSUP directly.
 
 ### RecvAsync
 
@@ -527,8 +527,8 @@ transfer. The buffer must remain valid until the transfer completes.
 
 The async variants are optional — a driver vtable only needs to populate
 them if the platform supports non-blocking transfers. Polled-only drivers
-leave these NULL (the dispatch layer returns WHAL_ENOTIMPL) or provide
-stubs returning WHAL_ENOTIMPL (direct API mapping).
+leave these NULL (the dispatch layer returns WHAL_ENOTSUP) or provide
+stubs returning WHAL_ENOTSUP (direct API mapping).
 
 ---
 

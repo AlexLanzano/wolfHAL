@@ -237,21 +237,9 @@ whal_Rng g_whalRng = {
 };
 
 /* Crypto */
-static const whal_Crypto_OpFunc cryptoOps[BOARD_CRYPTO_OP_COUNT] = {
-    [BOARD_CRYPTO_AES_ECB]  = whal_Stm32wbAes_AesEcb,
-    [BOARD_CRYPTO_AES_CBC]  = whal_Stm32wbAes_AesCbc,
-    [BOARD_CRYPTO_AES_CTR]  = whal_Stm32wbAes_AesCtr,
-    [BOARD_CRYPTO_AES_GCM]  = whal_Stm32wbAes_AesGcm,
-    [BOARD_CRYPTO_AES_GMAC] = whal_Stm32wbAes_AesGmac,
-    [BOARD_CRYPTO_AES_CCM]  = whal_Stm32wbAes_AesCcm,
-};
-
 whal_Crypto g_whalCrypto = {
     .regmap = { WHAL_STM32WB55_AES1_REGMAP },
     /* .driver: direct API mapping */
-
-    .ops = cryptoOps,
-    .opsCount = BOARD_CRYPTO_OP_COUNT,
 
     .cfg = &(whal_Stm32wbAes_Cfg) {
         .timeout = &g_whalTimeout,

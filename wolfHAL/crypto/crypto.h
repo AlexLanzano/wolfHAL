@@ -18,6 +18,15 @@ typedef enum {
     WHAL_CRYPTO_DECRYPT,
 } whal_Crypto_Dir;
 
+enum {
+    WHAL_CRYPTO_AES_ECB,
+    WHAL_CRYPTO_AES_CBC,
+    WHAL_CRYPTO_AES_CTR,
+    WHAL_CRYPTO_AES_GCM,
+    WHAL_CRYPTO_AES_GMAC,
+    WHAL_CRYPTO_AES_CCM,
+};
+
 /* ---- Per-algorithm argument structs ---- */
 
 /*
@@ -113,11 +122,6 @@ typedef struct {
 typedef struct whal_Crypto whal_Crypto;
 
 /*
- * @brief Operation function pointer type for per-device ops tables.
- */
-typedef whal_Error (*whal_Crypto_OpFunc)(whal_Crypto *cryptoDev, void *opArgs);
-
-/*
  * @brief Driver vtable for crypto devices.
  */
 typedef struct {
@@ -125,55 +129,114 @@ typedef struct {
     whal_Error (*Init)(whal_Crypto *cryptoDev);
     /* Deinitialize the crypto hardware. */
     whal_Error (*Deinit)(whal_Crypto *cryptoDev);
+    /* Start a crypto operation: configure hardware, load key/IV, process AAD. */
+    whal_Error (*StartOp)(whal_Crypto *cryptoDev, size_t opId, void *opArgs);
+    /* Process data through the crypto engine. */
+    whal_Error (*Process)(whal_Crypto *cryptoDev, size_t opId, void *opArgs);
+    /* End a crypto operation: finalize, release hardware. */
+    whal_Error (*EndOp)(whal_Crypto *cryptoDev, size_t opId, void *opArgs);
 } whal_CryptoDriver;
 
 /*
- * @brief Crypto device instance tying a register map, driver, and ops table.
+ * @brief Crypto device instance tying a register map, driver, and configuration.
  */
 struct whal_Crypto {
     const whal_Regmap regmap;
     const whal_CryptoDriver *driver;
-    const whal_Crypto_OpFunc *ops;
-    size_t opsCount;
     const void *cfg;
 };
 
-#ifdef WHAL_CFG_DIRECT_CALLBACKS
-#define whal_Crypto_Init(cryptoDev) ((cryptoDev)->driver->Init((cryptoDev)))
-#define whal_Crypto_Deinit(cryptoDev) ((cryptoDev)->driver->Deinit((cryptoDev)))
-#define whal_Crypto_Op(cryptoDev, op, opArgs) ((cryptoDev)->ops[(op)]((cryptoDev), (opArgs)))
-#else
 /*
- * @brief Initializes a crypto device and its driver.
+ * @brief Initialize a crypto device and its driver.
  *
  * @param cryptoDev Pointer to the crypto instance to initialize.
  *
- * @retval WHAL_SUCCESS Driver-specific init completed.
- * @retval WHAL_EINVAL  Null pointer or driver rejected configuration.
+ * @retval WHAL_SUCCESS  Driver-specific init completed.
+ * @retval WHAL_EINVAL   Null pointer.
+ * @retval WHAL_ENOTSUP  Operation not implemented by this driver.
+ */
+#ifdef WHAL_CFG_DIRECT_CALLBACKS
+#define whal_Crypto_Init(cryptoDev) ((cryptoDev)->driver->Init((cryptoDev)))
+#define whal_Crypto_Deinit(cryptoDev) ((cryptoDev)->driver->Deinit((cryptoDev)))
+#define whal_Crypto_StartOp(cryptoDev, opId, opArgs) ((cryptoDev)->driver->StartOp((cryptoDev), (opId), (opArgs)))
+#define whal_Crypto_Process(cryptoDev, opId, opArgs) ((cryptoDev)->driver->Process((cryptoDev), (opId), (opArgs)))
+#define whal_Crypto_EndOp(cryptoDev, opId, opArgs) ((cryptoDev)->driver->EndOp((cryptoDev), (opId), (opArgs)))
+#else
+/*
+ * @brief Initialize a crypto device and its driver.
+ *
+ * @param cryptoDev Pointer to the crypto instance to initialize.
+ *
+ * @retval WHAL_SUCCESS  Driver-specific init completed.
+ * @retval WHAL_EINVAL   Null pointer.
+ * @retval WHAL_ENOTSUP  Operation not implemented by this driver.
  */
 whal_Error whal_Crypto_Init(whal_Crypto *cryptoDev);
 
 /*
- * @brief Deinitializes a crypto device and releases resources.
+ * @brief Deinitialize a crypto device and release resources.
  *
  * @param cryptoDev Pointer to the crypto instance to deinitialize.
  *
- * @retval WHAL_SUCCESS Driver-specific deinit completed.
- * @retval WHAL_EINVAL  Null pointer or driver refused to deinit.
+ * @retval WHAL_SUCCESS  Driver-specific deinit completed.
+ * @retval WHAL_EINVAL   Null pointer.
+ * @retval WHAL_ENOTSUP  Operation not implemented by this driver.
  */
 whal_Error whal_Crypto_Deinit(whal_Crypto *cryptoDev);
 
 /*
- * @brief Perform a crypto operation.
+ * @brief Start a crypto operation.
+ *
+ * Configures the hardware for the requested algorithm, loads keys and
+ * parameters, and performs any setup (e.g. AAD processing for AEAD modes).
  *
  * @param cryptoDev Pointer to the crypto instance.
- * @param op        Operation index into the platform-specific ops table.
- * @param opArgs    Platform-specific operation arguments.
+ * @param opId      Operation identifier (e.g. WHAL_CRYPTO_AES_GCM).
+ * @param opArgs    Pointer to the algorithm-specific arguments struct.
  *
- * @retval WHAL_SUCCESS Operation completed.
- * @retval WHAL_EINVAL  Null pointer, invalid op, or driver failed.
+ * @retval WHAL_SUCCESS   Operation started.
+ * @retval WHAL_EINVAL    Invalid arguments.
+ * @retval WHAL_ENOTSUP   Operation not implemented by this driver.
+ * @retval WHAL_EHARDWARE Hardware error during setup.
  */
-whal_Error whal_Crypto_Op(whal_Crypto *cryptoDev, size_t op, void *opArgs);
+whal_Error whal_Crypto_StartOp(whal_Crypto *cryptoDev, size_t opId,
+                               void *opArgs);
+
+/*
+ * @brief Process data through an active crypto operation.
+ *
+ * Feeds data through the hardware. May be called multiple times for
+ * streaming. Optional for single-shot operations.
+ *
+ * @param cryptoDev Pointer to the crypto instance.
+ * @param opId      Operation identifier.
+ * @param opArgs    Pointer to the algorithm-specific arguments struct.
+ *
+ * @retval WHAL_SUCCESS   Data processed.
+ * @retval WHAL_EINVAL    Invalid arguments.
+ * @retval WHAL_ENOTSUP   Operation not implemented by this driver.
+ * @retval WHAL_EHARDWARE Hardware error during processing.
+ */
+whal_Error whal_Crypto_Process(whal_Crypto *cryptoDev, size_t opId,
+                               void *opArgs);
+
+/*
+ * @brief End a crypto operation.
+ *
+ * Finalizes the operation, reads output (tag, digest, signature), and
+ * releases the hardware.
+ *
+ * @param cryptoDev Pointer to the crypto instance.
+ * @param opId      Operation identifier.
+ * @param opArgs    Pointer to the algorithm-specific arguments struct.
+ *
+ * @retval WHAL_SUCCESS   Operation finalized.
+ * @retval WHAL_EINVAL    Invalid arguments.
+ * @retval WHAL_ENOTSUP   Operation not implemented by this driver.
+ * @retval WHAL_EHARDWARE Hardware error during finalization.
+ */
+whal_Error whal_Crypto_EndOp(whal_Crypto *cryptoDev, size_t opId,
+                             void *opArgs);
 #endif
 
 #endif /* WHAL_CRYPTO_H */
