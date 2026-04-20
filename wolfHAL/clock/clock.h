@@ -42,7 +42,7 @@ struct whal_Clock {
  *
  * @retval WHAL_SUCCESS  Driver-specific init routine ran successfully.
  * @retval WHAL_EINVAL   Null pointer or driver rejected the configuration.
- * @retval WHAL_ENOTIMPL Operation not implemented by this driver.
+ * @retval WHAL_ENOTSUP Operation not implemented by this driver.
  */
 #ifdef WHAL_CFG_DIRECT_CALLBACKS
 #define whal_Clock_Init(clkDev) ((clkDev)->driver->Init((clkDev)))
@@ -57,7 +57,7 @@ struct whal_Clock {
  *
  * @retval WHAL_SUCCESS  Driver-specific init routine ran successfully.
  * @retval WHAL_EINVAL   Null pointer or driver rejected the configuration.
- * @retval WHAL_ENOTIMPL Operation not implemented by this driver.
+ * @retval WHAL_ENOTSUP Operation not implemented by this driver.
  */
 whal_Error whal_Clock_Init(whal_Clock *clkDev);
 /*
@@ -67,7 +67,7 @@ whal_Error whal_Clock_Init(whal_Clock *clkDev);
  *
  * @retval WHAL_SUCCESS  Driver-specific deinit routine ran successfully.
  * @retval WHAL_EINVAL   Null pointer or driver refused to deinitialize.
- * @retval WHAL_ENOTIMPL Operation not implemented by this driver.
+ * @retval WHAL_ENOTSUP Operation not implemented by this driver.
  */
 whal_Error whal_Clock_Deinit(whal_Clock *clkDev);
 /*
@@ -77,7 +77,7 @@ whal_Error whal_Clock_Deinit(whal_Clock *clkDev);
  *
  * @retval WHAL_SUCCESS  Clock was enabled (or already running).
  * @retval WHAL_EINVAL   Null pointer or driver-specific enable failed.
- * @retval WHAL_ENOTIMPL Operation not implemented by this driver.
+ * @retval WHAL_ENOTSUP Operation not implemented by this driver.
  */
 whal_Error whal_Clock_Enable(whal_Clock *clkDev, const void *clk);
 /*
@@ -87,7 +87,7 @@ whal_Error whal_Clock_Enable(whal_Clock *clkDev, const void *clk);
  *
  * @retval WHAL_SUCCESS  Clock was disabled (or already stopped).
  * @retval WHAL_EINVAL   Null pointer or driver-specific disable failed.
- * @retval WHAL_ENOTIMPL Operation not implemented by this driver.
+ * @retval WHAL_ENOTSUP Operation not implemented by this driver.
  */
 whal_Error whal_Clock_Disable(whal_Clock *clkDev, const void *clk);
 #endif

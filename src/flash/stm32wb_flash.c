@@ -100,14 +100,18 @@
 
 whal_Error whal_Stm32wbFlash_Init(whal_Flash *flashDev)
 {
-    (void)flashDev;
+    if (!flashDev) {
+        return WHAL_EINVAL;
+    }
 
     return WHAL_SUCCESS;
 }
 
 whal_Error whal_Stm32wbFlash_Deinit(whal_Flash *flashDev)
 {
-    (void)flashDev;
+    if (!flashDev) {
+        return WHAL_EINVAL;
+    }
 
     return WHAL_SUCCESS;
 }

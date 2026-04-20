@@ -166,7 +166,7 @@ whal_Error whal_Stm32wbUart_SendAsync(whal_Uart *uartDev, const void *data, size
     (void)dataSz;
     if (!uartDev || !data)
         return WHAL_EINVAL;
-    return WHAL_ENOTIMPL;
+    return WHAL_ENOTSUP;
 }
 
 whal_Error whal_Stm32wbUart_RecvAsync(whal_Uart *uartDev, void *data, size_t dataSz)
@@ -174,7 +174,7 @@ whal_Error whal_Stm32wbUart_RecvAsync(whal_Uart *uartDev, void *data, size_t dat
     (void)dataSz;
     if (!uartDev || !data)
         return WHAL_EINVAL;
-    return WHAL_ENOTIMPL;
+    return WHAL_ENOTSUP;
 }
 
 #if !defined(WHAL_CFG_UART_API_MAPPING_STM32WB) && \

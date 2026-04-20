@@ -42,7 +42,7 @@ struct whal_Gpio {
  *
  * @retval WHAL_SUCCESS Driver-specific init completed.
  * @retval WHAL_EINVAL   Null pointer.
- * @retval WHAL_ENOTIMPL Operation not implemented by this driver.
+ * @retval WHAL_ENOTSUP Operation not implemented by this driver.
  */
 #ifdef WHAL_CFG_DIRECT_CALLBACKS
 #define whal_Gpio_Init(gpioDev) ((gpioDev)->driver->Init((gpioDev)))
@@ -57,7 +57,7 @@ struct whal_Gpio {
  *
  * @retval WHAL_SUCCESS Driver-specific init completed.
  * @retval WHAL_EINVAL   Null pointer.
- * @retval WHAL_ENOTIMPL Operation not implemented by this driver.
+ * @retval WHAL_ENOTSUP Operation not implemented by this driver.
  */
 whal_Error whal_Gpio_Init(whal_Gpio *gpioDev);
 /*
@@ -67,7 +67,7 @@ whal_Error whal_Gpio_Init(whal_Gpio *gpioDev);
  *
  * @retval WHAL_SUCCESS Driver-specific deinit completed.
  * @retval WHAL_EINVAL   Null pointer.
- * @retval WHAL_ENOTIMPL Operation not implemented by this driver.
+ * @retval WHAL_ENOTSUP Operation not implemented by this driver.
  */
 whal_Error whal_Gpio_Deinit(whal_Gpio *gpioDev);
 /*
@@ -79,7 +79,7 @@ whal_Error whal_Gpio_Deinit(whal_Gpio *gpioDev);
  *
  * @retval WHAL_SUCCESS Pin value stored in @p value.
  * @retval WHAL_EINVAL   Null pointer or bad pin.
- * @retval WHAL_ENOTIMPL Operation not implemented by this driver.
+ * @retval WHAL_ENOTSUP Operation not implemented by this driver.
  */
 whal_Error whal_Gpio_Get(whal_Gpio *gpioDev, size_t pin, size_t *value);
 /*
@@ -91,7 +91,7 @@ whal_Error whal_Gpio_Get(whal_Gpio *gpioDev, size_t pin, size_t *value);
  *
  * @retval WHAL_SUCCESS Pin updated.
  * @retval WHAL_EINVAL   Null pointer or bad pin.
- * @retval WHAL_ENOTIMPL Operation not implemented by this driver.
+ * @retval WHAL_ENOTSUP Operation not implemented by this driver.
  */
 whal_Error whal_Gpio_Set(whal_Gpio *gpioDev, size_t pin, size_t value);
 #endif

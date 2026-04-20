@@ -230,7 +230,7 @@ operation completed. The error codes are:
 | `WHAL_ENOTREADY` | Resource is busy or not yet available |
 | `WHAL_EHARDWARE` | Hardware error (e.g., RNG entropy failure) |
 | `WHAL_ETIMEOUT` | Operation timed out waiting for hardware |
-| `WHAL_ENOTIMPL` | Operation not implemented by this driver |
+| `WHAL_ENOTSUP` | Operation or parameter not supported by this driver/hardware |
 
 ## Optimizing for Size
 
@@ -281,7 +281,7 @@ static const whal_GpioDriver myGpioDriver = {
     .Init   = whal_Stm32wbGpio_Init,
     .Deinit = whal_Stm32wbGpio_Deinit,
     .Set    = whal_Stm32wbGpio_Set,
-    /* Get left as NULL — calls return WHAL_ENOTIMPL, saves pulling in that code */
+    /* Get left as NULL — calls return WHAL_ENOTSUP, saves pulling in that code */
 };
 
 whal_Gpio g_whalGpio = {

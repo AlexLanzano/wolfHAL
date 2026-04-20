@@ -55,7 +55,7 @@ struct whal_Uart {
  *
  * @retval WHAL_SUCCESS  Driver-specific init completed.
  * @retval WHAL_EINVAL   Null pointer.
- * @retval WHAL_ENOTIMPL Operation not implemented by this driver.
+ * @retval WHAL_ENOTSUP Operation not implemented by this driver.
  */
 whal_Error whal_Uart_Init(whal_Uart *uartDev);
 
@@ -66,7 +66,7 @@ whal_Error whal_Uart_Init(whal_Uart *uartDev);
  *
  * @retval WHAL_SUCCESS  Driver-specific deinit completed.
  * @retval WHAL_EINVAL   Null pointer.
- * @retval WHAL_ENOTIMPL Operation not implemented by this driver.
+ * @retval WHAL_ENOTSUP Operation not implemented by this driver.
  */
 whal_Error whal_Uart_Deinit(whal_Uart *uartDev);
 
@@ -79,7 +79,7 @@ whal_Error whal_Uart_Deinit(whal_Uart *uartDev);
  *
  * @retval WHAL_SUCCESS  Buffer was queued or transmitted.
  * @retval WHAL_EINVAL   Null pointer.
- * @retval WHAL_ENOTIMPL Operation not implemented by this driver.
+ * @retval WHAL_ENOTSUP Operation not implemented by this driver.
  */
 whal_Error whal_Uart_Send(whal_Uart *uartDev, const void *data, size_t dataSz);
 
@@ -92,7 +92,7 @@ whal_Error whal_Uart_Send(whal_Uart *uartDev, const void *data, size_t dataSz);
  *
  * @retval WHAL_SUCCESS  Buffer was filled or receive started.
  * @retval WHAL_EINVAL   Null pointer.
- * @retval WHAL_ENOTIMPL Operation not implemented by this driver.
+ * @retval WHAL_ENOTSUP Operation not implemented by this driver.
  */
 whal_Error whal_Uart_Recv(whal_Uart *uartDev, void *data, size_t dataSz);
 
@@ -109,7 +109,7 @@ whal_Error whal_Uart_Recv(whal_Uart *uartDev, void *data, size_t dataSz);
  *
  * @retval WHAL_SUCCESS   Transfer started.
  * @retval WHAL_EINVAL    Invalid arguments.
- * @retval WHAL_ENOTIMPL  Async not supported by this driver.
+ * @retval WHAL_ENOTSUP  Async not supported by this driver.
  */
 whal_Error whal_Uart_SendAsync(whal_Uart *uartDev, const void *data, size_t dataSz);
 
@@ -126,7 +126,7 @@ whal_Error whal_Uart_SendAsync(whal_Uart *uartDev, const void *data, size_t data
  *
  * @retval WHAL_SUCCESS   Receive started.
  * @retval WHAL_EINVAL    Invalid arguments.
- * @retval WHAL_ENOTIMPL  Async not supported by this driver.
+ * @retval WHAL_ENOTSUP  Async not supported by this driver.
  */
 whal_Error whal_Uart_RecvAsync(whal_Uart *uartDev, void *data, size_t dataSz);
 #endif

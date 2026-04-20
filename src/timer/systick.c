@@ -31,11 +31,13 @@
 whal_Error whal_SysTick_Init(whal_Timer *timerDev)
 {
     whal_SysTick_Cfg *cfg;
-    const whal_Regmap *reg = &timerDev->regmap;
+    const whal_Regmap *reg;
 
     if (!timerDev || !timerDev->cfg) {
         return WHAL_EINVAL;
     }
+
+    reg = &timerDev->regmap;
 
     cfg = (whal_SysTick_Cfg *)timerDev->cfg;
 
@@ -53,16 +55,22 @@ whal_Error whal_SysTick_Init(whal_Timer *timerDev)
 
 whal_Error whal_SysTick_Deinit(whal_Timer *timerDev)
 {
+    if (!timerDev) {
+        return WHAL_EINVAL;
+    }
+
     return WHAL_SUCCESS;
 }
 
 whal_Error whal_SysTick_Start(whal_Timer *timerDev)
 {
-    const whal_Regmap *reg = &timerDev->regmap;
+    const whal_Regmap *reg;
 
     if (!timerDev || !timerDev->cfg) {
         return WHAL_EINVAL;
     }
+
+    reg = &timerDev->regmap;
 
     whal_Reg_Update(reg->base, SYSTICK_CSR_REG, SYSTICK_CSR_ENABLE_Msk,
                     whal_SetBits(SYSTICK_CSR_ENABLE_Msk, SYSTICK_CSR_ENABLE_Pos, 1));
@@ -72,11 +80,13 @@ whal_Error whal_SysTick_Start(whal_Timer *timerDev)
 
 whal_Error whal_SysTick_Stop(whal_Timer *timerDev)
 {
-    const whal_Regmap *reg = &timerDev->regmap;
+    const whal_Regmap *reg;
 
     if (!timerDev || !timerDev->cfg) {
         return WHAL_EINVAL;
     }
+
+    reg = &timerDev->regmap;
 
     whal_Reg_Update(reg->base, SYSTICK_CSR_REG, SYSTICK_CSR_ENABLE_Msk,
                     whal_SetBits(SYSTICK_CSR_ENABLE_Msk, SYSTICK_CSR_ENABLE_Pos, 0));
@@ -86,6 +96,9 @@ whal_Error whal_SysTick_Stop(whal_Timer *timerDev)
 
 whal_Error whal_SysTick_Reset(whal_Timer *timerDev)
 {
+    if (!timerDev) {
+        return WHAL_EINVAL;
+    }
 
     return WHAL_SUCCESS;
 }

@@ -41,7 +41,7 @@ struct whal_Rng {
  *
  * @retval WHAL_SUCCESS Driver-specific init completed.
  * @retval WHAL_EINVAL   Null pointer.
- * @retval WHAL_ENOTIMPL Operation not implemented by this driver.
+ * @retval WHAL_ENOTSUP Operation not implemented by this driver.
  */
 #ifdef WHAL_CFG_DIRECT_CALLBACKS
 #define whal_Rng_Init(rngDev) ((rngDev)->driver->Init((rngDev)))
@@ -56,7 +56,7 @@ struct whal_Rng {
  *
  * @retval WHAL_SUCCESS Driver-specific init completed.
  * @retval WHAL_EINVAL   Null pointer.
- * @retval WHAL_ENOTIMPL Operation not implemented by this driver.
+ * @retval WHAL_ENOTSUP Operation not implemented by this driver.
  */
 whal_Error whal_Rng_Init(whal_Rng *rngDev);
 /*
@@ -66,7 +66,7 @@ whal_Error whal_Rng_Init(whal_Rng *rngDev);
  *
  * @retval WHAL_SUCCESS Driver-specific deinit completed.
  * @retval WHAL_EINVAL   Null pointer.
- * @retval WHAL_ENOTIMPL Operation not implemented by this driver.
+ * @retval WHAL_ENOTSUP Operation not implemented by this driver.
  */
 whal_Error whal_Rng_Deinit(whal_Rng *rngDev);
 /*
@@ -78,7 +78,7 @@ whal_Error whal_Rng_Deinit(whal_Rng *rngDev);
  *
  * @retval WHAL_SUCCESS Buffer filled with random data.
  * @retval WHAL_EINVAL   Null pointer.
- * @retval WHAL_ENOTIMPL Operation not implemented by this driver.
+ * @retval WHAL_ENOTSUP Operation not implemented by this driver.
  */
 whal_Error whal_Rng_Generate(whal_Rng *rngDev, void *rngData, size_t rngDataSz);
 #endif

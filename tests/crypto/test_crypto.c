@@ -113,6 +113,41 @@ static const uint8_t gcmTag[16] = {
     0xEC, 0x1A, 0x50, 0x22, 0x70, 0xE3, 0xCC, 0x6C,
 };
 
+/* GCM spec Test Case 16: AES-256-GCM, 60-byte payload, 20-byte AAD.
+ * Exercises partial last blocks on both AAD and payload. Reuses gcmKey/gcmIv. */
+static const uint8_t gcm16Pt[60] = {
+    0xD9, 0x31, 0x32, 0x25, 0xF8, 0x84, 0x06, 0xE5,
+    0xA5, 0x59, 0x09, 0xC5, 0xAF, 0xF5, 0x26, 0x9A,
+    0x86, 0xA7, 0xA9, 0x53, 0x15, 0x34, 0xF7, 0xDA,
+    0x2E, 0x4C, 0x30, 0x3D, 0x8A, 0x31, 0x8A, 0x72,
+    0x1C, 0x3C, 0x0C, 0x95, 0x95, 0x68, 0x09, 0x53,
+    0x2F, 0xCF, 0x0E, 0x24, 0x49, 0xA6, 0xB5, 0x25,
+    0xB1, 0x6A, 0xED, 0xF5, 0xAA, 0x0D, 0xE6, 0x57,
+    0xBA, 0x63, 0x7B, 0x39,
+};
+
+static const uint8_t gcm16Aad[20] = {
+    0xFE, 0xED, 0xFA, 0xCE, 0xDE, 0xAD, 0xBE, 0xEF,
+    0xFE, 0xED, 0xFA, 0xCE, 0xDE, 0xAD, 0xBE, 0xEF,
+    0xAB, 0xAD, 0xDA, 0xD2,
+};
+
+static const uint8_t gcm16Ct[60] = {
+    0x52, 0x2D, 0xC1, 0xF0, 0x99, 0x56, 0x7D, 0x07,
+    0xF4, 0x7F, 0x37, 0xA3, 0x2A, 0x84, 0x42, 0x7D,
+    0x64, 0x3A, 0x8C, 0xDC, 0xBF, 0xE5, 0xC0, 0xC9,
+    0x75, 0x98, 0xA2, 0xBD, 0x25, 0x55, 0xD1, 0xAA,
+    0x8C, 0xB0, 0x8E, 0x48, 0x59, 0x0D, 0xBB, 0x3D,
+    0xA7, 0xB0, 0x8B, 0x10, 0x56, 0x82, 0x88, 0x38,
+    0xC5, 0xF6, 0x1E, 0x63, 0x93, 0xBA, 0x7A, 0x0A,
+    0xBC, 0xC9, 0xF6, 0x62,
+};
+
+static const uint8_t gcm16Tag[16] = {
+    0x76, 0xFC, 0x6E, 0xCE, 0x0F, 0x4E, 0x17, 0x68,
+    0xCD, 0xDF, 0x88, 0x53, 0xBB, 0x2D, 0x55, 0x1B,
+};
+
 /* NIST CAVP gcmEncryptExtIV256.rsp: Keylen=256, IVlen=96, PTlen=0, AADlen=128, Taglen=128, Count=0 */
 static const uint8_t gmacKey[32] = {
     0x78, 0xDC, 0x4E, 0x0A, 0xAF, 0x52, 0xD9, 0x35,
@@ -173,31 +208,31 @@ static const uint8_t ccmTag[16] = {
     0x3C, 0xA5, 0x07, 0x95, 0xAC, 0xD9, 0x02, 0x03,
 };
 
-static int BoardHasOp(size_t op)
-{
-    return op < g_whalCrypto.opsCount && g_whalCrypto.ops[op] != 0;
-}
-
 static void Test_Crypto_AesEcb_Basic(void)
 {
     uint8_t ct[32] = {0};
     uint8_t pt[32] = {0};
 
-    if (!BoardHasOp(BOARD_CRYPTO_AES_ECB))
-        WHAL_SKIP();
-
     whal_Crypto_AesEcbArgs enc = {
         .dir = WHAL_CRYPTO_ENCRYPT, .key = key, .keySz = 32,
         .in = plaintext, .out = ct, .sz = sizeof(plaintext),
     };
-    WHAL_ASSERT_EQ(whal_Crypto_Op(&g_whalCrypto, BOARD_CRYPTO_AES_ECB, &enc),
+    WHAL_ASSERT_EQ(whal_Crypto_StartOp(&g_whalCrypto, WHAL_CRYPTO_AES_ECB, &enc),
+                   WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Crypto_Process(&g_whalCrypto, WHAL_CRYPTO_AES_ECB, &enc),
+                   WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Crypto_EndOp(&g_whalCrypto, WHAL_CRYPTO_AES_ECB, &enc),
                    WHAL_SUCCESS);
 
     whal_Crypto_AesEcbArgs dec = {
         .dir = WHAL_CRYPTO_DECRYPT, .key = key, .keySz = 32,
         .in = ct, .out = pt, .sz = sizeof(ct),
     };
-    WHAL_ASSERT_EQ(whal_Crypto_Op(&g_whalCrypto, BOARD_CRYPTO_AES_ECB, &dec),
+    WHAL_ASSERT_EQ(whal_Crypto_StartOp(&g_whalCrypto, WHAL_CRYPTO_AES_ECB, &dec),
+                   WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Crypto_Process(&g_whalCrypto, WHAL_CRYPTO_AES_ECB, &dec),
+                   WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Crypto_EndOp(&g_whalCrypto, WHAL_CRYPTO_AES_ECB, &dec),
                    WHAL_SUCCESS);
 
     WHAL_ASSERT_MEM_EQ(pt, plaintext, sizeof(plaintext));
@@ -208,21 +243,26 @@ static void Test_Crypto_AesCbc_Basic(void)
     uint8_t ct[32] = {0};
     uint8_t pt[32] = {0};
 
-    if (!BoardHasOp(BOARD_CRYPTO_AES_CBC))
-        WHAL_SKIP();
-
     whal_Crypto_AesCbcArgs enc = {
         .dir = WHAL_CRYPTO_ENCRYPT, .key = key, .keySz = 32,
         .iv = iv, .in = plaintext, .out = ct, .sz = sizeof(plaintext),
     };
-    WHAL_ASSERT_EQ(whal_Crypto_Op(&g_whalCrypto, BOARD_CRYPTO_AES_CBC, &enc),
+    WHAL_ASSERT_EQ(whal_Crypto_StartOp(&g_whalCrypto, WHAL_CRYPTO_AES_CBC, &enc),
+                   WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Crypto_Process(&g_whalCrypto, WHAL_CRYPTO_AES_CBC, &enc),
+                   WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Crypto_EndOp(&g_whalCrypto, WHAL_CRYPTO_AES_CBC, &enc),
                    WHAL_SUCCESS);
 
     whal_Crypto_AesCbcArgs dec = {
         .dir = WHAL_CRYPTO_DECRYPT, .key = key, .keySz = 32,
         .iv = iv, .in = ct, .out = pt, .sz = sizeof(ct),
     };
-    WHAL_ASSERT_EQ(whal_Crypto_Op(&g_whalCrypto, BOARD_CRYPTO_AES_CBC, &dec),
+    WHAL_ASSERT_EQ(whal_Crypto_StartOp(&g_whalCrypto, WHAL_CRYPTO_AES_CBC, &dec),
+                   WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Crypto_Process(&g_whalCrypto, WHAL_CRYPTO_AES_CBC, &dec),
+                   WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Crypto_EndOp(&g_whalCrypto, WHAL_CRYPTO_AES_CBC, &dec),
                    WHAL_SUCCESS);
 
     WHAL_ASSERT_MEM_EQ(pt, plaintext, sizeof(plaintext));
@@ -233,21 +273,26 @@ static void Test_Crypto_AesCtr_Basic(void)
     uint8_t ct[32] = {0};
     uint8_t pt[32] = {0};
 
-    if (!BoardHasOp(BOARD_CRYPTO_AES_CTR))
-        WHAL_SKIP();
-
     whal_Crypto_AesCtrArgs enc = {
         .dir = WHAL_CRYPTO_ENCRYPT, .key = key, .keySz = 32,
         .iv = iv, .in = plaintext, .out = ct, .sz = sizeof(plaintext),
     };
-    WHAL_ASSERT_EQ(whal_Crypto_Op(&g_whalCrypto, BOARD_CRYPTO_AES_CTR, &enc),
+    WHAL_ASSERT_EQ(whal_Crypto_StartOp(&g_whalCrypto, WHAL_CRYPTO_AES_CTR, &enc),
+                   WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Crypto_Process(&g_whalCrypto, WHAL_CRYPTO_AES_CTR, &enc),
+                   WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Crypto_EndOp(&g_whalCrypto, WHAL_CRYPTO_AES_CTR, &enc),
                    WHAL_SUCCESS);
 
     whal_Crypto_AesCtrArgs dec = {
         .dir = WHAL_CRYPTO_DECRYPT, .key = key, .keySz = 32,
         .iv = iv, .in = ct, .out = pt, .sz = sizeof(ct),
     };
-    WHAL_ASSERT_EQ(whal_Crypto_Op(&g_whalCrypto, BOARD_CRYPTO_AES_CTR, &dec),
+    WHAL_ASSERT_EQ(whal_Crypto_StartOp(&g_whalCrypto, WHAL_CRYPTO_AES_CTR, &dec),
+                   WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Crypto_Process(&g_whalCrypto, WHAL_CRYPTO_AES_CTR, &dec),
+                   WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Crypto_EndOp(&g_whalCrypto, WHAL_CRYPTO_AES_CTR, &dec),
                    WHAL_SUCCESS);
 
     WHAL_ASSERT_MEM_EQ(pt, plaintext, sizeof(plaintext));
@@ -260,9 +305,6 @@ static void Test_Crypto_AesGcm_Basic(void)
     uint8_t encTag[16] = {0};
     uint8_t decTag[16] = {0};
 
-    if (!BoardHasOp(BOARD_CRYPTO_AES_GCM))
-        WHAL_SKIP();
-
     whal_Crypto_AesGcmArgs enc = {
         .dir = WHAL_CRYPTO_ENCRYPT, .key = key, .keySz = 32,
         .iv = nonce, .ivSz = sizeof(nonce),
@@ -270,7 +312,11 @@ static void Test_Crypto_AesGcm_Basic(void)
         .aad = aad, .aadSz = sizeof(aad),
         .tag = encTag, .tagSz = sizeof(encTag),
     };
-    WHAL_ASSERT_EQ(whal_Crypto_Op(&g_whalCrypto, BOARD_CRYPTO_AES_GCM, &enc),
+    WHAL_ASSERT_EQ(whal_Crypto_StartOp(&g_whalCrypto, WHAL_CRYPTO_AES_GCM, &enc),
+                   WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Crypto_Process(&g_whalCrypto, WHAL_CRYPTO_AES_GCM, &enc),
+                   WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Crypto_EndOp(&g_whalCrypto, WHAL_CRYPTO_AES_GCM, &enc),
                    WHAL_SUCCESS);
 
     whal_Crypto_AesGcmArgs dec = {
@@ -280,7 +326,11 @@ static void Test_Crypto_AesGcm_Basic(void)
         .aad = aad, .aadSz = sizeof(aad),
         .tag = decTag, .tagSz = sizeof(decTag),
     };
-    WHAL_ASSERT_EQ(whal_Crypto_Op(&g_whalCrypto, BOARD_CRYPTO_AES_GCM, &dec),
+    WHAL_ASSERT_EQ(whal_Crypto_StartOp(&g_whalCrypto, WHAL_CRYPTO_AES_GCM, &dec),
+                   WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Crypto_Process(&g_whalCrypto, WHAL_CRYPTO_AES_GCM, &dec),
+                   WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Crypto_EndOp(&g_whalCrypto, WHAL_CRYPTO_AES_GCM, &dec),
                    WHAL_SUCCESS);
 
     WHAL_ASSERT_MEM_EQ(pt, plaintext, sizeof(plaintext));
@@ -292,16 +342,17 @@ static void Test_Crypto_AesGmac_Basic(void)
     uint8_t tag1[16] = {0};
     uint8_t tag2[16] = {0};
 
-    if (!BoardHasOp(BOARD_CRYPTO_AES_GMAC))
-        WHAL_SKIP();
-
     whal_Crypto_AesGmacArgs args1 = {
         .key = key, .keySz = 32,
         .iv = nonce, .ivSz = sizeof(nonce),
         .aad = aad, .aadSz = sizeof(aad),
         .tag = tag1, .tagSz = sizeof(tag1),
     };
-    WHAL_ASSERT_EQ(whal_Crypto_Op(&g_whalCrypto, BOARD_CRYPTO_AES_GMAC, &args1),
+    WHAL_ASSERT_EQ(whal_Crypto_StartOp(&g_whalCrypto, WHAL_CRYPTO_AES_GMAC, &args1),
+                   WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Crypto_Process(&g_whalCrypto, WHAL_CRYPTO_AES_GMAC, &args1),
+                   WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Crypto_EndOp(&g_whalCrypto, WHAL_CRYPTO_AES_GMAC, &args1),
                    WHAL_SUCCESS);
 
     whal_Crypto_AesGmacArgs args2 = {
@@ -310,7 +361,11 @@ static void Test_Crypto_AesGmac_Basic(void)
         .aad = aad, .aadSz = sizeof(aad),
         .tag = tag2, .tagSz = sizeof(tag2),
     };
-    WHAL_ASSERT_EQ(whal_Crypto_Op(&g_whalCrypto, BOARD_CRYPTO_AES_GMAC, &args2),
+    WHAL_ASSERT_EQ(whal_Crypto_StartOp(&g_whalCrypto, WHAL_CRYPTO_AES_GMAC, &args2),
+                   WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Crypto_Process(&g_whalCrypto, WHAL_CRYPTO_AES_GMAC, &args2),
+                   WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Crypto_EndOp(&g_whalCrypto, WHAL_CRYPTO_AES_GMAC, &args2),
                    WHAL_SUCCESS);
 
     WHAL_ASSERT_MEM_EQ(tag1, tag2, sizeof(tag1));
@@ -323,9 +378,6 @@ static void Test_Crypto_AesCcm_Basic(void)
     uint8_t encTag[16] = {0};
     uint8_t decTag[16] = {0};
 
-    if (!BoardHasOp(BOARD_CRYPTO_AES_CCM))
-        WHAL_SKIP();
-
     whal_Crypto_AesCcmArgs enc = {
         .dir = WHAL_CRYPTO_ENCRYPT, .key = key, .keySz = 32,
         .nonce = nonce, .nonceSz = sizeof(nonce),
@@ -333,7 +385,11 @@ static void Test_Crypto_AesCcm_Basic(void)
         .aad = aad, .aadSz = sizeof(aad),
         .tag = encTag, .tagSz = sizeof(encTag),
     };
-    WHAL_ASSERT_EQ(whal_Crypto_Op(&g_whalCrypto, BOARD_CRYPTO_AES_CCM, &enc),
+    WHAL_ASSERT_EQ(whal_Crypto_StartOp(&g_whalCrypto, WHAL_CRYPTO_AES_CCM, &enc),
+                   WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Crypto_Process(&g_whalCrypto, WHAL_CRYPTO_AES_CCM, &enc),
+                   WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Crypto_EndOp(&g_whalCrypto, WHAL_CRYPTO_AES_CCM, &enc),
                    WHAL_SUCCESS);
 
     whal_Crypto_AesCcmArgs dec = {
@@ -343,7 +399,11 @@ static void Test_Crypto_AesCcm_Basic(void)
         .aad = aad, .aadSz = sizeof(aad),
         .tag = decTag, .tagSz = sizeof(decTag),
     };
-    WHAL_ASSERT_EQ(whal_Crypto_Op(&g_whalCrypto, BOARD_CRYPTO_AES_CCM, &dec),
+    WHAL_ASSERT_EQ(whal_Crypto_StartOp(&g_whalCrypto, WHAL_CRYPTO_AES_CCM, &dec),
+                   WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Crypto_Process(&g_whalCrypto, WHAL_CRYPTO_AES_CCM, &dec),
+                   WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Crypto_EndOp(&g_whalCrypto, WHAL_CRYPTO_AES_CCM, &dec),
                    WHAL_SUCCESS);
 
     WHAL_ASSERT_MEM_EQ(pt, plaintext, sizeof(plaintext));
@@ -354,14 +414,15 @@ static void Test_Crypto_AesEcb_KnownAnswer(void)
 {
     uint8_t ct[16] = {0};
 
-    if (!BoardHasOp(BOARD_CRYPTO_AES_ECB))
-        WHAL_SKIP();
-
     whal_Crypto_AesEcbArgs enc = {
         .dir = WHAL_CRYPTO_ENCRYPT, .key = nistKey, .keySz = 32,
         .in = nistPt, .out = ct, .sz = sizeof(nistPt),
     };
-    WHAL_ASSERT_EQ(whal_Crypto_Op(&g_whalCrypto, BOARD_CRYPTO_AES_ECB, &enc),
+    WHAL_ASSERT_EQ(whal_Crypto_StartOp(&g_whalCrypto, WHAL_CRYPTO_AES_ECB, &enc),
+                   WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Crypto_Process(&g_whalCrypto, WHAL_CRYPTO_AES_ECB, &enc),
+                   WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Crypto_EndOp(&g_whalCrypto, WHAL_CRYPTO_AES_ECB, &enc),
                    WHAL_SUCCESS);
 
     WHAL_ASSERT_MEM_EQ(ct, nistEcbCt, sizeof(nistEcbCt));
@@ -371,14 +432,15 @@ static void Test_Crypto_AesCbc_KnownAnswer(void)
 {
     uint8_t ct[16] = {0};
 
-    if (!BoardHasOp(BOARD_CRYPTO_AES_CBC))
-        WHAL_SKIP();
-
     whal_Crypto_AesCbcArgs enc = {
         .dir = WHAL_CRYPTO_ENCRYPT, .key = nistKey, .keySz = 32,
         .iv = nistCbcIv, .in = nistPt, .out = ct, .sz = sizeof(nistPt),
     };
-    WHAL_ASSERT_EQ(whal_Crypto_Op(&g_whalCrypto, BOARD_CRYPTO_AES_CBC, &enc),
+    WHAL_ASSERT_EQ(whal_Crypto_StartOp(&g_whalCrypto, WHAL_CRYPTO_AES_CBC, &enc),
+                   WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Crypto_Process(&g_whalCrypto, WHAL_CRYPTO_AES_CBC, &enc),
+                   WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Crypto_EndOp(&g_whalCrypto, WHAL_CRYPTO_AES_CBC, &enc),
                    WHAL_SUCCESS);
 
     WHAL_ASSERT_MEM_EQ(ct, nistCbcCt, sizeof(nistCbcCt));
@@ -388,14 +450,15 @@ static void Test_Crypto_AesCtr_KnownAnswer(void)
 {
     uint8_t ct[16] = {0};
 
-    if (!BoardHasOp(BOARD_CRYPTO_AES_CTR))
-        WHAL_SKIP();
-
     whal_Crypto_AesCtrArgs enc = {
         .dir = WHAL_CRYPTO_ENCRYPT, .key = nistKey, .keySz = 32,
         .iv = nistCtrIv, .in = nistPt, .out = ct, .sz = sizeof(nistPt),
     };
-    WHAL_ASSERT_EQ(whal_Crypto_Op(&g_whalCrypto, BOARD_CRYPTO_AES_CTR, &enc),
+    WHAL_ASSERT_EQ(whal_Crypto_StartOp(&g_whalCrypto, WHAL_CRYPTO_AES_CTR, &enc),
+                   WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Crypto_Process(&g_whalCrypto, WHAL_CRYPTO_AES_CTR, &enc),
+                   WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Crypto_EndOp(&g_whalCrypto, WHAL_CRYPTO_AES_CTR, &enc),
                    WHAL_SUCCESS);
 
     WHAL_ASSERT_MEM_EQ(ct, nistCtrCt, sizeof(nistCtrCt));
@@ -406,9 +469,6 @@ static void Test_Crypto_AesGcm_KnownAnswer(void)
     uint8_t ct[64] = {0};
     uint8_t tag[16] = {0};
 
-    if (!BoardHasOp(BOARD_CRYPTO_AES_GCM))
-        WHAL_SKIP();
-
     whal_Crypto_AesGcmArgs enc = {
         .dir = WHAL_CRYPTO_ENCRYPT, .key = gcmKey, .keySz = 32,
         .iv = gcmIv, .ivSz = sizeof(gcmIv),
@@ -416,19 +476,43 @@ static void Test_Crypto_AesGcm_KnownAnswer(void)
         .aad = NULL, .aadSz = 0,
         .tag = tag, .tagSz = sizeof(tag),
     };
-    WHAL_ASSERT_EQ(whal_Crypto_Op(&g_whalCrypto, BOARD_CRYPTO_AES_GCM, &enc),
+    WHAL_ASSERT_EQ(whal_Crypto_StartOp(&g_whalCrypto, WHAL_CRYPTO_AES_GCM, &enc),
+                   WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Crypto_Process(&g_whalCrypto, WHAL_CRYPTO_AES_GCM, &enc),
+                   WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Crypto_EndOp(&g_whalCrypto, WHAL_CRYPTO_AES_GCM, &enc),
                    WHAL_SUCCESS);
 
     WHAL_ASSERT_MEM_EQ(ct, gcmCt, sizeof(gcmCt));
     WHAL_ASSERT_MEM_EQ(tag, gcmTag, sizeof(gcmTag));
 }
 
+static void Test_Crypto_AesGcm_KnownAnswer_PartialBlocks(void)
+{
+    uint8_t ct[sizeof(gcm16Pt)] = {0};
+    uint8_t tag[16] = {0};
+
+    whal_Crypto_AesGcmArgs enc = {
+        .dir = WHAL_CRYPTO_ENCRYPT, .key = gcmKey, .keySz = 32,
+        .iv = gcmIv, .ivSz = sizeof(gcmIv),
+        .in = gcm16Pt, .out = ct, .sz = sizeof(gcm16Pt),
+        .aad = gcm16Aad, .aadSz = sizeof(gcm16Aad),
+        .tag = tag, .tagSz = sizeof(tag),
+    };
+    WHAL_ASSERT_EQ(whal_Crypto_StartOp(&g_whalCrypto, WHAL_CRYPTO_AES_GCM, &enc),
+                   WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Crypto_Process(&g_whalCrypto, WHAL_CRYPTO_AES_GCM, &enc),
+                   WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Crypto_EndOp(&g_whalCrypto, WHAL_CRYPTO_AES_GCM, &enc),
+                   WHAL_SUCCESS);
+
+    WHAL_ASSERT_MEM_EQ(ct, gcm16Ct, sizeof(gcm16Ct));
+    WHAL_ASSERT_MEM_EQ(tag, gcm16Tag, sizeof(gcm16Tag));
+}
+
 static void Test_Crypto_AesGmac_KnownAnswer(void)
 {
     uint8_t tag[16] = {0};
-
-    if (!BoardHasOp(BOARD_CRYPTO_AES_GMAC))
-        WHAL_SKIP();
 
     whal_Crypto_AesGmacArgs args = {
         .key = gmacKey, .keySz = 32,
@@ -436,7 +520,11 @@ static void Test_Crypto_AesGmac_KnownAnswer(void)
         .aad = gmacAad, .aadSz = sizeof(gmacAad),
         .tag = tag, .tagSz = sizeof(tag),
     };
-    WHAL_ASSERT_EQ(whal_Crypto_Op(&g_whalCrypto, BOARD_CRYPTO_AES_GMAC, &args),
+    WHAL_ASSERT_EQ(whal_Crypto_StartOp(&g_whalCrypto, WHAL_CRYPTO_AES_GMAC, &args),
+                   WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Crypto_Process(&g_whalCrypto, WHAL_CRYPTO_AES_GMAC, &args),
+                   WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Crypto_EndOp(&g_whalCrypto, WHAL_CRYPTO_AES_GMAC, &args),
                    WHAL_SUCCESS);
 
     WHAL_ASSERT_MEM_EQ(tag, gmacTag, sizeof(gmacTag));
@@ -447,9 +535,6 @@ static void Test_Crypto_AesCcm_KnownAnswer(void)
     uint8_t ct[24] = {0};
     uint8_t tag[16] = {0};
 
-    if (!BoardHasOp(BOARD_CRYPTO_AES_CCM))
-        WHAL_SKIP();
-
     whal_Crypto_AesCcmArgs enc = {
         .dir = WHAL_CRYPTO_ENCRYPT, .key = ccmKey, .keySz = 32,
         .nonce = ccmNonce, .nonceSz = sizeof(ccmNonce),
@@ -457,7 +542,11 @@ static void Test_Crypto_AesCcm_KnownAnswer(void)
         .aad = ccmAad, .aadSz = sizeof(ccmAad),
         .tag = tag, .tagSz = sizeof(tag),
     };
-    WHAL_ASSERT_EQ(whal_Crypto_Op(&g_whalCrypto, BOARD_CRYPTO_AES_CCM, &enc),
+    WHAL_ASSERT_EQ(whal_Crypto_StartOp(&g_whalCrypto, WHAL_CRYPTO_AES_CCM, &enc),
+                   WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Crypto_Process(&g_whalCrypto, WHAL_CRYPTO_AES_CCM, &enc),
+                   WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Crypto_EndOp(&g_whalCrypto, WHAL_CRYPTO_AES_CCM, &enc),
                    WHAL_SUCCESS);
 
     WHAL_ASSERT_MEM_EQ(ct, ccmCt, sizeof(ccmCt));
@@ -470,13 +559,17 @@ static void Test_Crypto_Api(void)
 
     WHAL_ASSERT_EQ(whal_Crypto_Init(NULL), WHAL_EINVAL);
     WHAL_ASSERT_EQ(whal_Crypto_Deinit(NULL), WHAL_EINVAL);
-    WHAL_ASSERT_EQ(whal_Crypto_Op(NULL, 0, &args), WHAL_EINVAL);
-    WHAL_ASSERT_EQ(whal_Crypto_Op(&g_whalCrypto, 0, NULL), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Crypto_StartOp(NULL, 0, &args), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Crypto_Process(NULL, 0, &args), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Crypto_EndOp(NULL, 0, &args), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Crypto_StartOp(&g_whalCrypto, 0, NULL), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Crypto_Process(&g_whalCrypto, 0, NULL), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Crypto_EndOp(&g_whalCrypto, 0, NULL), WHAL_EINVAL);
 }
 
 void whal_Test_Crypto(void)
 {
-    WHAL_TEST_SUITE_START("crypto");
+    WHAL_TEST_SUITE_START("cipher");
     WHAL_TEST(Test_Crypto_Api);
     WHAL_TEST(Test_Crypto_AesEcb_Basic);
     WHAL_TEST(Test_Crypto_AesEcb_KnownAnswer);
@@ -486,6 +579,7 @@ void whal_Test_Crypto(void)
     WHAL_TEST(Test_Crypto_AesCtr_KnownAnswer);
     WHAL_TEST(Test_Crypto_AesGcm_Basic);
     WHAL_TEST(Test_Crypto_AesGcm_KnownAnswer);
+    WHAL_TEST(Test_Crypto_AesGcm_KnownAnswer_PartialBlocks);
     WHAL_TEST(Test_Crypto_AesGmac_Basic);
     WHAL_TEST(Test_Crypto_AesGmac_KnownAnswer);
     WHAL_TEST(Test_Crypto_AesCcm_Basic);

@@ -11,7 +11,7 @@
  *
  * The STM32WB AES1 peripheral supports 128/256-bit keys in ECB, CBC,
  * CTR, GCM, GMAC, and CCM modes. This driver exposes those modes through the
- * generic whal_Crypto Op interface.
+ * generic whal_Crypto interface using the StartOp/Process/EndOp pattern.
  */
 
 /*
@@ -30,7 +30,7 @@ extern const whal_CryptoDriver whal_Stm32wbAes_Driver;
 /*
  * @brief Initialize the STM32WB AES peripheral.
  *
- * @param cryptoDev Crypto device instance.
+ * @param cryptoDev Cipher device instance.
  *
  * @retval WHAL_SUCCESS Initialization completed.
  * @retval WHAL_EINVAL  Invalid arguments.
@@ -40,97 +40,57 @@ whal_Error whal_Stm32wbAes_Init(whal_Crypto *cryptoDev);
 /*
  * @brief Deinitialize the STM32WB AES peripheral.
  *
- * @param cryptoDev Crypto device instance.
+ * @param cryptoDev Cipher device instance.
  *
  * @retval WHAL_SUCCESS Deinit completed.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
 whal_Error whal_Stm32wbAes_Deinit(whal_Crypto *cryptoDev);
+
+/*
+ * @brief Start an AES cipher operation.
+ *
+ * @param cryptoDev Cipher device instance.
+ * @param opId  Cipher algorithm identifier.
+ * @param opArgs    Pointer to the algorithm-specific arguments struct.
+ *
+ * @retval WHAL_SUCCESS   Operation started.
+ * @retval WHAL_EINVAL    Invalid arguments.
+ * @retval WHAL_ENOTSUP   Unsupported opId or parameter (e.g. key size).
+ * @retval WHAL_EHARDWARE Hardware error during setup.
+ */
+whal_Error whal_Stm32wbAes_StartOp(whal_Crypto *cryptoDev, size_t opId,
+                                   void *opArgs);
+
+/*
+ * @brief Process data through an active AES operation.
+ *
+ * @param cryptoDev Cipher device instance.
+ * @param opId  Cipher algorithm identifier.
+ * @param opArgs    Pointer to the algorithm-specific arguments struct.
+ *
+ * @retval WHAL_SUCCESS   Data processed.
+ * @retval WHAL_EINVAL    Invalid arguments.
+ * @retval WHAL_ENOTSUP   Unsupported opId.
+ * @retval WHAL_EHARDWARE Hardware error during processing.
+ */
+whal_Error whal_Stm32wbAes_Process(whal_Crypto *cryptoDev, size_t opId,
+                                   void *opArgs);
+
+/*
+ * @brief End an AES cipher operation.
+ *
+ * @param cryptoDev Cipher device instance.
+ * @param opId  Cipher algorithm identifier.
+ * @param opArgs    Pointer to the algorithm-specific arguments struct.
+ *
+ * @retval WHAL_SUCCESS   Operation finalized.
+ * @retval WHAL_EINVAL    Invalid arguments.
+ * @retval WHAL_ENOTSUP   Unsupported opId.
+ * @retval WHAL_EHARDWARE Hardware error during finalization.
+ */
+whal_Error whal_Stm32wbAes_EndOp(whal_Crypto *cryptoDev, size_t opId,
+                                 void *opArgs);
 #endif /* !WHAL_CFG_CRYPTO_API_MAPPING_STM32WB_AES */
-
-
-/*
- * @brief Perform AES-ECB encrypt or decrypt.
- *
- * Compatible with whal_Crypto_OpFunc. Cast opArgs to whal_Crypto_AesEcbArgs.
- *
- * @param cryptoDev Crypto device instance.
- * @param opArgs    Pointer to whal_Crypto_AesEcbArgs.
- *
- * @retval WHAL_SUCCESS   Operation completed.
- * @retval WHAL_EINVAL    Invalid arguments.
- * @retval WHAL_EHARDWARE Hardware error during operation.
- */
-whal_Error whal_Stm32wbAes_AesEcb(whal_Crypto *cryptoDev, void *opArgs);
-
-/*
- * @brief Perform AES-CBC encrypt or decrypt.
- *
- * Compatible with whal_Crypto_OpFunc. Cast opArgs to whal_Crypto_AesCbcArgs.
- *
- * @param cryptoDev Crypto device instance.
- * @param opArgs    Pointer to whal_Crypto_AesCbcArgs.
- *
- * @retval WHAL_SUCCESS   Operation completed.
- * @retval WHAL_EINVAL    Invalid arguments.
- * @retval WHAL_EHARDWARE Hardware error during operation.
- */
-whal_Error whal_Stm32wbAes_AesCbc(whal_Crypto *cryptoDev, void *opArgs);
-
-/*
- * @brief Perform AES-CTR encrypt or decrypt.
- *
- * Compatible with whal_Crypto_OpFunc. Cast opArgs to whal_Crypto_AesCtrArgs.
- *
- * @param cryptoDev Crypto device instance.
- * @param opArgs    Pointer to whal_Crypto_AesCtrArgs.
- *
- * @retval WHAL_SUCCESS   Operation completed.
- * @retval WHAL_EINVAL    Invalid arguments.
- * @retval WHAL_EHARDWARE Hardware error during operation.
- */
-whal_Error whal_Stm32wbAes_AesCtr(whal_Crypto *cryptoDev, void *opArgs);
-
-/*
- * @brief Perform AES-GCM encrypt or decrypt.
- *
- * Compatible with whal_Crypto_OpFunc. Cast opArgs to whal_Crypto_AesGcmArgs.
- *
- * @param cryptoDev Crypto device instance.
- * @param opArgs    Pointer to whal_Crypto_AesGcmArgs.
- *
- * @retval WHAL_SUCCESS   Operation completed.
- * @retval WHAL_EINVAL    Invalid arguments.
- * @retval WHAL_EHARDWARE Hardware error during operation.
- */
-whal_Error whal_Stm32wbAes_AesGcm(whal_Crypto *cryptoDev, void *opArgs);
-
-/*
- * @brief Perform AES-GMAC authentication (no payload).
- *
- * Compatible with whal_Crypto_OpFunc. Cast opArgs to whal_Crypto_AesGmacArgs.
- *
- * @param cryptoDev Crypto device instance.
- * @param opArgs    Pointer to whal_Crypto_AesGmacArgs.
- *
- * @retval WHAL_SUCCESS   Operation completed.
- * @retval WHAL_EINVAL    Invalid arguments.
- * @retval WHAL_EHARDWARE Hardware error during operation.
- */
-whal_Error whal_Stm32wbAes_AesGmac(whal_Crypto *cryptoDev, void *opArgs);
-
-/*
- * @brief Perform AES-CCM encrypt or decrypt.
- *
- * Compatible with whal_Crypto_OpFunc. Cast opArgs to whal_Crypto_AesCcmArgs.
- *
- * @param cryptoDev Crypto device instance.
- * @param opArgs    Pointer to whal_Crypto_AesCcmArgs.
- *
- * @retval WHAL_SUCCESS   Operation completed.
- * @retval WHAL_EINVAL    Invalid arguments.
- * @retval WHAL_EHARDWARE Hardware error during operation.
- */
-whal_Error whal_Stm32wbAes_AesCcm(whal_Crypto *cryptoDev, void *opArgs);
 
 #endif /* WHAL_STM32WB_AES_H */
