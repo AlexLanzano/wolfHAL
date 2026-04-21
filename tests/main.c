@@ -128,13 +128,17 @@ int g_whalTestCurSkipped;
 
 void whal_Test_Puts(const char *s)
 {
-    while (*s) {
-        if (*s == '\n')
-            whal_Uart_Send(&g_whalUart, "\r\n", 2);
-        else
-            whal_Uart_Send(&g_whalUart, s, 1);
-        s++;
-    }
+    size_t len = 0;
+    while (s[len])
+        len++;
+
+    if (len == 0)
+        return;
+
+    whal_Uart_Send(&g_whalUart, s, len);
+
+    if (s[len - 1] == '\n')
+        whal_Uart_Send(&g_whalUart, "\r", 1);
 }
 
 void main(void)

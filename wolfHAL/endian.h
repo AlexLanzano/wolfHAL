@@ -7,6 +7,7 @@
  */
 
 #include <stdint.h>
+#include <stddef.h>
 
 /*
  * @brief Load a 32-bit value from a big-endian byte array.
@@ -26,6 +27,41 @@ static inline void whal_StoreBe32(uint8_t *p, uint32_t v)
     p[1] = (uint8_t)(v >> 16);
     p[2] = (uint8_t)(v >> 8);
     p[3] = (uint8_t)v;
+}
+
+/*
+ * @brief Load n bytes from a byte array into a 32-bit big-endian value.
+ *
+ * The first byte becomes the MSB and the remaining (4-n) bytes are zero.
+ * Equivalent to whal_LoadBe32 when n == 4.
+ *
+ * @param p Source byte array.
+ * @param n Number of bytes to load (must be 0..4).
+ */
+static inline uint32_t whal_LoadBe32Partial(const uint8_t *p, size_t n)
+{
+    uint32_t v = 0;
+    size_t i;
+    for (i = 0; i < n; i++)
+        v |= (uint32_t)p[i] << (24 - i * 8);
+    return v;
+}
+
+/*
+ * @brief Load n bytes from a byte array into a 32-bit little-endian value.
+ *
+ * The first byte becomes the LSB and the remaining (4-n) bytes are zero.
+ *
+ * @param p Source byte array.
+ * @param n Number of bytes to load (must be 0..4).
+ */
+static inline uint32_t whal_LoadLe32Partial(const uint8_t *p, size_t n)
+{
+    uint32_t v = 0;
+    size_t i;
+    for (i = 0; i < n; i++)
+        v |= (uint32_t)p[i] << (i * 8);
+    return v;
 }
 
 #endif /* WHAL_ENDIAN_H */

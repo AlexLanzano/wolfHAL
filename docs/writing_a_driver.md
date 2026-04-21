@@ -905,30 +905,39 @@ consumption and avoid unnecessary entropy source wear.
 
 Header: `wolfHAL/crypto/crypto.h`
 
-The crypto driver provides access to hardware cryptographic accelerators. Unlike
-other device types, the crypto driver uses an **ops table** dispatch model
-instead of a fixed vtable — each supported algorithm is a function pointer in a
-board-defined ops table, indexed by a board-defined enum. This allows different
-platforms to expose different subsets of algorithms without changing the generic
-interface.
+The crypto driver provides access to hardware cryptographic accelerators
+(ciphers, hashes, MACs, and public key operations). The driver vtable uses a
+unified **StartOp / Process / EndOp** pattern that supports both one-shot and
+streaming use cases.
 
 ### Device Struct
-
-The crypto device struct extends the standard model with an ops table:
 
 ```c
 struct whal_Crypto {
     const whal_Regmap regmap;
     const whal_CryptoDriver *driver;
-    const whal_Crypto_OpFunc *ops;
-    size_t opsCount;
     const void *cfg;
 };
 ```
 
-The `driver` vtable handles Init/Deinit. The `ops` table maps algorithm indices
-to operation functions. The board defines the enum values and populates the ops
-table.
+### Driver Vtable
+
+```c
+typedef struct {
+    whal_Error (*Init)(whal_Crypto *cryptoDev);
+    whal_Error (*Deinit)(whal_Crypto *cryptoDev);
+    whal_Error (*StartOp)(whal_Crypto *cryptoDev, size_t opId, void *opArgs);
+    whal_Error (*Process)(whal_Crypto *cryptoDev, size_t opId, void *opArgs);
+    whal_Error (*EndOp)(whal_Crypto *cryptoDev, size_t opId, void *opArgs);
+} whal_CryptoDriver;
+```
+
+The `opId` parameter is a framework-defined enum value (e.g. `WHAL_CRYPTO_AES_GCM`,
+`WHAL_CRYPTO_SHA256`). The `opArgs` parameter is a pointer to an
+algorithm-specific argument struct (e.g., `whal_Crypto_AesGcmArgs`,
+`whal_Crypto_HashArgs`). The driver casts it to the correct type based on
+`opId`. See `wolfHAL/crypto/crypto.h` for the full set of argument structs and
+operation IDs.
 
 ### Init / Deinit
 
@@ -937,36 +946,63 @@ disable the crypto accelerator peripheral.
 
 ### Operations
 
-Each operation function has the signature:
+Each crypto operation is split into three phases:
+
+- **StartOp** — Configure hardware, load key/IV, process AAD for AEAD modes.
+- **Process** — Feed data through the hardware. May be called multiple times
+  for streaming. Optional for single-shot operations (e.g. GMAC has no
+  payload).
+- **EndOp** — Finalize the operation, read output (tag, digest), release
+  hardware. On StartOp failure, the driver cleans up internally and EndOp
+  should not be called.
+
+Unsupported `opId` values return `WHAL_ENOTSUP`. Unsupported parameter
+combinations (e.g. AES-192 on hardware that only supports 128/256) also
+return `WHAL_ENOTSUP`.
+
+### Convenience Wrappers
+
+`crypto.h` provides typed inline wrappers for each algorithm. One-shot
+wrappers call all three phases in sequence:
 
 ```c
-whal_Error myOp(whal_Crypto *cryptoDev, void *opArgs);
+whal_Crypto_AesGcmArgs args = {
+    .dir = WHAL_CRYPTO_ENCRYPT, .key = key, .keySz = 32,
+    .iv = iv, .ivSz = 12,
+    .in = plaintext, .out = ct, .sz = sizeof(plaintext),
+    .aad = aad, .aadSz = sizeof(aad),
+    .tag = tag, .tagSz = 16,
+};
+whal_Crypto_AesGcm(&g_whalCrypto, &args);
 ```
 
-The `opArgs` parameter is a pointer to an algorithm-specific argument struct
-(e.g., `whal_Crypto_AesEcbArgs`, `whal_Crypto_AesGcmArgs`). The operation
-function casts it to the correct type. See `wolfHAL/crypto/crypto.h` for the
-full set of argument structs.
+Streaming wrappers expose each phase individually with typed parameters:
+
+```c
+whal_Crypto_Sha256_Start(&g_whalHash);
+whal_Crypto_Sha256_Update(&g_whalHash, chunk1, chunk1Sz);
+whal_Crypto_Sha256_Update(&g_whalHash, chunk2, chunk2Sz);
+whal_Crypto_Sha256_Finalize(&g_whalHash, digest, 32);
+```
+
+Both wrapper styles are guarded by `WHAL_CFG_CRYPTO_<ALGO>` defines (e.g.
+`WHAL_CFG_CRYPTO_AES_GCM`, `WHAL_CFG_CRYPTO_SHA256`).
 
 ### Board Integration
 
-The board defines an enum of supported operations and a corresponding ops table:
+The board enables supported algorithms via `-D` flags in `board.mk` and
+instantiates the crypto device:
 
 ```c
-enum {
-    BOARD_CRYPTO_AES_ECB,
-    BOARD_CRYPTO_AES_CBC,
-    BOARD_CRYPTO_OP_COUNT,
-};
-
-static const whal_Crypto_OpFunc cryptoOps[BOARD_CRYPTO_OP_COUNT] = {
-    [BOARD_CRYPTO_AES_ECB] = whal_Stm32wbAes_AesEcb,
-    [BOARD_CRYPTO_AES_CBC] = whal_Stm32wbAes_AesCbc,
+whal_Crypto g_whalCrypto = {
+    .regmap = { WHAL_STM32WB55_AES1_REGMAP },
+    .cfg = &(whal_Stm32wbAes_Cfg) { .timeout = &g_whalTimeout },
 };
 ```
 
-Callers use `whal_Crypto_Op(&g_whalCrypto, BOARD_CRYPTO_AES_ECB, &args)` to
-invoke an operation.
+When API mapping is active (e.g. `-DWHAL_CFG_CRYPTO_API_MAPPING_STM32WB_AES`),
+the driver functions are mapped directly to the top-level API, eliminating the
+vtable indirection.
 
 ---
 
