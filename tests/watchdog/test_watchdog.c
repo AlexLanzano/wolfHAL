@@ -85,14 +85,15 @@ static void Test_Watchdog(void)
         while (1);
     }
 
-    /* Phase 1: watchdog fired — verify refresh loop completed and clean up */
-    WHAL_ASSERT_EQ(state.refreshOk, WDG_TEST_REFRESH_OK);
+    /* Phase 1: watchdog fired — clean up first, then verify */
+    uint32_t refreshOk = state.refreshOk;
     WHAL_ASSERT_EQ(whal_Flash_Unlock(&g_whalFlash, BOARD_FLASH_TEST_ADDR,
                                       BOARD_FLASH_SECTOR_SZ), WHAL_SUCCESS);
     WHAL_ASSERT_EQ(whal_Flash_Erase(&g_whalFlash, BOARD_FLASH_TEST_ADDR,
                                      BOARD_FLASH_SECTOR_SZ), WHAL_SUCCESS);
     WHAL_ASSERT_EQ(whal_Flash_Lock(&g_whalFlash, BOARD_FLASH_TEST_ADDR,
                                    BOARD_FLASH_SECTOR_SZ), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(refreshOk, WDG_TEST_REFRESH_OK);
 }
 
 void whal_Test_Watchdog(void)

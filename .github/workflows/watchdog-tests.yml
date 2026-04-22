@@ -16,6 +16,8 @@ jobs:
             watchdog: iwdg
           - board: stm32wb55xx_nucleo
             watchdog: wwdg
+          - board: stm32f091rc_nucleo
+            watchdog: iwdg
     steps:
       - uses: actions/checkout@v4
 

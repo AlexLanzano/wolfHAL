@@ -110,7 +110,8 @@ typedef struct {
 #if !defined(WHAL_CFG_GPIO_API_MAPPING_STM32WB) && \
     !defined(WHAL_CFG_GPIO_API_MAPPING_STM32F4) && \
     !defined(WHAL_CFG_GPIO_API_MAPPING_STM32H5) && \
-    !defined(WHAL_CFG_GPIO_API_MAPPING_STM32C0)
+    !defined(WHAL_CFG_GPIO_API_MAPPING_STM32C0) && \
+    !defined(WHAL_CFG_GPIO_API_MAPPING_STM32F0)
 /*
  * @brief Driver instance for STM32 GPIO.
  */
