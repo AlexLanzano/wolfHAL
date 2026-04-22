@@ -140,6 +140,28 @@ typedef whal_<OrigPlatform><Type>_PinCfg whal_<NewPlatform><Type>_PinCfg;
 
 That is the entire file. Examples in-tree: `src/gpio/stm32f4_gpio.c`, `src/gpio/stm32wba_gpio.c`, `src/i2c/stm32wba_i2c.c`, `src/uart/stm32wba_uart.c`, `src/watchdog/stm32wba_iwdg.c` — each is one line. The stub exists so the board's Makefile wildcard (`src/*/<newplatform>_*.c`) compiles the original implementation under the new-prefix filename. The original `.c` is NOT added to the Makefile separately; the `#include` pulls it into this translation unit exactly once.
 
+**API mapping macros stay in the leaf driver, not in the alias .c.** Most leaf drivers contain a guarded block that aliases the platform-specific function names directly to the generic `whal_<Type>_*` API:
+
+```c
+/* in src/<type>/<origplatform>_<type>.c — the LEAF */
+#if defined(WHAL_CFG_<TYPE>_API_MAPPING_<ORIGPLATFORM>) || \
+    defined(WHAL_CFG_<TYPE>_API_MAPPING_<NEWPLATFORM>)
+#define whal_<OrigPlatform><Type>_Init   whal_<Type>_Init
+/* ...one #define per driver entry point... */
+#endif
+
+/* ...driver implementation... */
+
+#if !defined(WHAL_CFG_<TYPE>_API_MAPPING_<ORIGPLATFORM>) && \
+    !defined(WHAL_CFG_<TYPE>_API_MAPPING_<NEWPLATFORM>)
+const whal_<Type>Driver whal_<OrigPlatform><Type>_Driver = { ... };
+#endif
+```
+
+Add the new platform's `WHAL_CFG_<TYPE>_API_MAPPING_<NEWPLATFORM>` macro to **both** guards in the leaf driver. Do **not** translate the macro inside the alias `.c` stub like `#ifdef <NEW> #define <ORIG> #endif` — every leaf has to learn about every alias platform anyway, and putting the recognition in two places (alias shim + leaf driver) creates drift. Keep the alias `.c` as a single `#include` line.
+
+**Alias the leaf directly — never daisy-chain.** If `<origplatform>` itself aliases another driver, alias `<newplatform>` to the **leaf** (the one with the actual implementation), not to the intermediate alias. Two-hop chains (`<new>` → `<intermediate>` → `<leaf>`) make every macro recognition twice as painful and obscure the dependency graph. Trace the include chain in the existing `.h` and `.c` files until you find the file with real driver code, and point your new alias at that.
+
 **Test alias** — when a driver is reused via alias AND the original driver already has a platform-specific test file (`tests/<type>/test_<origplatform>_<type>.c`), create a matching test alias at `tests/<type>/test_<newplatform>_<type>.c`:
 
 ```c
