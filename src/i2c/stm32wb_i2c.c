@@ -122,7 +122,8 @@
 #define I2C_FMP_THIGH_NS   260   /* Fast mode plus tHIGH min */
 
 #if defined(WHAL_CFG_I2C_API_MAPPING_STM32WB) || \
-    defined(WHAL_CFG_I2C_API_MAPPING_STM32F0)
+    defined(WHAL_CFG_I2C_API_MAPPING_STM32F0) || \
+    defined(WHAL_CFG_I2C_API_MAPPING_STM32F3)
 #define whal_Stm32wbI2c_Init     whal_I2c_Init
 #define whal_Stm32wbI2c_Deinit   whal_I2c_Deinit
 #define whal_Stm32wbI2c_StartCom whal_I2c_StartCom
@@ -510,7 +511,8 @@ whal_Error whal_Stm32wbI2c_Transfer(whal_I2c *i2cDev, whal_I2c_Msg *msgs,
 }
 
 #if !defined(WHAL_CFG_I2C_API_MAPPING_STM32WB) && \
-    !defined(WHAL_CFG_I2C_API_MAPPING_STM32F0)
+    !defined(WHAL_CFG_I2C_API_MAPPING_STM32F0) && \
+    !defined(WHAL_CFG_I2C_API_MAPPING_STM32F3)
 const whal_I2cDriver whal_Stm32wbI2c_Driver = {
     .Init = whal_Stm32wbI2c_Init,
     .Deinit = whal_Stm32wbI2c_Deinit,

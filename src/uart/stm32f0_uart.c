@@ -34,14 +34,15 @@
 #define UART_TDR_Pos 0
 #define UART_TDR_Msk (WHAL_BITMASK(9) << UART_TDR_Pos)
 
-#ifdef WHAL_CFG_UART_API_MAPPING_STM32F0
+#if defined(WHAL_CFG_UART_API_MAPPING_STM32F0) || \
+    defined(WHAL_CFG_UART_API_MAPPING_STM32F3)
 #define whal_Stm32f0Uart_Init      whal_Uart_Init
 #define whal_Stm32f0Uart_Deinit    whal_Uart_Deinit
 #define whal_Stm32f0Uart_Send      whal_Uart_Send
 #define whal_Stm32f0Uart_Recv      whal_Uart_Recv
 #define whal_Stm32f0Uart_SendAsync whal_Uart_SendAsync
 #define whal_Stm32f0Uart_RecvAsync whal_Uart_RecvAsync
-#endif /* WHAL_CFG_UART_API_MAPPING_STM32F0 */
+#endif
 
 whal_Error whal_Stm32f0Uart_Init(whal_Uart *uartDev)
 {
@@ -160,7 +161,8 @@ whal_Error whal_Stm32f0Uart_RecvAsync(whal_Uart *uartDev, void *data,
     return WHAL_ENOTSUP;
 }
 
-#ifndef WHAL_CFG_UART_API_MAPPING_STM32F0
+#if !defined(WHAL_CFG_UART_API_MAPPING_STM32F0) && \
+    !defined(WHAL_CFG_UART_API_MAPPING_STM32F3)
 const whal_UartDriver whal_Stm32f0Uart_Driver = {
     .Init = whal_Stm32f0Uart_Init,
     .Deinit = whal_Stm32f0Uart_Deinit,
@@ -169,4 +171,4 @@ const whal_UartDriver whal_Stm32f0Uart_Driver = {
     .SendAsync = whal_Stm32f0Uart_SendAsync,
     .RecvAsync = whal_Stm32f0Uart_RecvAsync,
 };
-#endif /* !WHAL_CFG_UART_API_MAPPING_STM32F0 */
+#endif
