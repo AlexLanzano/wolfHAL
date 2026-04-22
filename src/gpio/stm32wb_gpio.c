@@ -35,7 +35,8 @@
 #if defined(WHAL_CFG_GPIO_API_MAPPING_STM32WB) || \
     defined(WHAL_CFG_GPIO_API_MAPPING_STM32F4) || \
     defined(WHAL_CFG_GPIO_API_MAPPING_STM32H5) || \
-    defined(WHAL_CFG_GPIO_API_MAPPING_STM32C0)
+    defined(WHAL_CFG_GPIO_API_MAPPING_STM32C0) || \
+    defined(WHAL_CFG_GPIO_API_MAPPING_STM32F0)
 #define whal_Stm32wbGpio_Init   whal_Gpio_Init
 #define whal_Stm32wbGpio_Deinit whal_Gpio_Deinit
 #define whal_Stm32wbGpio_Get    whal_Gpio_Get
@@ -179,7 +180,8 @@ whal_Error whal_Stm32wbGpio_Set(whal_Gpio *gpioDev, size_t pin, size_t value)
 #if !defined(WHAL_CFG_GPIO_API_MAPPING_STM32WB) && \
     !defined(WHAL_CFG_GPIO_API_MAPPING_STM32F4) && \
     !defined(WHAL_CFG_GPIO_API_MAPPING_STM32H5) && \
-    !defined(WHAL_CFG_GPIO_API_MAPPING_STM32C0)
+    !defined(WHAL_CFG_GPIO_API_MAPPING_STM32C0) && \
+    !defined(WHAL_CFG_GPIO_API_MAPPING_STM32F0)
 const whal_GpioDriver whal_Stm32wbGpio_Driver = {
     .Init = whal_Stm32wbGpio_Init,
     .Deinit = whal_Stm32wbGpio_Deinit,

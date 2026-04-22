@@ -16,9 +16,11 @@ build configuration.
 |-------|----------|-----|-----------|
 | Microchip PIC32CZ CA Curiosity Ultra | PIC32CZ | Cortex-M7 | `pic32cz_curiosity_ultra/` |
 | ST NUCLEO-C031C6 | STM32C0 | Cortex-M0+ | `stm32c031_nucleo/` |
+| ST NUCLEO-F091RC | STM32F0 | Cortex-M0 | `stm32f091rc_nucleo/` |
 | WeAct BlackPill STM32F411 | STM32F4 | Cortex-M4 | `stm32f411_blackpill/` |
 | ST NUCLEO-H563ZI | STM32H5 | Cortex-M33 | `stm32h563zi_nucleo/` |
 | ST NUCLEO-WB55RG | STM32WB | Cortex-M4 | `stm32wb55xx_nucleo/` |
+| ST NUCLEO-WBA55CG | STM32WBA | Cortex-M33 | `stm32wba55cg_nucleo/` |
 
 ## Board Directory Contents
 

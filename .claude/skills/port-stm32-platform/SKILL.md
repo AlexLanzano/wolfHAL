@@ -140,6 +140,14 @@ typedef whal_<OrigPlatform><Type>_PinCfg whal_<NewPlatform><Type>_PinCfg;
 
 That is the entire file. Examples in-tree: `src/gpio/stm32f4_gpio.c`, `src/gpio/stm32wba_gpio.c`, `src/i2c/stm32wba_i2c.c`, `src/uart/stm32wba_uart.c`, `src/watchdog/stm32wba_iwdg.c` — each is one line. The stub exists so the board's Makefile wildcard (`src/*/<newplatform>_*.c`) compiles the original implementation under the new-prefix filename. The original `.c` is NOT added to the Makefile separately; the `#include` pulls it into this translation unit exactly once.
 
+**Test alias** — when a driver is reused via alias AND the original driver already has a platform-specific test file (`tests/<type>/test_<origplatform>_<type>.c`), create a matching test alias at `tests/<type>/test_<newplatform>_<type>.c`:
+
+```c
+#include "test_<origplatform>_<type>.c"
+```
+
+This is the same one-line pattern as the driver stub. The build system auto-discovers `test_$(PLATFORM)_$(t).c` files and defines `WHAL_TEST_ENABLE_<TYPE>_PLATFORM`, which gates the `whal_Test_<Type>_Platform()` call in `tests/main.c`. Examples in-tree: `tests/gpio/test_stm32c0_gpio.c`, `tests/gpio/test_stm32f0_gpio.c`.
+
 ### Common driver pitfalls (from prior ports)
 - **Flash**: check if already unlocked before writing keys — double-unlock hard-faults. Bit positions (LOCK, STRT, PNB) differ between families; do not copy-paste.
 - **RNG**: CONDRST + per-config register sequence goes in Init, not per Generate call. Select RNG clock source via `RCC_CCIPR`/`CCIPR2` before Init — default is often LSE, which requires LSE running.
@@ -158,6 +166,9 @@ Exports `extern whal_<Type>` instances and declares `Board_Init`/`Board_Deinit`/
 ### `board.c`
 Define each `whal_<Type>` global with its platform macro + board-specific config (pins, baud rates, timeout, DMA channel assignments). Implement `Board_Init` in dependency order: PWR → Clock → peripheral clock enables → GPIO → UART → Timer → the rest. Keep the watchdog out of `Board_Init` (the app starts it when ready to refresh) per `docs/adding_a_board.md`. Guard DMA-specific setup under `#ifdef BOARD_DMA`, matching `boards/stm32wba55cg_nucleo/board.c`.
 
+### GPIO pin conflict check
+After writing the `pinCfg` array in `board.c`, scan every entry pair and verify no two entries share the same physical port+pin. This is a common mistake when a pin serves double duty (e.g., PA5 used as both an LED and SPI1_SCK). If a conflict is found, consult the chip's alternate-function table in the datasheet and remap the conflicting peripheral to an alternate pin on a different port.
+
 ### `Makefile.inc`
 Model on `boards/stm32wba55cg_nucleo/Makefile.inc`:
 - `PLATFORM = <platform>` — matches the prefix used in `src/*/<platform>_*.c`
@@ -170,6 +181,14 @@ Copy from a similar board and update the `MEMORY` block's FLASH/RAM origins and 
 
 ### `ivt.c`
 Copy from a similar board with the same core (M4/M33). Update the vector table — vectors from position 16 onward are device-specific and listed in the TRM's interrupt mapping table. At minimum: SysTick plus any peripheral IRQs the tests exercise (USART1_IRQHandler, GPDMAx_ChannelY_IRQHandler, etc.).
+
+### boards/README.md
+
+Add a row to the **Supported Boards** table in `boards/README.md` with the board name, platform, CPU core, and directory. Keep the table sorted alphabetically by platform name.
+
+### GitHub CI
+
+Add the new board to `.github/workflows/boards.yml` by appending it to the `board` matrix list. This ensures the board builds are verified on every PR and push to main. If the board supports peripheral devices (BMI270, SPI-NOR, etc.), also add entries to `.github/workflows/peripheral-tests.yml`. If it supports watchdog, add entries to `.github/workflows/watchdog-tests.yml`.
 
 ## Phase 5 — Build and validate
 
