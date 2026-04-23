@@ -33,9 +33,9 @@ enum {
 #define BOARD_LED_PIN 0
 
 #define BOARD_FLASH_START_ADDR 0x08000000
-#define BOARD_FLASH_SIZE       0x10000
-#define BOARD_FLASH_TEST_ADDR  0x0800F800
-#define BOARD_FLASH_SECTOR_SZ  0x800
+#define BOARD_FLASH_SIZE       0x80000
+#define BOARD_FLASH_TEST_ADDR  0x0807FF00
+#define BOARD_FLASH_SECTOR_SZ  0x100
 
 whal_Error Board_Init(void);
 whal_Error Board_Deinit(void);

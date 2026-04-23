@@ -21,6 +21,7 @@ build configuration.
 | WeAct BlackPill STM32F411 | STM32F4 | Cortex-M4 | `stm32f411_blackpill/` |
 | ST NUCLEO-H563ZI | STM32H5 | Cortex-M33 | `stm32h563zi_nucleo/` |
 | ST NUCLEO-WB55RG | STM32WB | Cortex-M4 | `stm32wb55xx_nucleo/` |
+| ST NUCLEO-L152RE | STM32L1 | Cortex-M3 | `stm32l152re_nucleo/` |
 | ST NUCLEO-WBA55CG | STM32WBA | Cortex-M33 | `stm32wba55cg_nucleo/` |
 
 ## Board Directory Contents

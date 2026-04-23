@@ -45,7 +45,8 @@
 #define UART_CR1_UE_Pos 13                                             /* USART enable */
 #define UART_CR1_UE_Msk (1UL << UART_CR1_UE_Pos)
 
-#ifdef WHAL_CFG_UART_API_MAPPING_STM32F4
+#if defined(WHAL_CFG_UART_API_MAPPING_STM32F4) || \
+    defined(WHAL_CFG_UART_API_MAPPING_STM32L1)
 #define whal_Stm32f4Uart_Init      whal_Uart_Init
 #define whal_Stm32f4Uart_Deinit    whal_Uart_Deinit
 #define whal_Stm32f4Uart_Send      whal_Uart_Send
@@ -182,7 +183,8 @@ whal_Error whal_Stm32f4Uart_RecvAsync(whal_Uart *uartDev, void *data, size_t dat
     return WHAL_ENOTSUP;
 }
 
-#ifndef WHAL_CFG_UART_API_MAPPING_STM32F4
+#if !defined(WHAL_CFG_UART_API_MAPPING_STM32F4) && \
+    !defined(WHAL_CFG_UART_API_MAPPING_STM32L1)
 const whal_UartDriver whal_Stm32f4Uart_Driver = {
     .Init = whal_Stm32f4Uart_Init,
     .Deinit = whal_Stm32f4Uart_Deinit,
@@ -191,4 +193,4 @@ const whal_UartDriver whal_Stm32f4Uart_Driver = {
     .RecvAsync = whal_Stm32f4Uart_RecvAsync,
     .Recv = whal_Stm32f4Uart_Recv,
 };
-#endif /* !WHAL_CFG_UART_API_MAPPING_STM32F4 */
+#endif /* !WHAL_CFG_UART_API_MAPPING */

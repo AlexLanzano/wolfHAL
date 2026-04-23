@@ -31,8 +31,6 @@ enum {
 };
 
 #define BOARD_LED_PIN 0
-#define BOARD_LED_PORT_OFFSET     0x000 /* GPIOA */
-#define BOARD_LED_PIN_NUM         5
 
 #define BOARD_FLASH_START_ADDR 0x08000000
 #define BOARD_FLASH_SIZE       0x40000
