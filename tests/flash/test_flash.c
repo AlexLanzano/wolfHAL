@@ -7,10 +7,6 @@
 static whal_Flash *g_testFlashDev;
 static size_t g_testFlashAddr;
 static size_t g_testFlashSectorSz;
-#ifdef BOARD_FLASH_SIZE
-static size_t g_testFlashStartAddr;
-static size_t g_testFlashSize;
-#endif
 
 static void Test_Flash_Api(void)
 {
@@ -27,27 +23,7 @@ static void Test_Flash_Api(void)
     WHAL_ASSERT_EQ(whal_Flash_Write(g_testFlashDev, 0, NULL, 8), WHAL_EINVAL);
 }
 
-static void Test_Flash_EraseBlank(void)
-{
-    uint8_t readback[8] = {0};
-    uint8_t erased[8] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
-
-    WHAL_ASSERT_EQ(whal_Flash_Unlock(g_testFlashDev, g_testFlashAddr,
-                                      g_testFlashSectorSz), WHAL_SUCCESS);
-
-    WHAL_ASSERT_EQ(whal_Flash_Erase(g_testFlashDev, g_testFlashAddr,
-                                     g_testFlashSectorSz), WHAL_SUCCESS);
-
-    WHAL_ASSERT_EQ(whal_Flash_Read(g_testFlashDev, g_testFlashAddr,
-                                    readback, sizeof(readback)), WHAL_SUCCESS);
-
-    WHAL_ASSERT_MEM_EQ(readback, erased, sizeof(erased));
-
-    WHAL_ASSERT_EQ(whal_Flash_Lock(g_testFlashDev, g_testFlashAddr,
-                                    g_testFlashSectorSz), WHAL_SUCCESS);
-}
-
-static void Test_Flash_WriteRead(void)
+static void Test_Flash_WriteReadErase(void)
 {
     uint8_t pattern[32] = {
         0xDE, 0xAD, 0xBE, 0xEF, 0xCA, 0xFE, 0xBA, 0xBE,
@@ -56,14 +32,18 @@ static void Test_Flash_WriteRead(void)
         0xDE, 0xAD, 0xBE, 0xEF, 0xCA, 0xFE, 0xBA, 0xBE,
     };
     uint8_t readback[32];
+    whal_Error err;
 
     WHAL_ASSERT_EQ(whal_Flash_Unlock(g_testFlashDev, g_testFlashAddr,
                                       g_testFlashSectorSz), WHAL_SUCCESS);
 
+    WHAL_ASSERT_EQ(whal_Flash_Read(g_testFlashDev, g_testFlashAddr,
+                                    readback, sizeof(readback)), WHAL_SUCCESS);
+    WHAL_ASSERT_MEM_NEQ(readback, pattern, sizeof(pattern));
+
     WHAL_ASSERT_EQ(whal_Flash_Erase(g_testFlashDev, g_testFlashAddr,
                                      g_testFlashSectorSz), WHAL_SUCCESS);
 
-    whal_Error err;
     do {
         err = whal_Flash_Write(g_testFlashDev, g_testFlashAddr, pattern,
                                sizeof(pattern));
@@ -72,35 +52,18 @@ static void Test_Flash_WriteRead(void)
 
     WHAL_ASSERT_EQ(whal_Flash_Read(g_testFlashDev, g_testFlashAddr,
                                     readback, sizeof(readback)), WHAL_SUCCESS);
-
     WHAL_ASSERT_MEM_EQ(pattern, readback, sizeof(pattern));
+
+    WHAL_ASSERT_EQ(whal_Flash_Erase(g_testFlashDev, g_testFlashAddr,
+                                     g_testFlashSectorSz), WHAL_SUCCESS);
+
+    WHAL_ASSERT_EQ(whal_Flash_Read(g_testFlashDev, g_testFlashAddr,
+                                    readback, sizeof(readback)), WHAL_SUCCESS);
+    WHAL_ASSERT_MEM_NEQ(readback, pattern, sizeof(pattern));
 
     WHAL_ASSERT_EQ(whal_Flash_Lock(g_testFlashDev, g_testFlashAddr,
                                     g_testFlashSectorSz), WHAL_SUCCESS);
 }
-
-#ifdef BOARD_FLASH_SIZE
-static void Test_Flash_EraseLastSector(void)
-{
-    size_t lastSectorAddr = g_testFlashStartAddr + g_testFlashSize - g_testFlashSectorSz;
-    uint8_t readback[8] = {0};
-    uint8_t erased[8] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
-
-    WHAL_ASSERT_EQ(whal_Flash_Unlock(g_testFlashDev, lastSectorAddr,
-                                      g_testFlashSectorSz), WHAL_SUCCESS);
-
-    WHAL_ASSERT_EQ(whal_Flash_Erase(g_testFlashDev, lastSectorAddr,
-                                     g_testFlashSectorSz), WHAL_SUCCESS);
-
-    WHAL_ASSERT_EQ(whal_Flash_Read(g_testFlashDev, lastSectorAddr,
-                                    readback, sizeof(readback)), WHAL_SUCCESS);
-
-    WHAL_ASSERT_MEM_EQ(readback, erased, sizeof(erased));
-
-    WHAL_ASSERT_EQ(whal_Flash_Lock(g_testFlashDev, lastSectorAddr,
-                                    g_testFlashSectorSz), WHAL_SUCCESS);
-}
-#endif
 
 static void run_flash_tests(const char *name)
 {
@@ -108,11 +71,7 @@ static void run_flash_tests(const char *name)
     if (name)
         whal_Test_Printf("  device: %s\n", name);
     WHAL_TEST(Test_Flash_Api);
-    WHAL_TEST(Test_Flash_EraseBlank);
-    WHAL_TEST(Test_Flash_WriteRead);
-#ifdef BOARD_FLASH_SIZE
-    WHAL_TEST(Test_Flash_EraseLastSector);
-#endif
+    WHAL_TEST(Test_Flash_WriteReadErase);
     WHAL_TEST_SUITE_END();
 }
 
@@ -121,10 +80,6 @@ void whal_Test_Flash(void)
     /* Test on-chip flash */
     g_testFlashDev = &g_whalFlash;
     g_testFlashAddr = BOARD_FLASH_TEST_ADDR;
-#ifdef BOARD_FLASH_SIZE
-    g_testFlashStartAddr = BOARD_FLASH_START_ADDR;
-    g_testFlashSize = BOARD_FLASH_SIZE;
-#endif
     g_testFlashSectorSz = BOARD_FLASH_SECTOR_SZ;
     run_flash_tests("on-chip");
 

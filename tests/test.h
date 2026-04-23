@@ -154,6 +154,22 @@ extern int g_whalTestCurSkipped;
         }                                                       \
     } while (0)
 
+#define WHAL_ASSERT_MEM_NEQ(a, b, len)                               \
+    do {                                                             \
+        const unsigned char *_a = (const unsigned char *)(a);        \
+        const unsigned char *_b = (const unsigned char *)(b);        \
+        int _differ = 0;                                             \
+        for (size_t _i = 0; _i < (len); _i++) {                      \
+            if (_a[_i] != _b[_i]) { _differ = 1; break; }            \
+        }                                                            \
+        if (!_differ) {                                              \
+            whal_Test_Printf("  ASSERT_MEM_NEQ failed at %s:%d\n",  \
+                             __FILE__, __LINE__);                    \
+            g_whalTestCurFailed = 1;                                 \
+            return;                                                  \
+        }                                                            \
+    } while (0)
+
 #define WHAL_TEST_SUMMARY()                                  \
     do {                                                \
         whal_Test_Printf("\n");                                  \

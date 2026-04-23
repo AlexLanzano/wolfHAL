@@ -34,8 +34,6 @@ enum {
 };
 
 #define BOARD_LED_PIN             0
-#define BOARD_LED_PORT_OFFSET     0x400 /* GPIOB */
-#define BOARD_LED_PIN_NUM         5
 #define BOARD_FLASH_START_ADDR    0x08000000
 #define BOARD_FLASH_SIZE          0x80000  /* 512 KB (upper half reserved for BLE stack) */
 #define BOARD_FLASH_TEST_ADDR     0x0807F000

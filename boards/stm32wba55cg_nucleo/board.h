@@ -39,8 +39,6 @@ enum {
 
 /* LD2 (Green) on PA9 -- avoids conflict with SPI1_SCK on PB4 (LD1) */
 #define BOARD_LED_PIN             0
-#define BOARD_LED_PORT_OFFSET     0x000 /* GPIOA */
-#define BOARD_LED_PIN_NUM         9
 #define BOARD_FLASH_START_ADDR    0x08000000
 #define BOARD_FLASH_SIZE          0x100000  /* 1 MB */
 #define BOARD_FLASH_TEST_ADDR     0x080FE000
