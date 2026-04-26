@@ -58,6 +58,13 @@
 #define RNG_CR_CONFIG_C  (whal_SetBits(RNG_CR_RNG_CONFIG1_Msk, RNG_CR_RNG_CONFIG1_Pos, 0x0F) | \
                           whal_SetBits(RNG_CR_RNG_CONFIG3_Msk, RNG_CR_RNG_CONFIG3_Pos, 0x0D))
 
+#if defined(WHAL_CFG_RNG_API_MAPPING_STM32WBA) || \
+    defined(WHAL_CFG_RNG_API_MAPPING_STM32N6)
+#define whal_Stm32wbaRng_Init     whal_Rng_Init
+#define whal_Stm32wbaRng_Deinit   whal_Rng_Deinit
+#define whal_Stm32wbaRng_Generate whal_Rng_Generate
+#endif
+
 whal_Error whal_Stm32wbaRng_Init(whal_Rng *rngDev)
 {
     const whal_Stm32wbaRng_Cfg *cfg;
@@ -144,8 +151,11 @@ exit:
     return err;
 }
 
+#if !defined(WHAL_CFG_RNG_API_MAPPING_STM32WBA) && \
+    !defined(WHAL_CFG_RNG_API_MAPPING_STM32N6)
 const whal_RngDriver whal_Stm32wbaRng_Driver = {
     .Init = whal_Stm32wbaRng_Init,
     .Deinit = whal_Stm32wbaRng_Deinit,
     .Generate = whal_Stm32wbaRng_Generate,
 };
+#endif

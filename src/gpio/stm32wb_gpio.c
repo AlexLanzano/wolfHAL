@@ -38,7 +38,8 @@
     defined(WHAL_CFG_GPIO_API_MAPPING_STM32C0) || \
     defined(WHAL_CFG_GPIO_API_MAPPING_STM32F0) || \
     defined(WHAL_CFG_GPIO_API_MAPPING_STM32F3) || \
-    defined(WHAL_CFG_GPIO_API_MAPPING_STM32L1)
+    defined(WHAL_CFG_GPIO_API_MAPPING_STM32L1) || \
+    defined(WHAL_CFG_GPIO_API_MAPPING_STM32N6)
 #define whal_Stm32wbGpio_Init   whal_Gpio_Init
 #define whal_Stm32wbGpio_Deinit whal_Gpio_Deinit
 #define whal_Stm32wbGpio_Get    whal_Gpio_Get

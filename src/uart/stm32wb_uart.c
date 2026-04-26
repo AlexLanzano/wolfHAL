@@ -43,7 +43,8 @@
 
 #if defined(WHAL_CFG_UART_API_MAPPING_STM32WB) || \
     defined(WHAL_CFG_UART_API_MAPPING_STM32H5) || \
-    defined(WHAL_CFG_UART_API_MAPPING_STM32C0)
+    defined(WHAL_CFG_UART_API_MAPPING_STM32C0) || \
+    defined(WHAL_CFG_UART_API_MAPPING_STM32N6)
 #define whal_Stm32wbUart_Init      whal_Uart_Init
 #define whal_Stm32wbUart_Deinit    whal_Uart_Deinit
 #define whal_Stm32wbUart_Send      whal_Uart_Send
@@ -185,7 +186,8 @@ whal_Error whal_Stm32wbUart_RecvAsync(whal_Uart *uartDev, void *data, size_t dat
 #if !defined(WHAL_CFG_UART_API_MAPPING_STM32WB) && \
     !defined(WHAL_CFG_UART_API_MAPPING_STM32WB_DMA) && \
     !defined(WHAL_CFG_UART_API_MAPPING_STM32H5) && \
-    !defined(WHAL_CFG_UART_API_MAPPING_STM32C0)
+    !defined(WHAL_CFG_UART_API_MAPPING_STM32C0) && \
+    !defined(WHAL_CFG_UART_API_MAPPING_STM32N6)
 const whal_UartDriver whal_Stm32wbUart_Driver = {
     .Init = whal_Stm32wbUart_Init,
     .Deinit = whal_Stm32wbUart_Deinit,

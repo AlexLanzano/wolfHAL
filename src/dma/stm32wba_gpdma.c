@@ -104,6 +104,15 @@
 #define GPDMA_CxTR2_DREQ_Pos    10  /* Direction: 0=src periph, 1=dst periph */
 #define GPDMA_CxTR2_DREQ_Msk    (1UL << GPDMA_CxTR2_DREQ_Pos)
 
+#if defined(WHAL_CFG_DMA_API_MAPPING_STM32WBA) || \
+    defined(WHAL_CFG_DMA_API_MAPPING_STM32N6)
+#define whal_Stm32wbaGpdma_Init      whal_Dma_Init
+#define whal_Stm32wbaGpdma_Deinit    whal_Dma_Deinit
+#define whal_Stm32wbaGpdma_Configure whal_Dma_Configure
+#define whal_Stm32wbaGpdma_Start     whal_Dma_Start
+#define whal_Stm32wbaGpdma_Stop      whal_Dma_Stop
+#endif
+
 whal_Error whal_Stm32wbaGpdma_Init(whal_Dma *dmaDev)
 {
     if (!dmaDev || !dmaDev->cfg)
@@ -281,6 +290,8 @@ void whal_Stm32wbaGpdma_IRQHandler(whal_Dma *dmaDev, size_t ch,
     }
 }
 
+#if !defined(WHAL_CFG_DMA_API_MAPPING_STM32WBA) && \
+    !defined(WHAL_CFG_DMA_API_MAPPING_STM32N6)
 const whal_DmaDriver whal_Stm32wbaGpdma_Driver = {
     .Init = whal_Stm32wbaGpdma_Init,
     .Deinit = whal_Stm32wbaGpdma_Deinit,
@@ -288,3 +299,4 @@ const whal_DmaDriver whal_Stm32wbaGpdma_Driver = {
     .Start = whal_Stm32wbaGpdma_Start,
     .Stop = whal_Stm32wbaGpdma_Stop,
 };
+#endif

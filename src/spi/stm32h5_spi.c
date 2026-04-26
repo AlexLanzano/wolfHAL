@@ -89,7 +89,8 @@
 #define SPI_TXDR_REG 0x020
 #define SPI_RXDR_REG 0x030
 
-#ifdef WHAL_CFG_SPI_API_MAPPING_STM32H5
+#if defined(WHAL_CFG_SPI_API_MAPPING_STM32H5) || \
+    defined(WHAL_CFG_SPI_API_MAPPING_STM32N6)
 #define whal_Stm32h5Spi_Init     whal_Spi_Init
 #define whal_Stm32h5Spi_Deinit   whal_Spi_Deinit
 #define whal_Stm32h5Spi_StartCom whal_Spi_StartCom
@@ -277,7 +278,8 @@ whal_Error whal_Stm32h5Spi_SendRecv(whal_Spi *spiDev,
     return WHAL_SUCCESS;
 }
 
-#ifndef WHAL_CFG_SPI_API_MAPPING_STM32H5
+#if !defined(WHAL_CFG_SPI_API_MAPPING_STM32H5) && \
+    !defined(WHAL_CFG_SPI_API_MAPPING_STM32N6)
 const whal_SpiDriver whal_Stm32h5Spi_Driver = {
     .Init = whal_Stm32h5Spi_Init,
     .Deinit = whal_Stm32h5Spi_Deinit,

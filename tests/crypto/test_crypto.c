@@ -689,7 +689,7 @@ static void Test_Crypto_Api(void)
 
 void whal_Test_Crypto(void)
 {
-    WHAL_TEST_SUITE_START("cipher");
+    WHAL_TEST_SUITE_START("crypto");
     WHAL_TEST(Test_Crypto_Api);
 #ifdef WHAL_CFG_CRYPTO_AES_ECB
     WHAL_TEST(Test_Crypto_AesEcb_Basic);

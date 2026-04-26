@@ -104,7 +104,8 @@ static whal_Error Process_Hash(whal_Crypto *cryptoDev, const void *in,
 }
 
 
-#ifdef WHAL_CFG_CRYPTO_API_MAPPING_STM32WBA_HASH
+#if defined(WHAL_CFG_CRYPTO_API_MAPPING_STM32WBA_HASH) || \
+    defined(WHAL_CFG_CRYPTO_API_MAPPING_STM32N6_HASH)
 #define whal_Stm32wbaHash_Init    whal_Crypto_Init
 #define whal_Stm32wbaHash_Deinit  whal_Crypto_Deinit
 #define whal_Stm32wbaHash_StartOp whal_Crypto_StartOp
@@ -366,7 +367,8 @@ whal_Error whal_Stm32wbaHash_EndOp(whal_Crypto *cryptoDev, size_t opId,
     }
 }
 
-#ifndef WHAL_CFG_CRYPTO_API_MAPPING_STM32WBA_HASH
+#if !defined(WHAL_CFG_CRYPTO_API_MAPPING_STM32WBA_HASH) && \
+    !defined(WHAL_CFG_CRYPTO_API_MAPPING_STM32N6_HASH)
 const whal_CryptoDriver whal_Stm32wbaHash_Driver = {
     .Init = whal_Stm32wbaHash_Init,
     .Deinit = whal_Stm32wbaHash_Deinit,
