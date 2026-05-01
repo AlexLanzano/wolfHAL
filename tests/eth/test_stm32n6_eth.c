@@ -46,7 +46,7 @@ static void Test_Eth_Loopback(void)
     uint8_t rxFrame[1536];
     size_t rxLen = sizeof(rxFrame);
     size_t base = g_whalEth.regmap.base;
-    whal_Stm32n6Eth_Cfg *ethCfg = (whal_Stm32n6Eth_Cfg *)g_whalEth.cfg;
+    whal_Stm32n6_Eth_Cfg *ethCfg = (whal_Stm32n6_Eth_Cfg *)g_whalEth.cfg;
     whal_Error err;
     uint16_t bcr = 0;
 
@@ -73,7 +73,7 @@ static void Test_Eth_Loopback(void)
     DumpHex32("DMAC0TXDLAR",     (uint32_t)whal_Reg_Read(base, 0x1114));
     DumpHex32("DMAC0RXDLAR",     (uint32_t)whal_Reg_Read(base, 0x111C));
 
-    WHAL_ASSERT_EQ(whal_Stm32n6Eth_Ext_EnableLoopback(&g_whalEth, 1),
+    WHAL_ASSERT_EQ(whal_Stm32n6_Eth_Ext_EnableLoopback(&g_whalEth, 1),
                    WHAL_SUCCESS);
     WHAL_ASSERT_EQ(whal_Eth_Start(&g_whalEth, WHAL_ETH_SPEED_100,
                                   WHAL_ETH_DUPLEX_FULL), WHAL_SUCCESS);
@@ -116,7 +116,7 @@ static void Test_Eth_Loopback(void)
 
     WHAL_ASSERT_EQ(whal_Eth_Stop(&g_whalEth), WHAL_SUCCESS);
 
-    WHAL_ASSERT_EQ(whal_Stm32n6Eth_Ext_EnableLoopback(&g_whalEth, 0),
+    WHAL_ASSERT_EQ(whal_Stm32n6_Eth_Ext_EnableLoopback(&g_whalEth, 0),
                    WHAL_SUCCESS);
 }
 

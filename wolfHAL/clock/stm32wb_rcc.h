@@ -7,72 +7,102 @@
 
 /*
  * @file stm32wb_rcc.h
- * @brief STM32WB RCC (Reset and Clock Control) driver configuration.
+ * @brief STM32WB RCC (Reset and Clock Control) driver.
  *
- * The STM32WB RCC peripheral controls:
- * - System clock source selection (MSI, HSI16, HSE, PLL)
- * - PLL configuration for high-speed operation
- * - Peripheral clock gating (AHB, APB1, APB2 buses)
- * - Bus clock prescalers
+ * Boards bring up the clock tree imperatively from Board_Init by calling
+ * the helpers below in order:
  *
- * Two driver variants are provided:
- * - whal_Stm32wbRccPll_Driver: Uses PLL as system clock source
- * - whal_Stm32wbRccMsi_Driver: Uses MSI oscillator as system clock source
+ *   whal_Stm32wb_Rcc_EnableMsi(...);
+ *   whal_Stm32wb_Rcc_EnablePll(..., &pllCfg);
+ *   whal_Stm32wb_Rcc_EnableOsc(..., &hsi48Cfg);
+ *   whal_Stm32wb_Rcc_SetSysClock(..., WHAL_STM32WB_RCC_SYSCLK_SRC_PLL);
+ *   for each peripheral clock: whal_Stm32wb_Rcc_EnablePeriphClk(...);
  *
- * When changing clock speeds, flash latency must be adjusted appropriately
- * to ensure reliable flash access at the new frequency.
+ * The driver does not provide a declarative tree or an Init/Deinit
+ * walker — boards know their own bring-up order.
  */
 
 /*
- * @brief System clock source selection.
- *
- * Determines which oscillator/PLL drives the system clock (SYSCLK).
+ * @brief System clock source selection (RCC_CFGR.SW).
  */
 typedef enum {
-    WHAL_STM32WB_RCC_SYSCLK_SRC_MSI,   /* Multi-Speed Internal oscillator */
-    WHAL_STM32WB_RCC_SYSCLK_SRC_HSI16, /* 16 MHz High-Speed Internal */
-    WHAL_STM32WB_RCC_SYSCLK_SRC_HSE,   /* High-Speed External crystal */
-    WHAL_STM32WB_RCC_SYSCLK_SRC_PLL,   /* PLL output */
-} whal_Stm32wbRcc_SysClockSrc;
+    WHAL_STM32WB_RCC_SYSCLK_SRC_MSI,
+    WHAL_STM32WB_RCC_SYSCLK_SRC_HSI16,
+    WHAL_STM32WB_RCC_SYSCLK_SRC_HSE,
+    WHAL_STM32WB_RCC_SYSCLK_SRC_PLL,
+} whal_Stm32wb_Rcc_SysClockSrc;
 
 /*
- * @brief PLL input clock source selection.
- *
- * Determines which oscillator feeds the PLL input.
+ * @brief PLL input clock source selection (RCC_PLLCFGR.PLLSRC).
  */
 typedef enum {
-    WHAL_STM32WB_RCC_PLLCLK_SRC_NONE,  /* No clock (PLL disabled) */
-    WHAL_STM32WB_RCC_PLLCLK_SRC_MSI,   /* MSI as PLL input */
-    WHAL_STM32WB_RCC_PLLCLK_SRC_HSI16, /* HSI16 as PLL input */
-    WHAL_STM32WB_RCC_PLLCLK_SRC_HSE,   /* HSE as PLL input */
-} whal_Stm32wbRcc_PllClockSrc;
+    WHAL_STM32WB_RCC_PLLCLK_SRC_NONE,
+    WHAL_STM32WB_RCC_PLLCLK_SRC_MSI,
+    WHAL_STM32WB_RCC_PLLCLK_SRC_HSI16,
+    WHAL_STM32WB_RCC_PLLCLK_SRC_HSE,
+} whal_Stm32wb_Rcc_PllClockSrc;
 
 /*
- * @brief MSI oscillator frequency range selection.
- *
- * The MSI is a low-power RC oscillator with selectable frequency ranges.
- * Default after reset is 4 MHz.
+ * @brief MSI oscillator frequency range (RCC_CR.MSIRANGE).
  */
-typedef enum whal_Stm32wbRcc_MsiRange {
+typedef enum {
     WHAL_STM32WB_RCC_MSIRANGE_100kHz,
     WHAL_STM32WB_RCC_MSIRANGE_200kHz,
     WHAL_STM32WB_RCC_MSIRANGE_400kHz,
     WHAL_STM32WB_RCC_MSIRANGE_800kHz,
     WHAL_STM32WB_RCC_MSIRANGE_1MHz,
     WHAL_STM32WB_RCC_MSIRANGE_2MHz,
-    WHAL_STM32WB_RCC_MSIRANGE_4MHz,   /* Default after reset */
+    WHAL_STM32WB_RCC_MSIRANGE_4MHz,
     WHAL_STM32WB_RCC_MSIRANGE_8MHz,
     WHAL_STM32WB_RCC_MSIRANGE_16MHz,
     WHAL_STM32WB_RCC_MSIRANGE_24MHz,
     WHAL_STM32WB_RCC_MSIRANGE_32MHz,
     WHAL_STM32WB_RCC_MSIRANGE_48MHz,
-} whal_Stm32wbRcc_MsiRange;
+} whal_Stm32wb_Rcc_MsiRange;
+
+/*
+ * @brief Peripheral clock descriptor (RCC *ENR enable bit).
+ */
+typedef struct {
+    size_t regOffset;
+    size_t enableMask;
+    size_t enablePos;
+} whal_Stm32wb_Rcc_PeriphClk;
+
+/*
+ * @brief Cfg for EnableOsc/DisableOsc — on bit + ready bit. Boards
+ *        construct one with the WHAL_STM32WB_RCC_*_CFG macros below.
+ *        NOTE: LSE assumes PWR_CR1.DBP has been set by the caller.
+ */
+typedef struct {
+    size_t onReg;
+    size_t onMsk;
+    size_t rdyReg;
+    size_t rdyMsk;
+    size_t rdyPos;
+} whal_Stm32wb_Rcc_OscCfg;
+
+#define WHAL_STM32WB_RCC_HSI_CFG                             \
+    .onReg  = 0x000, .onMsk  = (1UL <<  8),                  \
+    .rdyReg = 0x000, .rdyMsk = (1UL << 10), .rdyPos = 10
+#define WHAL_STM32WB_RCC_HSE_CFG                             \
+    .onReg  = 0x000, .onMsk  = (1UL << 16),                  \
+    .rdyReg = 0x000, .rdyMsk = (1UL << 17), .rdyPos = 17
+#define WHAL_STM32WB_RCC_HSI48_CFG                           \
+    .onReg  = 0x098, .onMsk  = (1UL <<  0),                  \
+    .rdyReg = 0x098, .rdyMsk = (1UL <<  1), .rdyPos =  1
+#define WHAL_STM32WB_RCC_LSI_CFG                             \
+    .onReg  = 0x094, .onMsk  = (1UL <<  0),                  \
+    .rdyReg = 0x094, .rdyMsk = (1UL <<  1), .rdyPos =  1
+#define WHAL_STM32WB_RCC_LSE_CFG                             \
+    .onReg  = 0x090, .onMsk  = (1UL <<  0),                  \
+    .rdyReg = 0x090, .rdyMsk = (1UL <<  1), .rdyPos =  1
 
 /*
  * @brief PLL configuration parameters.
  *
  * The PLL output frequency is calculated as:
- *   f_vco = (f_input / m) * n
+ *   f_vco  = (f_input / m) * n
  *   f_pllr = f_vco / r  (main PLL output, used for SYSCLK)
  *   f_pllq = f_vco / q  (used for USB, RNG, etc.)
  *   f_pllp = f_vco / p  (used for SAI, etc.)
@@ -85,133 +115,60 @@ typedef enum whal_Stm32wbRcc_MsiRange {
  *   - r, q: 2, 4, 6, 8 (register value 0-3 maps to div by 2/4/6/8)
  *   - p: 2-32 (register value 1-31, 0 reserved)
  */
-typedef struct whal_Stm32wbRcc_PllClkCfg {
-    whal_Stm32wbRcc_PllClockSrc clkSrc; /* PLL input source */
-    uint8_t r; /* PLLR divider (0=div2, 1=div4, 2=div6, 3=div8) */
-    uint8_t q; /* PLLQ divider (0=div2, 1=div4, 2=div6, 3=div8) */
-    uint8_t p; /* PLLP divider (2-32) */
-    uint8_t n; /* PLLN multiplier (8-127) */
-    uint8_t m; /* PLLM divider (0-7 maps to 1-8) */
-} whal_Stm32wbRcc_PllClkCfg;
+typedef struct {
+    whal_Stm32wb_Rcc_PllClockSrc clkSrc;
+    uint8_t r;
+    uint8_t q;
+    uint8_t p;
+    uint8_t n;
+    uint8_t m;
+} whal_Stm32wb_Rcc_PllCfg;
 
 /*
- * @brief MSI clock configuration parameters.
+ * @brief Enable an oscillator (HSI/HSE/HSI48/LSI/LSE) and block until
+ *        the ready bit is set.
  */
-typedef struct whal_Stm32wbRcc_MsiClkCfg {
-    whal_Stm32wbRcc_MsiRange freq; /* MSI frequency range */
-} whal_Stm32wbRcc_MsiClkCfg;
+whal_Error whal_Stm32wb_Rcc_EnableOsc(whal_Clock *clkDev,
+                                     const whal_Stm32wb_Rcc_OscCfg *cfg);
+/*
+ * @brief Disable an oscillator.
+ */
+whal_Error whal_Stm32wb_Rcc_DisableOsc(whal_Clock *clkDev,
+                                      const whal_Stm32wb_Rcc_OscCfg *cfg);
 
 /*
- * @brief Peripheral clock enable descriptor.
- *
- * Describes the register offset and bit mask needed to enable/disable
- * a peripheral's bus clock. Used with whal_Stm32wbRcc_Enable/Disable.
- *
- * Example for GPIOA:
- *   { .regOffset = 0x04C, .enableMask = (1 << 0), .enablePos = 0 }  // AHB2ENR.GPIOAEN
+ * @brief Enable the MSI oscillator at the given range. Blocks until ready.
  */
-typedef struct whal_Stm32wbRcc_Clk {
-    size_t regOffset;   /* Offset from RCC base to enable register */
-    size_t enableMask;  /* Bit mask for the peripheral enable bit */
-    size_t enablePos;   /* Bit position for the peripheral enable bit */
-} whal_Stm32wbRcc_Clk;
+whal_Error whal_Stm32wb_Rcc_EnableMsi(whal_Clock *clkDev,
+                                     whal_Stm32wb_Rcc_MsiRange range);
 
 /*
- * @brief RCC driver configuration.
- *
- * Contains all parameters needed to configure the system clock.
+ * @brief Configure the PLL dividers/source and enable it. Blocks until
+ *        the PLL ready bit is set.
  */
-typedef struct whal_Stm32wbRcc_Cfg {
-    whal_Stm32wbRcc_SysClockSrc sysClkSrc;   /* System clock source */
-    void *sysClkCfg; /* Pointer to PllClkCfg or MsiClkCfg based on driver */
-} whal_Stm32wbRcc_Cfg;
-
-#if !defined(WHAL_CFG_CLOCK_API_MAPPING_STM32WB_PLL) && !defined(WHAL_CFG_CLOCK_API_MAPPING_STM32WB_MSI)
+whal_Error whal_Stm32wb_Rcc_EnablePll(whal_Clock *clkDev,
+                                     const whal_Stm32wb_Rcc_PllCfg *cfg);
 /*
- * @brief Driver instance for the STM32 RCC clock controller.
+ * @brief Disable the PLL.
  */
-extern const whal_ClockDriver whal_Stm32wbRccPll_Driver;
-extern const whal_ClockDriver whal_Stm32wbRccMsi_Driver;
+whal_Error whal_Stm32wb_Rcc_DisablePll(whal_Clock *clkDev);
 
 /*
- * @brief Initialize the RCC peripheral.
- *
- * @param clkDev Clock device instance.
- *
- * @retval WHAL_SUCCESS Initialization completed.
- * @retval WHAL_EINVAL  Invalid arguments.
+ * @brief Switch SYSCLK to the given source. Blocks until RCC_CFGR.SWS
+ *        reflects the new source.
  */
-whal_Error whal_Stm32wbRccPll_Init(whal_Clock *clkDev);
-/*
- * @brief Deinitialize the RCC peripheral.
- *
- * @param clkDev Clock device instance.
- *
- * @retval WHAL_SUCCESS Deinit completed.
- * @retval WHAL_EINVAL  Invalid arguments.
- */
-whal_Error whal_Stm32wbRccPll_Deinit(whal_Clock *clkDev);
-/*
- * @brief Initialize the RCC peripheral.
- *
- * @param clkDev Clock device instance.
- *
- * @retval WHAL_SUCCESS Initialization completed.
- * @retval WHAL_EINVAL  Invalid arguments.
- */
-whal_Error whal_Stm32wbRccMsi_Init(whal_Clock *clkDev);
-/*
- * @brief Deinitialize the RCC peripheral.
- *
- * @param clkDev Clock device instance.
- *
- * @retval WHAL_SUCCESS Deinit completed.
- * @retval WHAL_EINVAL  Invalid arguments.
- */
-whal_Error whal_Stm32wbRccMsi_Deinit(whal_Clock *clkDev);
-/*
- * @brief Enable a peripheral clock gate.
- *
- * @param clkDev Clock device instance.
- * @param clk    Pointer to a whal_Stm32wbRcc_Clk descriptor.
- *
- * @retval WHAL_SUCCESS Clock enabled.
- * @retval WHAL_EINVAL  Invalid arguments.
- */
-whal_Error whal_Stm32wbRcc_Enable(whal_Clock *clkDev, const void *clk);
-/*
- * @brief Disable a peripheral clock gate.
- *
- * @param clkDev Clock device instance.
- * @param clk    Pointer to a whal_Stm32wbRcc_Clk descriptor.
- *
- * @retval WHAL_SUCCESS Clock disabled.
- * @retval WHAL_EINVAL  Invalid arguments.
- */
-whal_Error whal_Stm32wbRcc_Disable(whal_Clock *clkDev, const void *clk);
-#endif /* !WHAL_CFG_CLOCK_API_MAPPING_STM32WB_PLL && !WHAL_CFG_CLOCK_API_MAPPING_STM32WB_MSI */
-/*
- * @brief Enable or disable the HSI48 oscillator required by the RNG peripheral.
- *
- * @param clkDev Clock controller instance.
- * @param enable 1 to enable, 0 to disable.
- *
- * @retval WHAL_SUCCESS HSI48 enabled and ready, or disabled.
- * @retval WHAL_EINVAL  Invalid arguments.
- */
-whal_Error whal_Stm32wbRcc_Ext_EnableHsi48(whal_Clock *clkDev, uint8_t enable);
+whal_Error whal_Stm32wb_Rcc_SetSysClock(whal_Clock *clkDev,
+                                       whal_Stm32wb_Rcc_SysClockSrc src);
 
 /*
- * @brief Enable or disable the LSI oscillator required by the IWDG.
- *
- * When enabled, blocks until LSI1RDY is set.
- *
- * @param clkDev Clock controller instance.
- * @param enable 1 to enable, 0 to disable.
- *
- * @retval WHAL_SUCCESS LSI enabled and ready, or disabled.
- * @retval WHAL_EINVAL  Invalid arguments.
+ * @brief Enable a peripheral clock.
  */
-whal_Error whal_Stm32wbRcc_Ext_EnableLsi(whal_Clock *clkDev, uint8_t enable);
+whal_Error whal_Stm32wb_Rcc_EnablePeriphClk(whal_Clock *clkDev,
+                                           const whal_Stm32wb_Rcc_PeriphClk *clk);
+/*
+ * @brief Disable a peripheral clock.
+ */
+whal_Error whal_Stm32wb_Rcc_DisablePeriphClk(whal_Clock *clkDev,
+                                            const whal_Stm32wb_Rcc_PeriphClk *clk);
 
 #endif /* WHAL_STM32WB_RCC_H */

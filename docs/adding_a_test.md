@@ -121,7 +121,7 @@ void whal_Test_Foo_Platform(void);
 
 ## Enabling on Boards
 
-Add `foo` to the `TESTS` list in each board's `Makefile.inc` that supports this
+Add `foo` to the `TESTS` list in each board's `board.mk` that supports this
 device type. The Makefile automatically:
 
 - Defines `-DWHAL_TEST_ENABLE_FOO` so the test compiles in

@@ -24,77 +24,71 @@
 #define WHAL_STM32WB55_LPUART1_REGMAP   \
     .base = 0x40008000,                 \
     .size = 0x400
-#define WHAL_STM32WB55_LPUART1_DRIVER &whal_Stm32wbUart_Driver
+#define WHAL_STM32WB55_LPUART1_DRIVER &whal_Stm32wb_Uart_Driver
 
 #define WHAL_STM32WB55_SPI1_REGMAP      \
     .base = 0x40013000,                 \
     .size = 0x400
-#define WHAL_STM32WB55_SPI1_DRIVER &whal_Stm32wbSpi_Driver
+#define WHAL_STM32WB55_SPI1_DRIVER &whal_Stm32wb_Spi_Driver
 
 #define WHAL_STM32WB55_UART1_REGMAP     \
     .base = 0x40013800,                 \
     .size = 0x400
-#define WHAL_STM32WB55_UART1_DRIVER &whal_Stm32wbUart_Driver
+#define WHAL_STM32WB55_UART1_DRIVER &whal_Stm32wb_Uart_Driver
 
 #define WHAL_STM32WB55_GPIO_REGMAP      \
     .base = 0x48000000,                 \
     .size = 0x400
-#define WHAL_STM32WB55_GPIO_DRIVER &whal_Stm32wbGpio_Driver
+#define WHAL_STM32WB55_GPIO_DRIVER &whal_Stm32wb_Gpio_Driver
 
-#define WHAL_STM32WB55_RCC_PLL_REGMAP   \
+#define WHAL_STM32WB55_RCC_REGMAP       \
     .base = 0x58000000,                 \
     .size = 0x400
-#define WHAL_STM32WB55_RCC_PLL_DRIVER &whal_Stm32wbRccPll_Driver
-
-#define WHAL_STM32WB55_RCC_MSI_REGMAP   \
-    .base = 0x58000000,                 \
-    .size = 0x400
-#define WHAL_STM32WB55_RCC_MSI_DRIVER &whal_Stm32wbRccMsi_Driver
 
 #define WHAL_STM32WB55_RNG_REGMAP       \
     .base = 0x58001000,                 \
     .size = 0x400
-#define WHAL_STM32WB55_RNG_DRIVER &whal_Stm32wbRng_Driver
+#define WHAL_STM32WB55_RNG_DRIVER &whal_Stm32wb_Rng_Driver
 
 #define WHAL_STM32WB55_AES1_REGMAP      \
     .base = 0x50060000,                 \
     .size = 0x400
-#define WHAL_STM32WB55_AES1_DRIVER &whal_Stm32wbAes_Driver
+#define WHAL_STM32WB55_AES1_DRIVER &whal_Stm32wb_Aes_Driver
 
 #define WHAL_STM32WB55_I2C1_REGMAP      \
     .base = 0x40005400,                 \
     .size = 0x400
-#define WHAL_STM32WB55_I2C1_DRIVER &whal_Stm32wbI2c_Driver
+#define WHAL_STM32WB55_I2C1_DRIVER &whal_Stm32wb_I2c_Driver
 
 #define WHAL_STM32WB55_I2C3_REGMAP      \
     .base = 0x40005C00,                 \
     .size = 0x400
-#define WHAL_STM32WB55_I2C3_DRIVER &whal_Stm32wbI2c_Driver
+#define WHAL_STM32WB55_I2C3_DRIVER &whal_Stm32wb_I2c_Driver
 
 #define WHAL_STM32WB55_IWDG_REGMAP      \
     .base = 0x40003000,                 \
     .size = 0x400
-#define WHAL_STM32WB55_IWDG_DRIVER &whal_Stm32wbIwdg_Driver
+#define WHAL_STM32WB55_IWDG_DRIVER &whal_Stm32wb_Iwdg_Driver
 
 #define WHAL_STM32WB55_WWDG_REGMAP      \
     .base = 0x40002C00,                 \
     .size = 0x400
-#define WHAL_STM32WB55_WWDG_DRIVER &whal_Stm32wbWwdg_Driver
+#define WHAL_STM32WB55_WWDG_DRIVER &whal_Stm32wb_Wwdg_Driver
 
 #define WHAL_STM32WB55_FLASH_REGMAP     \
     .base = 0x58004000,                 \
     .size = 0x400
-#define WHAL_STM32WB55_FLASH_DRIVER &whal_Stm32wbFlash_Driver
+#define WHAL_STM32WB55_FLASH_DRIVER &whal_Stm32wb_Flash_Driver
 
 #define WHAL_STM32WB55_DMA1_REGMAP      \
     .base = 0x40020000,                 \
     .size = 0x400
-#define WHAL_STM32WB55_DMA1_DRIVER &whal_Stm32wbDma_Driver
+#define WHAL_STM32WB55_DMA1_DRIVER &whal_Stm32wb_Dma_Driver
 
 #define WHAL_STM32WB55_DMA2_REGMAP      \
     .base = 0x40020400,                 \
     .size = 0x400
-#define WHAL_STM32WB55_DMA2_DRIVER &whal_Stm32wbDma_Driver
+#define WHAL_STM32WB55_DMA2_DRIVER &whal_Stm32wb_Dma_Driver
 
 #define WHAL_STM32WB55_DMA1_CFG         \
     .dmamuxBase = 0x40020800,           \
@@ -107,72 +101,67 @@
     .numChannels = 5
 
 
-#define WHAL_STM32WB55_PLL_CLOCK    \
-    .regOffset = 0x00,              \
-    .enableMask = (1UL << 24),      \
-    .enablePos = 24
-
-#define WHAL_STM32WB55_GPIOA_CLOCK  \
+#define WHAL_STM32WB55_GPIOA_GATE  \
     .regOffset = 0x4C,              \
     .enableMask = (1UL << 0),       \
     .enablePos = 0
 
-#define WHAL_STM32WB55_GPIOB_CLOCK  \
+#define WHAL_STM32WB55_GPIOB_GATE  \
     .regOffset = 0x4C,              \
     .enableMask = (1UL << 1),       \
     .enablePos = 1
 
-#define WHAL_STM32WB55_AES1_CLOCK    \
+#define WHAL_STM32WB55_AES1_GATE    \
     .regOffset = 0x4C,               \
     .enableMask = (1UL << 16),       \
     .enablePos = 16
 
-#define WHAL_STM32WB55_WWDG_CLOCK   \
+#define WHAL_STM32WB55_WWDG_GATE   \
     .regOffset = 0x58,              \
     .enableMask = (1UL << 11),      \
     .enablePos = 11
 
-#define WHAL_STM32WB55_RNG_CLOCK    \
+#define WHAL_STM32WB55_RNG_GATE    \
     .regOffset = 0x50,              \
     .enableMask = (1UL << 18),      \
     .enablePos = 18
 
-#define WHAL_STM32WB55_FLASH_CLOCK  \
+#define WHAL_STM32WB55_FLASH_GATE  \
     .regOffset = 0x50,              \
     .enableMask = (1UL << 25),      \
     .enablePos = 25
 
-#define WHAL_STM32WB55_I2C1_CLOCK   \
+#define WHAL_STM32WB55_I2C1_GATE   \
     .regOffset = 0x58,              \
     .enableMask = (1UL << 21),      \
     .enablePos = 21
 
-#define WHAL_STM32WB55_I2C3_CLOCK   \
+#define WHAL_STM32WB55_I2C3_GATE   \
     .regOffset = 0x58,              \
     .enableMask = (1UL << 23),      \
     .enablePos = 23
 
-#define WHAL_STM32WB55_LPUART1_CLOCK    \
+#define WHAL_STM32WB55_LPUART1_GATE    \
     .regOffset = 0x5C,                  \
     .enableMask = (1UL << 0),           \
     .enablePos = 0
 
-#define WHAL_STM32WB55_UART1_CLOCK  \
+#define WHAL_STM32WB55_UART1_GATE  \
     .regOffset = 0x60,              \
     .enableMask = (1UL << 14),      \
     .enablePos = 14
 
-#define WHAL_STM32WB55_SPI1_CLOCK   \
+#define WHAL_STM32WB55_SPI1_GATE   \
     .regOffset = 0x60,              \
     .enableMask = (1UL << 12),      \
     .enablePos = 12
 
-#define WHAL_STM32WB55_DMA1_CLOCK   \
+#define WHAL_STM32WB55_DMA1_GATE   \
     .regOffset = 0x48,              \
     .enableMask = (1UL << 0),       \
     .enablePos = 0
 
-#define WHAL_STM32WB55_DMA2_CLOCK   \
+#define WHAL_STM32WB55_DMA2_GATE   \
     .regOffset = 0x48,              \
     .enableMask = (1UL << 1),       \
     .enablePos = 1
@@ -191,7 +180,7 @@
     .dstInc = WHAL_STM32WB_DMA_INC_ENABLE,     \
     .dmamuxReqId = 14
 
-#define WHAL_STM32WB55_DMAMUX1_CLOCK \
+#define WHAL_STM32WB55_DMAMUX1_GATE \
     .regOffset = 0x48,               \
     .enableMask = (1UL << 2),        \
     .enablePos = 2

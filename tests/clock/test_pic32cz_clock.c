@@ -13,7 +13,7 @@
 static void Test_Clock_EnableDisable(void)
 {
     /* Use a test clock descriptor for SERCOM4 (same as UART clock) */
-    whal_Pic32czClock_Clk testClk = {
+    whal_Pic32cz_Clock_PeriphClk testClk = {
         .gclkPeriphChannel = 25,
         .gclkPeriphSrc = 0,
         .mclkEnableInst = 1,
@@ -33,7 +33,7 @@ static void Test_Clock_EnableDisable(void)
     size_t val = 0;
 
     /* Enable and verify */
-    WHAL_ASSERT_EQ(whal_Clock_Enable(&g_whalClock, &testClk), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Pic32cz_Clock_EnablePeriphClk(&g_whalClock, &testClk), WHAL_SUCCESS);
 
     whal_Reg_Get(g_whalClock.regmap.base, GCLK_PCHCTRL_OFFSET(25),
                  GCLK_PCHCTRL_CHEN_Msk, GCLK_PCHCTRL_CHEN_Pos, &val);
@@ -44,7 +44,7 @@ static void Test_Clock_EnableDisable(void)
     WHAL_ASSERT_EQ(val, 1);
 
     /* Disable and verify */
-    WHAL_ASSERT_EQ(whal_Clock_Disable(&g_whalClock, &testClk), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Pic32cz_Clock_DisablePeriphClk(&g_whalClock, &testClk), WHAL_SUCCESS);
 
     whal_Reg_Get(g_whalClock.regmap.base, GCLK_PCHCTRL_OFFSET(25),
                  GCLK_PCHCTRL_CHEN_Msk, GCLK_PCHCTRL_CHEN_Pos, &val);
@@ -52,7 +52,7 @@ static void Test_Clock_EnableDisable(void)
 
     /* Restore original state */
     if (origChen)
-        whal_Clock_Enable(&g_whalClock, &testClk);
+        whal_Pic32cz_Clock_EnablePeriphClk(&g_whalClock, &testClk);
 }
 
 void whal_Test_Clock_Platform(void)

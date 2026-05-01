@@ -183,22 +183,6 @@ struct whal_Crypto {
  * @retval WHAL_EINVAL   Null pointer.
  * @retval WHAL_ENOTSUP  Operation not implemented by this driver.
  */
-#ifdef WHAL_CFG_DIRECT_CALLBACKS
-#define whal_Crypto_Init(cryptoDev) ((cryptoDev)->driver->Init((cryptoDev)))
-#define whal_Crypto_Deinit(cryptoDev) ((cryptoDev)->driver->Deinit((cryptoDev)))
-#define whal_Crypto_StartOp(cryptoDev, opId, opArgs) ((cryptoDev)->driver->StartOp((cryptoDev), (opId), (opArgs)))
-#define whal_Crypto_Process(cryptoDev, opId, opArgs) ((cryptoDev)->driver->Process((cryptoDev), (opId), (opArgs)))
-#define whal_Crypto_EndOp(cryptoDev, opId, opArgs) ((cryptoDev)->driver->EndOp((cryptoDev), (opId), (opArgs)))
-#else
-/*
- * @brief Initialize a crypto device and its driver.
- *
- * @param cryptoDev Pointer to the crypto instance to initialize.
- *
- * @retval WHAL_SUCCESS  Driver-specific init completed.
- * @retval WHAL_EINVAL   Null pointer.
- * @retval WHAL_ENOTSUP  Operation not implemented by this driver.
- */
 whal_Error whal_Crypto_Init(whal_Crypto *cryptoDev);
 
 /*
@@ -265,7 +249,6 @@ whal_Error whal_Crypto_Process(whal_Crypto *cryptoDev, size_t opId,
  */
 whal_Error whal_Crypto_EndOp(whal_Crypto *cryptoDev, size_t opId,
                              void *opArgs);
-#endif
 
 /* ---- Per-algorithm inline wrappers ---- */
 #ifdef WHAL_CFG_CRYPTO_AES_ECB

@@ -18,18 +18,18 @@
 #define CFR_EWI_Pos 9
 #define CFR_EWI_Msk (1UL << CFR_EWI_Pos)
 
-#if defined(WHAL_CFG_WATCHDOG_API_MAPPING_STM32F0_WWDG) || \
-    defined(WHAL_CFG_WATCHDOG_API_MAPPING_STM32F3_WWDG) || \
-    defined(WHAL_CFG_WATCHDOG_API_MAPPING_STM32L1_WWDG)
-#define whal_Stm32f0Wwdg_Init    whal_Watchdog_Init
-#define whal_Stm32f0Wwdg_Deinit  whal_Watchdog_Deinit
-#define whal_Stm32f0Wwdg_Refresh whal_Watchdog_Refresh
+#if defined(WHAL_CFG_STM32F0_WWDG_DIRECT_API_MAPPING) || \
+    defined(WHAL_CFG_STM32F3_WWDG_DIRECT_API_MAPPING) || \
+    defined(WHAL_CFG_STM32L1_WWDG_DIRECT_API_MAPPING)
+#define whal_Stm32f0_Wwdg_Init    whal_Watchdog_Init
+#define whal_Stm32f0_Wwdg_Deinit  whal_Watchdog_Deinit
+#define whal_Stm32f0_Wwdg_Refresh whal_Watchdog_Refresh
 #endif
 
-whal_Error whal_Stm32f0Wwdg_Init(whal_Watchdog *wdgDev)
+whal_Error whal_Stm32f0_Wwdg_Init(whal_Watchdog *wdgDev)
 {
     size_t base;
-    whal_Stm32f0Wwdg_Cfg *cfg;
+    whal_Stm32f0_Wwdg_Cfg *cfg;
 
     if (!wdgDev || !wdgDev->cfg)
         return WHAL_EINVAL;
@@ -49,7 +49,7 @@ whal_Error whal_Stm32f0Wwdg_Init(whal_Watchdog *wdgDev)
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_Stm32f0Wwdg_Deinit(whal_Watchdog *wdgDev)
+whal_Error whal_Stm32f0_Wwdg_Deinit(whal_Watchdog *wdgDev)
 {
     if (!wdgDev)
         return WHAL_EINVAL;
@@ -57,10 +57,10 @@ whal_Error whal_Stm32f0Wwdg_Deinit(whal_Watchdog *wdgDev)
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_Stm32f0Wwdg_Refresh(whal_Watchdog *wdgDev)
+whal_Error whal_Stm32f0_Wwdg_Refresh(whal_Watchdog *wdgDev)
 {
     size_t base;
-    whal_Stm32f0Wwdg_Cfg *cfg;
+    whal_Stm32f0_Wwdg_Cfg *cfg;
 
     if (!wdgDev || !wdgDev->cfg)
         return WHAL_EINVAL;
@@ -73,12 +73,12 @@ whal_Error whal_Stm32f0Wwdg_Refresh(whal_Watchdog *wdgDev)
     return WHAL_SUCCESS;
 }
 
-#if !defined(WHAL_CFG_WATCHDOG_API_MAPPING_STM32F0_WWDG) && \
-    !defined(WHAL_CFG_WATCHDOG_API_MAPPING_STM32F3_WWDG) && \
-    !defined(WHAL_CFG_WATCHDOG_API_MAPPING_STM32L1_WWDG)
-const whal_WatchdogDriver whal_Stm32f0Wwdg_Driver = {
-    .Init = whal_Stm32f0Wwdg_Init,
-    .Deinit = whal_Stm32f0Wwdg_Deinit,
-    .Refresh = whal_Stm32f0Wwdg_Refresh,
+#if !defined(WHAL_CFG_STM32F0_WWDG_DIRECT_API_MAPPING) && \
+    !defined(WHAL_CFG_STM32F3_WWDG_DIRECT_API_MAPPING) && \
+    !defined(WHAL_CFG_STM32L1_WWDG_DIRECT_API_MAPPING)
+const whal_WatchdogDriver whal_Stm32f0_Wwdg_Driver = {
+    .Init = whal_Stm32f0_Wwdg_Init,
+    .Deinit = whal_Stm32f0_Wwdg_Deinit,
+    .Refresh = whal_Stm32f0_Wwdg_Refresh,
 };
 #endif

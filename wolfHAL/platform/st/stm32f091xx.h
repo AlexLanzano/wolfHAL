@@ -31,62 +31,61 @@
 #define WHAL_STM32F091_RCC_REGMAP       \
     .base = 0x40021000,                 \
     .size = 0x400
-#define WHAL_STM32F091_RCC_DRIVER &whal_Stm32f0Rcc_Driver
 
 #define WHAL_STM32F091_GPIO_REGMAP      \
     .base = 0x48000000,                 \
     .size = 0x1800
-#define WHAL_STM32F091_GPIO_DRIVER &whal_Stm32f0Gpio_Driver
+#define WHAL_STM32F091_GPIO_DRIVER &whal_Stm32f0_Gpio_Driver
 
 #define WHAL_STM32F091_USART1_REGMAP    \
     .base = 0x40013800,                 \
     .size = 0x400
-#define WHAL_STM32F091_USART1_DRIVER &whal_Stm32f0Uart_Driver
+#define WHAL_STM32F091_USART1_DRIVER &whal_Stm32f0_Uart_Driver
 
 #define WHAL_STM32F091_USART2_REGMAP    \
     .base = 0x40004400,                 \
     .size = 0x400
-#define WHAL_STM32F091_USART2_DRIVER &whal_Stm32f0Uart_Driver
+#define WHAL_STM32F091_USART2_DRIVER &whal_Stm32f0_Uart_Driver
 
 #define WHAL_STM32F091_USART3_REGMAP    \
     .base = 0x40004800,                 \
     .size = 0x400
-#define WHAL_STM32F091_USART3_DRIVER &whal_Stm32f0Uart_Driver
+#define WHAL_STM32F091_USART3_DRIVER &whal_Stm32f0_Uart_Driver
 
 #define WHAL_STM32F091_SPI1_REGMAP      \
     .base = 0x40013000,                 \
     .size = 0x400
-#define WHAL_STM32F091_SPI1_DRIVER &whal_Stm32f0Spi_Driver
+#define WHAL_STM32F091_SPI1_DRIVER &whal_Stm32f0_Spi_Driver
 
 #define WHAL_STM32F091_SPI2_REGMAP      \
     .base = 0x40003800,                 \
     .size = 0x400
-#define WHAL_STM32F091_SPI2_DRIVER &whal_Stm32f0Spi_Driver
+#define WHAL_STM32F091_SPI2_DRIVER &whal_Stm32f0_Spi_Driver
 
 #define WHAL_STM32F091_I2C1_REGMAP      \
     .base = 0x40005400,                 \
     .size = 0x400
-#define WHAL_STM32F091_I2C1_DRIVER &whal_Stm32f0I2c_Driver
+#define WHAL_STM32F091_I2C1_DRIVER &whal_Stm32f0_I2c_Driver
 
 #define WHAL_STM32F091_I2C2_REGMAP      \
     .base = 0x40005800,                 \
     .size = 0x400
-#define WHAL_STM32F091_I2C2_DRIVER &whal_Stm32f0I2c_Driver
+#define WHAL_STM32F091_I2C2_DRIVER &whal_Stm32f0_I2c_Driver
 
 #define WHAL_STM32F091_FLASH_REGMAP     \
     .base = 0x40022000,                 \
     .size = 0x400
-#define WHAL_STM32F091_FLASH_DRIVER &whal_Stm32f0Flash_Driver
+#define WHAL_STM32F091_FLASH_DRIVER &whal_Stm32f0_Flash_Driver
 
 #define WHAL_STM32F091_IWDG_REGMAP      \
     .base = 0x40003000,                 \
     .size = 0x400
-#define WHAL_STM32F091_IWDG_DRIVER &whal_Stm32f0Iwdg_Driver
+#define WHAL_STM32F091_IWDG_DRIVER &whal_Stm32f0_Iwdg_Driver
 
 #define WHAL_STM32F091_WWDG_REGMAP      \
     .base = 0x40002C00,                 \
     .size = 0x400
-#define WHAL_STM32F091_WWDG_DRIVER &whal_Stm32f0Wwdg_Driver
+#define WHAL_STM32F091_WWDG_DRIVER &whal_Stm32f0_Wwdg_Driver
 
 /* --- Clock gate macros --- */
 

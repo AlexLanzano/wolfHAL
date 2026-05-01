@@ -18,15 +18,15 @@
 /*
  * @brief RNG device configuration.
  */
-typedef struct whal_Stm32h5Rng_Cfg {
+typedef struct whal_Stm32h5_Rng_Cfg {
     whal_Timeout *timeout;
-} whal_Stm32h5Rng_Cfg;
+} whal_Stm32h5_Rng_Cfg;
 
-#ifndef WHAL_CFG_RNG_API_MAPPING_STM32H5
+#ifndef WHAL_CFG_STM32H5_RNG_DIRECT_API_MAPPING
 /*
  * @brief Driver instance for STM32H5 RNG peripheral.
  */
-extern const whal_RngDriver whal_Stm32h5Rng_Driver;
+extern const whal_RngDriver whal_Stm32h5_Rng_Driver;
 
 /*
  * @brief Initialize the STM32H5 RNG peripheral.
@@ -36,7 +36,7 @@ extern const whal_RngDriver whal_Stm32h5Rng_Driver;
  * @retval WHAL_SUCCESS Initialization completed.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_Stm32h5Rng_Init(whal_Rng *rngDev);
+whal_Error whal_Stm32h5_Rng_Init(whal_Rng *rngDev);
 
 /*
  * @brief Deinitialize the STM32H5 RNG peripheral.
@@ -46,7 +46,7 @@ whal_Error whal_Stm32h5Rng_Init(whal_Rng *rngDev);
  * @retval WHAL_SUCCESS Deinit completed.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_Stm32h5Rng_Deinit(whal_Rng *rngDev);
+whal_Error whal_Stm32h5_Rng_Deinit(whal_Rng *rngDev);
 
 /*
  * @brief Generate random data.
@@ -63,8 +63,8 @@ whal_Error whal_Stm32h5Rng_Deinit(whal_Rng *rngDev);
  * @retval WHAL_EHARDWARE Seed or clock error detected.
  * @retval WHAL_ETIMEOUT  Timed out waiting for random data.
  */
-whal_Error whal_Stm32h5Rng_Generate(whal_Rng *rngDev, void *rngData,
+whal_Error whal_Stm32h5_Rng_Generate(whal_Rng *rngDev, void *rngData,
                                      size_t rngDataSz);
-#endif /* !WHAL_CFG_RNG_API_MAPPING_STM32H5 */
+#endif /* !WHAL_CFG_STM32H5_RNG_DIRECT_API_MAPPING */
 
 #endif /* WHAL_STM32H5_RNG_H */

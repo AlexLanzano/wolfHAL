@@ -12,14 +12,14 @@
 
 #include <wolfHAL/watchdog/stm32wb_wwdg.h>
 
-typedef whal_Stm32wbWwdg_Cfg whal_Stm32wbaWwdg_Cfg;
+typedef whal_Stm32wb_Wwdg_Cfg whal_Stm32wba_Wwdg_Cfg;
 
-#ifndef WHAL_CFG_WATCHDOG_API_MAPPING_STM32WBA_WWDG
-#define whal_Stm32wbaWwdg_Driver  whal_Stm32wbWwdg_Driver
-#define whal_Stm32wbaWwdg_Init    whal_Stm32wbWwdg_Init
-#define whal_Stm32wbaWwdg_Deinit  whal_Stm32wbWwdg_Deinit
-#define whal_Stm32wbaWwdg_Refresh whal_Stm32wbWwdg_Refresh
-#endif /* !WHAL_CFG_WATCHDOG_API_MAPPING_STM32WBA_WWDG */
+#ifndef WHAL_CFG_STM32WBA_WWDG_DIRECT_API_MAPPING
+#define whal_Stm32wba_Wwdg_Driver  whal_Stm32wb_Wwdg_Driver
+#define whal_Stm32wba_Wwdg_Init    whal_Stm32wb_Wwdg_Init
+#define whal_Stm32wba_Wwdg_Deinit  whal_Stm32wb_Wwdg_Deinit
+#define whal_Stm32wba_Wwdg_Refresh whal_Stm32wb_Wwdg_Refresh
+#endif /* !WHAL_CFG_STM32WBA_WWDG_DIRECT_API_MAPPING */
 
 /*
  * @brief Timebase prescaler values (re-exported from STM32WB).

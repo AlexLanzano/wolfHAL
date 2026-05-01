@@ -51,9 +51,9 @@ on failure.
 #include <wolfHAL/platform/vendor/device.h>
 #include "peripheral.h"
 
-static whal_MyplatformGpio_PinCfg pinCfg[] = { /* ... */ };
+static whal_Myplatform_Gpio_PinCfg pinCfg[] = { /* ... */ };
 
-static whal_MyplatformGpio_Cfg gpioConfig = {
+static whal_Myplatform_Gpio_Cfg gpioConfig = {
     .pinCfg  = pinCfg,
     .pinCount = sizeof(pinCfg) / sizeof(pinCfg[0]),
 };
@@ -63,23 +63,32 @@ whal_Gpio g_whalGpio = {
     .cfg = &gpioConfig,
 };
 
-static const MyPlatformClk g_peripheralClocks[] = {
+static const whal_Myplatform_Clock_PeriphClk g_periphClks[] = {
     {MY_PLATFORM_GPIO_CLOCK},
     {MY_PLATFORM_UART_CLOCK},
 };
-#define PERIPHERAL_CLOCK_COUNT \
-    (sizeof(g_peripheralClocks) / sizeof(g_peripheralClocks[0]))
+#define PERIPH_CLK_COUNT \
+    (sizeof(g_periphClks) / sizeof(g_periphClks[0]))
 
 whal_Error Board_Init(void)
 {
     whal_Error err;
 
-    err = whal_Clock_Init(&g_whalClock);
+    /* Bring up the clock tree imperatively. The chip's clock driver
+     * exposes Enable*/Disable*/Set* helpers; boards call them in order.
+     * The exact sequence is chip-specific — see the chip's clock header. */
+    err = whal_Myplatform_Clock_EnableOsc(&g_whalClock,
+        &(whal_Myplatform_Clock_OscCfg){WHAL_MYPLATFORM_CLOCK_OSC0_CFG});
+    if (err)
+        return err;
+    err = whal_Myplatform_Clock_SetSysClock(&g_whalClock,
+        WHAL_MYPLATFORM_CLOCK_SYSCLK_SRC_OSC0);
     if (err)
         return err;
 
-    for (size_t i = 0; i < PERIPHERAL_CLOCK_COUNT; i++) {
-        err = whal_Clock_Enable(&g_whalClock, &g_peripheralClocks[i]);
+    for (size_t i = 0; i < PERIPH_CLK_COUNT; i++) {
+        err = whal_Myplatform_Clock_EnablePeriphClk(&g_whalClock,
+                                                   &g_periphClks[i]);
         if (err)
             return err;
     }
@@ -131,18 +140,18 @@ whal_Error Board_Deinit(void)
     whal_Uart_Deinit(&g_whalUart);
     whal_Gpio_Deinit(&g_whalGpio);
 
-    for (size_t i = 0; i < PERIPHERAL_CLOCK_COUNT; i++) {
-        err = whal_Clock_Disable(&g_whalClock, &g_peripheralClocks[i]);
+    for (size_t i = PERIPH_CLK_COUNT; i-- > 0; ) {
+        err = whal_Myplatform_Clock_DisablePeriphClk(&g_whalClock,
+                                                    &g_periphClks[i]);
         if (err)
             return err;
     }
 
-    whal_Clock_Deinit(&g_whalClock);
     return WHAL_SUCCESS;
 }
 ```
 
-### Makefile.inc
+### board.mk
 
 Defines the toolchain, compiler flags, and source file list:
 
@@ -158,7 +167,7 @@ OBJCOPY = arm-none-eabi-objcopy
 
 CFLAGS  = -mcpu=cortex-m4 -mthumb -Os -Wall -MMD $(INCLUDE) -I$(_BOARD_DIR) \
           -DWHAL_CFG_GPIO_API_MAPPING_MYPLATFORM \
-          -DWHAL_CFG_CLOCK_API_MAPPING_MYPLATFORM_PLL \
+          -DWHAL_CFG_CLOCK_API_MAPPING_MYPLATFORM \
           -DWHAL_CFG_UART_API_MAPPING_MYPLATFORM
 LDFLAGS = -mcpu=cortex-m4 -mthumb -nostdlib -lgcc
 
@@ -178,7 +187,7 @@ BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/myplatform_*.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/systick.c)
 
 # Peripheral devices
-include $(WHAL_DIR)/boards/peripheral/Makefile.inc
+include $(WHAL_DIR)/boards/peripheral/board.mk
 ```
 
 ## Peripheral Devices
@@ -187,10 +196,10 @@ Boards support optional external peripheral devices (e.g., SPI-NOR flash, SD
 cards) through the peripheral system in `boards/peripheral/`. To enable this:
 
 1. Include `peripheral.h` in `board.c` and add the peripheral include path
-   (`-I$(WHAL_DIR)/boards/peripheral`) in `Makefile.inc`.
+   (`-I$(WHAL_DIR)/boards/peripheral`) in `board.mk`.
 
-2. Include `boards/peripheral/Makefile.inc` at the end of the board's
-   `Makefile.inc`. This conditionally compiles peripheral drivers based on
+2. Include `boards/peripheral/board.mk` at the end of the board's
+   `board.mk`. This conditionally compiles peripheral drivers based on
    build-time flags (e.g., `PERIPHERAL_SPI_NOR_W25Q64=1`).
 
 3. Call `Peripheral_Init()` at the end of `Board_Init()` and

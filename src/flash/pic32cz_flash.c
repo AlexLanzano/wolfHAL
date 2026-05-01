@@ -94,17 +94,17 @@
 #define FCW_DWORD_SIZE          8
 #define FCW_QDWORD_SIZE         32
 
-#ifdef WHAL_CFG_FLASH_API_MAPPING_PIC32CZ
-#define whal_Pic32czFlash_Init   whal_Flash_Init
-#define whal_Pic32czFlash_Deinit whal_Flash_Deinit
-#define whal_Pic32czFlash_Lock   whal_Flash_Lock
-#define whal_Pic32czFlash_Unlock whal_Flash_Unlock
-#define whal_Pic32czFlash_Read   whal_Flash_Read
-#define whal_Pic32czFlash_Write  whal_Flash_Write
-#define whal_Pic32czFlash_Erase  whal_Flash_Erase
-#endif /* WHAL_CFG_FLASH_API_MAPPING_PIC32CZ */
+#ifdef WHAL_CFG_PIC32CZ_FLASH_DIRECT_API_MAPPING
+#define whal_Pic32cz_Flash_Init   whal_Flash_Init
+#define whal_Pic32cz_Flash_Deinit whal_Flash_Deinit
+#define whal_Pic32cz_Flash_Lock   whal_Flash_Lock
+#define whal_Pic32cz_Flash_Unlock whal_Flash_Unlock
+#define whal_Pic32cz_Flash_Read   whal_Flash_Read
+#define whal_Pic32cz_Flash_Write  whal_Flash_Write
+#define whal_Pic32cz_Flash_Erase  whal_Flash_Erase
+#endif /* WHAL_CFG_PIC32CZ_FLASH_DIRECT_API_MAPPING */
 
-static whal_Error whal_Pic32czFlash_MutexLock(const whal_Regmap *reg,
+static whal_Error whal_Pic32cz_Flash_MutexLock(const whal_Regmap *reg,
                                               whal_Timeout *timeout)
 {
     WHAL_TIMEOUT_START(timeout);
@@ -120,14 +120,14 @@ static whal_Error whal_Pic32czFlash_MutexLock(const whal_Regmap *reg,
     return WHAL_SUCCESS;
 }
 
-static void whal_Pic32czFlash_MutexUnlock(const whal_Regmap *reg)
+static void whal_Pic32cz_Flash_MutexUnlock(const whal_Regmap *reg)
 {
     whal_Reg_Update(reg->base, FCW_MUTEX_REG, FCW_MUTEX_LOCK_Msk | FCW_MUTEX_OWNER_Msk,
                     whal_SetBits(FCW_MUTEX_LOCK_Msk, FCW_MUTEX_LOCK_Pos, 0) |
                     whal_SetBits(FCW_MUTEX_OWNER_Msk, FCW_MUTEX_OWNER_Pos, 1));
 }
 
-static whal_Error whal_Pic32czFlash_WaitBusy(const whal_Regmap *reg,
+static whal_Error whal_Pic32cz_Flash_WaitBusy(const whal_Regmap *reg,
                                               whal_Timeout *timeout)
 {
     WHAL_TIMEOUT_START(timeout);
@@ -143,7 +143,7 @@ static whal_Error whal_Pic32czFlash_WaitBusy(const whal_Regmap *reg,
  * Execute an FCW command: unlock, trigger, wait, and check for errors.
  * Caller must set up FCW_ADDR and FCW_DATA registers before calling.
  */
-static whal_Error whal_Pic32czFlash_ExecCmd(const whal_Regmap *reg, size_t cmd,
+static whal_Error whal_Pic32cz_Flash_ExecCmd(const whal_Regmap *reg, size_t cmd,
                                             whal_Timeout *timeout)
 {
     whal_Error err;
@@ -158,7 +158,7 @@ static whal_Error whal_Pic32czFlash_ExecCmd(const whal_Regmap *reg, size_t cmd,
                     whal_SetBits(FCW_CTRLA_NVMOP_Msk, FCW_CTRLA_NVMOP_Pos, cmd) | FCW_CTRLA_PREPG_Msk);
 
     /* Wait for completion */
-    err = whal_Pic32czFlash_WaitBusy(reg, timeout);
+    err = whal_Pic32cz_Flash_WaitBusy(reg, timeout);
     if (err)
         return err;
 
@@ -179,7 +179,7 @@ static whal_Error whal_Pic32czFlash_ExecCmd(const whal_Regmap *reg, size_t cmd,
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_Pic32czFlash_Init(whal_Flash *flashDev)
+whal_Error whal_Pic32cz_Flash_Init(whal_Flash *flashDev)
 {
     const whal_Regmap *reg;
 
@@ -189,7 +189,7 @@ whal_Error whal_Pic32czFlash_Init(whal_Flash *flashDev)
 
     reg = &flashDev->regmap;
 
-    whal_Pic32czFlash_MutexUnlock(reg);
+    whal_Pic32cz_Flash_MutexUnlock(reg);
     whal_Reg_Update(reg->base, FCW_KEY_REG, 0xFFFFFFFF, 0);
     whal_Reg_Update(reg->base, FCW_ADDR_REG, 0xFFFFFFFF, 0);
     whal_Reg_Update(reg->base, FCW_SRCADDR_REG, 0xFFFFFFFF, 0);
@@ -201,7 +201,7 @@ whal_Error whal_Pic32czFlash_Init(whal_Flash *flashDev)
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_Pic32czFlash_Deinit(whal_Flash *flashDev)
+whal_Error whal_Pic32cz_Flash_Deinit(whal_Flash *flashDev)
 {
     const whal_Regmap *reg;
 
@@ -211,7 +211,7 @@ whal_Error whal_Pic32czFlash_Deinit(whal_Flash *flashDev)
 
     reg = &flashDev->regmap;
 
-    whal_Pic32czFlash_MutexUnlock(reg);
+    whal_Pic32cz_Flash_MutexUnlock(reg);
     whal_Reg_Update(reg->base, FCW_KEY_REG, 0xFFFFFFFF, 0);
     whal_Reg_Update(reg->base, FCW_ADDR_REG, 0xFFFFFFFF, 0);
     whal_Reg_Update(reg->base, FCW_SRCADDR_REG, 0xFFFFFFFF, 0);
@@ -223,7 +223,7 @@ whal_Error whal_Pic32czFlash_Deinit(whal_Flash *flashDev)
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_Pic32czFlash_Lock(whal_Flash *flashDev, size_t addr, size_t len)
+whal_Error whal_Pic32cz_Flash_Lock(whal_Flash *flashDev, size_t addr, size_t len)
 {
     /*
      * TODO: Implement using FCW_PWP[0..7] region write-protect registers.
@@ -240,7 +240,7 @@ whal_Error whal_Pic32czFlash_Lock(whal_Flash *flashDev, size_t addr, size_t len)
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_Pic32czFlash_Unlock(whal_Flash *flashDev, size_t addr, size_t len)
+whal_Error whal_Pic32cz_Flash_Unlock(whal_Flash *flashDev, size_t addr, size_t len)
 {
     (void)addr;
     (void)len;
@@ -252,12 +252,12 @@ whal_Error whal_Pic32czFlash_Unlock(whal_Flash *flashDev, size_t addr, size_t le
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_Pic32czFlash_Read(whal_Flash *flashDev, size_t addr, void *data,
+whal_Error whal_Pic32cz_Flash_Read(whal_Flash *flashDev, size_t addr, void *data,
                              size_t dataSz)
 {
     uint8_t *dataBuf = (uint8_t *)data;
     const whal_Regmap *reg;
-    whal_Pic32czFlash_Cfg *cfg;
+    whal_Pic32cz_Flash_Cfg *cfg;
     uint8_t *flashAddr = (uint8_t *)addr;
     whal_Error err;
     size_t i;
@@ -270,7 +270,7 @@ whal_Error whal_Pic32czFlash_Read(whal_Flash *flashDev, size_t addr, void *data,
     cfg = flashDev->cfg;
 
 
-    err = whal_Pic32czFlash_MutexLock(reg, cfg->timeout);
+    err = whal_Pic32cz_Flash_MutexLock(reg, cfg->timeout);
     if (err)
         return err;
 
@@ -279,17 +279,17 @@ whal_Error whal_Pic32czFlash_Read(whal_Flash *flashDev, size_t addr, void *data,
         dataBuf[i] = flashAddr[i];
     }
 
-    whal_Pic32czFlash_MutexUnlock(reg);
+    whal_Pic32cz_Flash_MutexUnlock(reg);
 
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_Pic32czFlash_Write(whal_Flash *flashDev, size_t addr, const void *data,
+whal_Error whal_Pic32cz_Flash_Write(whal_Flash *flashDev, size_t addr, const void *data,
                               size_t dataSz)
 {
     const uint8_t *dataBuf = (const uint8_t *)data;
     const whal_Regmap *reg;
-    whal_Pic32czFlash_Cfg *cfg;
+    whal_Pic32cz_Flash_Cfg *cfg;
     const uint32_t *src;
     whal_Error err;
     size_t offset = 0;
@@ -309,7 +309,7 @@ whal_Error whal_Pic32czFlash_Write(whal_Flash *flashDev, size_t addr, const void
     src = (const uint32_t *)dataBuf;
 
 
-    err = whal_Pic32czFlash_MutexLock(reg, cfg->timeout);
+    err = whal_Pic32cz_Flash_MutexLock(reg, cfg->timeout);
     if (err)
         return err;
 
@@ -317,9 +317,9 @@ whal_Error whal_Pic32czFlash_Write(whal_Flash *flashDev, size_t addr, const void
         size_t curAddr = addr + offset;
         size_t remaining = dataSz - offset;
 
-        err = whal_Pic32czFlash_WaitBusy(reg, cfg->timeout);
+        err = whal_Pic32cz_Flash_WaitBusy(reg, cfg->timeout);
         if (err) {
-            whal_Pic32czFlash_MutexUnlock(reg);
+            whal_Pic32cz_Flash_MutexUnlock(reg);
             return err;
         }
 
@@ -332,11 +332,11 @@ whal_Error whal_Pic32czFlash_Write(whal_Flash *flashDev, size_t addr, const void
             }
             whal_Reg_Update(reg->base, FCW_ADDR_REG, 0xFFFFFFFF, curAddr);
 
-            err = whal_Pic32czFlash_ExecCmd(reg,
+            err = whal_Pic32cz_Flash_ExecCmd(reg,
                                             FCW_CTRLA_NVMOP_QUAD_DWORD,
                                             cfg->timeout);
             if (err) {
-                whal_Pic32czFlash_MutexUnlock(reg);
+                whal_Pic32cz_Flash_MutexUnlock(reg);
                 return err;
             }
             offset += FCW_QDWORD_SIZE;
@@ -348,11 +348,11 @@ whal_Error whal_Pic32czFlash_Write(whal_Flash *flashDev, size_t addr, const void
                             0xFFFFFFFF, src[offset / 4 + 1]);
             whal_Reg_Update(reg->base, FCW_ADDR_REG, 0xFFFFFFFF, curAddr);
 
-            err = whal_Pic32czFlash_ExecCmd(reg,
+            err = whal_Pic32cz_Flash_ExecCmd(reg,
                                             FCW_CTRLA_NVMOP_SINGLE_DWORD,
                                             cfg->timeout);
             if (err) {
-                whal_Pic32czFlash_MutexUnlock(reg);
+                whal_Pic32cz_Flash_MutexUnlock(reg);
                 return err;
             }
             offset += FCW_DWORD_SIZE;
@@ -360,15 +360,15 @@ whal_Error whal_Pic32czFlash_Write(whal_Flash *flashDev, size_t addr, const void
 
     }
 
-    whal_Pic32czFlash_MutexUnlock(reg);
+    whal_Pic32cz_Flash_MutexUnlock(reg);
 
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_Pic32czFlash_Erase(whal_Flash *flashDev, size_t addr, size_t dataSz)
+whal_Error whal_Pic32cz_Flash_Erase(whal_Flash *flashDev, size_t addr, size_t dataSz)
 {
     const whal_Regmap *reg;
-    whal_Pic32czFlash_Cfg *cfg;
+    whal_Pic32cz_Flash_Cfg *cfg;
     whal_Error err;
     size_t pageAddr;
     size_t endAddr;
@@ -385,42 +385,42 @@ whal_Error whal_Pic32czFlash_Erase(whal_Flash *flashDev, size_t addr, size_t dat
     endAddr = addr + dataSz;
 
 
-    err = whal_Pic32czFlash_MutexLock(reg, cfg->timeout);
+    err = whal_Pic32cz_Flash_MutexLock(reg, cfg->timeout);
     if (err)
         return err;
 
     while (pageAddr < endAddr) {
-        err = whal_Pic32czFlash_WaitBusy(reg, cfg->timeout);
+        err = whal_Pic32cz_Flash_WaitBusy(reg, cfg->timeout);
         if (err) {
-            whal_Pic32czFlash_MutexUnlock(reg);
+            whal_Pic32cz_Flash_MutexUnlock(reg);
             return err;
         }
 
         whal_Reg_Update(reg->base, FCW_ADDR_REG, 0xFFFFFFFF, pageAddr);
 
-        err = whal_Pic32czFlash_ExecCmd(reg, FCW_CTRLA_NVMOP_PAGE_ERASE,
+        err = whal_Pic32cz_Flash_ExecCmd(reg, FCW_CTRLA_NVMOP_PAGE_ERASE,
                                         cfg->timeout);
         if (err) {
-            whal_Pic32czFlash_MutexUnlock(reg);
+            whal_Pic32cz_Flash_MutexUnlock(reg);
             return err;
         }
 
         pageAddr += FCW_PAGE_SIZE;
     }
 
-    whal_Pic32czFlash_MutexUnlock(reg);
+    whal_Pic32cz_Flash_MutexUnlock(reg);
 
     return WHAL_SUCCESS;
 }
 
-#ifndef WHAL_CFG_FLASH_API_MAPPING_PIC32CZ
-const whal_FlashDriver whal_Pic32czFlash_Driver = {
-    .Init = whal_Pic32czFlash_Init,
-    .Deinit = whal_Pic32czFlash_Deinit,
-    .Lock = whal_Pic32czFlash_Lock,
-    .Unlock = whal_Pic32czFlash_Unlock,
-    .Read = whal_Pic32czFlash_Read,
-    .Write = whal_Pic32czFlash_Write,
-    .Erase = whal_Pic32czFlash_Erase,
+#ifndef WHAL_CFG_PIC32CZ_FLASH_DIRECT_API_MAPPING
+const whal_FlashDriver whal_Pic32cz_Flash_Driver = {
+    .Init = whal_Pic32cz_Flash_Init,
+    .Deinit = whal_Pic32cz_Flash_Deinit,
+    .Lock = whal_Pic32cz_Flash_Lock,
+    .Unlock = whal_Pic32cz_Flash_Unlock,
+    .Read = whal_Pic32cz_Flash_Read,
+    .Write = whal_Pic32cz_Flash_Write,
+    .Erase = whal_Pic32cz_Flash_Erase,
 };
-#endif /* !WHAL_CFG_FLASH_API_MAPPING_PIC32CZ */
+#endif /* !WHAL_CFG_PIC32CZ_FLASH_DIRECT_API_MAPPING */

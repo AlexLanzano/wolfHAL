@@ -33,11 +33,11 @@
 /* Number of raw data bytes: accel (6) + gyro (6) */
 #define BMI270_DATA_LEN  12
 
-#ifdef WHAL_CFG_SENSOR_API_MAPPING_BMI270
+#ifdef WHAL_CFG_BMI270_SENSOR_DIRECT_API_MAPPING
 #define whal_Bmi270_Init   whal_Sensor_Init
 #define whal_Bmi270_Deinit whal_Sensor_Deinit
 #define whal_Bmi270_Read   whal_Sensor_Read
-#endif /* WHAL_CFG_SENSOR_API_MAPPING_BMI270 */
+#endif /* WHAL_CFG_BMI270_SENSOR_DIRECT_API_MAPPING */
 
 whal_Error whal_Bmi270_Init(whal_Sensor *dev)
 {
@@ -216,10 +216,10 @@ whal_Error whal_Bmi270_Read(whal_Sensor *dev, void *data)
     return WHAL_SUCCESS;
 }
 
-#ifndef WHAL_CFG_SENSOR_API_MAPPING_BMI270
+#ifndef WHAL_CFG_BMI270_SENSOR_DIRECT_API_MAPPING
 const whal_SensorDriver whal_Bmi270_Driver = {
     .Init = whal_Bmi270_Init,
     .Deinit = whal_Bmi270_Deinit,
     .Read = whal_Bmi270_Read,
 };
-#endif /* !WHAL_CFG_SENSOR_API_MAPPING_BMI270 */
+#endif /* !WHAL_CFG_BMI270_SENSOR_DIRECT_API_MAPPING */

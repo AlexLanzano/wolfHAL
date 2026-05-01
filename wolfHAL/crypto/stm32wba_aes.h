@@ -12,15 +12,15 @@
 
 #include <wolfHAL/crypto/stm32wb_aes.h>
 
-typedef whal_Stm32wbAes_Cfg whal_Stm32wbaAes_Cfg;
+typedef whal_Stm32wb_Aes_Cfg whal_Stm32wba_Aes_Cfg;
 
-#ifndef WHAL_CFG_CRYPTO_API_MAPPING_STM32WBA_AES
-#define whal_Stm32wbaAes_Driver  whal_Stm32wbAes_Driver
-#define whal_Stm32wbaAes_Init    whal_Stm32wbAes_Init
-#define whal_Stm32wbaAes_Deinit  whal_Stm32wbAes_Deinit
-#define whal_Stm32wbaAes_StartOp whal_Stm32wbAes_StartOp
-#define whal_Stm32wbaAes_Process whal_Stm32wbAes_Process
-#define whal_Stm32wbaAes_EndOp   whal_Stm32wbAes_EndOp
-#endif /* !WHAL_CFG_CRYPTO_API_MAPPING_STM32WBA_AES */
+#ifndef WHAL_CFG_STM32WBA_AES_DIRECT_API_MAPPING
+#define whal_Stm32wba_Aes_Driver  whal_Stm32wb_Aes_Driver
+#define whal_Stm32wba_Aes_Init    whal_Stm32wb_Aes_Init
+#define whal_Stm32wba_Aes_Deinit  whal_Stm32wb_Aes_Deinit
+#define whal_Stm32wba_Aes_StartOp whal_Stm32wb_Aes_StartOp
+#define whal_Stm32wba_Aes_Process whal_Stm32wb_Aes_Process
+#define whal_Stm32wba_Aes_EndOp   whal_Stm32wb_Aes_EndOp
+#endif /* !WHAL_CFG_STM32WBA_AES_DIRECT_API_MAPPING */
 
 #endif /* WHAL_STM32WBA_AES_H */

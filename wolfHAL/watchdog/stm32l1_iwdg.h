@@ -10,14 +10,14 @@
 
 #include <wolfHAL/watchdog/stm32wb_iwdg.h>
 
-typedef whal_Stm32wbIwdg_Cfg whal_Stm32l1Iwdg_Cfg;
+typedef whal_Stm32wb_Iwdg_Cfg whal_Stm32l1_Iwdg_Cfg;
 
-#ifndef WHAL_CFG_WATCHDOG_API_MAPPING_STM32L1_IWDG
-#define whal_Stm32l1Iwdg_Driver  whal_Stm32wbIwdg_Driver
-#define whal_Stm32l1Iwdg_Init    whal_Stm32wbIwdg_Init
-#define whal_Stm32l1Iwdg_Deinit  whal_Stm32wbIwdg_Deinit
-#define whal_Stm32l1Iwdg_Refresh whal_Stm32wbIwdg_Refresh
-#endif /* !WHAL_CFG_WATCHDOG_API_MAPPING_STM32L1_IWDG */
+#ifndef WHAL_CFG_STM32L1_IWDG_DIRECT_API_MAPPING
+#define whal_Stm32l1_Iwdg_Driver  whal_Stm32wb_Iwdg_Driver
+#define whal_Stm32l1_Iwdg_Init    whal_Stm32wb_Iwdg_Init
+#define whal_Stm32l1_Iwdg_Deinit  whal_Stm32wb_Iwdg_Deinit
+#define whal_Stm32l1_Iwdg_Refresh whal_Stm32wb_Iwdg_Refresh
+#endif /* !WHAL_CFG_STM32L1_IWDG_DIRECT_API_MAPPING */
 
 #define WHAL_STM32L1_IWDG_PR_4   WHAL_STM32WB_IWDG_PR_4
 #define WHAL_STM32L1_IWDG_PR_8   WHAL_STM32WB_IWDG_PR_8

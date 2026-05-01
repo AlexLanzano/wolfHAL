@@ -55,22 +55,22 @@
 /* Magic value required to unlock HTCR writes */
 #define RNG_HTCR_MAGIC     0x17590ABCUL
 
-#ifdef WHAL_CFG_RNG_API_MAPPING_STM32H5
-#define whal_Stm32h5Rng_Init     whal_Rng_Init
-#define whal_Stm32h5Rng_Deinit   whal_Rng_Deinit
-#define whal_Stm32h5Rng_Generate whal_Rng_Generate
-#endif /* WHAL_CFG_RNG_API_MAPPING_STM32H5 */
+#ifdef WHAL_CFG_STM32H5_RNG_DIRECT_API_MAPPING
+#define whal_Stm32h5_Rng_Init     whal_Rng_Init
+#define whal_Stm32h5_Rng_Deinit   whal_Rng_Deinit
+#define whal_Stm32h5_Rng_Generate whal_Rng_Generate
+#endif /* WHAL_CFG_STM32H5_RNG_DIRECT_API_MAPPING */
 
-whal_Error whal_Stm32h5Rng_Init(whal_Rng *rngDev)
+whal_Error whal_Stm32h5_Rng_Init(whal_Rng *rngDev)
 {
-    whal_Stm32h5Rng_Cfg *cfg;
+    whal_Stm32h5_Rng_Cfg *cfg;
     const whal_Regmap *reg;
     whal_Error err;
 
     if (!rngDev || !rngDev->cfg)
         return WHAL_EINVAL;
 
-    cfg = (whal_Stm32h5Rng_Cfg *)rngDev->cfg;
+    cfg = (whal_Stm32h5_Rng_Cfg *)rngDev->cfg;
     reg = &rngDev->regmap;
 
     /*
@@ -97,7 +97,7 @@ whal_Error whal_Stm32h5Rng_Init(whal_Rng *rngDev)
     return err;
 }
 
-whal_Error whal_Stm32h5Rng_Deinit(whal_Rng *rngDev)
+whal_Error whal_Stm32h5_Rng_Deinit(whal_Rng *rngDev)
 {
     if (!rngDev || !rngDev->cfg)
         return WHAL_EINVAL;
@@ -109,12 +109,12 @@ whal_Error whal_Stm32h5Rng_Deinit(whal_Rng *rngDev)
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_Stm32h5Rng_Generate(whal_Rng *rngDev, void *rngData,
+whal_Error whal_Stm32h5_Rng_Generate(whal_Rng *rngDev, void *rngData,
                                      size_t rngDataSz)
 {
     uint8_t *rngBuf = (uint8_t *)rngData;
     whal_Error err = WHAL_SUCCESS;
-    whal_Stm32h5Rng_Cfg *cfg;
+    whal_Stm32h5_Rng_Cfg *cfg;
     const whal_Regmap *reg;
     size_t sr;
     size_t offset = 0;
@@ -122,7 +122,7 @@ whal_Error whal_Stm32h5Rng_Generate(whal_Rng *rngDev, void *rngData,
     if (!rngDev || !rngDev->cfg || !rngData)
         return WHAL_EINVAL;
 
-    cfg = (whal_Stm32h5Rng_Cfg *)rngDev->cfg;
+    cfg = (whal_Stm32h5_Rng_Cfg *)rngDev->cfg;
     reg = &rngDev->regmap;
 #ifdef WHAL_CFG_NO_TIMEOUT
     (void)(cfg);
@@ -164,10 +164,10 @@ exit:
     return err;
 }
 
-#ifndef WHAL_CFG_RNG_API_MAPPING_STM32H5
-const whal_RngDriver whal_Stm32h5Rng_Driver = {
-    .Init = whal_Stm32h5Rng_Init,
-    .Deinit = whal_Stm32h5Rng_Deinit,
-    .Generate = whal_Stm32h5Rng_Generate,
+#ifndef WHAL_CFG_STM32H5_RNG_DIRECT_API_MAPPING
+const whal_RngDriver whal_Stm32h5_Rng_Driver = {
+    .Init = whal_Stm32h5_Rng_Init,
+    .Deinit = whal_Stm32h5_Rng_Deinit,
+    .Generate = whal_Stm32h5_Rng_Generate,
 };
-#endif /* !WHAL_CFG_RNG_API_MAPPING_STM32H5 */
+#endif /* !WHAL_CFG_STM32H5_RNG_DIRECT_API_MAPPING */

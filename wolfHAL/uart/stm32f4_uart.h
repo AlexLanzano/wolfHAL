@@ -37,16 +37,16 @@
 /*
  * @brief STM32F4 UART configuration parameters.
  */
-typedef struct whal_Stm32f4Uart_Cfg {
+typedef struct whal_Stm32f4_Uart_Cfg {
     uint32_t brr;
     whal_Timeout *timeout;
-} whal_Stm32f4Uart_Cfg;
+} whal_Stm32f4_Uart_Cfg;
 
-#ifndef WHAL_CFG_UART_API_MAPPING_STM32F4
+#ifndef WHAL_CFG_STM32F4_UART_DIRECT_API_MAPPING
 /*
  * @brief Driver instance for STM32F4 UART peripheral.
  */
-extern const whal_UartDriver whal_Stm32f4Uart_Driver;
+extern const whal_UartDriver whal_Stm32f4_Uart_Driver;
 
 /*
  * @brief Initialize the STM32F4 UART peripheral.
@@ -56,7 +56,7 @@ extern const whal_UartDriver whal_Stm32f4Uart_Driver;
  * @retval WHAL_SUCCESS Initialization completed.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_Stm32f4Uart_Init(whal_Uart *uartDev);
+whal_Error whal_Stm32f4_Uart_Init(whal_Uart *uartDev);
 
 /*
  * @brief Deinitialize the STM32F4 UART peripheral.
@@ -66,7 +66,7 @@ whal_Error whal_Stm32f4Uart_Init(whal_Uart *uartDev);
  * @retval WHAL_SUCCESS Deinit completed.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_Stm32f4Uart_Deinit(whal_Uart *uartDev);
+whal_Error whal_Stm32f4_Uart_Deinit(whal_Uart *uartDev);
 
 /*
  * @brief Transmit a buffer over UART.
@@ -78,7 +78,7 @@ whal_Error whal_Stm32f4Uart_Deinit(whal_Uart *uartDev);
  * @retval WHAL_SUCCESS Transfer completed.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_Stm32f4Uart_Send(whal_Uart *uartDev, const void *data, size_t dataSz);
+whal_Error whal_Stm32f4_Uart_Send(whal_Uart *uartDev, const void *data, size_t dataSz);
 
 /*
  * @brief Receive a buffer over UART.
@@ -90,7 +90,7 @@ whal_Error whal_Stm32f4Uart_Send(whal_Uart *uartDev, const void *data, size_t da
  * @retval WHAL_SUCCESS Transfer completed.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_Stm32f4Uart_Recv(whal_Uart *uartDev, void *data, size_t dataSz);
-#endif /* !WHAL_CFG_UART_API_MAPPING_STM32F4 */
+whal_Error whal_Stm32f4_Uart_Recv(whal_Uart *uartDev, void *data, size_t dataSz);
+#endif /* !WHAL_CFG_STM32F4_UART_DIRECT_API_MAPPING */
 
 #endif /* WHAL_STM32F4_UART_H */

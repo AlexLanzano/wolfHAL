@@ -12,15 +12,15 @@
 
 #include <wolfHAL/uart/stm32wb_uart.h>
 
-typedef whal_Stm32wbUart_Cfg whal_Stm32wbaUart_Cfg;
+typedef whal_Stm32wb_Uart_Cfg whal_Stm32wba_Uart_Cfg;
 
-#ifndef WHAL_CFG_UART_API_MAPPING_STM32WBA
-#define whal_Stm32wbaUart_Driver whal_Stm32wbUart_Driver
-#define whal_Stm32wbaUart_Init   whal_Stm32wbUart_Init
-#define whal_Stm32wbaUart_Deinit whal_Stm32wbUart_Deinit
-#define whal_Stm32wbaUart_Send   whal_Stm32wbUart_Send
-#define whal_Stm32wbaUart_Recv   whal_Stm32wbUart_Recv
-#endif /* !WHAL_CFG_UART_API_MAPPING_STM32WBA */
+#ifndef WHAL_CFG_STM32WBA_UART_DIRECT_API_MAPPING
+#define whal_Stm32wba_Uart_Driver whal_Stm32wb_Uart_Driver
+#define whal_Stm32wba_Uart_Init   whal_Stm32wb_Uart_Init
+#define whal_Stm32wba_Uart_Deinit whal_Stm32wb_Uart_Deinit
+#define whal_Stm32wba_Uart_Send   whal_Stm32wb_Uart_Send
+#define whal_Stm32wba_Uart_Recv   whal_Stm32wb_Uart_Recv
+#endif /* !WHAL_CFG_STM32WBA_UART_DIRECT_API_MAPPING */
 
 /*
  * @brief Baud rate register helpers (re-exported from STM32WB).

@@ -7,145 +7,126 @@
 
 /*
  * @file stm32f4_rcc.h
- * @brief STM32F4 RCC (Reset and Clock Control) driver configuration.
+ * @brief STM32F4 RCC (Reset and Clock Control) driver.
  *
- * The STM32F4 RCC peripheral controls:
- * - System clock source selection (HSI, HSE, PLL)
- * - PLL configuration (M, N, P, Q dividers)
- * - Peripheral clock gating (AHB1, APB1, APB2 buses)
- * - Bus clock prescalers
+ * Boards bring up the clock tree imperatively from Board_Init.
  *
- * PLL output frequency:
- *   f_vco = (f_input / PLLM) * PLLN
- *   f_pll = f_vco / PLLP
- *   f_usb = f_vco / PLLQ
- *
- * One driver variant is provided:
- * - whal_Stm32f4RccPll_Driver: Uses PLL as system clock source
+ * PLL output:
+ *   f_vco  = (f_input / m) * n
+ *   f_pll  = f_vco / p   (SYSCLK)
+ *   f_pllq = f_vco / q   (USB / SDIO)
  */
 
 /*
- * @brief System clock source selection.
- *
- * Determines which oscillator/PLL drives the system clock (SYSCLK).
+ * @brief System clock source selection (RCC_CFGR.SW).
  */
 typedef enum {
-    WHAL_STM32F4_RCC_SYSCLK_SRC_HSI, /* 16 MHz High-Speed Internal */
-    WHAL_STM32F4_RCC_SYSCLK_SRC_HSE, /* High-Speed External crystal */
-    WHAL_STM32F4_RCC_SYSCLK_SRC_PLL, /* PLL output */
-} whal_Stm32f4Rcc_SysClockSrc;
+    WHAL_STM32F4_RCC_SYSCLK_SRC_HSI,
+    WHAL_STM32F4_RCC_SYSCLK_SRC_HSE,
+    WHAL_STM32F4_RCC_SYSCLK_SRC_PLL,
+} whal_Stm32f4_Rcc_SysClockSrc;
 
 /*
- * @brief PLL input clock source selection.
- *
- * Bit 22 of RCC_PLLCFGR selects the PLL input.
+ * @brief PLL input selection (RCC_PLLCFGR.PLLSRC).
  */
 typedef enum {
-    WHAL_STM32F4_RCC_PLLCLK_SRC_HSI, /* HSI (16 MHz) as PLL input */
-    WHAL_STM32F4_RCC_PLLCLK_SRC_HSE, /* HSE as PLL input */
-} whal_Stm32f4Rcc_PllClockSrc;
+    WHAL_STM32F4_RCC_PLLCLK_SRC_HSI,
+    WHAL_STM32F4_RCC_PLLCLK_SRC_HSE,
+} whal_Stm32f4_Rcc_PllClockSrc;
 
 /*
  * @brief PLL configuration parameters.
- *
- * The PLL output frequency is calculated as:
- *   f_vco = (f_input / m) * n
- *   f_pll = f_vco / p  (main PLL output, used for SYSCLK)
- *   f_usb = f_vco / q  (used for USB OTG FS, SDIO)
- *
- * Constraints:
- *   - m: 2-63 (VCO input should be 1-2 MHz)
- *   - n: 50-432 (VCO output must be 100-432 MHz)
- *   - p: 2, 4, 6, or 8 (register value 0-3 maps to 2/4/6/8)
- *   - q: 2-15 (USB OTG FS requires 48 MHz)
+ *   m: 2-63   (VCO input 1-2 MHz)
+ *   n: 50-432 (VCO output 100-432 MHz)
+ *   p: 0-3    (div by 2/4/6/8)
+ *   q: 2-15
  */
-typedef struct whal_Stm32f4Rcc_PllClkCfg {
-    whal_Stm32f4Rcc_PllClockSrc clkSrc; /* PLL input source */
-    uint16_t n; /* PLLN multiplier (50-432) */
-    uint8_t m;  /* PLLM divider (2-63) */
-    uint8_t p;  /* PLLP divider (0=div2, 1=div4, 2=div6, 3=div8) */
-    uint8_t q;  /* PLLQ divider (2-15) */
-} whal_Stm32f4Rcc_PllClkCfg;
+typedef struct {
+    whal_Stm32f4_Rcc_PllClockSrc clkSrc;
+    uint16_t n;
+    uint8_t m;
+    uint8_t p;
+    uint8_t q;
+} whal_Stm32f4_Rcc_PllCfg;
 
 /*
- * @brief Peripheral clock enable descriptor.
- *
- * Describes the register offset and bit mask needed to enable/disable
- * a peripheral's bus clock. Used with whal_Stm32f4Rcc_Enable/Disable.
- *
- * Example for GPIOA:
- *   { .regOffset = 0x030, .enableMask = (1 << 0), .enablePos = 0 }
+ * @brief Bus prescaler config (APB1/APB2).
+ *   ppre1/ppre2: 0=/1, 4=/2, 5=/4, 6=/8, 7=/16
  */
-typedef struct whal_Stm32f4Rcc_Clk {
-    size_t regOffset;   /* Offset from RCC base to enable register */
-    size_t enableMask;  /* Bit mask for the peripheral enable bit */
-    size_t enablePos;   /* Bit position for the peripheral enable bit */
-} whal_Stm32f4Rcc_Clk;
+typedef struct {
+    uint8_t ppre1;
+    uint8_t ppre2;
+} whal_Stm32f4_Rcc_BusCfg;
 
 /*
- * @brief RCC driver configuration.
- *
- * Contains all parameters needed to configure the system clock.
+ * @brief Peripheral clock descriptor.
  */
-typedef struct whal_Stm32f4Rcc_Cfg {
-    whal_Stm32f4Rcc_SysClockSrc sysClkSrc; /* System clock source */
-    void *sysClkCfg; /* Pointer to PllClkCfg based on driver */
-    uint8_t ppre1; /* APB1 prescaler (0=/1, 4=/2, 5=/4, 6=/8, 7=/16) */
-    uint8_t ppre2; /* APB2 prescaler (0=/1, 4=/2, 5=/4, 6=/8, 7=/16) */
-} whal_Stm32f4Rcc_Cfg;
-
-#ifndef WHAL_CFG_CLOCK_API_MAPPING_STM32F4_PLL
-/*
- * @brief Driver instance for the STM32F4 RCC PLL clock controller.
- */
-extern const whal_ClockDriver whal_Stm32f4RccPll_Driver;
+typedef struct {
+    size_t regOffset;
+    size_t enableMask;
+    size_t enablePos;
+} whal_Stm32f4_Rcc_PeriphClk;
 
 /*
- * @brief Initialize the RCC peripheral with PLL as system clock.
- *
- * Enables HSE if needed, configures PLL with the parameters in the
- * device configuration, enables PLL, and switches SYSCLK to PLL output.
- *
- * @param clkDev Clock device instance.
- *
- * @retval WHAL_SUCCESS Initialization completed.
- * @retval WHAL_EINVAL  Invalid arguments.
+ * @brief Cfg for EnableOsc/DisableOsc — on bit + ready bit.
  */
-whal_Error whal_Stm32f4RccPll_Init(whal_Clock *clkDev);
+typedef struct {
+    size_t onReg;
+    size_t onMsk;
+    size_t rdyReg;
+    size_t rdyMsk;
+    size_t rdyPos;
+} whal_Stm32f4_Rcc_OscCfg;
+
+#define WHAL_STM32F4_RCC_HSI_CFG                             \
+    .onReg  = 0x000, .onMsk  = (1UL <<  0),                  \
+    .rdyReg = 0x000, .rdyMsk = (1UL <<  1), .rdyPos =  1
+#define WHAL_STM32F4_RCC_HSE_CFG                             \
+    .onReg  = 0x000, .onMsk  = (1UL << 16),                  \
+    .rdyReg = 0x000, .rdyMsk = (1UL << 17), .rdyPos = 17
 
 /*
- * @brief Deinitialize the RCC peripheral from PLL mode.
- *
- * Switches SYSCLK back to HSI and disables PLL.
- *
- * @param clkDev Clock device instance.
- *
- * @retval WHAL_SUCCESS Deinit completed.
- * @retval WHAL_EINVAL  Invalid arguments.
+ * @brief Enable an oscillator (HSI/HSE). Blocks until ready.
  */
-whal_Error whal_Stm32f4RccPll_Deinit(whal_Clock *clkDev);
+whal_Error whal_Stm32f4_Rcc_EnableOsc(whal_Clock *clkDev,
+                                     const whal_Stm32f4_Rcc_OscCfg *cfg);
+/*
+ * @brief Disable an oscillator.
+ */
+whal_Error whal_Stm32f4_Rcc_DisableOsc(whal_Clock *clkDev,
+                                      const whal_Stm32f4_Rcc_OscCfg *cfg);
 
 /*
- * @brief Enable a peripheral clock gate.
- *
- * @param clkDev Clock device instance.
- * @param clk    Pointer to a whal_Stm32f4Rcc_Clk descriptor.
- *
- * @retval WHAL_SUCCESS Clock enabled.
- * @retval WHAL_EINVAL  Invalid arguments.
+ * @brief Configure and enable the PLL. Blocks until PLL is ready.
  */
-whal_Error whal_Stm32f4Rcc_Enable(whal_Clock *clkDev, const void *clk);
+whal_Error whal_Stm32f4_Rcc_EnablePll(whal_Clock *clkDev,
+                                     const whal_Stm32f4_Rcc_PllCfg *cfg);
+/*
+ * @brief Disable the PLL.
+ */
+whal_Error whal_Stm32f4_Rcc_DisablePll(whal_Clock *clkDev);
 
 /*
- * @brief Disable a peripheral clock gate.
- *
- * @param clkDev Clock device instance.
- * @param clk    Pointer to a whal_Stm32f4Rcc_Clk descriptor.
- *
- * @retval WHAL_SUCCESS Clock disabled.
- * @retval WHAL_EINVAL  Invalid arguments.
+ * @brief Set APB1 / APB2 bus prescalers.
  */
-whal_Error whal_Stm32f4Rcc_Disable(whal_Clock *clkDev, const void *clk);
-#endif /* !WHAL_CFG_CLOCK_API_MAPPING_STM32F4_PLL */
+whal_Error whal_Stm32f4_Rcc_SetBusPrescalers(whal_Clock *clkDev,
+                                            const whal_Stm32f4_Rcc_BusCfg *cfg);
+
+/*
+ * @brief Switch SYSCLK to the given source. Blocks until SWS confirms.
+ */
+whal_Error whal_Stm32f4_Rcc_SetSysClock(whal_Clock *clkDev,
+                                       whal_Stm32f4_Rcc_SysClockSrc src);
+
+/*
+ * @brief Enable a peripheral clock.
+ */
+whal_Error whal_Stm32f4_Rcc_EnablePeriphClk(whal_Clock *clkDev,
+                                           const whal_Stm32f4_Rcc_PeriphClk *clk);
+/*
+ * @brief Disable a peripheral clock.
+ */
+whal_Error whal_Stm32f4_Rcc_DisablePeriphClk(whal_Clock *clkDev,
+                                            const whal_Stm32f4_Rcc_PeriphClk *clk);
 
 #endif /* WHAL_STM32F4_RCC_H */

@@ -14,12 +14,12 @@
 #define NVIC_IPR_REG(irq)    (0x300 + (((irq) >> 2) << 2))
 #define NVIC_IPR_SHIFT(irq)  (((irq) & 0x3) << 3)
 
-#ifdef WHAL_CFG_IRQ_API_MAPPING_NVIC
+#ifdef WHAL_CFG_NVIC_IRQ_DIRECT_API_MAPPING
 #define whal_Nvic_Init    whal_Irq_Init
 #define whal_Nvic_Deinit  whal_Irq_Deinit
 #define whal_Nvic_Enable  whal_Irq_Enable
 #define whal_Nvic_Disable whal_Irq_Disable
-#endif /* WHAL_CFG_IRQ_API_MAPPING_NVIC */
+#endif /* WHAL_CFG_NVIC_IRQ_DIRECT_API_MAPPING */
 
 whal_Error whal_Nvic_Init(whal_Irq *irqDev)
 {
@@ -76,11 +76,11 @@ whal_Error whal_Nvic_Disable(whal_Irq *irqDev, size_t irq)
     return WHAL_SUCCESS;
 }
 
-#ifndef WHAL_CFG_IRQ_API_MAPPING_NVIC
+#ifndef WHAL_CFG_NVIC_IRQ_DIRECT_API_MAPPING
 const whal_IrqDriver whal_Nvic_Driver = {
     .Init = whal_Nvic_Init,
     .Deinit = whal_Nvic_Deinit,
     .Enable = whal_Nvic_Enable,
     .Disable = whal_Nvic_Disable,
 };
-#endif /* !WHAL_CFG_IRQ_API_MAPPING_NVIC */
+#endif /* !WHAL_CFG_NVIC_IRQ_DIRECT_API_MAPPING */

@@ -8,7 +8,7 @@
 make BOARD=<board>
 ```
 
-Each board defines its supported tests in `boards/<board>/Makefile.inc`. The output binary
+Each board defines its supported tests in `boards/<board>/board.mk`. The output binary
 is placed in `build/<board>/`.
 
 ### Selecting Tests

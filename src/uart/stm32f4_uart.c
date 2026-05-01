@@ -45,19 +45,19 @@
 #define UART_CR1_UE_Pos 13                                             /* USART enable */
 #define UART_CR1_UE_Msk (1UL << UART_CR1_UE_Pos)
 
-#if defined(WHAL_CFG_UART_API_MAPPING_STM32F4) || \
-    defined(WHAL_CFG_UART_API_MAPPING_STM32L1)
-#define whal_Stm32f4Uart_Init      whal_Uart_Init
-#define whal_Stm32f4Uart_Deinit    whal_Uart_Deinit
-#define whal_Stm32f4Uart_Send      whal_Uart_Send
-#define whal_Stm32f4Uart_Recv      whal_Uart_Recv
-#define whal_Stm32f4Uart_SendAsync whal_Uart_SendAsync
-#define whal_Stm32f4Uart_RecvAsync whal_Uart_RecvAsync
-#endif /* WHAL_CFG_UART_API_MAPPING_STM32F4 */
+#if defined(WHAL_CFG_STM32F4_UART_DIRECT_API_MAPPING) || \
+    defined(WHAL_CFG_STM32L1_UART_DIRECT_API_MAPPING)
+#define whal_Stm32f4_Uart_Init      whal_Uart_Init
+#define whal_Stm32f4_Uart_Deinit    whal_Uart_Deinit
+#define whal_Stm32f4_Uart_Send      whal_Uart_Send
+#define whal_Stm32f4_Uart_Recv      whal_Uart_Recv
+#define whal_Stm32f4_Uart_SendAsync whal_Uart_SendAsync
+#define whal_Stm32f4_Uart_RecvAsync whal_Uart_RecvAsync
+#endif /* WHAL_CFG_STM32F4_UART_DIRECT_API_MAPPING */
 
-whal_Error whal_Stm32f4Uart_Init(whal_Uart *uartDev)
+whal_Error whal_Stm32f4_Uart_Init(whal_Uart *uartDev)
 {
-    whal_Stm32f4Uart_Cfg *cfg;
+    whal_Stm32f4_Uart_Cfg *cfg;
     const whal_Regmap *reg;
     uint32_t brr;
 
@@ -65,7 +65,7 @@ whal_Error whal_Stm32f4Uart_Init(whal_Uart *uartDev)
         return WHAL_EINVAL;
 
     reg = &uartDev->regmap;
-    cfg = (whal_Stm32f4Uart_Cfg *)uartDev->cfg;
+    cfg = (whal_Stm32f4_Uart_Cfg *)uartDev->cfg;
 
     brr = cfg->brr;
 
@@ -84,7 +84,7 @@ whal_Error whal_Stm32f4Uart_Init(whal_Uart *uartDev)
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_Stm32f4Uart_Deinit(whal_Uart *uartDev)
+whal_Error whal_Stm32f4_Uart_Deinit(whal_Uart *uartDev)
 {
     const whal_Regmap *reg;
 
@@ -108,17 +108,17 @@ whal_Error whal_Stm32f4Uart_Deinit(whal_Uart *uartDev)
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_Stm32f4Uart_Send(whal_Uart *uartDev, const void *data, size_t dataSz)
+whal_Error whal_Stm32f4_Uart_Send(whal_Uart *uartDev, const void *data, size_t dataSz)
 {
     const whal_Regmap *reg;
-    whal_Stm32f4Uart_Cfg *cfg;
+    whal_Stm32f4_Uart_Cfg *cfg;
     const uint8_t *buf = data;
 
     if (!uartDev || !uartDev->cfg || !data)
         return WHAL_EINVAL;
 
     reg = &uartDev->regmap;
-    cfg = (whal_Stm32f4Uart_Cfg *)uartDev->cfg;
+    cfg = (whal_Stm32f4_Uart_Cfg *)uartDev->cfg;
 
     for (size_t i = 0; i < dataSz; ++i) {
         whal_Error err;
@@ -136,17 +136,17 @@ whal_Error whal_Stm32f4Uart_Send(whal_Uart *uartDev, const void *data, size_t da
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_Stm32f4Uart_Recv(whal_Uart *uartDev, void *data, size_t dataSz)
+whal_Error whal_Stm32f4_Uart_Recv(whal_Uart *uartDev, void *data, size_t dataSz)
 {
     const whal_Regmap *reg;
-    whal_Stm32f4Uart_Cfg *cfg;
+    whal_Stm32f4_Uart_Cfg *cfg;
     uint8_t *buf = data;
 
     if (!uartDev || !uartDev->cfg || !data)
         return WHAL_EINVAL;
 
     reg = &uartDev->regmap;
-    cfg = (whal_Stm32f4Uart_Cfg *)uartDev->cfg;
+    cfg = (whal_Stm32f4_Uart_Cfg *)uartDev->cfg;
     size_t d;
 
     for (size_t i = 0; i < dataSz; ++i) {
@@ -167,7 +167,7 @@ whal_Error whal_Stm32f4Uart_Recv(whal_Uart *uartDev, void *data, size_t dataSz)
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_Stm32f4Uart_SendAsync(whal_Uart *uartDev, const void *data, size_t dataSz)
+whal_Error whal_Stm32f4_Uart_SendAsync(whal_Uart *uartDev, const void *data, size_t dataSz)
 {
     (void)dataSz;
     if (!uartDev || !data)
@@ -175,7 +175,7 @@ whal_Error whal_Stm32f4Uart_SendAsync(whal_Uart *uartDev, const void *data, size
     return WHAL_ENOTSUP;
 }
 
-whal_Error whal_Stm32f4Uart_RecvAsync(whal_Uart *uartDev, void *data, size_t dataSz)
+whal_Error whal_Stm32f4_Uart_RecvAsync(whal_Uart *uartDev, void *data, size_t dataSz)
 {
     (void)dataSz;
     if (!uartDev || !data)
@@ -183,14 +183,14 @@ whal_Error whal_Stm32f4Uart_RecvAsync(whal_Uart *uartDev, void *data, size_t dat
     return WHAL_ENOTSUP;
 }
 
-#if !defined(WHAL_CFG_UART_API_MAPPING_STM32F4) && \
-    !defined(WHAL_CFG_UART_API_MAPPING_STM32L1)
-const whal_UartDriver whal_Stm32f4Uart_Driver = {
-    .Init = whal_Stm32f4Uart_Init,
-    .Deinit = whal_Stm32f4Uart_Deinit,
-    .Send = whal_Stm32f4Uart_Send,
-    .SendAsync = whal_Stm32f4Uart_SendAsync,
-    .RecvAsync = whal_Stm32f4Uart_RecvAsync,
-    .Recv = whal_Stm32f4Uart_Recv,
+#if !defined(WHAL_CFG_STM32F4_UART_DIRECT_API_MAPPING) && \
+    !defined(WHAL_CFG_STM32L1_UART_DIRECT_API_MAPPING)
+const whal_UartDriver whal_Stm32f4_Uart_Driver = {
+    .Init = whal_Stm32f4_Uart_Init,
+    .Deinit = whal_Stm32f4_Uart_Deinit,
+    .Send = whal_Stm32f4_Uart_Send,
+    .SendAsync = whal_Stm32f4_Uart_SendAsync,
+    .RecvAsync = whal_Stm32f4_Uart_RecvAsync,
+    .Recv = whal_Stm32f4_Uart_Recv,
 };
 #endif /* !WHAL_CFG_UART_API_MAPPING */

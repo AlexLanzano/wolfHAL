@@ -20,13 +20,13 @@
 #define SYSTICK_RVR_RELOAD_Pos 0
 #define SYSTICK_RVR_RELOAD_Msk (WHAL_BITMASK(24) << SYSTICK_RVR_RELOAD_Pos)
 
-#ifdef WHAL_CFG_TIMER_API_MAPPING_SYSTICK
+#ifdef WHAL_CFG_SYSTICK_TIMER_DIRECT_API_MAPPING
 #define whal_SysTick_Init   whal_Timer_Init
 #define whal_SysTick_Deinit whal_Timer_Deinit
 #define whal_SysTick_Start  whal_Timer_Start
 #define whal_SysTick_Stop   whal_Timer_Stop
 #define whal_SysTick_Reset  whal_Timer_Reset
-#endif /* WHAL_CFG_TIMER_API_MAPPING_SYSTICK */
+#endif /* WHAL_CFG_SYSTICK_TIMER_DIRECT_API_MAPPING */
 
 whal_Error whal_SysTick_Init(whal_Timer *timerDev)
 {
@@ -103,7 +103,7 @@ whal_Error whal_SysTick_Reset(whal_Timer *timerDev)
     return WHAL_SUCCESS;
 }
 
-#ifndef WHAL_CFG_TIMER_API_MAPPING_SYSTICK
+#ifndef WHAL_CFG_SYSTICK_TIMER_DIRECT_API_MAPPING
 const whal_TimerDriver whal_SysTick_Driver = {
     .Init = whal_SysTick_Init,
     .Deinit = whal_SysTick_Deinit,
@@ -111,4 +111,4 @@ const whal_TimerDriver whal_SysTick_Driver = {
     .Stop = whal_SysTick_Stop,
     .Reset = whal_SysTick_Reset,
 };
-#endif /* !WHAL_CFG_TIMER_API_MAPPING_SYSTICK */
+#endif /* !WHAL_CFG_SYSTICK_TIMER_DIRECT_API_MAPPING */

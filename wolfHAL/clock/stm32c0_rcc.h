@@ -7,23 +7,16 @@
 
 /*
  * @file stm32c0_rcc.h
- * @brief STM32C0 RCC (Reset and Clock Control) driver configuration.
+ * @brief STM32C0 RCC (Reset and Clock Control) driver.
  *
- * The STM32C0 RCC peripheral controls:
- * - System clock source selection (HSISYS, HSE, LSI, LSE)
- * - HSI48 oscillator with configurable HSIDIV prescaler
- * - Peripheral clock gating (IOP, AHB, APB buses)
- * - Bus clock prescalers
- *
- * The STM32C0 has no PLL. The primary high-speed clock is HSI48 (48 MHz)
- * with a configurable divider (HSIDIV) producing HSISYS.
+ * Boards bring up the clock tree imperatively from Board_Init by calling
+ * the helpers below. The STM32C0 has no PLL — the primary high-speed
+ * clock is HSI48 (48 MHz) with a configurable divider (HSIDIV) producing
+ * HSISYS.
  */
 
 /*
- * @brief HSI divider selection.
- *
- * The HSI48 oscillator runs at 48 MHz. HSIDIV divides it to produce
- * HSISYS which can be selected as the system clock.
+ * @brief HSI divider selection (RCC_CR.HSIDIV).
  */
 typedef enum {
     WHAL_STM32C0_RCC_HSIDIV_1,   /* 48 MHz */
@@ -34,83 +27,49 @@ typedef enum {
     WHAL_STM32C0_RCC_HSIDIV_32,  /* 1.5 MHz */
     WHAL_STM32C0_RCC_HSIDIV_64,  /* 750 kHz */
     WHAL_STM32C0_RCC_HSIDIV_128, /* 375 kHz */
-} whal_Stm32c0Rcc_HsiDiv;
+} whal_Stm32c0_Rcc_HsiDiv;
 
 /*
- * @brief Peripheral clock enable descriptor.
- *
- * Describes the register offset and bit mask needed to enable/disable
- * a peripheral's bus clock. Used with whal_Stm32c0Rcc_Enable/Disable.
- *
- * Example for GPIOA:
- *   { .regOffset = 0x034, .enableMask = (1 << 0), .enablePos = 0 }
+ * @brief System clock source selection (RCC_CFGR.SW).
  */
-typedef struct whal_Stm32c0Rcc_Clk {
-    size_t regOffset;   /* Offset from RCC base to enable register */
-    size_t enableMask;  /* Bit mask for the peripheral enable bit */
-    size_t enablePos;   /* Bit position for the peripheral enable bit */
-} whal_Stm32c0Rcc_Clk;
+typedef enum {
+    WHAL_STM32C0_RCC_SYSCLK_SRC_HSISYS = 0,
+    WHAL_STM32C0_RCC_SYSCLK_SRC_HSE    = 1,
+    WHAL_STM32C0_RCC_SYSCLK_SRC_LSI    = 3,
+    WHAL_STM32C0_RCC_SYSCLK_SRC_LSE    = 4,
+} whal_Stm32c0_Rcc_SysClockSrc;
 
 /*
- * @brief RCC driver configuration.
- *
- * Contains all parameters needed to configure the system clock.
+ * @brief Peripheral clock descriptor (RCC *ENR enable bit).
  */
-typedef struct whal_Stm32c0Rcc_Cfg {
-    whal_Stm32c0Rcc_HsiDiv hsidiv; /* HSI divider for HSISYS frequency */
-} whal_Stm32c0Rcc_Cfg;
-
-#ifndef WHAL_CFG_CLOCK_API_MAPPING_STM32C0
-/*
- * @brief Driver instance for the STM32C0 RCC clock controller.
- */
-extern const whal_ClockDriver whal_Stm32c0Rcc_Driver;
+typedef struct {
+    size_t regOffset;
+    size_t enableMask;
+    size_t enablePos;
+} whal_Stm32c0_Rcc_PeriphClk;
 
 /*
- * @brief Initialize the RCC peripheral.
- *
- * Configures HSIDIV, enables HSI, and selects HSISYS as SYSCLK.
- *
- * @param clkDev Clock device instance.
- *
- * @retval WHAL_SUCCESS Initialization completed.
- * @retval WHAL_EINVAL  Invalid arguments.
+ * @brief Enable HSI, set the HSIDIV divider, and wait for ready.
  */
-whal_Error whal_Stm32c0Rcc_Init(whal_Clock *clkDev);
+whal_Error whal_Stm32c0_Rcc_EnableHsi(whal_Clock *clkDev,
+                                     whal_Stm32c0_Rcc_HsiDiv hsidiv);
 
 /*
- * @brief Deinitialize the RCC peripheral.
- *
- * Resets HSIDIV to default (div1) and selects HSISYS as SYSCLK.
- *
- * @param clkDev Clock device instance.
- *
- * @retval WHAL_SUCCESS Deinit completed.
- * @retval WHAL_EINVAL  Invalid arguments.
+ * @brief Switch SYSCLK to the given source. Blocks until RCC_CFGR.SWS
+ *        reflects the new source.
  */
-whal_Error whal_Stm32c0Rcc_Deinit(whal_Clock *clkDev);
+whal_Error whal_Stm32c0_Rcc_SetSysClock(whal_Clock *clkDev,
+                                       whal_Stm32c0_Rcc_SysClockSrc src);
 
 /*
- * @brief Enable a peripheral clock gate.
- *
- * @param clkDev Clock device instance.
- * @param clk    Pointer to a whal_Stm32c0Rcc_Clk descriptor.
- *
- * @retval WHAL_SUCCESS Clock enabled.
- * @retval WHAL_EINVAL  Invalid arguments.
+ * @brief Enable a peripheral clock.
  */
-whal_Error whal_Stm32c0Rcc_Enable(whal_Clock *clkDev, const void *clk);
-
+whal_Error whal_Stm32c0_Rcc_EnablePeriphClk(whal_Clock *clkDev,
+                                           const whal_Stm32c0_Rcc_PeriphClk *clk);
 /*
- * @brief Disable a peripheral clock gate.
- *
- * @param clkDev Clock device instance.
- * @param clk    Pointer to a whal_Stm32c0Rcc_Clk descriptor.
- *
- * @retval WHAL_SUCCESS Clock disabled.
- * @retval WHAL_EINVAL  Invalid arguments.
+ * @brief Disable a peripheral clock.
  */
-whal_Error whal_Stm32c0Rcc_Disable(whal_Clock *clkDev, const void *clk);
-#endif /* !WHAL_CFG_CLOCK_API_MAPPING_STM32C0 */
+whal_Error whal_Stm32c0_Rcc_DisablePeriphClk(whal_Clock *clkDev,
+                                            const whal_Stm32c0_Rcc_PeriphClk *clk);
 
 #endif /* WHAL_STM32C0_RCC_H */

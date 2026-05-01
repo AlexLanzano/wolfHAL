@@ -19,18 +19,18 @@
 /**
  * @brief I2C device configuration.
  */
-typedef struct whal_Stm32l1I2c_Cfg {
+typedef struct whal_Stm32l1_I2c_Cfg {
     uint32_t pclk;         /**< APB1 clock frequency in Hz */
     whal_Timeout *timeout; /**< Timeout instance */
     uint16_t _addr;        /**< Target address (set by StartCom) */
     uint8_t _addrSz;       /**< Address size in bits (set by StartCom) */
-} whal_Stm32l1I2c_Cfg;
+} whal_Stm32l1_I2c_Cfg;
 
-#ifndef WHAL_CFG_I2C_API_MAPPING_STM32L1
+#ifndef WHAL_CFG_STM32L1_I2C_DIRECT_API_MAPPING
 /**
  * @brief Driver instance for STM32L1 I2C peripheral.
  */
-extern const whal_I2cDriver whal_Stm32l1I2c_Driver;
+extern const whal_I2cDriver whal_Stm32l1_I2c_Driver;
 
 /**
  * @brief Initialize the STM32L1 I2C peripheral.
@@ -42,7 +42,7 @@ extern const whal_I2cDriver whal_Stm32l1I2c_Driver;
  * @retval WHAL_SUCCESS Initialization completed.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_Stm32l1I2c_Init(whal_I2c *i2cDev);
+whal_Error whal_Stm32l1_I2c_Init(whal_I2c *i2cDev);
 
 /**
  * @brief Deinitialize the STM32L1 I2C peripheral.
@@ -54,7 +54,7 @@ whal_Error whal_Stm32l1I2c_Init(whal_I2c *i2cDev);
  * @retval WHAL_SUCCESS Deinit completed.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_Stm32l1I2c_Deinit(whal_I2c *i2cDev);
+whal_Error whal_Stm32l1_I2c_Deinit(whal_I2c *i2cDev);
 
 /**
  * @brief Begin a communication session on the STM32L1 I2C peripheral.
@@ -68,7 +68,7 @@ whal_Error whal_Stm32l1I2c_Deinit(whal_I2c *i2cDev);
  * @retval WHAL_SUCCESS Communication session started.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_Stm32l1I2c_StartCom(whal_I2c *i2cDev, whal_I2c_ComCfg *comCfg);
+whal_Error whal_Stm32l1_I2c_StartCom(whal_I2c *i2cDev, whal_I2c_ComCfg *comCfg);
 
 /**
  * @brief End the current communication session on the STM32L1 I2C peripheral.
@@ -80,7 +80,7 @@ whal_Error whal_Stm32l1I2c_StartCom(whal_I2c *i2cDev, whal_I2c_ComCfg *comCfg);
  * @retval WHAL_SUCCESS Communication session ended.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_Stm32l1I2c_EndCom(whal_I2c *i2cDev);
+whal_Error whal_Stm32l1_I2c_EndCom(whal_I2c *i2cDev);
 
 /**
  * @brief Execute a sequence of I2C messages on the bus.
@@ -98,8 +98,8 @@ whal_Error whal_Stm32l1I2c_EndCom(whal_I2c *i2cDev);
  * @retval WHAL_ETIMEOUT   Hardware did not respond in time.
  * @retval WHAL_EHARDWARE  NACK or bus error detected.
  */
-whal_Error whal_Stm32l1I2c_Transfer(whal_I2c *i2cDev, whal_I2c_Msg *msgs,
+whal_Error whal_Stm32l1_I2c_Transfer(whal_I2c *i2cDev, whal_I2c_Msg *msgs,
                                      size_t numMsgs);
-#endif /* !WHAL_CFG_I2C_API_MAPPING_STM32L1 */
+#endif /* !WHAL_CFG_STM32L1_I2C_DIRECT_API_MAPPING */
 
 #endif /* WHAL_STM32L1_I2C_H */

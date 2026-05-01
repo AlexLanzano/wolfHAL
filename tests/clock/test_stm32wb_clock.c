@@ -7,28 +7,28 @@
 
 static void Test_Clock_EnableDisable(void)
 {
-    whal_Stm32wbRcc_Clk testClk = { WHAL_STM32WB55_GPIOA_CLOCK };
+    whal_Stm32wb_Rcc_PeriphClk testClk = { WHAL_STM32WB55_GPIOA_GATE };
 
     /* Save original state */
     size_t origVal = 0;
     whal_Reg_Get(g_whalClock.regmap.base, 0x4C, (1 << 0), 0, &origVal);
 
     /* Enable and verify */
-    WHAL_ASSERT_EQ(whal_Clock_Enable(&g_whalClock, &testClk), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Stm32wb_Rcc_EnablePeriphClk(&g_whalClock, &testClk), WHAL_SUCCESS);
 
     size_t val = 0;
     whal_Reg_Get(g_whalClock.regmap.base, 0x4C, (1 << 0), 0, &val);
     WHAL_ASSERT_EQ(val, 1);
 
     /* Disable and verify */
-    WHAL_ASSERT_EQ(whal_Clock_Disable(&g_whalClock, &testClk), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Stm32wb_Rcc_DisablePeriphClk(&g_whalClock, &testClk), WHAL_SUCCESS);
 
     whal_Reg_Get(g_whalClock.regmap.base, 0x4C, (1 << 0), 0, &val);
     WHAL_ASSERT_EQ(val, 0);
 
     /* Restore original state */
     if (origVal)
-        whal_Clock_Enable(&g_whalClock, &testClk);
+        whal_Stm32wb_Rcc_EnablePeriphClk(&g_whalClock, &testClk);
 }
 
 void whal_Test_Clock_Platform(void)

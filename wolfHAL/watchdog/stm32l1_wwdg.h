@@ -11,13 +11,13 @@
 
 #include <wolfHAL/watchdog/stm32f0_wwdg.h>
 
-typedef whal_Stm32f0Wwdg_Cfg whal_Stm32l1Wwdg_Cfg;
+typedef whal_Stm32f0_Wwdg_Cfg whal_Stm32l1_Wwdg_Cfg;
 
-#ifndef WHAL_CFG_WATCHDOG_API_MAPPING_STM32L1_WWDG
-#define whal_Stm32l1Wwdg_Driver  whal_Stm32f0Wwdg_Driver
-#define whal_Stm32l1Wwdg_Init    whal_Stm32f0Wwdg_Init
-#define whal_Stm32l1Wwdg_Deinit  whal_Stm32f0Wwdg_Deinit
-#define whal_Stm32l1Wwdg_Refresh whal_Stm32f0Wwdg_Refresh
-#endif /* !WHAL_CFG_WATCHDOG_API_MAPPING_STM32L1_WWDG */
+#ifndef WHAL_CFG_STM32L1_WWDG_DIRECT_API_MAPPING
+#define whal_Stm32l1_Wwdg_Driver  whal_Stm32f0_Wwdg_Driver
+#define whal_Stm32l1_Wwdg_Init    whal_Stm32f0_Wwdg_Init
+#define whal_Stm32l1_Wwdg_Deinit  whal_Stm32f0_Wwdg_Deinit
+#define whal_Stm32l1_Wwdg_Refresh whal_Stm32f0_Wwdg_Refresh
+#endif /* !WHAL_CFG_STM32L1_WWDG_DIRECT_API_MAPPING */
 
 #endif /* WHAL_STM32L1_WWDG_H */

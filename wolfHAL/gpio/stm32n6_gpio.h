@@ -12,16 +12,16 @@
 
 #include <wolfHAL/gpio/stm32wb_gpio.h>
 
-typedef whal_Stm32wbGpio_Cfg    whal_Stm32n6Gpio_Cfg;
-typedef whal_Stm32wbGpio_PinCfg whal_Stm32n6Gpio_PinCfg;
+typedef whal_Stm32wb_Gpio_Cfg    whal_Stm32n6_Gpio_Cfg;
+typedef whal_Stm32wb_Gpio_PinCfg whal_Stm32n6_Gpio_PinCfg;
 
-#ifndef WHAL_CFG_GPIO_API_MAPPING_STM32N6
-#define whal_Stm32n6Gpio_Driver whal_Stm32wbGpio_Driver
-#define whal_Stm32n6Gpio_Init   whal_Stm32wbGpio_Init
-#define whal_Stm32n6Gpio_Deinit whal_Stm32wbGpio_Deinit
-#define whal_Stm32n6Gpio_Get    whal_Stm32wbGpio_Get
-#define whal_Stm32n6Gpio_Set    whal_Stm32wbGpio_Set
-#endif /* !WHAL_CFG_GPIO_API_MAPPING_STM32N6 */
+#ifndef WHAL_CFG_STM32N6_GPIO_DIRECT_API_MAPPING
+#define whal_Stm32n6_Gpio_Driver whal_Stm32wb_Gpio_Driver
+#define whal_Stm32n6_Gpio_Init   whal_Stm32wb_Gpio_Init
+#define whal_Stm32n6_Gpio_Deinit whal_Stm32wb_Gpio_Deinit
+#define whal_Stm32n6_Gpio_Get    whal_Stm32wb_Gpio_Get
+#define whal_Stm32n6_Gpio_Set    whal_Stm32wb_Gpio_Set
+#endif /* !WHAL_CFG_STM32N6_GPIO_DIRECT_API_MAPPING */
 
 #define WHAL_STM32N6_GPIO_MODE_IN    WHAL_STM32WB_GPIO_MODE_IN
 #define WHAL_STM32N6_GPIO_MODE_OUT   WHAL_STM32WB_GPIO_MODE_OUT

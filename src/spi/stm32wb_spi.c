@@ -60,15 +60,15 @@
 #define SPI_DR_Pos 0
 #define SPI_DR_Msk (WHAL_BITMASK(8) << SPI_DR_Pos)
 
-#if defined(WHAL_CFG_SPI_API_MAPPING_STM32WB) || \
-    defined(WHAL_CFG_SPI_API_MAPPING_STM32C0) || \
-    defined(WHAL_CFG_SPI_API_MAPPING_STM32F0) || \
-    defined(WHAL_CFG_SPI_API_MAPPING_STM32F3)
-#define whal_Stm32wbSpi_Init     whal_Spi_Init
-#define whal_Stm32wbSpi_Deinit   whal_Spi_Deinit
-#define whal_Stm32wbSpi_StartCom whal_Spi_StartCom
-#define whal_Stm32wbSpi_EndCom   whal_Spi_EndCom
-#define whal_Stm32wbSpi_SendRecv whal_Spi_SendRecv
+#if defined(WHAL_CFG_STM32WB_SPI_DIRECT_API_MAPPING) || \
+    defined(WHAL_CFG_STM32C0_SPI_DIRECT_API_MAPPING) || \
+    defined(WHAL_CFG_STM32F0_SPI_DIRECT_API_MAPPING) || \
+    defined(WHAL_CFG_STM32F3_SPI_DIRECT_API_MAPPING)
+#define whal_Stm32wb_Spi_Init     whal_Spi_Init
+#define whal_Stm32wb_Spi_Deinit   whal_Spi_Deinit
+#define whal_Stm32wb_Spi_StartCom whal_Spi_StartCom
+#define whal_Stm32wb_Spi_EndCom   whal_Spi_EndCom
+#define whal_Stm32wb_Spi_SendRecv whal_Spi_SendRecv
 #endif /* WHAL_CFG_SPI_API_MAPPING */
 
 /*
@@ -79,7 +79,7 @@
  *
  * Returns the smallest prescaler that does not exceed the target baud.
  */
-static uint32_t whal_Stm32wbSpi_CalcBr(size_t pclk, uint32_t targetBaud)
+static uint32_t whal_Stm32wb_Spi_CalcBr(size_t pclk, uint32_t targetBaud)
 {
     uint32_t br;
 
@@ -92,7 +92,7 @@ static uint32_t whal_Stm32wbSpi_CalcBr(size_t pclk, uint32_t targetBaud)
     return 7;
 }
 
-whal_Error whal_Stm32wbSpi_Init(whal_Spi *spiDev)
+whal_Error whal_Stm32wb_Spi_Init(whal_Spi *spiDev)
 {
     const whal_Regmap *reg;
 
@@ -112,7 +112,7 @@ whal_Error whal_Stm32wbSpi_Init(whal_Spi *spiDev)
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_Stm32wbSpi_Deinit(whal_Spi *spiDev)
+whal_Error whal_Stm32wb_Spi_Deinit(whal_Spi *spiDev)
 {
     const whal_Regmap *reg;
 
@@ -129,10 +129,10 @@ whal_Error whal_Stm32wbSpi_Deinit(whal_Spi *spiDev)
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_Stm32wbSpi_StartCom(whal_Spi *spiDev, whal_Spi_ComCfg *comCfg)
+whal_Error whal_Stm32wb_Spi_StartCom(whal_Spi *spiDev, whal_Spi_ComCfg *comCfg)
 {
     const whal_Regmap *reg;
-    whal_Stm32wbSpi_Cfg *cfg;
+    whal_Stm32wb_Spi_Cfg *cfg;
     uint32_t cpol, cpha, br, ds, frxth;
 
     if (!spiDev || !spiDev->cfg || !comCfg) {
@@ -149,9 +149,9 @@ whal_Error whal_Stm32wbSpi_StartCom(whal_Spi *spiDev, whal_Spi_ComCfg *comCfg)
     }
 
     reg = &spiDev->regmap;
-    cfg = (whal_Stm32wbSpi_Cfg *)spiDev->cfg;
+    cfg = (whal_Stm32wb_Spi_Cfg *)spiDev->cfg;
 
-    br = whal_Stm32wbSpi_CalcBr(cfg->pclk, comCfg->freq);
+    br = whal_Stm32wb_Spi_CalcBr(cfg->pclk, comCfg->freq);
 
     cpol = (comCfg->mode >> 1) & 1;
     cpha = comCfg->mode & 1;
@@ -182,7 +182,7 @@ whal_Error whal_Stm32wbSpi_StartCom(whal_Spi *spiDev, whal_Spi_ComCfg *comCfg)
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_Stm32wbSpi_EndCom(whal_Spi *spiDev)
+whal_Error whal_Stm32wb_Spi_EndCom(whal_Spi *spiDev)
 {
     const whal_Regmap *reg;
 
@@ -199,14 +199,14 @@ whal_Error whal_Stm32wbSpi_EndCom(whal_Spi *spiDev)
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_Stm32wbSpi_SendRecv(whal_Spi *spiDev,
+whal_Error whal_Stm32wb_Spi_SendRecv(whal_Spi *spiDev,
                                     const void *tx, size_t txLen,
                                     void *rx, size_t rxLen)
 {
     const uint8_t *txBuf = (const uint8_t *)tx;
     uint8_t *rxBuf = (uint8_t *)rx;
     const whal_Regmap *reg;
-    whal_Stm32wbSpi_Cfg *cfg;
+    whal_Stm32wb_Spi_Cfg *cfg;
     size_t totalLen;
     whal_Error err;
     uint8_t txByte;
@@ -216,7 +216,7 @@ whal_Error whal_Stm32wbSpi_SendRecv(whal_Spi *spiDev,
     }
 
     reg = &spiDev->regmap;
-    cfg = (whal_Stm32wbSpi_Cfg *)spiDev->cfg;
+    cfg = (whal_Stm32wb_Spi_Cfg *)spiDev->cfg;
     totalLen = txLen > rxLen ? txLen : rxLen;
 
     for (size_t i = 0; i < totalLen; i++) {
@@ -250,15 +250,15 @@ whal_Error whal_Stm32wbSpi_SendRecv(whal_Spi *spiDev,
                              cfg->timeout);
 }
 
-#if !defined(WHAL_CFG_SPI_API_MAPPING_STM32WB) && \
-    !defined(WHAL_CFG_SPI_API_MAPPING_STM32C0) && \
-    !defined(WHAL_CFG_SPI_API_MAPPING_STM32F0) && \
-    !defined(WHAL_CFG_SPI_API_MAPPING_STM32F3)
-const whal_SpiDriver whal_Stm32wbSpi_Driver = {
-    .Init = whal_Stm32wbSpi_Init,
-    .Deinit = whal_Stm32wbSpi_Deinit,
-    .StartCom = whal_Stm32wbSpi_StartCom,
-    .EndCom = whal_Stm32wbSpi_EndCom,
-    .SendRecv = whal_Stm32wbSpi_SendRecv,
+#if !defined(WHAL_CFG_STM32WB_SPI_DIRECT_API_MAPPING) && \
+    !defined(WHAL_CFG_STM32C0_SPI_DIRECT_API_MAPPING) && \
+    !defined(WHAL_CFG_STM32F0_SPI_DIRECT_API_MAPPING) && \
+    !defined(WHAL_CFG_STM32F3_SPI_DIRECT_API_MAPPING)
+const whal_SpiDriver whal_Stm32wb_Spi_Driver = {
+    .Init = whal_Stm32wb_Spi_Init,
+    .Deinit = whal_Stm32wb_Spi_Deinit,
+    .StartCom = whal_Stm32wb_Spi_StartCom,
+    .EndCom = whal_Stm32wb_Spi_EndCom,
+    .SendRecv = whal_Stm32wb_Spi_SendRecv,
 };
 #endif /* !WHAL_CFG_SPI_API_MAPPING */

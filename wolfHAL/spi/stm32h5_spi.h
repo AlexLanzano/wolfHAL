@@ -20,16 +20,16 @@
 /*
  * @brief STM32H5 SPI configuration parameters.
  */
-typedef struct whal_Stm32h5Spi_Cfg {
+typedef struct whal_Stm32h5_Spi_Cfg {
     size_t pclk;            /* Peripheral clock frequency in Hz */
     whal_Timeout *timeout;
-} whal_Stm32h5Spi_Cfg;
+} whal_Stm32h5_Spi_Cfg;
 
-#ifndef WHAL_CFG_SPI_API_MAPPING_STM32H5
+#ifndef WHAL_CFG_STM32H5_SPI_DIRECT_API_MAPPING
 /*
  * @brief Driver instance for STM32H5 SPI peripheral.
  */
-extern const whal_SpiDriver whal_Stm32h5Spi_Driver;
+extern const whal_SpiDriver whal_Stm32h5_Spi_Driver;
 
 /*
  * @brief Initialize the STM32H5 SPI peripheral.
@@ -41,7 +41,7 @@ extern const whal_SpiDriver whal_Stm32h5Spi_Driver;
  * @retval WHAL_SUCCESS Initialization completed.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_Stm32h5Spi_Init(whal_Spi *spiDev);
+whal_Error whal_Stm32h5_Spi_Init(whal_Spi *spiDev);
 
 /*
  * @brief Deinitialize the STM32H5 SPI peripheral.
@@ -53,7 +53,7 @@ whal_Error whal_Stm32h5Spi_Init(whal_Spi *spiDev);
  * @retval WHAL_SUCCESS Deinit completed.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_Stm32h5Spi_Deinit(whal_Spi *spiDev);
+whal_Error whal_Stm32h5_Spi_Deinit(whal_Spi *spiDev);
 
 /*
  * @brief Begin a communication session with the given parameters.
@@ -66,7 +66,7 @@ whal_Error whal_Stm32h5Spi_Deinit(whal_Spi *spiDev);
  * @retval WHAL_SUCCESS Session started.
  * @retval WHAL_EINVAL  Invalid parameters.
  */
-whal_Error whal_Stm32h5Spi_StartCom(whal_Spi *spiDev, whal_Spi_ComCfg *comCfg);
+whal_Error whal_Stm32h5_Spi_StartCom(whal_Spi *spiDev, whal_Spi_ComCfg *comCfg);
 
 /*
  * @brief End the current communication session.
@@ -78,7 +78,7 @@ whal_Error whal_Stm32h5Spi_StartCom(whal_Spi *spiDev, whal_Spi_ComCfg *comCfg);
  * @retval WHAL_SUCCESS Session ended.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_Stm32h5Spi_EndCom(whal_Spi *spiDev);
+whal_Error whal_Stm32h5_Spi_EndCom(whal_Spi *spiDev);
 
 /*
  * @brief Perform a bidirectional SPI transfer.
@@ -95,8 +95,8 @@ whal_Error whal_Stm32h5Spi_EndCom(whal_Spi *spiDev);
  * @retval WHAL_SUCCESS Transfer completed.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_Stm32h5Spi_SendRecv(whal_Spi *spiDev, const void *tx,
+whal_Error whal_Stm32h5_Spi_SendRecv(whal_Spi *spiDev, const void *tx,
                                      size_t txLen, void *rx, size_t rxLen);
-#endif /* !WHAL_CFG_SPI_API_MAPPING_STM32H5 */
+#endif /* !WHAL_CFG_STM32H5_SPI_DIRECT_API_MAPPING */
 
 #endif /* WHAL_STM32H5_SPI_H */

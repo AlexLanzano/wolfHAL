@@ -29,21 +29,21 @@
  * Describes a flash sector's base address and size for the sector-based
  * erase mechanism used by the STM32F4 flash controller.
  */
-typedef struct whal_Stm32f4Flash_Sector {
+typedef struct whal_Stm32f4_Flash_Sector {
     size_t addr; /* Sector base address */
     size_t size; /* Sector size in bytes */
-} whal_Stm32f4Flash_Sector;
+} whal_Stm32f4_Flash_Sector;
 
 /*
  * @brief Flash device configuration.
  */
-typedef struct whal_Stm32f4Flash_Cfg {
+typedef struct whal_Stm32f4_Flash_Cfg {
     size_t startAddr;                          /* Flash base address (0x08000000) */
     size_t size;                               /* Flash size in bytes */
-    const whal_Stm32f4Flash_Sector *sectors;   /* Sector descriptor array */
+    const whal_Stm32f4_Flash_Sector *sectors;   /* Sector descriptor array */
     size_t sectorCount;                        /* Number of sectors */
     whal_Timeout *timeout;
-} whal_Stm32f4Flash_Cfg;
+} whal_Stm32f4_Flash_Cfg;
 
 /*
  * @brief Flash access latency (wait states).
@@ -54,18 +54,18 @@ typedef struct whal_Stm32f4Flash_Cfg {
  *   2 WS: up to 90 MHz
  *   3 WS: up to 100 MHz
  */
-typedef enum whal_Stm32f4Flash_Latency {
+typedef enum whal_Stm32f4_Flash_Latency {
     WHAL_STM32F4_FLASH_LATENCY_0, /* 0 wait states */
     WHAL_STM32F4_FLASH_LATENCY_1, /* 1 wait state */
     WHAL_STM32F4_FLASH_LATENCY_2, /* 2 wait states */
     WHAL_STM32F4_FLASH_LATENCY_3, /* 3 wait states */
-} whal_Stm32f4Flash_Latency;
+} whal_Stm32f4_Flash_Latency;
 
-#ifndef WHAL_CFG_FLASH_API_MAPPING_STM32F4
+#ifndef WHAL_CFG_STM32F4_FLASH_DIRECT_API_MAPPING
 /*
  * @brief Driver instance for STM32F4 flash.
  */
-extern const whal_FlashDriver whal_Stm32f4Flash_Driver;
+extern const whal_FlashDriver whal_Stm32f4_Flash_Driver;
 
 /*
  * @brief Initialize the STM32F4 flash interface.
@@ -75,7 +75,7 @@ extern const whal_FlashDriver whal_Stm32f4Flash_Driver;
  * @retval WHAL_SUCCESS Initialization completed.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_Stm32f4Flash_Init(whal_Flash *flashDev);
+whal_Error whal_Stm32f4_Flash_Init(whal_Flash *flashDev);
 
 /*
  * @brief Deinitialize the STM32F4 flash interface.
@@ -85,7 +85,7 @@ whal_Error whal_Stm32f4Flash_Init(whal_Flash *flashDev);
  * @retval WHAL_SUCCESS Deinit completed.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_Stm32f4Flash_Deinit(whal_Flash *flashDev);
+whal_Error whal_Stm32f4_Flash_Deinit(whal_Flash *flashDev);
 
 /*
  * @brief Lock the flash control register.
@@ -97,7 +97,7 @@ whal_Error whal_Stm32f4Flash_Deinit(whal_Flash *flashDev);
  * @retval WHAL_SUCCESS Lock applied.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_Stm32f4Flash_Lock(whal_Flash *flashDev, size_t addr, size_t len);
+whal_Error whal_Stm32f4_Flash_Lock(whal_Flash *flashDev, size_t addr, size_t len);
 
 /*
  * @brief Unlock the flash control register.
@@ -109,7 +109,7 @@ whal_Error whal_Stm32f4Flash_Lock(whal_Flash *flashDev, size_t addr, size_t len)
  * @retval WHAL_SUCCESS Unlock applied.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_Stm32f4Flash_Unlock(whal_Flash *flashDev, size_t addr, size_t len);
+whal_Error whal_Stm32f4_Flash_Unlock(whal_Flash *flashDev, size_t addr, size_t len);
 
 /*
  * @brief Read data from flash into a buffer.
@@ -122,7 +122,7 @@ whal_Error whal_Stm32f4Flash_Unlock(whal_Flash *flashDev, size_t addr, size_t le
  * @retval WHAL_SUCCESS Read completed.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_Stm32f4Flash_Read(whal_Flash *flashDev, size_t addr,
+whal_Error whal_Stm32f4_Flash_Read(whal_Flash *flashDev, size_t addr,
                                    void *data, size_t dataSz);
 
 /*
@@ -140,7 +140,7 @@ whal_Error whal_Stm32f4Flash_Read(whal_Flash *flashDev, size_t addr,
  * @retval WHAL_EINVAL    Invalid arguments or alignment.
  * @retval WHAL_EHARDWARE Flash error during programming.
  */
-whal_Error whal_Stm32f4Flash_Write(whal_Flash *flashDev, size_t addr,
+whal_Error whal_Stm32f4_Flash_Write(whal_Flash *flashDev, size_t addr,
                                     const void *data, size_t dataSz);
 
 /*
@@ -157,9 +157,9 @@ whal_Error whal_Stm32f4Flash_Write(whal_Flash *flashDev, size_t addr,
  * @retval WHAL_EINVAL    Invalid arguments.
  * @retval WHAL_EHARDWARE Flash error during erase.
  */
-whal_Error whal_Stm32f4Flash_Erase(whal_Flash *flashDev, size_t addr,
+whal_Error whal_Stm32f4_Flash_Erase(whal_Flash *flashDev, size_t addr,
                                     size_t dataSz);
-#endif /* !WHAL_CFG_FLASH_API_MAPPING_STM32F4 */
+#endif /* !WHAL_CFG_STM32F4_FLASH_DIRECT_API_MAPPING */
 
 /*
  * @brief Update flash latency wait states.
@@ -170,7 +170,7 @@ whal_Error whal_Stm32f4Flash_Erase(whal_Flash *flashDev, size_t addr,
  * @retval WHAL_SUCCESS Latency updated.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_Stm32f4Flash_Ext_SetLatency(whal_Flash *flashDev,
-                                             enum whal_Stm32f4Flash_Latency latency);
+whal_Error whal_Stm32f4_Flash_Ext_SetLatency(whal_Flash *flashDev,
+                                             enum whal_Stm32f4_Flash_Latency latency);
 
 #endif /* WHAL_STM32F4_FLASH_H */

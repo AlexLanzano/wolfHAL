@@ -21,22 +21,22 @@
 /* TX DMA descriptor (4 x 32-bit words, 16 bytes) */
 typedef struct {
     volatile uint32_t des[4];
-} whal_Stm32h5Eth_TxDesc;
+} whal_Stm32h5_Eth_TxDesc;
 
 /* RX DMA descriptor (4 x 32-bit words, 16 bytes) */
 typedef struct {
     volatile uint32_t des[4];
-} whal_Stm32h5Eth_RxDesc;
+} whal_Stm32h5_Eth_RxDesc;
 
 /*
  * @brief STM32H5 Ethernet MAC configuration.
  */
-typedef struct whal_Stm32h5Eth_Cfg {
-    whal_Stm32h5Eth_TxDesc *txDescs;     /* TX descriptor ring (pre-allocated) */
+typedef struct whal_Stm32h5_Eth_Cfg {
+    whal_Stm32h5_Eth_TxDesc *txDescs;     /* TX descriptor ring (pre-allocated) */
     uint8_t *txBufs;                      /* TX frame buffers (pre-allocated) */
     size_t txDescCount;                   /* Number of TX descriptors */
     size_t txBufSize;                     /* Size of each TX buffer in bytes */
-    whal_Stm32h5Eth_RxDesc *rxDescs;     /* RX descriptor ring (pre-allocated) */
+    whal_Stm32h5_Eth_RxDesc *rxDescs;     /* RX descriptor ring (pre-allocated) */
     uint8_t *rxBufs;                      /* RX frame buffers (pre-allocated) */
     size_t rxDescCount;                   /* Number of RX descriptors */
     size_t rxBufSize;                     /* Size of each RX buffer in bytes */
@@ -44,13 +44,13 @@ typedef struct whal_Stm32h5Eth_Cfg {
     /* Runtime state (set by driver, not by user) */
     size_t txHead;                        /* Next TX descriptor to use */
     size_t rxHead;                        /* Next RX descriptor to check */
-} whal_Stm32h5Eth_Cfg;
+} whal_Stm32h5_Eth_Cfg;
 
-#ifndef WHAL_CFG_ETH_API_MAPPING_STM32H5
+#ifndef WHAL_CFG_STM32H5_ETH_DIRECT_API_MAPPING
 /*
  * @brief Driver instance for STM32H5 Ethernet MAC.
  */
-extern const whal_EthDriver whal_Stm32h5Eth_Driver;
+extern const whal_EthDriver whal_Stm32h5_Eth_Driver;
 
 /*
  * @brief Initialize the STM32H5 Ethernet MAC.
@@ -63,7 +63,7 @@ extern const whal_EthDriver whal_Stm32h5Eth_Driver;
  * @retval WHAL_SUCCESS Initialization completed.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_Stm32h5Eth_Init(whal_Eth *ethDev);
+whal_Error whal_Stm32h5_Eth_Init(whal_Eth *ethDev);
 
 /*
  * @brief Deinitialize the STM32H5 Ethernet MAC.
@@ -73,7 +73,7 @@ whal_Error whal_Stm32h5Eth_Init(whal_Eth *ethDev);
  * @retval WHAL_SUCCESS Deinit completed.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_Stm32h5Eth_Deinit(whal_Eth *ethDev);
+whal_Error whal_Stm32h5_Eth_Deinit(whal_Eth *ethDev);
 
 /*
  * @brief Start the Ethernet MAC TX/RX and DMA engines.
@@ -87,7 +87,7 @@ whal_Error whal_Stm32h5Eth_Deinit(whal_Eth *ethDev);
  * @retval WHAL_SUCCESS MAC started.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_Stm32h5Eth_Start(whal_Eth *ethDev, uint8_t speed,
+whal_Error whal_Stm32h5_Eth_Start(whal_Eth *ethDev, uint8_t speed,
                                   uint8_t duplex);
 
 /*
@@ -98,7 +98,7 @@ whal_Error whal_Stm32h5Eth_Start(whal_Eth *ethDev, uint8_t speed,
  * @retval WHAL_SUCCESS MAC stopped.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_Stm32h5Eth_Stop(whal_Eth *ethDev);
+whal_Error whal_Stm32h5_Eth_Stop(whal_Eth *ethDev);
 
 /*
  * @brief Transmit an Ethernet frame.
@@ -114,7 +114,7 @@ whal_Error whal_Stm32h5Eth_Stop(whal_Eth *ethDev);
  * @retval WHAL_EINVAL    Invalid arguments.
  * @retval WHAL_ENOTREADY No TX descriptor available.
  */
-whal_Error whal_Stm32h5Eth_Send(whal_Eth *ethDev, const void *frame,
+whal_Error whal_Stm32h5_Eth_Send(whal_Eth *ethDev, const void *frame,
                                  size_t len);
 
 /*
@@ -132,7 +132,7 @@ whal_Error whal_Stm32h5Eth_Send(whal_Eth *ethDev, const void *frame,
  * @retval WHAL_EINVAL    Invalid arguments.
  * @retval WHAL_ENOTREADY No frame available.
  */
-whal_Error whal_Stm32h5Eth_Recv(whal_Eth *ethDev, void *frame,
+whal_Error whal_Stm32h5_Eth_Recv(whal_Eth *ethDev, void *frame,
                                  size_t *len);
 
 /*
@@ -147,7 +147,7 @@ whal_Error whal_Stm32h5Eth_Recv(whal_Eth *ethDev, void *frame,
  * @retval WHAL_EINVAL    Invalid arguments.
  * @retval WHAL_ETIMEOUT  MDIO busy timeout.
  */
-whal_Error whal_Stm32h5Eth_MdioRead(whal_Eth *ethDev, uint8_t phyAddr,
+whal_Error whal_Stm32h5_Eth_MdioRead(whal_Eth *ethDev, uint8_t phyAddr,
                                       uint8_t reg, uint16_t *val);
 
 /*
@@ -162,9 +162,9 @@ whal_Error whal_Stm32h5Eth_MdioRead(whal_Eth *ethDev, uint8_t phyAddr,
  * @retval WHAL_EINVAL    Invalid arguments.
  * @retval WHAL_ETIMEOUT  MDIO busy timeout.
  */
-whal_Error whal_Stm32h5Eth_MdioWrite(whal_Eth *ethDev, uint8_t phyAddr,
+whal_Error whal_Stm32h5_Eth_MdioWrite(whal_Eth *ethDev, uint8_t phyAddr,
                                        uint8_t reg, uint16_t val);
-#endif /* !WHAL_CFG_ETH_API_MAPPING_STM32H5 */
+#endif /* !WHAL_CFG_STM32H5_ETH_DIRECT_API_MAPPING */
 
 /*
  * @brief Enable or disable MAC-internal loopback.
@@ -178,7 +178,7 @@ whal_Error whal_Stm32h5Eth_MdioWrite(whal_Eth *ethDev, uint8_t phyAddr,
  * @retval WHAL_SUCCESS Loopback state changed.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_Stm32h5Eth_Ext_EnableLoopback(whal_Eth *ethDev,
+whal_Error whal_Stm32h5_Eth_Ext_EnableLoopback(whal_Eth *ethDev,
                                                 uint8_t enable);
 
 #endif /* WHAL_STM32H5_ETH_H */

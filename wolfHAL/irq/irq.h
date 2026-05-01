@@ -40,12 +40,6 @@ struct whal_Irq {
     const void *cfg;
 };
 
-#ifdef WHAL_CFG_DIRECT_CALLBACKS
-#define whal_Irq_Init(irqDev) ((irqDev)->driver->Init((irqDev)))
-#define whal_Irq_Deinit(irqDev) ((irqDev)->driver->Deinit((irqDev)))
-#define whal_Irq_Enable(irqDev, irq, irqCfg) ((irqDev)->driver->Enable((irqDev), (irq), (irqCfg)))
-#define whal_Irq_Disable(irqDev, irq) ((irqDev)->driver->Disable((irqDev), (irq)))
-#else
 /*
  * @brief Initialize the interrupt controller.
  *
@@ -85,6 +79,5 @@ whal_Error whal_Irq_Enable(whal_Irq *irqDev, size_t irq, const void *irqCfg);
  * @retval WHAL_EINVAL  Null pointer or missing driver function.
  */
 whal_Error whal_Irq_Disable(whal_Irq *irqDev, size_t irq);
-#endif
 
 #endif /* WHAL_IRQ_H */

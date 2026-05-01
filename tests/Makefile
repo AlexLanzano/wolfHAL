@@ -1,12 +1,14 @@
 WHAL_DIR = $(CURDIR)/..
 
+.DEFAULT_GOAL := all
+
 BOARD ?= stm32wb55xx_nucleo
 BOARD_DIR = $(WHAL_DIR)/boards/$(BOARD)
 BUILD_DIR = build/$(BOARD)
 PERIPHERAL_DIR = $(WHAL_DIR)/boards/peripheral
 INCLUDE = -I$(WHAL_DIR) -I. -I$(PERIPHERAL_DIR)
 
-include $(BOARD_DIR)/Makefile.inc
+include $(BOARD_DIR)/board.mk
 
 uc = $(shell echo $(1) | tr a-z A-Z)
 CFLAGS += $(foreach t,$(TESTS),-DWHAL_TEST_ENABLE_$(call uc,$(t)))

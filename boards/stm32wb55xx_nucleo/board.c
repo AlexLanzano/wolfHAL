@@ -33,47 +33,31 @@ whal_Irq g_whalIrq = {
 
 /* Clock */
 whal_Clock g_whalClock = {
-    .regmap = { WHAL_STM32WB55_RCC_PLL_REGMAP },
+    .regmap = { WHAL_STM32WB55_RCC_REGMAP },
     /* .driver: direct API mapping */
-
-    .cfg = &(whal_Stm32wbRcc_Cfg) {
-        .sysClkSrc = WHAL_STM32WB_RCC_SYSCLK_SRC_PLL,
-        .sysClkCfg = &(whal_Stm32wbRcc_PllClkCfg)
-        {
-            .clkSrc = WHAL_STM32WB_RCC_PLLCLK_SRC_MSI,
-            /* 64 MHz */
-            .n = 32,
-            .m = 0,
-            .r = 1,
-            .q = 0,
-            .p = 0,
-        },
-    },
 };
 
-static const whal_Stm32wbRcc_Clk g_flashClock = {WHAL_STM32WB55_FLASH_CLOCK};
-
-static const whal_Stm32wbRcc_Clk g_clocks[] = {
-    {WHAL_STM32WB55_GPIOA_CLOCK},
-    {WHAL_STM32WB55_GPIOB_CLOCK},
-    {WHAL_STM32WB55_UART1_CLOCK},
-    {WHAL_STM32WB55_SPI1_CLOCK},
-    {WHAL_STM32WB55_RNG_CLOCK},
-    {WHAL_STM32WB55_AES1_CLOCK},
-    {WHAL_STM32WB55_I2C1_CLOCK},
+static const whal_Stm32wb_Rcc_PeriphClk g_periphClks[] = {
+    {WHAL_STM32WB55_GPIOA_GATE},
+    {WHAL_STM32WB55_GPIOB_GATE},
+    {WHAL_STM32WB55_UART1_GATE},
+    {WHAL_STM32WB55_SPI1_GATE},
+    {WHAL_STM32WB55_RNG_GATE},
+    {WHAL_STM32WB55_AES1_GATE},
+    {WHAL_STM32WB55_I2C1_GATE},
 #ifdef BOARD_WATCHDOG_WWDG
-    {WHAL_STM32WB55_WWDG_CLOCK},
+    {WHAL_STM32WB55_WWDG_GATE},
 #endif
 };
-#define CLOCK_COUNT (sizeof(g_clocks) / sizeof(g_clocks[0]))
+#define PERIPH_CLK_COUNT (sizeof(g_periphClks) / sizeof(g_periphClks[0]))
 
 /* GPIO */
 whal_Gpio g_whalGpio = {
     .regmap = { WHAL_STM32WB55_GPIO_REGMAP },
     /* .driver: direct API mapping */
 
-    .cfg = &(whal_Stm32wbGpio_Cfg) {
-        .pinCfg = (whal_Stm32wbGpio_PinCfg[PIN_COUNT]) {
+    .cfg = &(whal_Stm32wb_Gpio_Cfg) {
+        .pinCfg = (whal_Stm32wb_Gpio_PinCfg[PIN_COUNT]) {
             /* LED: PB5, output, push-pull, low speed, pull-up */
             [LED_PIN] = WHAL_STM32WB_GPIO_PIN(
                 WHAL_STM32WB_GPIO_PORT_B, 5, WHAL_STM32WB_GPIO_MODE_OUT,
@@ -129,7 +113,7 @@ whal_I2c g_whalI2c = {
     .regmap = { WHAL_STM32WB55_I2C1_REGMAP },
     /* .driver: direct API mapping */
 
-    .cfg = &(whal_Stm32wbI2c_Cfg) {
+    .cfg = &(whal_Stm32wb_I2c_Cfg) {
         .pclk = 64000000,
         .timeout = &g_whalTimeout,
     },
@@ -140,7 +124,7 @@ whal_Spi g_whalSpi = {
     .regmap = { WHAL_STM32WB55_SPI1_REGMAP },
     /* .driver: direct API mapping */
 
-    .cfg = &(whal_Stm32wbSpi_Cfg) {
+    .cfg = &(whal_Stm32wb_Spi_Cfg) {
         .pclk = 64000000,
         .timeout = &g_whalTimeout,
     },
@@ -164,22 +148,19 @@ whal_Timer g_whalTimer = {
 whal_Dma g_whalDma1 = {
     .regmap = { WHAL_STM32WB55_DMA1_REGMAP },
     /* .driver: direct API mapping */
-    .cfg = &(whal_Stm32wbDma_Cfg){WHAL_STM32WB55_DMA1_CFG},
+    .cfg = &(whal_Stm32wb_Dma_Cfg){WHAL_STM32WB55_DMA1_CFG},
 };
-
-static const whal_Stm32wbRcc_Clk g_dmaClock = {WHAL_STM32WB55_DMA1_CLOCK};
-static const whal_Stm32wbRcc_Clk g_dmamuxClock = {WHAL_STM32WB55_DMAMUX1_CLOCK};
 
 void DMA1_Channel4_IRQHandler(void)
 {
-    whal_Stm32wbDma_IRQHandler(&g_whalDma1, 3,
-                                whal_Stm32wbUartDma_TxCallback, g_whalUart.cfg);
+    whal_Stm32wb_Dma_IRQHandler(&g_whalDma1, 3,
+                                whal_Stm32wb_UartDma_TxCallback, g_whalUart.cfg);
 }
 
 void DMA1_Channel5_IRQHandler(void)
 {
-    whal_Stm32wbDma_IRQHandler(&g_whalDma1, 4,
-                                whal_Stm32wbUartDma_RxCallback, g_whalUart.cfg);
+    whal_Stm32wb_Dma_IRQHandler(&g_whalDma1, 4,
+                                whal_Stm32wb_UartDma_RxCallback, g_whalUart.cfg);
 }
 #endif
 
@@ -188,7 +169,7 @@ void DMA1_Channel5_IRQHandler(void)
 whal_Uart g_whalUart = {
     .regmap = { WHAL_STM32WB55_UART1_REGMAP },
     /* .driver: direct API mapping */
-    .cfg = &(whal_Stm32wbUartDma_Cfg) {
+    .cfg = &(whal_Stm32wb_UartDma_Cfg) {
         .base = {
             .brr = WHAL_STM32WB_UART_BRR(64000000, 115200),
             .timeout = &g_whalTimeout,
@@ -196,8 +177,8 @@ whal_Uart g_whalUart = {
         .dma = &g_whalDma1,
         .txCh = 3,
         .rxCh = 4,
-        .txChCfg = &(whal_Stm32wbDma_ChCfg){WHAL_STM32WB55_UART1_TX_DMA_CFG},
-        .rxChCfg = &(whal_Stm32wbDma_ChCfg){WHAL_STM32WB55_UART1_RX_DMA_CFG},
+        .txChCfg = &(whal_Stm32wb_Dma_ChCfg){WHAL_STM32WB55_UART1_TX_DMA_CFG},
+        .rxChCfg = &(whal_Stm32wb_Dma_ChCfg){WHAL_STM32WB55_UART1_RX_DMA_CFG},
     },
 };
 #else
@@ -205,7 +186,7 @@ whal_Uart g_whalUart = {
     .regmap = { WHAL_STM32WB55_UART1_REGMAP },
     /* .driver: direct API mapping */
 
-    .cfg = &(whal_Stm32wbUart_Cfg) {
+    .cfg = &(whal_Stm32wb_Uart_Cfg) {
         .timeout = &g_whalTimeout,
 
         .brr = WHAL_STM32WB_UART_BRR(64000000, 115200),
@@ -218,7 +199,7 @@ whal_Flash g_whalFlash = {
     .regmap = { WHAL_STM32WB55_FLASH_REGMAP },
     .driver = WHAL_STM32WB55_FLASH_DRIVER,
 
-    .cfg = &(whal_Stm32wbFlash_Cfg) {
+    .cfg = &(whal_Stm32wb_Flash_Cfg) {
         .timeout = &g_whalTimeout,
 
         .startAddr = 0x08000000,
@@ -231,7 +212,7 @@ whal_Rng g_whalRng = {
     .regmap = { WHAL_STM32WB55_RNG_REGMAP },
     /* .driver: direct API mapping */
 
-    .cfg = &(whal_Stm32wbRng_Cfg) {
+    .cfg = &(whal_Stm32wb_Rng_Cfg) {
         .timeout = &g_whalTimeout,
     },
 };
@@ -241,7 +222,7 @@ whal_Crypto g_whalCrypto = {
     .regmap = { WHAL_STM32WB55_AES1_REGMAP },
     /* .driver: direct API mapping */
 
-    .cfg = &(whal_Stm32wbAes_Cfg) {
+    .cfg = &(whal_Stm32wb_Aes_Cfg) {
         .timeout = &g_whalTimeout,
     },
 };
@@ -251,7 +232,7 @@ whal_Watchdog g_whalWatchdog = {
     .regmap = { WHAL_STM32WB55_IWDG_REGMAP },
     .driver = WHAL_STM32WB55_IWDG_DRIVER,
 
-    .cfg = &(whal_Stm32wbIwdg_Cfg) {
+    .cfg = &(whal_Stm32wb_Iwdg_Cfg) {
         .prescaler = WHAL_STM32WB_IWDG_PR_32,
         .reload = 100,
         .timeout = &g_whalTimeout,
@@ -262,7 +243,7 @@ whal_Watchdog g_whalWatchdog = {
     .regmap = { WHAL_STM32WB55_WWDG_REGMAP },
     .driver = WHAL_STM32WB55_WWDG_DRIVER,
 
-    .cfg = &(whal_Stm32wbWwdg_Cfg) {
+    .cfg = &(whal_Stm32wb_Wwdg_Cfg) {
         .prescaler = WHAL_STM32WB_WWDG_TB_128,
         .window = 0x7F,
         .counter = 0x7F,
@@ -279,40 +260,44 @@ void Board_WaitMs(size_t ms)
 whal_Error Board_Init(void)
 {
     whal_Error err;
+    size_t i;
 
-    /* Enable flash clock and set latency before increasing clock speed */
-    err = whal_Clock_Enable(&g_whalClock, &g_flashClock);
-    if (err) {
+    /* Flash latency must be set before SYSCLK rises above ~16 MHz. */
+    err = whal_Stm32wb_Flash_Ext_SetLatency(&g_whalFlash, WHAL_STM32WB_FLASH_LATENCY_3);
+    if (err)
         return err;
-    }
 
-    err = whal_Stm32wbFlash_Ext_SetLatency(&g_whalFlash, WHAL_STM32WB_FLASH_LATENCY_3);
-    if (err) {
+    /* Bring up the clock tree: MSI -> PLL (sourced from MSI) -> HSI48 -> LSI -> SYSCLK->PLL */
+    err = whal_Stm32wb_Rcc_EnableMsi(&g_whalClock, WHAL_STM32WB_RCC_MSIRANGE_4MHz);
+    if (err)
         return err;
-    }
 
-    err = whal_Clock_Init(&g_whalClock);
-    if (err) {
+    /* MSI (4 MHz) -> VCO 128 MHz -> PLLR /2 = 64 MHz */
+    err = whal_Stm32wb_Rcc_EnablePll(&g_whalClock, &(whal_Stm32wb_Rcc_PllCfg){
+        .clkSrc = WHAL_STM32WB_RCC_PLLCLK_SRC_MSI,
+        .n = 32, .m = 0, .r = 1, .q = 0, .p = 0,
+    });
+    if (err)
         return err;
-    }
 
-    /* Enable HSI48 osc required by the RNG */
-    err = whal_Stm32wbRcc_Ext_EnableHsi48(&g_whalClock, 1);
-    if (err) {
+    err = whal_Stm32wb_Rcc_EnableOsc(&g_whalClock,
+        &(whal_Stm32wb_Rcc_OscCfg){WHAL_STM32WB_RCC_HSI48_CFG});
+    if (err)
         return err;
-    }
 
 #ifdef BOARD_WATCHDOG_IWDG
-    /* Enable LSI osc required by the IWDG */
-    err = whal_Stm32wbRcc_Ext_EnableLsi(&g_whalClock, 1);
-    if (err) {
+    err = whal_Stm32wb_Rcc_EnableOsc(&g_whalClock,
+        &(whal_Stm32wb_Rcc_OscCfg){WHAL_STM32WB_RCC_LSI_CFG});
+    if (err)
         return err;
-    }
 #endif
 
-    /* Enable clocks */
-    for (size_t i = 0; i < CLOCK_COUNT; i++) {
-        err = whal_Clock_Enable(&g_whalClock, &g_clocks[i]);
+    err = whal_Stm32wb_Rcc_SetSysClock(&g_whalClock, WHAL_STM32WB_RCC_SYSCLK_SRC_PLL);
+    if (err)
+        return err;
+
+    for (i = 0; i < PERIPH_CLK_COUNT; i++) {
+        err = whal_Stm32wb_Rcc_EnablePeriphClk(&g_whalClock, &g_periphClks[i]);
         if (err)
             return err;
     }
@@ -322,12 +307,14 @@ whal_Error Board_Init(void)
         return err;
 
 #ifdef BOARD_DMA
-    err = whal_Clock_Enable(&g_whalClock, &g_dmaClock);
+    err = whal_Stm32wb_Rcc_EnablePeriphClk(&g_whalClock, &(whal_Stm32wb_Rcc_PeriphClk){WHAL_STM32WB55_DMA1_GATE});
     if (err)
         return err;
-    err = whal_Clock_Enable(&g_whalClock, &g_dmamuxClock);
+
+    err = whal_Stm32wb_Rcc_EnablePeriphClk(&g_whalClock, &(whal_Stm32wb_Rcc_PeriphClk){WHAL_STM32WB55_DMAMUX1_GATE});
     if (err)
         return err;
+
     err = whal_Dma_Init(&g_whalDma1);
     if (err)
         return err;
@@ -336,6 +323,7 @@ whal_Error Board_Init(void)
     err = whal_Irq_Enable(&g_whalIrq, 14, NULL);
     if (err)
         return err;
+
     err = whal_Irq_Enable(&g_whalIrq, 15, NULL);
     if (err)
         return err;
@@ -455,10 +443,10 @@ whal_Error Board_Deinit(void)
     err = whal_Dma_Deinit(&g_whalDma1);
     if (err)
         return err;
-    err = whal_Clock_Disable(&g_whalClock, &g_dmamuxClock);
+    err = whal_Stm32wb_Rcc_DisablePeriphClk(&g_whalClock, &(whal_Stm32wb_Rcc_PeriphClk){WHAL_STM32WB55_DMAMUX1_GATE});
     if (err)
         return err;
-    err = whal_Clock_Disable(&g_whalClock, &g_dmaClock);
+    err = whal_Stm32wb_Rcc_DisablePeriphClk(&g_whalClock, &(whal_Stm32wb_Rcc_PeriphClk){WHAL_STM32WB55_DMA1_GATE});
     if (err)
         return err;
 #endif
@@ -467,40 +455,33 @@ whal_Error Board_Deinit(void)
     if (err)
         return err;
 
-    /* Disable clocks */
-    for (size_t i = 0; i < CLOCK_COUNT; i++) {
-        err = whal_Clock_Disable(&g_whalClock, &g_clocks[i]);
+    /* Tear down the clock tree in reverse: peripheral gates off, SYSCLK -> MSI, sources off. */
+    for (size_t i = PERIPH_CLK_COUNT; i-- > 0; ) {
+        err = whal_Stm32wb_Rcc_DisablePeriphClk(&g_whalClock, &g_periphClks[i]);
         if (err)
             return err;
     }
-
-    err = whal_Stm32wbRcc_Ext_EnableHsi48(&g_whalClock, 0);
-    if (err) {
+    err = whal_Stm32wb_Rcc_SetSysClock(&g_whalClock, WHAL_STM32WB_RCC_SYSCLK_SRC_MSI);
+    if (err)
         return err;
-    }
-
+    err = whal_Stm32wb_Rcc_DisablePll(&g_whalClock);
+    if (err)
+        return err;
 #ifdef BOARD_WATCHDOG_IWDG
-    err = whal_Stm32wbRcc_Ext_EnableLsi(&g_whalClock, 0);
-    if (err) {
+    err = whal_Stm32wb_Rcc_DisableOsc(&g_whalClock,
+        &(whal_Stm32wb_Rcc_OscCfg){WHAL_STM32WB_RCC_LSI_CFG});
+    if (err)
         return err;
-    }
 #endif
-
-    err = whal_Clock_Deinit(&g_whalClock);
-    if (err) {
+    err = whal_Stm32wb_Rcc_DisableOsc(&g_whalClock,
+        &(whal_Stm32wb_Rcc_OscCfg){WHAL_STM32WB_RCC_HSI48_CFG});
+    if (err)
         return err;
-    }
+    /* MSI stays on as the post-Deinit fallback. */
 
-    /* Reduce flash latency then disable flash clock */
-    err = whal_Stm32wbFlash_Ext_SetLatency(&g_whalFlash, WHAL_STM32WB_FLASH_LATENCY_0);
-    if (err) {
+    err = whal_Stm32wb_Flash_Ext_SetLatency(&g_whalFlash, WHAL_STM32WB_FLASH_LATENCY_0);
+    if (err)
         return err;
-    }
-
-    err = whal_Clock_Disable(&g_whalClock, &g_flashClock);
-    if (err) {
-        return err;
-    }
 
     return WHAL_SUCCESS;
 }

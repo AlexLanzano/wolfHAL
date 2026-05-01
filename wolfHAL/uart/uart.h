@@ -40,14 +40,6 @@ struct whal_Uart {
     void *cfg;
 };
 
-#ifdef WHAL_CFG_DIRECT_CALLBACKS
-#define whal_Uart_Init(uartDev) ((uartDev)->driver->Init((uartDev)))
-#define whal_Uart_Deinit(uartDev) ((uartDev)->driver->Deinit((uartDev)))
-#define whal_Uart_Send(uartDev, data, dataSz) ((uartDev)->driver->Send((uartDev), (data), (dataSz)))
-#define whal_Uart_Recv(uartDev, data, dataSz) ((uartDev)->driver->Recv((uartDev), (data), (dataSz)))
-#define whal_Uart_SendAsync(uartDev, data, dataSz) ((uartDev)->driver->SendAsync((uartDev), (data), (dataSz)))
-#define whal_Uart_RecvAsync(uartDev, data, dataSz) ((uartDev)->driver->RecvAsync((uartDev), (data), (dataSz)))
-#else
 /*
  * @brief Initializes a UART device and its driver.
  *
@@ -129,6 +121,5 @@ whal_Error whal_Uart_SendAsync(whal_Uart *uartDev, const void *data, size_t data
  * @retval WHAL_ENOTSUP  Async not supported by this driver.
  */
 whal_Error whal_Uart_RecvAsync(whal_Uart *uartDev, void *data, size_t dataSz);
-#endif
 
 #endif /* WHAL_UART_H */

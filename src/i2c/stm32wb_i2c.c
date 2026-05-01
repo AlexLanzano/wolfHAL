@@ -121,18 +121,18 @@
 #define I2C_FMP_TLOW_NS    500   /* Fast mode plus tLOW min */
 #define I2C_FMP_THIGH_NS   260   /* Fast mode plus tHIGH min */
 
-#if defined(WHAL_CFG_I2C_API_MAPPING_STM32WB) || \
-    defined(WHAL_CFG_I2C_API_MAPPING_STM32F0) || \
-    defined(WHAL_CFG_I2C_API_MAPPING_STM32F3) || \
-    defined(WHAL_CFG_I2C_API_MAPPING_STM32N6)
-#define whal_Stm32wbI2c_Init     whal_I2c_Init
-#define whal_Stm32wbI2c_Deinit   whal_I2c_Deinit
-#define whal_Stm32wbI2c_StartCom whal_I2c_StartCom
-#define whal_Stm32wbI2c_EndCom   whal_I2c_EndCom
-#define whal_Stm32wbI2c_Transfer whal_I2c_Transfer
+#if defined(WHAL_CFG_STM32WB_I2C_DIRECT_API_MAPPING) || \
+    defined(WHAL_CFG_STM32F0_I2C_DIRECT_API_MAPPING) || \
+    defined(WHAL_CFG_STM32F3_I2C_DIRECT_API_MAPPING) || \
+    defined(WHAL_CFG_STM32N6_I2C_DIRECT_API_MAPPING)
+#define whal_Stm32wb_I2c_Init     whal_I2c_Init
+#define whal_Stm32wb_I2c_Deinit   whal_I2c_Deinit
+#define whal_Stm32wb_I2c_StartCom whal_I2c_StartCom
+#define whal_Stm32wb_I2c_EndCom   whal_I2c_EndCom
+#define whal_Stm32wb_I2c_Transfer whal_I2c_Transfer
 #endif /* WHAL_CFG_I2C_API_MAPPING */
 
-static uint32_t Stm32wbI2c_CalcTimingr(uint32_t pclk, uint32_t freq)
+static uint32_t Stm32wb_I2c_CalcTimingr(uint32_t pclk, uint32_t freq)
 {
     uint32_t tLowNs, tHighNs;
     uint32_t presc, scll, sclh, sdadel, scldel;
@@ -183,7 +183,7 @@ static uint32_t Stm32wbI2c_CalcTimingr(uint32_t pclk, uint32_t freq)
            (scll   << I2C_TIMINGR_SCLL_Pos);
 }
 
-static whal_Error Stm32wbI2c_CheckErrors(size_t base)
+static whal_Error Stm32wb_I2c_CheckErrors(size_t base)
 {
     size_t isr = whal_Reg_Read(base, I2C_ISR_REG);
 
@@ -208,7 +208,7 @@ static whal_Error Stm32wbI2c_CheckErrors(size_t base)
     return WHAL_SUCCESS;
 }
 
-static whal_Error Stm32wbI2c_WaitFlag(size_t base, size_t mask, size_t value,
+static whal_Error Stm32wb_I2c_WaitFlag(size_t base, size_t mask, size_t value,
                                        whal_Timeout *timeout)
 {
     whal_Error err;
@@ -221,7 +221,7 @@ static whal_Error Stm32wbI2c_WaitFlag(size_t base, size_t mask, size_t value,
         if ((isr & mask) == value)
             return WHAL_SUCCESS;
 
-        err = Stm32wbI2c_CheckErrors(base);
+        err = Stm32wb_I2c_CheckErrors(base);
         if (err)
             return err;
 
@@ -238,7 +238,7 @@ static whal_Error Stm32wbI2c_WaitFlag(size_t base, size_t mask, size_t value,
 #define I2C_CR2_XFER_Msk  (I2C_CR2_RD_WRN_Msk | I2C_CR2_NBYTES_Msk | \
                             I2C_CR2_START_Msk | I2C_CR2_RELOAD_Msk)
 
-static whal_Error Stm32wbI2c_TransferChunk(size_t base, uint8_t *buf,
+static whal_Error Stm32wb_I2c_TransferChunk(size_t base, uint8_t *buf,
                                             size_t nbytes, uint8_t isRead,
                                             uint8_t start, uint8_t reload,
                                             whal_Timeout *timeout)
@@ -260,7 +260,7 @@ static whal_Error Stm32wbI2c_TransferChunk(size_t base, uint8_t *buf,
 
     for (size_t i = 0; i < nbytes; i++) {
         if (isRead) {
-            err = Stm32wbI2c_WaitFlag(base, I2C_ISR_RXNE_Msk,
+            err = Stm32wb_I2c_WaitFlag(base, I2C_ISR_RXNE_Msk,
                                        I2C_ISR_RXNE_Msk, timeout);
             if (err)
                 return err;
@@ -270,7 +270,7 @@ static whal_Error Stm32wbI2c_TransferChunk(size_t base, uint8_t *buf,
             else
                 (void)whal_Reg_Read(base, I2C_RXDR_REG);
         } else {
-            err = Stm32wbI2c_WaitFlag(base, I2C_ISR_TXIS_Msk,
+            err = Stm32wb_I2c_WaitFlag(base, I2C_ISR_TXIS_Msk,
                                        I2C_ISR_TXIS_Msk, timeout);
             if (err)
                 return err;
@@ -281,7 +281,7 @@ static whal_Error Stm32wbI2c_TransferChunk(size_t base, uint8_t *buf,
 
     if (reload) {
         /* Wait for TCR before next chunk */
-        err = Stm32wbI2c_WaitFlag(base, I2C_ISR_TCR_Msk,
+        err = Stm32wb_I2c_WaitFlag(base, I2C_ISR_TCR_Msk,
                                    I2C_ISR_TCR_Msk, timeout);
         if (err)
             return err;
@@ -312,7 +312,7 @@ static whal_Error Stm32wbI2c_TransferChunk(size_t base, uint8_t *buf,
  *                    re-addressing. If false, use TC so the next message
  *                    can issue START for a direction change.
  */
-static whal_Error Stm32wbI2c_TransferMsg(size_t base, whal_I2c_Msg *msg,
+static whal_Error Stm32wb_I2c_TransferMsg(size_t base, whal_I2c_Msg *msg,
                                           uint8_t reloadLast,
                                           whal_Timeout *timeout)
 {
@@ -328,7 +328,7 @@ static whal_Error Stm32wbI2c_TransferMsg(size_t base, whal_I2c_Msg *msg,
 
     /* Split into <=255 byte RELOAD chunks */
     while (remaining > 255) {
-        err = Stm32wbI2c_TransferChunk(base, buf, 255, isRead,
+        err = Stm32wb_I2c_TransferChunk(base, buf, 255, isRead,
                                         doStart, 1, timeout);
         if (err)
             return err;
@@ -343,14 +343,14 @@ static whal_Error Stm32wbI2c_TransferMsg(size_t base, whal_I2c_Msg *msg,
      * (no START), otherwise no RELOAD so hardware sets TC.
      * Note: reloadLast and doStop are mutually exclusive — the caller
      * (Transfer) never sets reloadLast when the message has STOP. */
-    err = Stm32wbI2c_TransferChunk(base, buf, remaining, isRead,
+    err = Stm32wb_I2c_TransferChunk(base, buf, remaining, isRead,
                                     doStart, reloadLast, timeout);
     if (err)
         return err;
 
     if (doStop) {
         /* Wait for TC, then issue STOP */
-        err = Stm32wbI2c_WaitFlag(base, I2C_ISR_TC_Msk,
+        err = Stm32wb_I2c_WaitFlag(base, I2C_ISR_TC_Msk,
                                    I2C_ISR_TC_Msk, timeout);
         if (err)
             return err;
@@ -358,7 +358,7 @@ static whal_Error Stm32wbI2c_TransferMsg(size_t base, whal_I2c_Msg *msg,
         whal_Reg_Update(base, I2C_CR2_REG, I2C_CR2_STOP_Msk,
                         whal_SetBits(I2C_CR2_STOP_Msk, I2C_CR2_STOP_Pos, 1));
 
-        err = Stm32wbI2c_WaitFlag(base, I2C_ISR_STOPF_Msk,
+        err = Stm32wb_I2c_WaitFlag(base, I2C_ISR_STOPF_Msk,
                                    I2C_ISR_STOPF_Msk, timeout);
         if (err)
             return err;
@@ -369,7 +369,7 @@ static whal_Error Stm32wbI2c_TransferMsg(size_t base, whal_I2c_Msg *msg,
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_Stm32wbI2c_Init(whal_I2c *i2cDev)
+whal_Error whal_Stm32wb_I2c_Init(whal_I2c *i2cDev)
 {
     const whal_Regmap *reg;
 
@@ -396,7 +396,7 @@ whal_Error whal_Stm32wbI2c_Init(whal_I2c *i2cDev)
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_Stm32wbI2c_Deinit(whal_I2c *i2cDev)
+whal_Error whal_Stm32wb_I2c_Deinit(whal_I2c *i2cDev)
 {
     const whal_Regmap *reg;
 
@@ -413,10 +413,10 @@ whal_Error whal_Stm32wbI2c_Deinit(whal_I2c *i2cDev)
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_Stm32wbI2c_StartCom(whal_I2c *i2cDev, whal_I2c_ComCfg *comCfg)
+whal_Error whal_Stm32wb_I2c_StartCom(whal_I2c *i2cDev, whal_I2c_ComCfg *comCfg)
 {
     const whal_Regmap *reg;
-    whal_Stm32wbI2c_Cfg *cfg;
+    whal_Stm32wb_I2c_Cfg *cfg;
     uint32_t cr2 = 0;
 
     if (!i2cDev || !i2cDev->cfg || !comCfg) {
@@ -428,7 +428,7 @@ whal_Error whal_Stm32wbI2c_StartCom(whal_I2c *i2cDev, whal_I2c_ComCfg *comCfg)
     }
 
     reg = &i2cDev->regmap;
-    cfg = (whal_Stm32wbI2c_Cfg *)i2cDev->cfg;
+    cfg = (whal_Stm32wb_I2c_Cfg *)i2cDev->cfg;
 
     /* Disable PE to configure timing */
     whal_Reg_Update(reg->base, I2C_CR1_REG, I2C_CR1_PE_Msk,
@@ -436,7 +436,7 @@ whal_Error whal_Stm32wbI2c_StartCom(whal_I2c *i2cDev, whal_I2c_ComCfg *comCfg)
 
     /* Compute and write timing register */
     whal_Reg_Write(reg->base, I2C_TIMINGR_REG,
-                   Stm32wbI2c_CalcTimingr(cfg->pclk, comCfg->freq));
+                   Stm32wb_I2c_CalcTimingr(cfg->pclk, comCfg->freq));
 
     /* Re-enable PE */
     whal_Reg_Update(reg->base, I2C_CR1_REG, I2C_CR1_PE_Msk,
@@ -458,7 +458,7 @@ whal_Error whal_Stm32wbI2c_StartCom(whal_I2c *i2cDev, whal_I2c_ComCfg *comCfg)
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_Stm32wbI2c_EndCom(whal_I2c *i2cDev)
+whal_Error whal_Stm32wb_I2c_EndCom(whal_I2c *i2cDev)
 {
     const whal_Regmap *reg;
 
@@ -475,11 +475,11 @@ whal_Error whal_Stm32wbI2c_EndCom(whal_I2c *i2cDev)
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_Stm32wbI2c_Transfer(whal_I2c *i2cDev, whal_I2c_Msg *msgs,
+whal_Error whal_Stm32wb_I2c_Transfer(whal_I2c *i2cDev, whal_I2c_Msg *msgs,
                                      size_t numMsgs)
 {
     const whal_Regmap *reg;
-    whal_Stm32wbI2c_Cfg *cfg;
+    whal_Stm32wb_I2c_Cfg *cfg;
     whal_Error err;
 
     if (!i2cDev || !i2cDev->cfg || !msgs || numMsgs == 0) {
@@ -487,7 +487,7 @@ whal_Error whal_Stm32wbI2c_Transfer(whal_I2c *i2cDev, whal_I2c_Msg *msgs,
     }
 
     reg = &i2cDev->regmap;
-    cfg = (whal_Stm32wbI2c_Cfg *)i2cDev->cfg;
+    cfg = (whal_Stm32wb_I2c_Cfg *)i2cDev->cfg;
 
     for (size_t i = 0; i < numMsgs; i++) {
         /*
@@ -502,7 +502,7 @@ whal_Error whal_Stm32wbI2c_Transfer(whal_I2c *i2cDev, whal_I2c_Msg *msgs,
             reloadLast = 1;
         }
 
-        err = Stm32wbI2c_TransferMsg(reg->base, &msgs[i], reloadLast,
+        err = Stm32wb_I2c_TransferMsg(reg->base, &msgs[i], reloadLast,
                                       cfg->timeout);
         if (err)
             return err;
@@ -511,15 +511,15 @@ whal_Error whal_Stm32wbI2c_Transfer(whal_I2c *i2cDev, whal_I2c_Msg *msgs,
     return WHAL_SUCCESS;
 }
 
-#if !defined(WHAL_CFG_I2C_API_MAPPING_STM32WB) && \
-    !defined(WHAL_CFG_I2C_API_MAPPING_STM32F0) && \
-    !defined(WHAL_CFG_I2C_API_MAPPING_STM32F3) && \
-    !defined(WHAL_CFG_I2C_API_MAPPING_STM32N6)
-const whal_I2cDriver whal_Stm32wbI2c_Driver = {
-    .Init = whal_Stm32wbI2c_Init,
-    .Deinit = whal_Stm32wbI2c_Deinit,
-    .StartCom = whal_Stm32wbI2c_StartCom,
-    .EndCom = whal_Stm32wbI2c_EndCom,
-    .Transfer = whal_Stm32wbI2c_Transfer,
+#if !defined(WHAL_CFG_STM32WB_I2C_DIRECT_API_MAPPING) && \
+    !defined(WHAL_CFG_STM32F0_I2C_DIRECT_API_MAPPING) && \
+    !defined(WHAL_CFG_STM32F3_I2C_DIRECT_API_MAPPING) && \
+    !defined(WHAL_CFG_STM32N6_I2C_DIRECT_API_MAPPING)
+const whal_I2cDriver whal_Stm32wb_I2c_Driver = {
+    .Init = whal_Stm32wb_I2c_Init,
+    .Deinit = whal_Stm32wb_I2c_Deinit,
+    .StartCom = whal_Stm32wb_I2c_StartCom,
+    .EndCom = whal_Stm32wb_I2c_EndCom,
+    .Transfer = whal_Stm32wb_I2c_Transfer,
 };
 #endif /* !WHAL_CFG_I2C_API_MAPPING */

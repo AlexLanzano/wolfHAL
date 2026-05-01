@@ -46,23 +46,6 @@ struct whal_EthPhy {
 /*
  * @brief Initialize an Ethernet PHY.
  *
- * Resets the PHY, configures autonegotiation, and waits for link.
- *
- * @param phyDev PHY device instance.
- *
- * @retval WHAL_SUCCESS   PHY initialized and link established.
- * @retval WHAL_EINVAL    Invalid arguments.
- * @retval WHAL_ETIMEOUT  Link did not come up within timeout.
- */
-#ifdef WHAL_CFG_DIRECT_CALLBACKS
-#define whal_EthPhy_Init(phyDev) ((phyDev)->driver->Init((phyDev)))
-#define whal_EthPhy_Deinit(phyDev) ((phyDev)->driver->Deinit((phyDev)))
-#define whal_EthPhy_GetLinkState(phyDev, up, speed, duplex) \
-    ((phyDev)->driver->GetLinkState((phyDev), (up), (speed), (duplex)))
-#else
-/*
- * @brief Initialize an Ethernet PHY.
- *
  * @param phyDev PHY device instance.
  *
  * @retval WHAL_SUCCESS   PHY initialized and link established.
@@ -92,6 +75,5 @@ whal_Error whal_EthPhy_Deinit(whal_EthPhy *phyDev);
  */
 whal_Error whal_EthPhy_GetLinkState(whal_EthPhy *phyDev, uint8_t *up,
                                      uint8_t *speed, uint8_t *duplex);
-#endif
 
 #endif /* WHAL_ETH_PHY_H */

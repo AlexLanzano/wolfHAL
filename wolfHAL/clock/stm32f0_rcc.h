@@ -7,59 +7,116 @@
 
 /*
  * @file stm32f0_rcc.h
- * @brief STM32F0 RCC (Reset and Clock Control) driver configuration.
+ * @brief STM32F0 RCC (Reset and Clock Control) driver.
  *
- * The STM32F0 RCC peripheral controls:
- * - System clock source selection (HSI, HSE, PLL, HSI48)
- * - PLL with PREDIV prescaler and PLLMUL multiplier
- * - Peripheral clock gating (AHB, APB1, APB2 buses)
- * - HSI48 oscillator (available on F04x/F07x/F09x)
+ * Boards bring up the clock tree imperatively from Board_Init.
  *
  * Clock sources:
- *   HSI  = 8 MHz internal RC oscillator
- *   HSE  = 4-32 MHz external oscillator
- *   HSI48 = 48 MHz internal RC (F04x/F07x/F09x only)
- *   PLL  = HSI/2, HSI/PREDIV, HSE/PREDIV, or HSI48/PREDIV * PLLMUL
+ *   HSI   = 8 MHz internal RC
+ *   HSE   = 4-32 MHz external
+ *   HSI48 = 48 MHz internal (F04x/F07x/F09x only)
+ *   PLL   = source/PREDIV * PLLMUL
  */
 
+/*
+ * @brief System clock source selection (RCC_CFGR.SW).
+ */
 typedef enum {
     WHAL_STM32F0_RCC_SYSCLK_SRC_HSI,
     WHAL_STM32F0_RCC_SYSCLK_SRC_HSE,
     WHAL_STM32F0_RCC_SYSCLK_SRC_PLL,
     WHAL_STM32F0_RCC_SYSCLK_SRC_HSI48,
-} whal_Stm32f0Rcc_SysClockSrc;
+} whal_Stm32f0_Rcc_SysClockSrc;
 
+/*
+ * @brief PLL input selection.
+ */
 typedef enum {
     WHAL_STM32F0_RCC_PLLSRC_HSI_DIV2,
     WHAL_STM32F0_RCC_PLLSRC_HSI_PREDIV,
     WHAL_STM32F0_RCC_PLLSRC_HSE_PREDIV,
     WHAL_STM32F0_RCC_PLLSRC_HSI48_PREDIV,
-} whal_Stm32f0Rcc_PllClockSrc;
+} whal_Stm32f0_Rcc_PllClockSrc;
 
+/*
+ * @brief PLL configuration parameters.
+ *   prediv: 1-16 (encoded as value-1)
+ *   pllmul: 2-16 (encoded as value-2)
+ */
 typedef struct {
-    whal_Stm32f0Rcc_PllClockSrc clkSrc;
-    uint8_t prediv;  /* 1-16 (written as value - 1) */
-    uint8_t pllmul;  /* 2-16 (written as value - 2) */
-} whal_Stm32f0Rcc_PllCfg;
+    whal_Stm32f0_Rcc_PllClockSrc clkSrc;
+    uint8_t prediv;
+    uint8_t pllmul;
+} whal_Stm32f0_Rcc_PllCfg;
 
-typedef struct whal_Stm32f0Rcc_Clk {
+/*
+ * @brief Peripheral clock descriptor.
+ */
+typedef struct {
     size_t regOffset;
     size_t enableMask;
     size_t enablePos;
-} whal_Stm32f0Rcc_Clk;
+} whal_Stm32f0_Rcc_PeriphClk;
 
-typedef struct whal_Stm32f0Rcc_Cfg {
-    whal_Stm32f0Rcc_SysClockSrc sysClkSrc;
-    whal_Stm32f0Rcc_PllCfg *pllCfg;
-} whal_Stm32f0Rcc_Cfg;
+/*
+ * @brief Cfg for EnableOsc/DisableOsc — on bit + ready bit.
+ */
+typedef struct {
+    size_t onReg;
+    size_t onMsk;
+    size_t rdyReg;
+    size_t rdyMsk;
+    size_t rdyPos;
+} whal_Stm32f0_Rcc_OscCfg;
 
-#ifndef WHAL_CFG_CLOCK_API_MAPPING_STM32F0
-extern const whal_ClockDriver whal_Stm32f0Rcc_Driver;
+#define WHAL_STM32F0_RCC_HSI_CFG                             \
+    .onReg  = 0x000, .onMsk  = (1UL <<  0),                  \
+    .rdyReg = 0x000, .rdyMsk = (1UL <<  1), .rdyPos =  1
+#define WHAL_STM32F0_RCC_HSE_CFG                             \
+    .onReg  = 0x000, .onMsk  = (1UL << 16),                  \
+    .rdyReg = 0x000, .rdyMsk = (1UL << 17), .rdyPos = 17
+#define WHAL_STM32F0_RCC_HSI48_CFG                           \
+    .onReg  = 0x034, .onMsk  = (1UL << 16),                  \
+    .rdyReg = 0x034, .rdyMsk = (1UL << 17), .rdyPos = 17
 
-whal_Error whal_Stm32f0Rcc_Init(whal_Clock *clkDev);
-whal_Error whal_Stm32f0Rcc_Deinit(whal_Clock *clkDev);
-whal_Error whal_Stm32f0Rcc_Enable(whal_Clock *clkDev, const void *clk);
-whal_Error whal_Stm32f0Rcc_Disable(whal_Clock *clkDev, const void *clk);
-#endif /* !WHAL_CFG_CLOCK_API_MAPPING_STM32F0 */
+/*
+ * @brief Enable an oscillator (HSI/HSE/HSI48). Blocks until ready.
+ */
+whal_Error whal_Stm32f0_Rcc_EnableOsc(whal_Clock *clkDev,
+                                     const whal_Stm32f0_Rcc_OscCfg *cfg);
+/*
+ * @brief Disable an oscillator.
+ */
+whal_Error whal_Stm32f0_Rcc_DisableOsc(whal_Clock *clkDev,
+                                      const whal_Stm32f0_Rcc_OscCfg *cfg);
+
+/*
+ * @brief Configure the PLL (PREDIV, PLLMUL, source) and enable it.
+ *        Caller must have the PLL source oscillator already enabled.
+ *        Blocks until PLL is ready.
+ */
+whal_Error whal_Stm32f0_Rcc_EnablePll(whal_Clock *clkDev,
+                                     const whal_Stm32f0_Rcc_PllCfg *cfg);
+/*
+ * @brief Disable the PLL.
+ */
+whal_Error whal_Stm32f0_Rcc_DisablePll(whal_Clock *clkDev);
+
+/*
+ * @brief Switch SYSCLK to the given source. Blocks until SWS confirms.
+ */
+whal_Error whal_Stm32f0_Rcc_SetSysClock(whal_Clock *clkDev,
+                                       whal_Stm32f0_Rcc_SysClockSrc src);
+
+/*
+ * @brief Enable a peripheral clock.
+ */
+whal_Error whal_Stm32f0_Rcc_EnablePeriphClk(whal_Clock *clkDev,
+                                           const whal_Stm32f0_Rcc_PeriphClk *clk);
+/*
+ * @brief Disable a peripheral clock.
+ */
+whal_Error whal_Stm32f0_Rcc_DisablePeriphClk(whal_Clock *clkDev,
+                                            const whal_Stm32f0_Rcc_PeriphClk *clk);
 
 #endif /* WHAL_STM32F0_RCC_H */

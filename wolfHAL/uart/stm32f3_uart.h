@@ -11,16 +11,16 @@
 
 #include <wolfHAL/uart/stm32f0_uart.h>
 
-typedef whal_Stm32f0Uart_Cfg whal_Stm32f3Uart_Cfg;
+typedef whal_Stm32f0_Uart_Cfg whal_Stm32f3_Uart_Cfg;
 
 #define WHAL_STM32F3_UART_BRR(clk, baud) WHAL_STM32F0_UART_BRR(clk, baud)
 
-#ifndef WHAL_CFG_UART_API_MAPPING_STM32F3
-#define whal_Stm32f3Uart_Driver whal_Stm32f0Uart_Driver
-#define whal_Stm32f3Uart_Init   whal_Stm32f0Uart_Init
-#define whal_Stm32f3Uart_Deinit whal_Stm32f0Uart_Deinit
-#define whal_Stm32f3Uart_Send   whal_Stm32f0Uart_Send
-#define whal_Stm32f3Uart_Recv   whal_Stm32f0Uart_Recv
-#endif /* !WHAL_CFG_UART_API_MAPPING_STM32F3 */
+#ifndef WHAL_CFG_STM32F3_UART_DIRECT_API_MAPPING
+#define whal_Stm32f3_Uart_Driver whal_Stm32f0_Uart_Driver
+#define whal_Stm32f3_Uart_Init   whal_Stm32f0_Uart_Init
+#define whal_Stm32f3_Uart_Deinit whal_Stm32f0_Uart_Deinit
+#define whal_Stm32f3_Uart_Send   whal_Stm32f0_Uart_Send
+#define whal_Stm32f3_Uart_Recv   whal_Stm32f0_Uart_Recv
+#endif /* !WHAL_CFG_STM32F3_UART_DIRECT_API_MAPPING */
 
 #endif /* WHAL_STM32F3_UART_H */

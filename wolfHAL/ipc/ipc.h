@@ -36,12 +36,6 @@ struct whal_Ipc {
     void *cfg;
 };
 
-#ifdef WHAL_CFG_DIRECT_CALLBACKS
-#define whal_Ipc_Init(ipcDev) ((ipcDev)->driver->Init((ipcDev)))
-#define whal_Ipc_Deinit(ipcDev) ((ipcDev)->driver->Deinit((ipcDev)))
-#define whal_Ipc_Send(ipcDev, data, dataSz) ((ipcDev)->driver->Send((ipcDev), (data), (dataSz)))
-#define whal_Ipc_Recv(ipcDev, data, dataSz) ((ipcDev)->driver->Recv((ipcDev), (data), (dataSz)))
-#else
 /*
  * @brief Initializes an IPC device and its driver.
  *
@@ -85,6 +79,5 @@ whal_Error whal_Ipc_Send(whal_Ipc *ipcDev, const void *data, size_t dataSz);
  * @retval WHAL_EINVAL  Null pointer or driver failed to receive.
  */
 whal_Error whal_Ipc_Recv(whal_Ipc *ipcDev, void *data, size_t dataSz);
-#endif
 
 #endif /* WHAL_IPC_H */

@@ -4,12 +4,12 @@ This guide covers how to implement wolfHAL drivers.
 
 ## Driver Categories
 
-wolfHAL has two categories of drivers:
+wolfHAL has three categories of drivers:
 
 **Platform drivers** operate directly on SoC hardware registers at fixed memory
 addresses. They are tied to a specific microcontroller family and use the
 `whal_Reg_*` helpers to read and write peripheral registers. Examples:
-`stm32wb_uart`, `stm32wb_gpio`, `stm32wb_dma`, `pic32cz_clock`.
+`stm32wb_uart`, `stm32wb_gpio`, `stm32wb_dma`.
 
 **Peripheral drivers** communicate with external chips over a bus (SPI, I2C,
 MDIO). They call platform drivers (e.g., `whal_Spi_SendRecv`) to reach the
@@ -17,14 +17,23 @@ hardware and are portable across any SoC that provides the required bus.
 Examples: `spi_nor_flash` (SPI flash), `sdhc_spi_block` (SD card over SPI),
 `bmi270_sensor` (IMU over I2C), `lan8742a_eth_phy` (Ethernet PHY over MDIO).
 
-Both categories implement the same vtable interface — the application calls
-`whal_Flash_Read()` whether the flash is on-chip (platform driver) or
-external SPI NOR (peripheral driver). The distinction matters for driver
-authors, not for application code.
+**Board-level drivers** only expose a chip-specific interface — no vtable, no
+generic `whal_<Type>_*` API. Their parameters and operations are chip-specific
+enough that abstracting them serves no portable consumer; every caller lives
+in `board.c`. Applications reach board-level behavior through
+`Board_<Operation>()` wrapper functions in `board.c` when needed. A board-level
+driver can be either platform (e.g., the on-MCU clock controller) or
+peripheral (e.g., an external clock generator IC over I2C, or a PMIC). Examples:
+clock, power.
+
+Platform and peripheral drivers share the same vtable interface — the
+application calls `whal_Flash_Read()` whether the flash is on-chip (platform
+driver) or external SPI NOR (peripheral driver). Board-level drivers are the
+exception: there is no generic API for applications to call.
 
 ## Common Pattern
 
-Every device type in wolfHAL follows the same structure:
+Platform and peripheral drivers follow the same structure:
 
 1. A **driver vtable** — a struct of function pointers that the driver must
    populate.
@@ -34,6 +43,13 @@ Every device type in wolfHAL follows the same structure:
 
 To write a driver for a device type, you implement the functions defined in that
 type's vtable and expose them as a const driver instance.
+
+Board-level drivers follow a different pattern: no vtable, no generic
+`whal_<Type>_*` API, no `DIRECT_API_MAPPING`. They expose chip-specific
+helper functions (e.g., `whal_<Chip>_<Subsys>_EnableOsc`) that boards call
+directly. The "Clock" section below is the canonical example. The rest of
+this "Common Pattern" section applies to platform and peripheral drivers
+only.
 
 ### File Layout
 
@@ -47,6 +63,13 @@ For a peripheral driver implementing device type `foo` for chip `mychip`:
 - `wolfHAL/foo/mychip_foo.h` — configuration types and driver extern
 - `src/foo/mychip_foo.c` — driver implementation and vtable definition
 
+For a board-level driver implementing device type `foo` on platform `myplatform`:
+
+- `wolfHAL/foo/myplatform_foo.h` — types, enums, descriptor macros, and
+  chip-specific helper declarations (no driver extern, no `_DRIVER` macro)
+- `src/foo/myplatform_foo.c` — chip-specific helper implementations (no
+  vtable, no `DIRECT_API_MAPPING` block)
+
 ### Driver Vtable
 
 Every vtable includes `Init` and `Deinit`. The remaining functions are specific
@@ -54,9 +77,9 @@ to the device type. All functions receive a pointer to the device instance as
 their first argument and return `whal_Error`.
 
 ```c
-const whal_FooDriver whal_MyplatformFoo_Driver = {
-    .Init   = whal_MyplatformFoo_Init,
-    .Deinit = whal_MyplatformFoo_Deinit,
+const whal_FooDriver whal_Myplatform_Foo_Driver = {
+    .Init   = whal_Myplatform_Foo_Init,
+    .Deinit = whal_Myplatform_Foo_Deinit,
     /* device-specific operations */
 };
 ```
@@ -69,24 +92,28 @@ system map chip-specific function names to the top-level API. Place this
 definition:
 
 ```c
-#ifdef WHAL_CFG_FOO_API_MAPPING_MYPLATFORM
-#define whal_MyplatformFoo_Init   whal_Foo_Init
-#define whal_MyplatformFoo_Deinit whal_Foo_Deinit
+#ifdef WHAL_CFG_MYPLATFORM_FOO_DIRECT_API_MAPPING
+#define whal_Myplatform_Foo_Init   whal_Foo_Init
+#define whal_Myplatform_Foo_Deinit whal_Foo_Deinit
 /* ... one #define per mapped function ... */
 #endif
 ```
 
 When the flag is defined, the preprocessor renames each function to its
 generic API name at the definition site. The driver source uses chip-specific
-names everywhere — the macros handle the rest.
+names everywhere — the macros handle the rest. The flag name is
+`WHAL_CFG_<DRIVER>_DIRECT_API_MAPPING` where `<DRIVER>` is the driver's full
+prefix in upper case, e.g., `WHAL_CFG_STM32WB_UART_DIRECT_API_MAPPING` for a
+platform driver or `WHAL_CFG_BMI270_SENSOR_DIRECT_API_MAPPING` for a
+peripheral driver.
 
 Wrap the vtable in `#ifndef` since it is unused when mapping is active:
 
 ```c
-#ifndef WHAL_CFG_FOO_API_MAPPING_MYPLATFORM
-const whal_FooDriver whal_MyplatformFoo_Driver = {
-    .Init   = whal_MyplatformFoo_Init,
-    .Deinit = whal_MyplatformFoo_Deinit,
+#ifndef WHAL_CFG_MYPLATFORM_FOO_DIRECT_API_MAPPING
+const whal_FooDriver whal_Myplatform_Foo_Driver = {
+    .Init   = whal_Myplatform_Foo_Init,
+    .Deinit = whal_Myplatform_Foo_Deinit,
 };
 #endif
 ```
@@ -102,9 +129,9 @@ The device struct's `cfg` field points to your platform-specific configuration.
 Cast it in your driver functions:
 
 ```c
-static whal_Error whal_MyplatformFoo_Init(whal_Foo *fooDev)
+static whal_Error whal_Myplatform_Foo_Init(whal_Foo *fooDev)
 {
-    whal_MyplatformFoo_Cfg *cfg = (whal_MyplatformFoo_Cfg *)fooDev->cfg;
+    whal_Myplatform_Foo_Cfg *cfg = (whal_Myplatform_Foo_Cfg *)fooDev->cfg;
     /* ... */
 }
 ```
@@ -112,7 +139,7 @@ static whal_Error whal_MyplatformFoo_Init(whal_Foo *fooDev)
 ### No Cross-Driver Calls
 
 Platform drivers should only touch their own registers. The board handles all
-cross-peripheral setup — clock enables, power supply sequencing, flash wait
+cross-peripheral setup — clock enables, power-rail sequencing, flash wait
 states — before calling Init.
 
 There are two exceptions:
@@ -248,20 +275,11 @@ pointer:
 typedef struct {
     /* ... other config fields ... */
     whal_Timeout *timeout;
-} whal_MyplatformFoo_Cfg;
+} whal_Myplatform_Foo_Cfg;
 ```
 
 The timeout is optional — if the board does not set it (NULL), all waits are
 unbounded.
-
-### Avoiding Bloat
-
-When a peripheral has multiple distinct operating modes or configurations,
-consider splitting the driver into separate implementations rather than one
-monolithic driver. For example, if a clock controller supports several different
-clock sources, each with its own initialization logic, you can provide a
-separate driver for each source. This way users only link the code they actually
-need, and unused configurations are not compiled into the final binary.
 
 ### Reusing a Driver Across Platforms
 
@@ -283,15 +301,15 @@ for the alias platform:
 
 #include <wolfHAL/gpio/stm32wb_gpio.h>
 
-typedef whal_Stm32wbGpio_Cfg    whal_Stm32h5Gpio_Cfg;
-typedef whal_Stm32wbGpio_PinCfg whal_Stm32h5Gpio_PinCfg;
+typedef whal_Stm32wb_Gpio_Cfg    whal_Stm32h5_Gpio_Cfg;
+typedef whal_Stm32wb_Gpio_PinCfg whal_Stm32h5_Gpio_PinCfg;
 
 #ifndef WHAL_CFG_GPIO_API_MAPPING_STM32H5
-#define whal_Stm32h5Gpio_Driver whal_Stm32wbGpio_Driver
-#define whal_Stm32h5Gpio_Init   whal_Stm32wbGpio_Init
-#define whal_Stm32h5Gpio_Deinit whal_Stm32wbGpio_Deinit
-#define whal_Stm32h5Gpio_Get    whal_Stm32wbGpio_Get
-#define whal_Stm32h5Gpio_Set    whal_Stm32wbGpio_Set
+#define whal_Stm32h5_Gpio_Driver whal_Stm32wb_Gpio_Driver
+#define whal_Stm32h5_Gpio_Init   whal_Stm32wb_Gpio_Init
+#define whal_Stm32h5_Gpio_Deinit whal_Stm32wb_Gpio_Deinit
+#define whal_Stm32h5_Gpio_Get    whal_Stm32wb_Gpio_Get
+#define whal_Stm32h5_Gpio_Set    whal_Stm32wb_Gpio_Set
 #endif
 
 /* Re-export enum constants under the new platform name */
@@ -314,9 +332,9 @@ The source file includes the original implementation directly:
 ```
 
 This works because `#include` is textual insertion — the compiler does not
-distinguish `.h` from `.c`. The new platform's `Makefile.inc` compiles this
+distinguish `.h` from `.c`. The new platform's `board.mk` compiles this
 file and does **not** compile the original. The original platform's
-`Makefile.inc` still compiles its own file directly. Both must never appear in
+`board.mk` still compiles its own file directly. Both must never appear in
 the same build.
 
 #### When to alias vs. write a new driver
@@ -337,7 +355,7 @@ devices without knowing the register addresses or driver symbols:
 #define WHAL_MYPLATFORM_FOO_REGMAP \
     .base = 0x40000000, \
     .size = 0x400
-#define WHAL_MYPLATFORM_FOO_DRIVER &whal_MyplatformFoo_Driver
+#define WHAL_MYPLATFORM_FOO_DRIVER &whal_Myplatform_Foo_Driver
 ```
 
 The board uses these in device struct initializers:
@@ -351,7 +369,16 @@ whal_Foo g_whalFoo = {
 ```
 
 When direct API mapping is active for a device type, the board omits the
-`.driver` field since the vtable is unused.
+`.driver` field since the vtable is unused. It's a good idea to note that
+you are doing so with the following comment.
+
+```c
+whal_Foo g_whalFoo = {
+    .regmap = { WHAL_MYPLATFORM_FOO_REGMAP },
+    /* .driver: direct API mapping */
+    .cfg = &fooCfg,
+};
+```
 
 ---
 
@@ -359,55 +386,78 @@ When direct API mapping is active for a device type, the board omits the
 
 Header: `wolfHAL/clock/clock.h`
 
-The clock driver manages system clock sources and peripheral clock gating. This
-is typically one of the most complex drivers because it must configure
-oscillators, PLLs, clock dividers, and peripheral clock gates — all with strict
-ordering requirements.
+Clock is a **board-level driver** (see Driver Categories). The generic
+`clock.h` declares only the typed handle `whal_Clock { regmap }` — no
+`whal_Clock_Init`/`Deinit`/`Enable`/`Disable` API, no `whal_ClockDriver`
+vtable. Each chip clock driver exposes imperative chip-specific helpers
+that boards call directly from `Board_Init` in the right order.
 
-### Init
+### API contract
 
-Configure and start the system clock source. This usually involves:
+The chip clock driver header may declare ONLY functions whose names match
+one of these prefix patterns:
 
-- Configuring the clock source (oscillator parameters, PLL multipliers and
-  dividers, etc.)
-- Enabling the clock source and waiting for it to stabilize (e.g., polling a
-  PLL lock bit or oscillator ready flag)
-- Switching the system clock mux to the new source
-- Configuring any required clock dividers (CPU, bus, peripheral)
+- `whal_<Chip>_<Subsys>_Enable<Node>(...)` — turn a clock node on (and wait
+  ready, if applicable)
+- `whal_<Chip>_<Subsys>_Disable<Node>(...)` — turn a clock node off
+- `whal_<Chip>_<Subsys>_Set<Node>(...)` — change a clock node's
+  selection/value (e.g. `SetSysClock`, peripheral-mux selects, divider/range
+  selects)
 
-The board is responsible for setting flash wait states and enabling power
-supplies before calling Init. The clock driver should only touch clock
-registers.
+Where `<Subsys>` is the chip's clock-controller name (e.g. `Rcc` on STM32,
+`Clock` on PIC32CZ). NOT allowed in the public header: `Init`, `Deinit`,
+`Configure`, `BringUp`, `GetFreq`, or any other operation. Internal helpers go
+in the `.c` file as `static`.
 
-The configuration struct should contain all parameters needed to fully describe
-the desired clock tree (source selection, divider values, PLL coefficients,
-etc.).
+Configuration and enabling are bundled into a single `Enable*` call where
+the order is fixed (e.g. `EnablePll` writes the dividers/source then turns
+the PLL on and waits for ready). Boards do not call separate `Configure`
+operations.
 
-### Deinit
+The chip header may declare types, enums, and `_CFG` field-initializer
+macros freely — those are not constrained.
 
-Shut down the clock source safely. This typically means:
+### Typical helpers
 
-- Switching back to a safe default clock source (e.g., an internal RC
-  oscillator) before disabling the active source
-- Disabling PLLs or high-speed oscillators
+A chip with a fairly common clock tree exposes:
 
-The board is responsible for reducing flash wait states after Deinit returns.
+```c
+whal_Error whal_<Chip>_<Subsys>_EnableOsc(whal_Clock *,
+                                          const whal_<Chip>_<Subsys>_OscCfg *);
+whal_Error whal_<Chip>_<Subsys>_DisableOsc(whal_Clock *,
+                                           const whal_<Chip>_<Subsys>_OscCfg *);
+whal_Error whal_<Chip>_<Subsys>_EnablePll(whal_Clock *,
+                                          const whal_<Chip>_<Subsys>_PllCfg *);
+whal_Error whal_<Chip>_<Subsys>_DisablePll(whal_Clock *);
+whal_Error whal_<Chip>_<Subsys>_SetSysClock(whal_Clock *,
+                                            whal_<Chip>_<Subsys>_SysClockSrc);
+whal_Error whal_<Chip>_<Subsys>_EnablePeriphClk(whal_Clock *,
+                                                const whal_<Chip>_<Subsys>_PeriphClk *);
+whal_Error whal_<Chip>_<Subsys>_DisablePeriphClk(whal_Clock *,
+                                                 const whal_<Chip>_<Subsys>_PeriphClk *);
+```
 
-### Enable
+Adapt the set to what the chip actually has. A chip without a PLL drops
+`EnablePll`/`DisablePll`. A chip with extra muxes adds `Set*` helpers. A
+chip with a different topology (e.g., generic-clock generators routing to
+peripheral channels) adds operations like `EnableGclkGen` and keeps to the same
+naming convention.
 
-Enable a peripheral clock gate. The `clk` parameter is an opaque pointer to a
-clock descriptor that identifies which peripheral clock to enable. The
-descriptor typically contains a register offset and bit mask so the driver can
-set the correct enable bit in the appropriate clock gating register.
+### Reference implementation
 
-Some platforms have multiple clock domains (e.g., bus clocks and peripheral
-generator clocks) that both need to be enabled for a peripheral to function. The
-driver should handle all of these.
+`wolfHAL/clock/stm32wb_rcc.h` and `src/clock/stm32wb_rcc.c` are the
+canonical reference. New chip clock drivers should be modeled on its
+shape. `wolfHAL/clock/pic32cz_clock.h` shows how the same convention
+covers a fundamentally different topology (oscillators + GCLK generators
++ peripheral channels).
 
-### Disable
+### Board responsibilities
 
-Disable a peripheral clock gate. The inverse of Enable — clear the enable bit(s)
-for the given clock descriptor.
+The board calls helpers in the right order in `Board_Init` — typically
+oscillator(s) on, PLL configure-and-enable, sysclk source switch,
+peripheral clock enables. The board also handles flash wait states and
+voltage scaling around the sysclk transition. There is no walker; the
+ordering is explicit at the call site.
 
 ---
 
@@ -996,7 +1046,7 @@ instantiates the crypto device:
 ```c
 whal_Crypto g_whalCrypto = {
     .regmap = { WHAL_STM32WB55_AES1_REGMAP },
-    .cfg = &(whal_Stm32wbAes_Cfg) { .timeout = &g_whalTimeout },
+    .cfg = &(whal_Stm32wb_Aes_Cfg) { .timeout = &g_whalTimeout },
 };
 ```
 
@@ -1006,37 +1056,51 @@ vtable indirection.
 
 ---
 
-## Supply
+## Power
 
-Header: `wolfHAL/supply/supply.h`
+Header: `wolfHAL/power/power.h`
 
-The supply driver controls power rails and voltage regulators. This is used on
-platforms where certain peripherals (e.g., PLLs, analog blocks) require
-explicit power supply enable before they can be configured.
+Power is a **board-level driver** (see Driver Categories). The generic
+`power.h` declares only the typed handle `whal_Power { regmap }` — no
+`whal_Power_Init`/`Deinit`/`Enable`/`Disable` API, no `whal_PowerDriver`
+vtable. Each chip power driver exposes imperative chip-specific helpers
+that boards call directly from `Board_Init` (typically before clock setup,
+to bring up regulators that downstream peripherals depend on).
 
-### Init
+### API contract
 
-Initialize the supply controller hardware. On many platforms this is a no-op
-since the supply controller is always available.
+The chip power driver header declares chip-specific helpers named
+`whal_<Chip>_<Subsys>_<Operation>(...)`, where `<Subsys>` is the chip's
+power-controller name (e.g. `Pwr` on STM32L1, `Supc` on PIC32CZ). The set
+of operations is whatever the chip actually exposes — there is no fixed
+list. Examples:
 
-### Deinit
+- `whal_Stm32l1_Pwr_SetVosRange(whal_Power *, range, timeout)` — voltage
+  scaling range select with ready-bit poll
+- `whal_Pic32cz_Supc_EnableSupply(whal_Power *, const whal_Pic32cz_Supc_Supply *)`
+  / `DisableSupply(...)` — toggle a regulator output identified by a
+  descriptor (register mask + position)
 
-Shut down the supply controller.
+NOT allowed in the public header: `Init`, `Deinit`, or any abstracted
+"generic power" operation. Internal helpers go in the `.c` file as
+`static`.
 
-### Enable
+The chip header may declare types, enums, and descriptor-initializer
+macros freely.
 
-Enable a specific power supply output. The `supply` parameter is an opaque
-pointer to a supply descriptor (typically containing a register offset and bit
-mask). The driver sets the appropriate enable bit in the supply control
-register.
+### Reference implementations
 
-The board calls Supply Enable before initializing peripherals that depend on
-the supply — for example, enabling a PLL's analog voltage regulator before
-calling Clock Init.
+`wolfHAL/power/stm32l1_pwr.h` (single voltage-scaling helper) and
+`wolfHAL/power/pic32cz_supc.h` (regulator enable/disable by descriptor)
+are the canonical examples for the two common shapes.
 
-### Disable
+### Board responsibilities
 
-Disable a specific power supply output. The inverse of Enable.
+The board calls power helpers from `Board_Init` in the right order —
+typically before clock configuration, since some clock nodes (e.g., a
+PLL's analog regulator) require their supply to be enabled first. There
+is no separate Init/Deinit step; helpers are imperative and only do what
+they're called to do.
 
 ---
 
@@ -1102,6 +1166,36 @@ issue the write command and poll for completion with a timeout.
 
 ---
 
+## EthPhy
+
+Header: `wolfHAL/eth_phy/eth_phy.h`
+
+The Ethernet PHY driver handles link negotiation and status for an external PHY
+chip connected to a MAC via the MDIO bus. The PHY device struct holds a pointer
+to its parent MAC (for MDIO access) and the PHY address on the bus. Different
+PHY chips (e.g., LAN8742A, DP83848) have different vendor-specific registers
+but share the same API.
+
+### Init
+
+Reset the PHY via software reset (BCR bit 15), wait for the reset bit to
+self-clear, then enable autonegotiation. Does not block waiting for link — the
+board or application polls GetLinkState separately.
+
+### Deinit
+
+Power down the PHY or release resources. May be a no-op on simple PHYs.
+
+### GetLinkState
+
+Read the current link status, negotiated speed, and duplex mode. The IEEE 802.3
+BSR register (reg 1) link bit is latching-low — read it twice and use the second
+result for current status. Speed and duplex are read from a vendor-specific
+status register (e.g., register 0x1F on LAN8742A). Return speed as 10 or 100,
+and duplex as WHAL_ETH_DUPLEX_HALF or WHAL_ETH_DUPLEX_FULL.
+
+---
+
 ## DMA
 
 Header: `wolfHAL/dma/dma.h`
@@ -1139,10 +1233,10 @@ platform-specific struct containing:
 
 The DMA driver does not store callbacks. Instead, the board defines ISR
 entries in the vector table and calls the driver's IRQ handler (e.g.,
-`whal_Stm32wbDma_IRQHandler()`), passing a callback and context pointer.
+`whal_Stm32wb_Dma_IRQHandler()`), passing a callback and context pointer.
 The IRQ handler checks and clears the interrupt flags, then invokes the
 callback. Peripheral drivers expose their completion callbacks for the
-board to wire up (e.g., `whal_Stm32wbUartDma_TxCallback`).
+board to wire up (e.g., `whal_Stm32wb_UartDma_TxCallback`).
 
 Configure sets up all channel registers but does not start the transfer.
 Call Start to begin. A channel can be reconfigured between transfers (e.g.,
@@ -1203,33 +1297,3 @@ For window watchdogs, the refresh must occur within the valid window — refresh
 too early or too late triggers a reset. The driver does not enforce window timing;
 it writes the reload value unconditionally and relies on the hardware to enforce
 the window.
-
----
-
-## EthPhy
-
-Header: `wolfHAL/eth_phy/eth_phy.h`
-
-The Ethernet PHY driver handles link negotiation and status for an external PHY
-chip connected to a MAC via the MDIO bus. The PHY device struct holds a pointer
-to its parent MAC (for MDIO access) and the PHY address on the bus. Different
-PHY chips (e.g., LAN8742A, DP83848) have different vendor-specific registers
-but share the same API.
-
-### Init
-
-Reset the PHY via software reset (BCR bit 15), wait for the reset bit to
-self-clear, then enable autonegotiation. Does not block waiting for link — the
-board or application polls GetLinkState separately.
-
-### Deinit
-
-Power down the PHY or release resources. May be a no-op on simple PHYs.
-
-### GetLinkState
-
-Read the current link status, negotiated speed, and duplex mode. The IEEE 802.3
-BSR register (reg 1) link bit is latching-low — read it twice and use the second
-result for current status. Speed and duplex are read from a vendor-specific
-status register (e.g., register 0x1F on LAN8742A). Return speed as 10 or 100,
-and duplex as WHAL_ETH_DUPLEX_HALF or WHAL_ETH_DUPLEX_FULL.

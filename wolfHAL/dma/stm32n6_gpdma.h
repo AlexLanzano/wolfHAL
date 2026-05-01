@@ -11,16 +11,16 @@
 
 #include <wolfHAL/dma/stm32wba_gpdma.h>
 
-typedef whal_Stm32wbaGpdma_Cfg   whal_Stm32n6Gpdma_Cfg;
-typedef whal_Stm32wbaGpdma_ChCfg whal_Stm32n6Gpdma_ChCfg;
+typedef whal_Stm32wba_Gpdma_Cfg   whal_Stm32n6_Gpdma_Cfg;
+typedef whal_Stm32wba_Gpdma_ChCfg whal_Stm32n6_Gpdma_ChCfg;
 
-#ifndef WHAL_CFG_DMA_API_MAPPING_STM32N6
-#define whal_Stm32n6Gpdma_Driver     whal_Stm32wbaGpdma_Driver
-#define whal_Stm32n6Gpdma_Init       whal_Stm32wbaGpdma_Init
-#define whal_Stm32n6Gpdma_Deinit     whal_Stm32wbaGpdma_Deinit
-#define whal_Stm32n6Gpdma_Transfer   whal_Stm32wbaGpdma_Transfer
-#define whal_Stm32n6Gpdma_IRQHandler whal_Stm32wbaGpdma_IRQHandler
-#endif /* !WHAL_CFG_DMA_API_MAPPING_STM32N6 */
+#ifndef WHAL_CFG_STM32N6_GPDMA_DIRECT_API_MAPPING
+#define whal_Stm32n6_Gpdma_Driver     whal_Stm32wba_Gpdma_Driver
+#define whal_Stm32n6_Gpdma_Init       whal_Stm32wba_Gpdma_Init
+#define whal_Stm32n6_Gpdma_Deinit     whal_Stm32wba_Gpdma_Deinit
+#define whal_Stm32n6_Gpdma_Transfer   whal_Stm32wba_Gpdma_Transfer
+#define whal_Stm32n6_Gpdma_IRQHandler whal_Stm32wba_Gpdma_IRQHandler
+#endif /* !WHAL_CFG_STM32N6_GPDMA_DIRECT_API_MAPPING */
 
 #define WHAL_STM32N6_GPDMA_DIR_PERIPH_TO_MEM WHAL_STM32WBA_GPDMA_DIR_PERIPH_TO_MEM
 #define WHAL_STM32N6_GPDMA_DIR_MEM_TO_PERIPH WHAL_STM32WBA_GPDMA_DIR_MEM_TO_PERIPH

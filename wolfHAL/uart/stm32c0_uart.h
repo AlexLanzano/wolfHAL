@@ -12,7 +12,7 @@
 
 #include <wolfHAL/uart/stm32wb_uart.h>
 
-typedef whal_Stm32wbUart_Cfg whal_Stm32c0Uart_Cfg;
+typedef whal_Stm32wb_Uart_Cfg whal_Stm32c0_Uart_Cfg;
 
 /*
  * @brief Compute UART BRR register value.
@@ -30,12 +30,12 @@ typedef whal_Stm32wbUart_Cfg whal_Stm32c0Uart_Cfg;
  */
 #define WHAL_STM32C0_LPUART_BRR(clk, baud) WHAL_STM32WB_LPUART_BRR(clk, baud)
 
-#ifndef WHAL_CFG_UART_API_MAPPING_STM32C0
-#define whal_Stm32c0Uart_Driver whal_Stm32wbUart_Driver
-#define whal_Stm32c0Uart_Init   whal_Stm32wbUart_Init
-#define whal_Stm32c0Uart_Deinit whal_Stm32wbUart_Deinit
-#define whal_Stm32c0Uart_Send   whal_Stm32wbUart_Send
-#define whal_Stm32c0Uart_Recv   whal_Stm32wbUart_Recv
-#endif /* !WHAL_CFG_UART_API_MAPPING_STM32C0 */
+#ifndef WHAL_CFG_STM32C0_UART_DIRECT_API_MAPPING
+#define whal_Stm32c0_Uart_Driver whal_Stm32wb_Uart_Driver
+#define whal_Stm32c0_Uart_Init   whal_Stm32wb_Uart_Init
+#define whal_Stm32c0_Uart_Deinit whal_Stm32wb_Uart_Deinit
+#define whal_Stm32c0_Uart_Send   whal_Stm32wb_Uart_Send
+#define whal_Stm32c0_Uart_Recv   whal_Stm32wb_Uart_Recv
+#endif /* !WHAL_CFG_STM32C0_UART_DIRECT_API_MAPPING */
 
 #endif /* WHAL_STM32C0_UART_H */

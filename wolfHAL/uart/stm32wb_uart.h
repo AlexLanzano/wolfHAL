@@ -25,19 +25,19 @@
 /*
  * @brief Polled UART configuration.
  */
-typedef struct whal_Stm32wbUart_Cfg {
+typedef struct whal_Stm32wb_Uart_Cfg {
     uint32_t brr;
     whal_Timeout *timeout;
-} whal_Stm32wbUart_Cfg;
+} whal_Stm32wb_Uart_Cfg;
 
-#if !defined(WHAL_CFG_UART_API_MAPPING_STM32WB) && \
-    !defined(WHAL_CFG_UART_API_MAPPING_STM32WB_DMA) && \
-    !defined(WHAL_CFG_UART_API_MAPPING_STM32H5) && \
-    !defined(WHAL_CFG_UART_API_MAPPING_STM32C0)
+#if !defined(WHAL_CFG_STM32WB_UART_DIRECT_API_MAPPING) && \
+    !defined(WHAL_CFG_STM32WB_UART_DMA_DIRECT_API_MAPPING) && \
+    !defined(WHAL_CFG_STM32H5_UART_DIRECT_API_MAPPING) && \
+    !defined(WHAL_CFG_STM32C0_UART_DIRECT_API_MAPPING)
 /*
  * @brief Polled UART driver. Implements Init, Deinit, Send, Recv.
  */
-extern const whal_UartDriver whal_Stm32wbUart_Driver;
+extern const whal_UartDriver whal_Stm32wb_Uart_Driver;
 
 /*
  * @brief Initialize the STM32WB UART peripheral.
@@ -47,7 +47,7 @@ extern const whal_UartDriver whal_Stm32wbUart_Driver;
  * @retval WHAL_SUCCESS Initialization completed.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_Stm32wbUart_Init(whal_Uart *uartDev);
+whal_Error whal_Stm32wb_Uart_Init(whal_Uart *uartDev);
 
 /*
  * @brief Deinitialize the STM32WB UART peripheral.
@@ -57,7 +57,7 @@ whal_Error whal_Stm32wbUart_Init(whal_Uart *uartDev);
  * @retval WHAL_SUCCESS Deinit completed.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_Stm32wbUart_Deinit(whal_Uart *uartDev);
+whal_Error whal_Stm32wb_Uart_Deinit(whal_Uart *uartDev);
 
 /*
  * @brief Transmit a buffer over UART (blocking, polled).
@@ -69,7 +69,7 @@ whal_Error whal_Stm32wbUart_Deinit(whal_Uart *uartDev);
  * @retval WHAL_SUCCESS All bytes transmitted.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_Stm32wbUart_Send(whal_Uart *uartDev, const void *data, size_t dataSz);
+whal_Error whal_Stm32wb_Uart_Send(whal_Uart *uartDev, const void *data, size_t dataSz);
 
 /*
  * @brief Receive a buffer over UART (blocking, polled).
@@ -81,7 +81,7 @@ whal_Error whal_Stm32wbUart_Send(whal_Uart *uartDev, const void *data, size_t da
  * @retval WHAL_SUCCESS All bytes received.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_Stm32wbUart_Recv(whal_Uart *uartDev, void *data, size_t dataSz);
+whal_Error whal_Stm32wb_Uart_Recv(whal_Uart *uartDev, void *data, size_t dataSz);
 #endif /* !WHAL_CFG_UART_API_MAPPING */
 
 #endif /* WHAL_STM32WB_UART_H */

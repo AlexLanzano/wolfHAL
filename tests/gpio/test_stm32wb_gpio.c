@@ -15,21 +15,21 @@
 
 static inline size_t Board_LedPortBase(void)
 {
-    whal_Stm32wbGpio_Cfg *cfg = (whal_Stm32wbGpio_Cfg *)g_whalGpio.cfg;
-    whal_Stm32wbGpio_PinCfg led = cfg->pinCfg[BOARD_LED_PIN];
+    whal_Stm32wb_Gpio_Cfg *cfg = (whal_Stm32wb_Gpio_Cfg *)g_whalGpio.cfg;
+    whal_Stm32wb_Gpio_PinCfg led = cfg->pinCfg[BOARD_LED_PIN];
     return g_whalGpio.regmap.base + WHAL_STM32WB_GPIO_GET_PORT(led) * GPIOx_STRIDE;
 }
 
 static inline size_t Board_LedPinNum(void)
 {
-    whal_Stm32wbGpio_Cfg *cfg = (whal_Stm32wbGpio_Cfg *)g_whalGpio.cfg;
-    whal_Stm32wbGpio_PinCfg led = cfg->pinCfg[BOARD_LED_PIN];
+    whal_Stm32wb_Gpio_Cfg *cfg = (whal_Stm32wb_Gpio_Cfg *)g_whalGpio.cfg;
+    whal_Stm32wb_Gpio_PinCfg led = cfg->pinCfg[BOARD_LED_PIN];
     return WHAL_STM32WB_GPIO_GET_PIN(led);
 }
 
 static void Test_Gpio_PinCfgRoundTrip(void)
 {
-    whal_Stm32wbGpio_PinCfg cfg = WHAL_STM32WB_GPIO_PIN(
+    whal_Stm32wb_Gpio_PinCfg cfg = WHAL_STM32WB_GPIO_PIN(
         WHAL_STM32WB_GPIO_PORT_C, 13, WHAL_STM32WB_GPIO_MODE_ALTFN,
         WHAL_STM32WB_GPIO_OUTTYPE_OPENDRAIN, WHAL_STM32WB_GPIO_SPEED_HIGH,
         WHAL_STM32WB_GPIO_PULL_DOWN, 9);
@@ -45,8 +45,8 @@ static void Test_Gpio_PinCfgRoundTrip(void)
 
 static void Test_Gpio_NoDuplicatePins(void)
 {
-    whal_Stm32wbGpio_Cfg *cfg = (whal_Stm32wbGpio_Cfg *)g_whalGpio.cfg;
-    whal_Stm32wbGpio_PinCfg *pins = cfg->pinCfg;
+    whal_Stm32wb_Gpio_Cfg *cfg = (whal_Stm32wb_Gpio_Cfg *)g_whalGpio.cfg;
+    whal_Stm32wb_Gpio_PinCfg *pins = cfg->pinCfg;
 
     for (size_t i = 0; i < cfg->pinCount; i++) {
         for (size_t j = i + 1; j < cfg->pinCount; j++) {

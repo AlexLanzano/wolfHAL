@@ -10,13 +10,14 @@ OBJCOPY = $(GCC_PATH)arm-none-eabi-objcopy
 CFLAGS += -Wall -Werror $(INCLUDE) -g3 \
           -ffreestanding -nostdlib -mcpu=cortex-m33 \
           -DPLATFORM_STM32H5 -MMD -MP \
-          -DWHAL_CFG_GPIO_API_MAPPING_STM32H5 \
-          -DWHAL_CFG_CLOCK_API_MAPPING_STM32H5_PLL \
-          -DWHAL_CFG_UART_API_MAPPING_STM32H5 \
-          -DWHAL_CFG_SPI_API_MAPPING_STM32H5 \
-          -DWHAL_CFG_RNG_API_MAPPING_STM32H5 \
-          -DWHAL_CFG_ETH_API_MAPPING_STM32H5 \
-          -DWHAL_CFG_ETH_PHY_API_MAPPING_LAN8742A
+          -DWHAL_CFG_STM32H5_GPIO_DIRECT_API_MAPPING \
+          -DWHAL_CFG_STM32H5_RCC_PLL_DRIVER \
+          -DWHAL_CFG_STM32H5_RCC_DIRECT_API_MAPPING \
+          -DWHAL_CFG_STM32H5_UART_DIRECT_API_MAPPING \
+          -DWHAL_CFG_STM32H5_SPI_DIRECT_API_MAPPING \
+          -DWHAL_CFG_STM32H5_RNG_DIRECT_API_MAPPING \
+          -DWHAL_CFG_STM32H5_ETH_DIRECT_API_MAPPING \
+          -DWHAL_CFG_LAN8742A_ETH_PHY_DIRECT_API_MAPPING
 LDFLAGS = --omagic -static
 
 LINKER_SCRIPT ?= $(_BOARD_DIR)/linker.ld
@@ -27,7 +28,6 @@ BOARD_SOURCE = $(_BOARD_DIR)/ivt.c
 BOARD_SOURCE += $(_BOARD_DIR)/board.c
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/timer.c)
-BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/supply.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/flash.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/crypto.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/block.c)
@@ -37,4 +37,11 @@ BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/lan8742a_*.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/systick.c)
 
 # Peripheral devices
-include $(WHAL_DIR)/boards/peripheral/Makefile.inc
+include $(WHAL_DIR)/boards/peripheral/board.mk
+
+# Flash: STM32H5 isn't supported by mainline openocd. Use STM32_Programmer_CLI:
+#   STM32_Programmer_CLI -c port=SWD -w <image> -rst
+.PHONY: flash
+flash:
+	@echo "STM32H5 not supported by mainline openocd; use STM32_Programmer_CLI" >&2
+	@exit 1

@@ -22,17 +22,17 @@
 /*
  * @brief SPI device configuration.
  */
-typedef struct whal_Stm32wbSpi_Cfg {
+typedef struct whal_Stm32wb_Spi_Cfg {
     uint32_t pclk;        /* Peripheral clock frequency in Hz */
     whal_Timeout *timeout;
-} whal_Stm32wbSpi_Cfg;
+} whal_Stm32wb_Spi_Cfg;
 
-#if !defined(WHAL_CFG_SPI_API_MAPPING_STM32WB) && \
-    !defined(WHAL_CFG_SPI_API_MAPPING_STM32C0)
+#if !defined(WHAL_CFG_STM32WB_SPI_DIRECT_API_MAPPING) && \
+    !defined(WHAL_CFG_STM32C0_SPI_DIRECT_API_MAPPING)
 /*
  * @brief Driver instance for STM32 SPI peripheral.
  */
-extern const whal_SpiDriver whal_Stm32wbSpi_Driver;
+extern const whal_SpiDriver whal_Stm32wb_Spi_Driver;
 
 /*
  * @brief Initialize the STM32 SPI peripheral.
@@ -42,7 +42,7 @@ extern const whal_SpiDriver whal_Stm32wbSpi_Driver;
  * @retval WHAL_SUCCESS Initialization completed.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_Stm32wbSpi_Init(whal_Spi *spiDev);
+whal_Error whal_Stm32wb_Spi_Init(whal_Spi *spiDev);
 
 /*
  * @brief Deinitialize the STM32 SPI peripheral.
@@ -52,7 +52,7 @@ whal_Error whal_Stm32wbSpi_Init(whal_Spi *spiDev);
  * @retval WHAL_SUCCESS Deinit completed.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_Stm32wbSpi_Deinit(whal_Spi *spiDev);
+whal_Error whal_Stm32wb_Spi_Deinit(whal_Spi *spiDev);
 
 /*
  * @brief Begin a communication session on the STM32 SPI peripheral.
@@ -66,7 +66,7 @@ whal_Error whal_Stm32wbSpi_Deinit(whal_Spi *spiDev);
  * @retval WHAL_SUCCESS Communication session started.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_Stm32wbSpi_StartCom(whal_Spi *spiDev, whal_Spi_ComCfg *comCfg);
+whal_Error whal_Stm32wb_Spi_StartCom(whal_Spi *spiDev, whal_Spi_ComCfg *comCfg);
 
 /*
  * @brief End the current communication session on the STM32 SPI peripheral.
@@ -78,7 +78,7 @@ whal_Error whal_Stm32wbSpi_StartCom(whal_Spi *spiDev, whal_Spi_ComCfg *comCfg);
  * @retval WHAL_SUCCESS Communication session ended.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_Stm32wbSpi_EndCom(whal_Spi *spiDev);
+whal_Error whal_Stm32wb_Spi_EndCom(whal_Spi *spiDev);
 
 /*
  * @brief Perform a full-duplex SPI transfer.
@@ -92,7 +92,7 @@ whal_Error whal_Stm32wbSpi_EndCom(whal_Spi *spiDev);
  * @retval WHAL_SUCCESS Transfer completed.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_Stm32wbSpi_SendRecv(whal_Spi *spiDev,
+whal_Error whal_Stm32wb_Spi_SendRecv(whal_Spi *spiDev,
                                      const void *tx, size_t txLen,
                                      void *rx, size_t rxLen);
 #endif /* !WHAL_CFG_SPI_API_MAPPING */

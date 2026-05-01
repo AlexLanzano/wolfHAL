@@ -109,13 +109,6 @@ void whal_Test_Irq_Platform(void);
 #endif
 #endif
 
-#ifdef WHAL_TEST_ENABLE_SUPPLY
-void whal_Test_Supply(void);
-#ifdef WHAL_TEST_ENABLE_SUPPLY_PLATFORM
-void whal_Test_Supply_Platform(void);
-#endif
-#endif
-
 #ifdef WHAL_TEST_ENABLE_SENSOR
 void whal_Test_Sensor(void);
 #endif
@@ -258,13 +251,6 @@ void main(void)
     whal_Test_Irq();
 #ifdef WHAL_TEST_ENABLE_IRQ_PLATFORM
     whal_Test_Irq_Platform();
-#endif
-#endif
-
-#ifdef WHAL_TEST_ENABLE_SUPPLY
-    whal_Test_Supply();
-#ifdef WHAL_TEST_ENABLE_SUPPLY_PLATFORM
-    whal_Test_Supply_Platform();
 #endif
 #endif
 

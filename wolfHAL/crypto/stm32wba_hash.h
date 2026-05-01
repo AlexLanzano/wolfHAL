@@ -19,13 +19,13 @@
  */
 typedef struct {
     whal_Timeout *timeout;
-} whal_Stm32wbaHash_Cfg;
+} whal_Stm32wba_Hash_Cfg;
 
-#ifndef WHAL_CFG_CRYPTO_API_MAPPING_STM32WBA_HASH
+#ifndef WHAL_CFG_STM32WBA_HASH_DIRECT_API_MAPPING
 /*
  * @brief Driver instance for STM32WBA HASH peripheral.
  */
-extern const whal_CryptoDriver whal_Stm32wbaHash_Driver;
+extern const whal_CryptoDriver whal_Stm32wba_Hash_Driver;
 
 /*
  * @brief Initialize the STM32WBA HASH peripheral.
@@ -35,7 +35,7 @@ extern const whal_CryptoDriver whal_Stm32wbaHash_Driver;
  * @retval WHAL_SUCCESS Initialization completed.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_Stm32wbaHash_Init(whal_Crypto *cryptoDev);
+whal_Error whal_Stm32wba_Hash_Init(whal_Crypto *cryptoDev);
 
 /*
  * @brief Deinitialize the STM32WBA HASH peripheral.
@@ -45,7 +45,7 @@ whal_Error whal_Stm32wbaHash_Init(whal_Crypto *cryptoDev);
  * @retval WHAL_SUCCESS Deinit completed.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_Stm32wbaHash_Deinit(whal_Crypto *cryptoDev);
+whal_Error whal_Stm32wba_Hash_Deinit(whal_Crypto *cryptoDev);
 
 /*
  * @brief Start a hash/HMAC operation.
@@ -58,7 +58,7 @@ whal_Error whal_Stm32wbaHash_Deinit(whal_Crypto *cryptoDev);
  * @retval WHAL_EINVAL    Invalid arguments.
  * @retval WHAL_EHARDWARE Hardware error during setup.
  */
-whal_Error whal_Stm32wbaHash_StartOp(whal_Crypto *cryptoDev, size_t opId,
+whal_Error whal_Stm32wba_Hash_StartOp(whal_Crypto *cryptoDev, size_t opId,
                                      void *opArgs);
 
 /*
@@ -72,7 +72,7 @@ whal_Error whal_Stm32wbaHash_StartOp(whal_Crypto *cryptoDev, size_t opId,
  * @retval WHAL_EINVAL    Invalid arguments.
  * @retval WHAL_EHARDWARE Hardware error during processing.
  */
-whal_Error whal_Stm32wbaHash_Process(whal_Crypto *cryptoDev, size_t opId,
+whal_Error whal_Stm32wba_Hash_Process(whal_Crypto *cryptoDev, size_t opId,
                                      void *opArgs);
 
 /*
@@ -86,8 +86,8 @@ whal_Error whal_Stm32wbaHash_Process(whal_Crypto *cryptoDev, size_t opId,
  * @retval WHAL_EINVAL    Invalid arguments.
  * @retval WHAL_EHARDWARE Hardware error during finalization.
  */
-whal_Error whal_Stm32wbaHash_EndOp(whal_Crypto *cryptoDev, size_t opId,
+whal_Error whal_Stm32wba_Hash_EndOp(whal_Crypto *cryptoDev, size_t opId,
                                    void *opArgs);
-#endif /* !WHAL_CFG_CRYPTO_API_MAPPING_STM32WBA_HASH */
+#endif /* !WHAL_CFG_STM32WBA_HASH_DIRECT_API_MAPPING */
 
 #endif /* WHAL_STM32WBA_HASH_H */

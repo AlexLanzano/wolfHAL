@@ -20,7 +20,7 @@ typedef struct whal_Lan8742a_Cfg {
     whal_Timeout *timeout;
 } whal_Lan8742a_Cfg;
 
-#ifndef WHAL_CFG_ETH_PHY_API_MAPPING_LAN8742A
+#ifndef WHAL_CFG_LAN8742A_ETH_PHY_DIRECT_API_MAPPING
 /*
  * @brief Driver instance for LAN8742A PHY.
  */
@@ -63,6 +63,6 @@ whal_Error whal_Lan8742a_Deinit(whal_EthPhy *phyDev);
  */
 whal_Error whal_Lan8742a_GetLinkState(whal_EthPhy *phyDev, uint8_t *up,
                                        uint8_t *speed, uint8_t *duplex);
-#endif /* !WHAL_CFG_ETH_PHY_API_MAPPING_LAN8742A */
+#endif /* !WHAL_CFG_LAN8742A_ETH_PHY_DIRECT_API_MAPPING */
 
 #endif /* WHAL_LAN8742A_H */

@@ -1,12 +1,14 @@
 WHAL_DIR = $(CURDIR)/../..
 
+.DEFAULT_GOAL := all
+
 BOARD ?= stm32wb55xx_nucleo
 BOARD_DIR = $(WHAL_DIR)/boards/$(BOARD)
 BUILD_DIR = build/$(BOARD)
 
 INCLUDE = -I$(WHAL_DIR)
 
-include $(BOARD_DIR)/Makefile.inc
+include $(BOARD_DIR)/board.mk
 
 SOURCE = main.c
 SOURCE += $(BOARD_SOURCE)

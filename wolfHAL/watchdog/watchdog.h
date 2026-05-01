@@ -39,11 +39,6 @@ struct whal_Watchdog {
     void *cfg;
 };
 
-#ifdef WHAL_CFG_DIRECT_CALLBACKS
-#define whal_Watchdog_Init(wdgDev) ((wdgDev)->driver->Init((wdgDev)))
-#define whal_Watchdog_Deinit(wdgDev) ((wdgDev)->driver->Deinit((wdgDev)))
-#define whal_Watchdog_Refresh(wdgDev) ((wdgDev)->driver->Refresh((wdgDev)))
-#else
 /*
  * @brief Configure and start the watchdog.
  *
@@ -81,6 +76,5 @@ whal_Error whal_Watchdog_Deinit(whal_Watchdog *wdgDev);
  * @retval WHAL_EINVAL  Null pointer.
  */
 whal_Error whal_Watchdog_Refresh(whal_Watchdog *wdgDev);
-#endif
 
 #endif /* WHAL_WATCHDOG_H */

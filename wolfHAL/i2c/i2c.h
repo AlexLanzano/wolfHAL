@@ -71,15 +71,6 @@ struct whal_I2c {
     void *cfg;
 };
 
-#ifdef WHAL_CFG_DIRECT_CALLBACKS
-#define whal_I2c_Init(i2cDev) ((i2cDev)->driver->Init((i2cDev)))
-#define whal_I2c_Deinit(i2cDev) ((i2cDev)->driver->Deinit((i2cDev)))
-#define whal_I2c_StartCom(i2cDev, i2cComCfg) \
-    ((i2cDev)->driver->StartCom((i2cDev), (i2cComCfg)))
-#define whal_I2c_EndCom(i2cDev) ((i2cDev)->driver->EndCom((i2cDev)))
-#define whal_I2c_Transfer(i2cDev, msgs, numMsgs) \
-    ((i2cDev)->driver->Transfer((i2cDev), (msgs), (numMsgs)))
-#else
 /*
  * @brief Initializes an I2C device and its driver.
  *
@@ -136,7 +127,6 @@ whal_Error whal_I2c_EndCom(whal_I2c *i2cDev);
  */
 whal_Error whal_I2c_Transfer(whal_I2c *i2cDev, whal_I2c_Msg *msgs,
                              size_t numMsgs);
-#endif
 
 /*
  * @brief Write to a register on an I2C device.

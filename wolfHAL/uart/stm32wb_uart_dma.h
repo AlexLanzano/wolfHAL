@@ -15,26 +15,26 @@
 /*
  * @brief DMA-backed UART configuration.
  *
- * Used with whal_Stm32wbUartDma_Driver. Init/Deinit reuse the polled driver.
+ * Used with whal_Stm32wb_UartDma_Driver. Init/Deinit reuse the polled driver.
  * Send/Recv block using DMA. SendAsync/RecvAsync return immediately.
  */
 typedef struct {
-    whal_Stm32wbUart_Cfg base;
+    whal_Stm32wb_Uart_Cfg base;
     whal_Dma *dma;
     size_t txCh;
     size_t rxCh;
-    whal_Stm32wbDma_ChCfg *txChCfg;
-    whal_Stm32wbDma_ChCfg *rxChCfg;
+    whal_Stm32wb_Dma_ChCfg *txChCfg;
+    whal_Stm32wb_Dma_ChCfg *rxChCfg;
     volatile whal_Error txResult;
     volatile whal_Error rxResult;
-} whal_Stm32wbUartDma_Cfg;
+} whal_Stm32wb_UartDma_Cfg;
 
-#ifndef WHAL_CFG_UART_API_MAPPING_STM32WB_DMA
+#ifndef WHAL_CFG_STM32WB_UART_DMA_DIRECT_API_MAPPING
 /*
  * @brief DMA-backed UART driver. Implements Init, Deinit, Send, Recv,
  *        SendAsync, RecvAsync.
  */
-extern const whal_UartDriver whal_Stm32wbUartDma_Driver;
+extern const whal_UartDriver whal_Stm32wb_UartDma_Driver;
 
 /*
  * @brief Transmit a buffer over UART using DMA (blocking).
@@ -49,7 +49,7 @@ extern const whal_UartDriver whal_Stm32wbUartDma_Driver;
  * @retval WHAL_ETIMEOUT DMA transfer or UART TC timed out.
  * @retval WHAL_EINVAL   Invalid arguments.
  */
-whal_Error whal_Stm32wbUartDma_Send(whal_Uart *uartDev, const void *data,
+whal_Error whal_Stm32wb_UartDma_Send(whal_Uart *uartDev, const void *data,
                                      size_t dataSz);
 
 /*
@@ -65,7 +65,7 @@ whal_Error whal_Stm32wbUartDma_Send(whal_Uart *uartDev, const void *data,
  * @retval WHAL_ETIMEOUT DMA transfer timed out.
  * @retval WHAL_EINVAL   Invalid arguments.
  */
-whal_Error whal_Stm32wbUartDma_Recv(whal_Uart *uartDev, void *data,
+whal_Error whal_Stm32wb_UartDma_Recv(whal_Uart *uartDev, void *data,
                                      size_t dataSz);
 
 /*
@@ -82,7 +82,7 @@ whal_Error whal_Stm32wbUartDma_Recv(whal_Uart *uartDev, void *data,
  * @retval WHAL_ENOTREADY A transfer is already in progress.
  * @retval WHAL_EINVAL    Invalid arguments.
  */
-whal_Error whal_Stm32wbUartDma_SendAsync(whal_Uart *uartDev, const void *data,
+whal_Error whal_Stm32wb_UartDma_SendAsync(whal_Uart *uartDev, const void *data,
                                           size_t dataSz);
 
 /*
@@ -99,22 +99,22 @@ whal_Error whal_Stm32wbUartDma_SendAsync(whal_Uart *uartDev, const void *data,
  * @retval WHAL_ENOTREADY A transfer is already in progress.
  * @retval WHAL_EINVAL    Invalid arguments.
  */
-whal_Error whal_Stm32wbUartDma_RecvAsync(whal_Uart *uartDev, void *data,
+whal_Error whal_Stm32wb_UartDma_RecvAsync(whal_Uart *uartDev, void *data,
                                           size_t dataSz);
-#endif /* !WHAL_CFG_UART_API_MAPPING_STM32WB_DMA */
+#endif /* !WHAL_CFG_STM32WB_UART_DMA_DIRECT_API_MAPPING */
 
 /*
- * @brief DMA TX completion callback for use with whal_Stm32wbDma_IRQHandler.
+ * @brief DMA TX completion callback for use with whal_Stm32wb_Dma_IRQHandler.
  *
  * Sets cfg->txResult from the DMA error code. Pass the UART DMA cfg as ctx.
  */
-void whal_Stm32wbUartDma_TxCallback(void *ctx, whal_Error err);
+void whal_Stm32wb_UartDma_TxCallback(void *ctx, whal_Error err);
 
 /*
- * @brief DMA RX completion callback for use with whal_Stm32wbDma_IRQHandler.
+ * @brief DMA RX completion callback for use with whal_Stm32wb_Dma_IRQHandler.
  *
  * Sets cfg->rxResult from the DMA error code. Pass the UART DMA cfg as ctx.
  */
-void whal_Stm32wbUartDma_RxCallback(void *ctx, whal_Error err);
+void whal_Stm32wb_UartDma_RxCallback(void *ctx, whal_Error err);
 
 #endif /* WHAL_STM32WB_UART_DMA_H */

@@ -30,7 +30,7 @@ typedef enum {
     WHAL_STM32WB_DMA_DIR_PERIPH_TO_MEM, /* Peripheral to memory */
     WHAL_STM32WB_DMA_DIR_MEM_TO_PERIPH, /* Memory to peripheral */
     WHAL_STM32WB_DMA_DIR_MEM_TO_MEM,    /* Memory to memory */
-} whal_Stm32wbDma_Dir;
+} whal_Stm32wb_Dma_Dir;
 
 /*
  * @brief Data width for transfers.
@@ -39,7 +39,7 @@ typedef enum {
     WHAL_STM32WB_DMA_WIDTH_8BIT,  /* 8-bit (byte) */
     WHAL_STM32WB_DMA_WIDTH_16BIT, /* 16-bit (half-word) */
     WHAL_STM32WB_DMA_WIDTH_32BIT, /* 32-bit (word) */
-} whal_Stm32wbDma_Width;
+} whal_Stm32wb_Dma_Width;
 
 /*
  * @brief Address increment mode.
@@ -47,22 +47,22 @@ typedef enum {
 typedef enum {
     WHAL_STM32WB_DMA_INC_DISABLE, /* Fixed address */
     WHAL_STM32WB_DMA_INC_ENABLE,  /* Increment address after each transfer */
-} whal_Stm32wbDma_Inc;
+} whal_Stm32wb_Dma_Inc;
 
 /*
  * @brief Per-channel DMA configuration.
  */
 typedef struct {
-    whal_Stm32wbDma_Dir dir;       /* Transfer direction */
+    whal_Stm32wb_Dma_Dir dir;       /* Transfer direction */
     uint32_t srcAddr;              /* Source address */
     uint32_t dstAddr;              /* Destination address */
     uint16_t length;               /* Number of data items to transfer */
-    whal_Stm32wbDma_Width width;   /* Data width (8, 16, or 32 bit) */
-    whal_Stm32wbDma_Inc srcInc;    /* Source address increment mode */
-    whal_Stm32wbDma_Inc dstInc;    /* Destination address increment mode */
+    whal_Stm32wb_Dma_Width width;   /* Data width (8, 16, or 32 bit) */
+    whal_Stm32wb_Dma_Inc srcInc;    /* Source address increment mode */
+    whal_Stm32wb_Dma_Inc dstInc;    /* Destination address increment mode */
     uint8_t dmamuxReqId;           /* DMAMUX request ID for the peripheral */
     uint8_t circular;              /* Non-zero to enable circular mode */
-} whal_Stm32wbDma_ChCfg;
+} whal_Stm32wb_Dma_ChCfg;
 
 /*
  * @brief Controller-level DMA configuration.
@@ -74,40 +74,40 @@ typedef struct {
     size_t dmamuxBase;       /* DMAMUX1 register base address */
     uint8_t dmamuxChOffset;  /* First DMAMUX channel index for this controller */
     uint8_t numChannels;     /* Number of channels (7 for DMA1, 5 for DMA2) */
-} whal_Stm32wbDma_Cfg;
+} whal_Stm32wb_Dma_Cfg;
 
-#ifndef WHAL_CFG_DMA_API_MAPPING_STM32WB
+#ifndef WHAL_CFG_STM32WB_DMA_DIRECT_API_MAPPING
 /*
  * @brief Driver instance for STM32WB DMA.
  */
-extern const whal_DmaDriver whal_Stm32wbDma_Driver;
+extern const whal_DmaDriver whal_Stm32wb_Dma_Driver;
 
 /*
  * @brief Initialize the STM32WB DMA controller.
  */
-whal_Error whal_Stm32wbDma_Init(whal_Dma *dmaDev);
+whal_Error whal_Stm32wb_Dma_Init(whal_Dma *dmaDev);
 
 /*
  * @brief Deinitialize the STM32WB DMA controller.
  */
-whal_Error whal_Stm32wbDma_Deinit(whal_Dma *dmaDev);
+whal_Error whal_Stm32wb_Dma_Deinit(whal_Dma *dmaDev);
 
 /*
  * @brief Configure a DMA channel with platform-specific settings.
  */
-whal_Error whal_Stm32wbDma_Configure(whal_Dma *dmaDev, size_t ch,
+whal_Error whal_Stm32wb_Dma_Configure(whal_Dma *dmaDev, size_t ch,
                                      const void *chCfg);
 
 /*
  * @brief Start a previously configured DMA channel.
  */
-whal_Error whal_Stm32wbDma_Start(whal_Dma *dmaDev, size_t ch);
+whal_Error whal_Stm32wb_Dma_Start(whal_Dma *dmaDev, size_t ch);
 
 /*
  * @brief Stop a DMA channel.
  */
-whal_Error whal_Stm32wbDma_Stop(whal_Dma *dmaDev, size_t ch);
-#endif /* !WHAL_CFG_DMA_API_MAPPING_STM32WB */
+whal_Error whal_Stm32wb_Dma_Stop(whal_Dma *dmaDev, size_t ch);
+#endif /* !WHAL_CFG_STM32WB_DMA_DIRECT_API_MAPPING */
 
 /*
  * @brief DMA callback type.
@@ -117,7 +117,7 @@ whal_Error whal_Stm32wbDma_Stop(whal_Dma *dmaDev, size_t ch);
  * @param ctx User context pointer.
  * @param err WHAL_SUCCESS on transfer complete, WHAL_EHARDWARE on error.
  */
-typedef void (*whal_Stm32wbDma_Callback)(void *ctx, whal_Error err);
+typedef void (*whal_Stm32wb_Dma_Callback)(void *ctx, whal_Error err);
 
 /*
  * @brief Handle a DMA channel interrupt.
@@ -130,7 +130,7 @@ typedef void (*whal_Stm32wbDma_Callback)(void *ctx, whal_Error err);
  * @param cb     Callback to invoke (or NULL to just clear flags).
  * @param ctx    Context pointer passed to callback.
  */
-void whal_Stm32wbDma_IRQHandler(whal_Dma *dmaDev, size_t ch,
-                                 whal_Stm32wbDma_Callback cb, void *ctx);
+void whal_Stm32wb_Dma_IRQHandler(whal_Dma *dmaDev, size_t ch,
+                                 whal_Stm32wb_Dma_Callback cb, void *ctx);
 
 #endif /* WHAL_STM32WB_DMA_H */

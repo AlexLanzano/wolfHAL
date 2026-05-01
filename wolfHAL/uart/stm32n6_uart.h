@@ -12,15 +12,15 @@
 
 #include <wolfHAL/uart/stm32wb_uart.h>
 
-typedef whal_Stm32wbUart_Cfg whal_Stm32n6Uart_Cfg;
+typedef whal_Stm32wb_Uart_Cfg whal_Stm32n6_Uart_Cfg;
 
-#ifndef WHAL_CFG_UART_API_MAPPING_STM32N6
-#define whal_Stm32n6Uart_Driver whal_Stm32wbUart_Driver
-#define whal_Stm32n6Uart_Init   whal_Stm32wbUart_Init
-#define whal_Stm32n6Uart_Deinit whal_Stm32wbUart_Deinit
-#define whal_Stm32n6Uart_Send   whal_Stm32wbUart_Send
-#define whal_Stm32n6Uart_Recv   whal_Stm32wbUart_Recv
-#endif /* !WHAL_CFG_UART_API_MAPPING_STM32N6 */
+#ifndef WHAL_CFG_STM32N6_UART_DIRECT_API_MAPPING
+#define whal_Stm32n6_Uart_Driver whal_Stm32wb_Uart_Driver
+#define whal_Stm32n6_Uart_Init   whal_Stm32wb_Uart_Init
+#define whal_Stm32n6_Uart_Deinit whal_Stm32wb_Uart_Deinit
+#define whal_Stm32n6_Uart_Send   whal_Stm32wb_Uart_Send
+#define whal_Stm32n6_Uart_Recv   whal_Stm32wb_Uart_Recv
+#endif /* !WHAL_CFG_STM32N6_UART_DIRECT_API_MAPPING */
 
 #define WHAL_STM32N6_UART_BRR   WHAL_STM32WB_UART_BRR
 #define WHAL_STM32N6_LPUART_BRR WHAL_STM32WB_LPUART_BRR

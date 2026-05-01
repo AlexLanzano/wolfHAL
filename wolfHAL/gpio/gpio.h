@@ -44,21 +44,6 @@ struct whal_Gpio {
  * @retval WHAL_EINVAL   Null pointer.
  * @retval WHAL_ENOTSUP Operation not implemented by this driver.
  */
-#ifdef WHAL_CFG_DIRECT_CALLBACKS
-#define whal_Gpio_Init(gpioDev) ((gpioDev)->driver->Init((gpioDev)))
-#define whal_Gpio_Deinit(gpioDev) ((gpioDev)->driver->Deinit((gpioDev)))
-#define whal_Gpio_Get(gpioDev, pin, value) ((gpioDev)->driver->Get((gpioDev), (pin), (value)))
-#define whal_Gpio_Set(gpioDev, pin, value) ((gpioDev)->driver->Set((gpioDev), (pin), (value)))
-#else
-/*
- * @brief Initialize a GPIO device and its pins.
- *
- * @param gpioDev GPIO instance to initialize.
- *
- * @retval WHAL_SUCCESS Driver-specific init completed.
- * @retval WHAL_EINVAL   Null pointer.
- * @retval WHAL_ENOTSUP Operation not implemented by this driver.
- */
 whal_Error whal_Gpio_Init(whal_Gpio *gpioDev);
 /*
  * @brief Deinitialize a GPIO device.
@@ -94,6 +79,5 @@ whal_Error whal_Gpio_Get(whal_Gpio *gpioDev, size_t pin, size_t *value);
  * @retval WHAL_ENOTSUP Operation not implemented by this driver.
  */
 whal_Error whal_Gpio_Set(whal_Gpio *gpioDev, size_t pin, size_t value);
-#endif
 
 #endif /* WHAL_GPIO_H */

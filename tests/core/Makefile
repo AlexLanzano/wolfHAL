@@ -5,14 +5,12 @@ CFLAGS += -Wall -Werror $(INCLUDE) -g3
 
 TEST_SRC = main.c test_bitops.c test_dispatch.c test_endian.c test_timeout.c
 
-WHAL_SRC = $(WHAL_DIR)/src/clock/clock.c \
-           $(WHAL_DIR)/src/gpio/gpio.c \
+WHAL_SRC = $(WHAL_DIR)/src/gpio/gpio.c \
            $(WHAL_DIR)/src/uart/uart.c \
            $(WHAL_DIR)/src/flash/flash.c \
            $(WHAL_DIR)/src/timer/timer.c \
            $(WHAL_DIR)/src/spi/spi.c \
            $(WHAL_DIR)/src/rng/rng.c \
-           $(WHAL_DIR)/src/supply/supply.c \
            $(WHAL_DIR)/src/block/block.c
 
 SOURCE = $(TEST_SRC) $(WHAL_SRC)

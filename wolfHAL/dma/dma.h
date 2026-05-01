@@ -51,13 +51,6 @@ struct whal_Dma {
     const void *cfg;
 };
 
-#ifdef WHAL_CFG_DIRECT_CALLBACKS
-#define whal_Dma_Init(dmaDev) ((dmaDev)->driver->Init((dmaDev)))
-#define whal_Dma_Deinit(dmaDev) ((dmaDev)->driver->Deinit((dmaDev)))
-#define whal_Dma_Configure(dmaDev, ch, chCfg) ((dmaDev)->driver->Configure((dmaDev), (ch), (chCfg)))
-#define whal_Dma_Start(dmaDev, ch) ((dmaDev)->driver->Start((dmaDev), (ch)))
-#define whal_Dma_Stop(dmaDev, ch) ((dmaDev)->driver->Stop((dmaDev), (ch)))
-#else
 /*
  * @brief Initialize a DMA controller.
  *
@@ -107,6 +100,5 @@ whal_Error whal_Dma_Start(whal_Dma *dmaDev, size_t ch);
  * @retval WHAL_EINVAL  Null pointer or missing driver function.
  */
 whal_Error whal_Dma_Stop(whal_Dma *dmaDev, size_t ch);
-#endif
 
 #endif /* WHAL_DMA_H */

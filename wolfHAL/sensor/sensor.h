@@ -37,11 +37,6 @@ struct whal_Sensor {
     void *cfg;
 };
 
-#ifdef WHAL_CFG_DIRECT_CALLBACKS
-#define whal_Sensor_Init(dev) ((dev)->driver->Init((dev)))
-#define whal_Sensor_Deinit(dev) ((dev)->driver->Deinit((dev)))
-#define whal_Sensor_Read(dev, data) ((dev)->driver->Read((dev), (data)))
-#else
 /*
  * @brief Initialize a sensor device and its driver.
  *
@@ -73,6 +68,5 @@ whal_Error whal_Sensor_Deinit(whal_Sensor *dev);
  * @retval WHAL_EINVAL  Null pointer or driver error.
  */
 whal_Error whal_Sensor_Read(whal_Sensor *dev, void *data);
-#endif
 
 #endif /* WHAL_SENSOR_H */

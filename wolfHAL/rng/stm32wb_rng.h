@@ -17,15 +17,15 @@
 /*
  * @brief RNG device configuration.
  */
-typedef struct whal_Stm32wbRng_Cfg {
+typedef struct whal_Stm32wb_Rng_Cfg {
     whal_Timeout *timeout;
-} whal_Stm32wbRng_Cfg;
+} whal_Stm32wb_Rng_Cfg;
 
-#ifndef WHAL_CFG_RNG_API_MAPPING_STM32WB
+#ifndef WHAL_CFG_STM32WB_RNG_DIRECT_API_MAPPING
 /*
  * @brief Driver instance for STM32WB RNG peripheral.
  */
-extern const whal_RngDriver whal_Stm32wbRng_Driver;
+extern const whal_RngDriver whal_Stm32wb_Rng_Driver;
 
 /*
  * @brief Initialize the STM32WB RNG peripheral.
@@ -35,7 +35,7 @@ extern const whal_RngDriver whal_Stm32wbRng_Driver;
  * @retval WHAL_SUCCESS Initialization completed.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_Stm32wbRng_Init(whal_Rng *rngDev);
+whal_Error whal_Stm32wb_Rng_Init(whal_Rng *rngDev);
 /*
  * @brief Deinitialize the STM32WB RNG peripheral.
  *
@@ -44,7 +44,7 @@ whal_Error whal_Stm32wbRng_Init(whal_Rng *rngDev);
  * @retval WHAL_SUCCESS Deinit completed.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_Stm32wbRng_Deinit(whal_Rng *rngDev);
+whal_Error whal_Stm32wb_Rng_Deinit(whal_Rng *rngDev);
 /*
  * @brief Generate random data.
  *
@@ -55,7 +55,7 @@ whal_Error whal_Stm32wbRng_Deinit(whal_Rng *rngDev);
  * @retval WHAL_SUCCESS Buffer filled with random data.
  * @retval WHAL_EINVAL  Invalid arguments or seed/clock error detected.
  */
-whal_Error whal_Stm32wbRng_Generate(whal_Rng *rngDev, void *rngData, size_t rngDataSz);
-#endif /* !WHAL_CFG_RNG_API_MAPPING_STM32WB */
+whal_Error whal_Stm32wb_Rng_Generate(whal_Rng *rngDev, void *rngData, size_t rngDataSz);
+#endif /* !WHAL_CFG_STM32WB_RNG_DIRECT_API_MAPPING */
 
 #endif /* WHAL_STM32WB_RNG_H */

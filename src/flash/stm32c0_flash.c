@@ -85,31 +85,31 @@
 #define FLASH_CR_LOCK_Pos 31         /* Lock flash control */
 #define FLASH_CR_LOCK_Msk (1UL << FLASH_CR_LOCK_Pos)
 
-#ifdef WHAL_CFG_FLASH_API_MAPPING_STM32C0
-#define whal_Stm32c0Flash_Init   whal_Flash_Init
-#define whal_Stm32c0Flash_Deinit whal_Flash_Deinit
-#define whal_Stm32c0Flash_Lock   whal_Flash_Lock
-#define whal_Stm32c0Flash_Unlock whal_Flash_Unlock
-#define whal_Stm32c0Flash_Read   whal_Flash_Read
-#define whal_Stm32c0Flash_Write  whal_Flash_Write
-#define whal_Stm32c0Flash_Erase  whal_Flash_Erase
-#endif /* WHAL_CFG_FLASH_API_MAPPING_STM32C0 */
+#ifdef WHAL_CFG_STM32C0_FLASH_DIRECT_API_MAPPING
+#define whal_Stm32c0_Flash_Init   whal_Flash_Init
+#define whal_Stm32c0_Flash_Deinit whal_Flash_Deinit
+#define whal_Stm32c0_Flash_Lock   whal_Flash_Lock
+#define whal_Stm32c0_Flash_Unlock whal_Flash_Unlock
+#define whal_Stm32c0_Flash_Read   whal_Flash_Read
+#define whal_Stm32c0_Flash_Write  whal_Flash_Write
+#define whal_Stm32c0_Flash_Erase  whal_Flash_Erase
+#endif /* WHAL_CFG_STM32C0_FLASH_DIRECT_API_MAPPING */
 
-whal_Error whal_Stm32c0Flash_Init(whal_Flash *flashDev)
+whal_Error whal_Stm32c0_Flash_Init(whal_Flash *flashDev)
 {
     (void)flashDev;
 
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_Stm32c0Flash_Deinit(whal_Flash *flashDev)
+whal_Error whal_Stm32c0_Flash_Deinit(whal_Flash *flashDev)
 {
     (void)flashDev;
 
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_Stm32c0Flash_Lock(whal_Flash *flashDev, size_t addr, size_t len)
+whal_Error whal_Stm32c0_Flash_Lock(whal_Flash *flashDev, size_t addr, size_t len)
 {
     const whal_Regmap *regmap;
 
@@ -129,7 +129,7 @@ whal_Error whal_Stm32c0Flash_Lock(whal_Flash *flashDev, size_t addr, size_t len)
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_Stm32c0Flash_Unlock(whal_Flash *flashDev, size_t addr, size_t len)
+whal_Error whal_Stm32c0_Flash_Unlock(whal_Flash *flashDev, size_t addr, size_t len)
 {
     const whal_Regmap *regmap;
 
@@ -152,10 +152,10 @@ whal_Error whal_Stm32c0Flash_Unlock(whal_Flash *flashDev, size_t addr, size_t le
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_Stm32c0Flash_Read(whal_Flash *flashDev, size_t addr, void *data,
+whal_Error whal_Stm32c0_Flash_Read(whal_Flash *flashDev, size_t addr, void *data,
                              size_t dataSz)
 {
-    whal_Stm32c0Flash_Cfg *cfg;
+    whal_Stm32c0_Flash_Cfg *cfg;
     uint8_t *dataBuf = (uint8_t *)data;
 
     if (!flashDev || !flashDev->cfg || !data)
@@ -183,10 +183,10 @@ whal_Error whal_Stm32c0Flash_Read(whal_Flash *flashDev, size_t addr, void *data,
  * For write (write=1): Programs data in 64-bit (8 byte) chunks.
  * For erase (write=0): Erases 2 KB pages covering the address range.
  */
-static whal_Error whal_Stm32c0Flash_WriteOrErase(whal_Flash *flashDev, size_t addr, const uint8_t *data,
+static whal_Error whal_Stm32c0_Flash_WriteOrErase(whal_Flash *flashDev, size_t addr, const uint8_t *data,
                                             size_t dataSz, uint8_t write)
 {
-    whal_Stm32c0Flash_Cfg *cfg;
+    whal_Stm32c0_Flash_Cfg *cfg;
     const whal_Regmap *regmap;
     size_t bsy;
 
@@ -279,19 +279,19 @@ cleanup:
     return err;
 }
 
-whal_Error whal_Stm32c0Flash_Write(whal_Flash *flashDev, size_t addr, const void *data,
+whal_Error whal_Stm32c0_Flash_Write(whal_Flash *flashDev, size_t addr, const void *data,
                                 size_t dataSz)
 {
-    return whal_Stm32c0Flash_WriteOrErase(flashDev, addr, (const uint8_t *)data, dataSz, 1);
+    return whal_Stm32c0_Flash_WriteOrErase(flashDev, addr, (const uint8_t *)data, dataSz, 1);
 }
 
-whal_Error whal_Stm32c0Flash_Erase(whal_Flash *flashDev, size_t addr,
+whal_Error whal_Stm32c0_Flash_Erase(whal_Flash *flashDev, size_t addr,
                                 size_t dataSz)
 {
-    return whal_Stm32c0Flash_WriteOrErase(flashDev, addr, NULL, dataSz, 0);
+    return whal_Stm32c0_Flash_WriteOrErase(flashDev, addr, NULL, dataSz, 0);
 }
 
-whal_Error whal_Stm32c0Flash_Ext_SetLatency(whal_Flash *flashDev, enum whal_Stm32c0Flash_Latency latency)
+whal_Error whal_Stm32c0_Flash_Ext_SetLatency(whal_Flash *flashDev, enum whal_Stm32c0_Flash_Latency latency)
 {
     if (!flashDev) {
         return WHAL_EINVAL;
@@ -302,14 +302,14 @@ whal_Error whal_Stm32c0Flash_Ext_SetLatency(whal_Flash *flashDev, enum whal_Stm3
     return WHAL_SUCCESS;
 }
 
-#ifndef WHAL_CFG_FLASH_API_MAPPING_STM32C0
-const whal_FlashDriver whal_Stm32c0Flash_Driver = {
-    .Init = whal_Stm32c0Flash_Init,
-    .Deinit = whal_Stm32c0Flash_Deinit,
-    .Lock = whal_Stm32c0Flash_Lock,
-    .Unlock = whal_Stm32c0Flash_Unlock,
-    .Read = whal_Stm32c0Flash_Read,
-    .Write = whal_Stm32c0Flash_Write,
-    .Erase = whal_Stm32c0Flash_Erase,
+#ifndef WHAL_CFG_STM32C0_FLASH_DIRECT_API_MAPPING
+const whal_FlashDriver whal_Stm32c0_Flash_Driver = {
+    .Init = whal_Stm32c0_Flash_Init,
+    .Deinit = whal_Stm32c0_Flash_Deinit,
+    .Lock = whal_Stm32c0_Flash_Lock,
+    .Unlock = whal_Stm32c0_Flash_Unlock,
+    .Read = whal_Stm32c0_Flash_Read,
+    .Write = whal_Stm32c0_Flash_Write,
+    .Erase = whal_Stm32c0_Flash_Erase,
 };
-#endif /* !WHAL_CFG_FLASH_API_MAPPING_STM32C0 */
+#endif /* !WHAL_CFG_STM32C0_FLASH_DIRECT_API_MAPPING */

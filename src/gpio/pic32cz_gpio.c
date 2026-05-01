@@ -51,23 +51,23 @@
 #define PINCFGx_PULLEN_Pos(pin) (2 + (((pin) & 3) * 8))
 #define PINCFGx_PULLEN_Msk(pin) (1UL << (PINCFGx_PULLEN_Pos(pin)))
 
-#ifdef WHAL_CFG_GPIO_API_MAPPING_PIC32CZ
-#define whal_Pic32czGpio_Init   whal_Gpio_Init
-#define whal_Pic32czGpio_Deinit whal_Gpio_Deinit
-#define whal_Pic32czGpio_Get    whal_Gpio_Get
-#define whal_Pic32czGpio_Set    whal_Gpio_Set
-#endif /* WHAL_CFG_GPIO_API_MAPPING_PIC32CZ */
+#ifdef WHAL_CFG_PIC32CZ_GPIO_DIRECT_API_MAPPING
+#define whal_Pic32cz_Gpio_Init   whal_Gpio_Init
+#define whal_Pic32cz_Gpio_Deinit whal_Gpio_Deinit
+#define whal_Pic32cz_Gpio_Get    whal_Gpio_Get
+#define whal_Pic32cz_Gpio_Set    whal_Gpio_Set
+#endif /* WHAL_CFG_PIC32CZ_GPIO_DIRECT_API_MAPPING */
 
-whal_Error whal_Pic32czGpio_Init(whal_Gpio *gpioDev)
+whal_Error whal_Pic32cz_Gpio_Init(whal_Gpio *gpioDev)
 {
     if (!gpioDev || !gpioDev->cfg) {
         return WHAL_EINVAL;
     }
 
-    const whal_Pic32czGpio_Cfg *cfg = gpioDev->cfg;
+    const whal_Pic32cz_Gpio_Cfg *cfg = gpioDev->cfg;
 
     for (size_t i = 0; i < cfg->pinCfgCount; ++i) {
-        whal_Pic32czGpio_PinCfg *pinCfg = &cfg->pinCfg[i];
+        whal_Pic32cz_Gpio_PinCfg *pinCfg = &cfg->pinCfg[i];
         size_t pinMask = (1UL << (pinCfg->pin));
 
         if (pinCfg->pmuxEn) {
@@ -129,7 +129,7 @@ whal_Error whal_Pic32czGpio_Init(whal_Gpio *gpioDev)
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_Pic32czGpio_Deinit(whal_Gpio *gpioDev)
+whal_Error whal_Pic32cz_Gpio_Deinit(whal_Gpio *gpioDev)
 {
     if (!gpioDev) {
         return WHAL_EINVAL;
@@ -138,19 +138,19 @@ whal_Error whal_Pic32czGpio_Deinit(whal_Gpio *gpioDev)
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_Pic32czGpio_Get(whal_Gpio *gpioDev, size_t pin, size_t *value)
+whal_Error whal_Pic32cz_Gpio_Get(whal_Gpio *gpioDev, size_t pin, size_t *value)
 {
     if (!gpioDev || !gpioDev->cfg || !value) {
         return WHAL_EINVAL;
     }
 
-    const whal_Pic32czGpio_Cfg *cfg = gpioDev->cfg;
+    const whal_Pic32cz_Gpio_Cfg *cfg = gpioDev->cfg;
 
     if (pin >= cfg->pinCfgCount) {
         return WHAL_EINVAL;
     }
 
-    whal_Pic32czGpio_PinCfg *pinCfg = &cfg->pinCfg[pin];
+    whal_Pic32cz_Gpio_PinCfg *pinCfg = &cfg->pinCfg[pin];
     size_t pinMask = (1UL << (pinCfg->pin));
     size_t reg;
 
@@ -171,19 +171,19 @@ whal_Error whal_Pic32czGpio_Get(whal_Gpio *gpioDev, size_t pin, size_t *value)
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_Pic32czGpio_Set(whal_Gpio *gpioDev, size_t pin, size_t value)
+whal_Error whal_Pic32cz_Gpio_Set(whal_Gpio *gpioDev, size_t pin, size_t value)
 {
     if (!gpioDev || !gpioDev->cfg) {
         return WHAL_EINVAL;
     }
 
-    const whal_Pic32czGpio_Cfg *cfg = gpioDev->cfg;
+    const whal_Pic32cz_Gpio_Cfg *cfg = gpioDev->cfg;
 
     if (pin >= cfg->pinCfgCount) {
         return WHAL_EINVAL;
     }
 
-    whal_Pic32czGpio_PinCfg *pinCfg = &cfg->pinCfg[pin];
+    whal_Pic32cz_Gpio_PinCfg *pinCfg = &cfg->pinCfg[pin];
     size_t pinMask = (1UL << (pinCfg->pin));
 
     /* Update the output register to drive the new value */
@@ -194,11 +194,11 @@ whal_Error whal_Pic32czGpio_Set(whal_Gpio *gpioDev, size_t pin, size_t value)
     return WHAL_SUCCESS;
 }
 
-#ifndef WHAL_CFG_GPIO_API_MAPPING_PIC32CZ
-const whal_GpioDriver whal_Pic32czGpio_Driver = {
-    .Init = whal_Pic32czGpio_Init,
-    .Deinit = whal_Pic32czGpio_Deinit,
-    .Get = whal_Pic32czGpio_Get,
-    .Set = whal_Pic32czGpio_Set,
+#ifndef WHAL_CFG_PIC32CZ_GPIO_DIRECT_API_MAPPING
+const whal_GpioDriver whal_Pic32cz_Gpio_Driver = {
+    .Init = whal_Pic32cz_Gpio_Init,
+    .Deinit = whal_Pic32cz_Gpio_Deinit,
+    .Get = whal_Pic32cz_Gpio_Get,
+    .Set = whal_Pic32cz_Gpio_Set,
 };
-#endif /* !WHAL_CFG_GPIO_API_MAPPING_PIC32CZ */
+#endif /* !WHAL_CFG_PIC32CZ_GPIO_DIRECT_API_MAPPING */

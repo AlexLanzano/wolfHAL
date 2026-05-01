@@ -51,22 +51,6 @@ struct whal_Block {
  * @retval WHAL_EINVAL   Null pointer.
  * @retval WHAL_ENOTSUP Operation not implemented by this driver.
  */
-#ifdef WHAL_CFG_DIRECT_CALLBACKS
-#define whal_Block_Init(blockDev) ((blockDev)->driver->Init((blockDev)))
-#define whal_Block_Deinit(blockDev) ((blockDev)->driver->Deinit((blockDev)))
-#define whal_Block_Read(blockDev, block, data, blockCount) ((blockDev)->driver->Read((blockDev), (block), (data), (blockCount)))
-#define whal_Block_Write(blockDev, block, data, blockCount) ((blockDev)->driver->Write((blockDev), (block), (data), (blockCount)))
-#define whal_Block_Erase(blockDev, block, blockCount) ((blockDev)->driver->Erase((blockDev), (block), (blockCount)))
-#else
-/*
- * @brief Initialize a block device and its driver.
- *
- * @param blockDev Block device instance to initialize.
- *
- * @retval WHAL_SUCCESS Driver-specific init completed.
- * @retval WHAL_EINVAL   Null pointer.
- * @retval WHAL_ENOTSUP Operation not implemented by this driver.
- */
 whal_Error whal_Block_Init(whal_Block *blockDev);
 /*
  * @brief Deinitialize a block device.
@@ -119,6 +103,5 @@ whal_Error whal_Block_Write(whal_Block *blockDev, uint32_t block,
  */
 whal_Error whal_Block_Erase(whal_Block *blockDev, uint32_t block,
                             uint32_t blockCount);
-#endif
 
 #endif /* WHAL_BLOCK_H */

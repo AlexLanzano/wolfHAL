@@ -23,11 +23,11 @@
 /*
  * @brief Flash device configuration.
  */
-typedef struct whal_Stm32wbFlash_Cfg {
+typedef struct whal_Stm32wb_Flash_Cfg {
     size_t startAddr;     /* Flash base address (typically 0x08000000) */
     size_t size;          /* Flash size in bytes */
     whal_Timeout *timeout;
-} whal_Stm32wbFlash_Cfg;
+} whal_Stm32wb_Flash_Cfg;
 
 /*
  * @brief Flash access latency (wait states).
@@ -41,18 +41,18 @@ typedef struct whal_Stm32wbFlash_Cfg {
  *   - 2 WS: up to 54 MHz
  *   - 3 WS: up to 64 MHz
  */
-typedef enum whal_Stm32wbFlash_Latency {
+typedef enum whal_Stm32wb_Flash_Latency {
     WHAL_STM32WB_FLASH_LATENCY_0, /* 0 wait states */
     WHAL_STM32WB_FLASH_LATENCY_1, /* 1 wait state */
     WHAL_STM32WB_FLASH_LATENCY_2, /* 2 wait states */
     WHAL_STM32WB_FLASH_LATENCY_3, /* 3 wait states */
-} whal_Stm32wbFlash_Latency;
+} whal_Stm32wb_Flash_Latency;
 
-#ifndef WHAL_CFG_FLASH_API_MAPPING_STM32WB
+#ifndef WHAL_CFG_STM32WB_FLASH_DIRECT_API_MAPPING
 /*
  * @brief Driver instance for STM32 flash.
  */
-extern const whal_FlashDriver whal_Stm32wbFlash_Driver;
+extern const whal_FlashDriver whal_Stm32wb_Flash_Driver;
 
 /*
  * @brief Initialize the STM32 flash interface.
@@ -62,7 +62,7 @@ extern const whal_FlashDriver whal_Stm32wbFlash_Driver;
  * @retval WHAL_SUCCESS Initialization completed.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_Stm32wbFlash_Init(whal_Flash *flashDev);
+whal_Error whal_Stm32wb_Flash_Init(whal_Flash *flashDev);
 /*
  * @brief Deinitialize the STM32 flash interface.
  *
@@ -71,7 +71,7 @@ whal_Error whal_Stm32wbFlash_Init(whal_Flash *flashDev);
  * @retval WHAL_SUCCESS Deinit completed.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_Stm32wbFlash_Deinit(whal_Flash *flashDev);
+whal_Error whal_Stm32wb_Flash_Deinit(whal_Flash *flashDev);
 /*
  * @brief Lock a flash range.
  *
@@ -82,7 +82,7 @@ whal_Error whal_Stm32wbFlash_Deinit(whal_Flash *flashDev);
  * @retval WHAL_SUCCESS Lock applied.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_Stm32wbFlash_Lock(whal_Flash *flashDev, size_t addr, size_t len);
+whal_Error whal_Stm32wb_Flash_Lock(whal_Flash *flashDev, size_t addr, size_t len);
 /*
  * @brief Unlock a flash range.
  *
@@ -93,7 +93,7 @@ whal_Error whal_Stm32wbFlash_Lock(whal_Flash *flashDev, size_t addr, size_t len)
  * @retval WHAL_SUCCESS Unlock applied.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_Stm32wbFlash_Unlock(whal_Flash *flashDev, size_t addr, size_t len);
+whal_Error whal_Stm32wb_Flash_Unlock(whal_Flash *flashDev, size_t addr, size_t len);
 /*
  * @brief Read data from flash into a buffer.
  *
@@ -105,7 +105,7 @@ whal_Error whal_Stm32wbFlash_Unlock(whal_Flash *flashDev, size_t addr, size_t le
  * @retval WHAL_SUCCESS Read completed.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_Stm32wbFlash_Read(whal_Flash *flashDev, size_t addr, void *data,
+whal_Error whal_Stm32wb_Flash_Read(whal_Flash *flashDev, size_t addr, void *data,
                              size_t dataSz);
 /*
  * @brief Write a block of data to flash.
@@ -118,7 +118,7 @@ whal_Error whal_Stm32wbFlash_Read(whal_Flash *flashDev, size_t addr, void *data,
  * @retval WHAL_SUCCESS Program completed.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_Stm32wbFlash_Write(whal_Flash *flashDev, size_t addr, const void *data,
+whal_Error whal_Stm32wb_Flash_Write(whal_Flash *flashDev, size_t addr, const void *data,
                               size_t dataSz);
 /*
  * @brief Erase a flash range.
@@ -130,8 +130,8 @@ whal_Error whal_Stm32wbFlash_Write(whal_Flash *flashDev, size_t addr, const void
  * @retval WHAL_SUCCESS Erase completed.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_Stm32wbFlash_Erase(whal_Flash *flashDev, size_t addr, size_t dataSz);
-#endif /* !WHAL_CFG_FLASH_API_MAPPING_STM32WB */
+whal_Error whal_Stm32wb_Flash_Erase(whal_Flash *flashDev, size_t addr, size_t dataSz);
+#endif /* !WHAL_CFG_STM32WB_FLASH_DIRECT_API_MAPPING */
 /*
  * @brief Update flash latency wait states.
  *
@@ -141,6 +141,6 @@ whal_Error whal_Stm32wbFlash_Erase(whal_Flash *flashDev, size_t addr, size_t dat
  * @retval WHAL_SUCCESS Latency updated.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_Stm32wbFlash_Ext_SetLatency(whal_Flash *flashDev, enum whal_Stm32wbFlash_Latency latency);
+whal_Error whal_Stm32wb_Flash_Ext_SetLatency(whal_Flash *flashDev, enum whal_Stm32wb_Flash_Latency latency);
 
 #endif /* WHAL_STM32WB_FLASH_H */

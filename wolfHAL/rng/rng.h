@@ -43,21 +43,6 @@ struct whal_Rng {
  * @retval WHAL_EINVAL   Null pointer.
  * @retval WHAL_ENOTSUP Operation not implemented by this driver.
  */
-#ifdef WHAL_CFG_DIRECT_CALLBACKS
-#define whal_Rng_Init(rngDev) ((rngDev)->driver->Init((rngDev)))
-#define whal_Rng_Deinit(rngDev) ((rngDev)->driver->Deinit((rngDev)))
-#define whal_Rng_Generate(rngDev, rngData, rngDataSz) \
-    ((rngDev)->driver->Generate((rngDev), (rngData), (rngDataSz)))
-#else
-/*
- * @brief Initialize an RNG device and its driver.
- *
- * @param rngDev RNG instance to initialize.
- *
- * @retval WHAL_SUCCESS Driver-specific init completed.
- * @retval WHAL_EINVAL   Null pointer.
- * @retval WHAL_ENOTSUP Operation not implemented by this driver.
- */
 whal_Error whal_Rng_Init(whal_Rng *rngDev);
 /*
  * @brief Deinitialize an RNG device and release resources.
@@ -81,6 +66,5 @@ whal_Error whal_Rng_Deinit(whal_Rng *rngDev);
  * @retval WHAL_ENOTSUP Operation not implemented by this driver.
  */
 whal_Error whal_Rng_Generate(whal_Rng *rngDev, void *rngData, size_t rngDataSz);
-#endif
 
 #endif /* WHAL_RNG_H */

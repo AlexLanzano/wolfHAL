@@ -7,199 +7,128 @@
 
 /*
  * @file stm32h5_rcc.h
- * @brief STM32H5 RCC (Reset and Clock Control) driver configuration.
+ * @brief STM32H5 RCC (Reset and Clock Control) driver.
  *
- * The STM32H5 RCC peripheral controls:
- * - System clock source selection (HSI, CSI, HSE, PLL1)
- * - PLL1/PLL2/PLL3 configuration
- * - Peripheral clock gating (AHB1, AHB2, APB1, APB2, APB3 buses)
- * - Bus clock prescalers
+ * Boards bring up the clock tree imperatively from Board_Init.
  *
- * Two driver variants are provided:
- * - whal_Stm32h5RccPll_Driver: Uses PLL1 as system clock source
- * - whal_Stm32h5RccHsi_Driver: Uses HSI oscillator as system clock source
+ * Clock sources:
+ *   HSI   = 64 MHz internal RC (with HSIDIV)
+ *   CSI   = 4 MHz low-power internal
+ *   HSE   = external crystal/oscillator
+ *   HSI48 = 48 MHz (for RNG/USB)
+ *   PLL1  = source/m * (n+1) / (p+1) (SYSCLK)
  */
 
 /*
- * @brief System clock source selection.
- *
- * Determines which oscillator/PLL drives the system clock (SYSCLK).
+ * @brief System clock source selection (RCC_CFGR1.SW).
  */
 typedef enum {
-    WHAL_STM32H5_RCC_SYSCLK_SRC_HSI,  /* 64 MHz High-Speed Internal */
-    WHAL_STM32H5_RCC_SYSCLK_SRC_CSI,  /* 4 MHz Low-Power Internal */
-    WHAL_STM32H5_RCC_SYSCLK_SRC_HSE,  /* High-Speed External crystal */
-    WHAL_STM32H5_RCC_SYSCLK_SRC_PLL1, /* PLL1 output */
-} whal_Stm32h5Rcc_SysClockSrc;
+    WHAL_STM32H5_RCC_SYSCLK_SRC_HSI,
+    WHAL_STM32H5_RCC_SYSCLK_SRC_CSI,
+    WHAL_STM32H5_RCC_SYSCLK_SRC_HSE,
+    WHAL_STM32H5_RCC_SYSCLK_SRC_PLL1,
+} whal_Stm32h5_Rcc_SysClockSrc;
 
 /*
  * @brief PLL input clock source selection.
- *
- * Determines which oscillator feeds PLL1/PLL2/PLL3.
  */
 typedef enum {
-    WHAL_STM32H5_RCC_PLLCLK_SRC_NONE, /* No clock (PLL disabled) */
-    WHAL_STM32H5_RCC_PLLCLK_SRC_HSI,  /* HSI as PLL input */
-    WHAL_STM32H5_RCC_PLLCLK_SRC_CSI,  /* CSI as PLL input */
-    WHAL_STM32H5_RCC_PLLCLK_SRC_HSE,  /* HSE as PLL input */
-} whal_Stm32h5Rcc_PllClockSrc;
+    WHAL_STM32H5_RCC_PLLCLK_SRC_NONE,
+    WHAL_STM32H5_RCC_PLLCLK_SRC_HSI,
+    WHAL_STM32H5_RCC_PLLCLK_SRC_CSI,
+    WHAL_STM32H5_RCC_PLLCLK_SRC_HSE,
+} whal_Stm32h5_Rcc_PllClockSrc;
 
 /*
  * @brief PLL1 configuration parameters.
- *
- * The PLL1 output frequency is calculated as:
- *   f_vco = (f_input / m) * (n + 1)
- *   f_pllp = f_vco / (p + 1)  (main PLL output, used for SYSCLK)
- *   f_pllq = f_vco / (q + 1)  (used for USB, RNG, etc.)
- *   f_pllr = f_vco / (r + 1)  (general purpose)
- *
- * Constraints:
- *   - PLL input (f_input / m) must be 1-16 MHz
- *   - VCO frequency must be 192-836 MHz (wide range) or 150-420 MHz (medium)
- *   - m: 1-63 (divides by m, 0=disabled)
- *   - n: 3-511 (multiplies by n+1, so 3=4x, 4=5x, ..., 511=512x)
- *   - p, q, r: 0-127 (divides by value+1, so 1=/2, 2=/3, ...)
+ *   m: 1-63 (input / m must be 1-16 MHz)
+ *   n: 3-511 (VCO = input * (n+1))
+ *   p, q, r: 0-127 (output / (value+1))
  */
-typedef struct whal_Stm32h5Rcc_PllClkCfg {
-    whal_Stm32h5Rcc_PllClockSrc clkSrc; /* PLL input source */
-    uint16_t n; /* PLLN multiplier (3-511, VCO = input * (n+1)) */
-    uint8_t m;  /* PLLM divider (1-63, input / m) */
-    uint8_t p;  /* PLLP divider (0-127, output / (p+1)) */
-    uint8_t q;  /* PLLQ divider (0-127, output / (q+1)) */
-    uint8_t r;  /* PLLR divider (0-127, output / (r+1)) */
-} whal_Stm32h5Rcc_PllClkCfg;
+typedef struct {
+    whal_Stm32h5_Rcc_PllClockSrc clkSrc;
+    uint16_t n;
+    uint8_t m;
+    uint8_t p;
+    uint8_t q;
+    uint8_t r;
+} whal_Stm32h5_Rcc_PllCfg;
 
 /*
- * @brief HSI clock configuration parameters.
- *
- * The HSI is a 64 MHz internal RC oscillator with a configurable divider.
- * Default after reset is 64 MHz (div1).
+ * @brief Peripheral clock descriptor.
  */
-typedef struct whal_Stm32h5Rcc_HsiClkCfg {
-    uint8_t div; /* HSI divider (0=div1, 1=div2, 2=div4, 3=div8) */
-} whal_Stm32h5Rcc_HsiClkCfg;
+typedef struct {
+    size_t regOffset;
+    size_t enableMask;
+    size_t enablePos;
+} whal_Stm32h5_Rcc_PeriphClk;
 
 /*
- * @brief Peripheral clock enable descriptor.
- *
- * Describes the register offset and bit mask needed to enable/disable
- * a peripheral's bus clock. Used with whal_Stm32h5Rcc_Enable/Disable.
- *
- * Example for GPIOA:
- *   { .regOffset = 0x088, .enableMask = (1 << 0), .enablePos = 0 }
+ * @brief Cfg for EnableOsc/DisableOsc — on bit + ready bit.
  */
-typedef struct whal_Stm32h5Rcc_Clk {
-    size_t regOffset;   /* Offset from RCC base to enable register */
-    size_t enableMask;  /* Bit mask for the peripheral enable bit */
-    size_t enablePos;   /* Bit position for the peripheral enable bit */
-} whal_Stm32h5Rcc_Clk;
+typedef struct {
+    size_t onReg;
+    size_t onMsk;
+    size_t rdyReg;
+    size_t rdyMsk;
+    size_t rdyPos;
+} whal_Stm32h5_Rcc_OscCfg;
+
+#define WHAL_STM32H5_RCC_HSI_CFG                             \
+    .onReg  = 0x000, .onMsk  = (1UL <<  0),                  \
+    .rdyReg = 0x000, .rdyMsk = (1UL <<  1), .rdyPos =  1
+#define WHAL_STM32H5_RCC_CSI_CFG                             \
+    .onReg  = 0x000, .onMsk  = (1UL <<  8),                  \
+    .rdyReg = 0x000, .rdyMsk = (1UL <<  9), .rdyPos =  9
+#define WHAL_STM32H5_RCC_HSI48_CFG                           \
+    .onReg  = 0x000, .onMsk  = (1UL << 12),                  \
+    .rdyReg = 0x000, .rdyMsk = (1UL << 13), .rdyPos = 13
+#define WHAL_STM32H5_RCC_HSE_CFG                             \
+    .onReg  = 0x000, .onMsk  = (1UL << 16),                  \
+    .rdyReg = 0x000, .rdyMsk = (1UL << 17), .rdyPos = 17
 
 /*
- * @brief RCC driver configuration.
- *
- * Contains all parameters needed to configure the system clock.
+ * @brief Enable an oscillator (HSI/CSI/HSI48/HSE). Blocks until ready.
  */
-typedef struct whal_Stm32h5Rcc_Cfg {
-    whal_Stm32h5Rcc_SysClockSrc sysClkSrc; /* System clock source */
-    void *sysClkCfg; /* Pointer to PllClkCfg or HsiClkCfg based on driver */
-} whal_Stm32h5Rcc_Cfg;
-
-#if !defined(WHAL_CFG_CLOCK_API_MAPPING_STM32H5_PLL) && !defined(WHAL_CFG_CLOCK_API_MAPPING_STM32H5_HSI)
+whal_Error whal_Stm32h5_Rcc_EnableOsc(whal_Clock *clkDev,
+                                     const whal_Stm32h5_Rcc_OscCfg *cfg);
 /*
- * @brief Driver instance for PLL1 clock source.
+ * @brief Disable an oscillator.
  */
-extern const whal_ClockDriver whal_Stm32h5RccPll_Driver;
+whal_Error whal_Stm32h5_Rcc_DisableOsc(whal_Clock *clkDev,
+                                      const whal_Stm32h5_Rcc_OscCfg *cfg);
 
 /*
- * @brief Driver instance for HSI clock source.
+ * @brief Configure and enable PLL1. Caller must have the PLL source
+ *        oscillator already enabled. Blocks until PLL1 is ready.
  */
-extern const whal_ClockDriver whal_Stm32h5RccHsi_Driver;
+whal_Error whal_Stm32h5_Rcc_EnablePll1(whal_Clock *clkDev,
+                                      const whal_Stm32h5_Rcc_PllCfg *cfg);
+/*
+ * @brief Disable PLL1.
+ */
+whal_Error whal_Stm32h5_Rcc_DisablePll1(whal_Clock *clkDev);
 
 /*
- * @brief Initialize the RCC peripheral with PLL1 as system clock.
- *
- * Configures PLL1 with the parameters in the device configuration,
- * enables PLL1, and switches SYSCLK to PLL1 output.
- *
- * @param clkDev Clock device instance.
- *
- * @retval WHAL_SUCCESS Initialization completed.
- * @retval WHAL_EINVAL  Invalid arguments.
+ * @brief Switch SYSCLK to the given source. Blocks until SWS confirms.
  */
-whal_Error whal_Stm32h5RccPll_Init(whal_Clock *clkDev);
+whal_Error whal_Stm32h5_Rcc_SetSysClock(whal_Clock *clkDev,
+                                       whal_Stm32h5_Rcc_SysClockSrc src);
 
 /*
- * @brief Deinitialize the RCC peripheral from PLL1 mode.
- *
- * Switches SYSCLK back to HSI and disables PLL1.
- *
- * @param clkDev Clock device instance.
- *
- * @retval WHAL_SUCCESS Deinit completed.
- * @retval WHAL_EINVAL  Invalid arguments.
+ * @brief Set the HSI divider (0=div1, 1=div2, 2=div4, 3=div8).
  */
-whal_Error whal_Stm32h5RccPll_Deinit(whal_Clock *clkDev);
+whal_Error whal_Stm32h5_Rcc_SetHsiDiv(whal_Clock *clkDev, uint8_t div);
 
 /*
- * @brief Initialize the RCC peripheral with HSI as system clock.
- *
- * Configures the HSI divider and selects HSI as SYSCLK source.
- *
- * @param clkDev Clock device instance.
- *
- * @retval WHAL_SUCCESS Initialization completed.
- * @retval WHAL_EINVAL  Invalid arguments.
+ * @brief Enable a peripheral clock.
  */
-whal_Error whal_Stm32h5RccHsi_Init(whal_Clock *clkDev);
-
+whal_Error whal_Stm32h5_Rcc_EnablePeriphClk(whal_Clock *clkDev,
+                                           const whal_Stm32h5_Rcc_PeriphClk *clk);
 /*
- * @brief Deinitialize the RCC peripheral from HSI mode.
- *
- * Resets HSI divider to default (div1, 64 MHz).
- *
- * @param clkDev Clock device instance.
- *
- * @retval WHAL_SUCCESS Deinit completed.
- * @retval WHAL_EINVAL  Invalid arguments.
+ * @brief Disable a peripheral clock.
  */
-whal_Error whal_Stm32h5RccHsi_Deinit(whal_Clock *clkDev);
-
-/*
- * @brief Enable a peripheral clock gate.
- *
- * @param clkDev Clock device instance.
- * @param clk    Pointer to a whal_Stm32h5Rcc_Clk descriptor.
- *
- * @retval WHAL_SUCCESS Clock enabled.
- * @retval WHAL_EINVAL  Invalid arguments.
- */
-whal_Error whal_Stm32h5Rcc_Enable(whal_Clock *clkDev, const void *clk);
-
-/*
- * @brief Disable a peripheral clock gate.
- *
- * @param clkDev Clock device instance.
- * @param clk    Pointer to a whal_Stm32h5Rcc_Clk descriptor.
- *
- * @retval WHAL_SUCCESS Clock disabled.
- * @retval WHAL_EINVAL  Invalid arguments.
- */
-whal_Error whal_Stm32h5Rcc_Disable(whal_Clock *clkDev, const void *clk);
-#endif /* !WHAL_CFG_CLOCK_API_MAPPING_STM32H5_PLL && !WHAL_CFG_CLOCK_API_MAPPING_STM32H5_HSI */
-
-/*
- * @brief Enable or disable the HSI48 oscillator.
- *
- * The HSI48 provides a 48 MHz clock used as kernel clock for the RNG
- * and USB peripherals. When enabling, this function waits for the
- * oscillator to stabilize.
- *
- * @param clkDev Clock device instance (RCC regmap).
- * @param enable 1 to enable, 0 to disable.
- *
- * @retval WHAL_SUCCESS HSI48 state changed.
- * @retval WHAL_EINVAL  Invalid arguments.
- */
-whal_Error whal_Stm32h5Rcc_Ext_EnableHsi48(whal_Clock *clkDev, uint8_t enable);
+whal_Error whal_Stm32h5_Rcc_DisablePeriphClk(whal_Clock *clkDev,
+                                            const whal_Stm32h5_Rcc_PeriphClk *clk);
 
 #endif /* WHAL_STM32H5_RCC_H */

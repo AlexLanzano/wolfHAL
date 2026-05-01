@@ -6,50 +6,18 @@
 #include <wolfHAL/platform/microchip/pic32cz.h>
 #include "peripheral.h"
 
-/* Supply */
-static whal_Supply g_whalSupply = {
-    .regmap = { WHAL_PIC32CZ_SUPPLY_REGMAP },
-    /* .driver: direct API mapping */
+/* Power */
+static whal_Power g_whalPower = {
+    .regmap = { WHAL_PIC32CZ_SUPC_REGMAP },
 };
 
 /* Clock */
 whal_Clock g_whalClock = {
-    .regmap = { WHAL_PIC32CZ_CLOCK_PLL_REGMAP },
-    /* .driver: direct API mapping */
-
-    .cfg = &(whal_Pic32czClock_Cfg) {
-        /* 300MHz clock */
-        .oscCtrlCfg = &(whal_Pic32czClockPll_OscCtrlCfg) {
-            .pllInst = WHAL_PIC32CZ_PLL0,
-            .refSel = WHAL_PIC32CZ_REFSEL_DFLL48M,
-            .bwSel = WHAL_PIC32CZ_BWSEL_10MHz_TO_20MHz,
-
-            .fbDiv = 225,
-            .refDiv = 12,
-
-            .outCfgCount = 1,
-            .outCfg = &(whal_Pic32czClockPll_OutCfg) {
-                .postDivMask = WHAL_PIC32CZ_POSTDIV0_Msk,
-                .postDivPos = WHAL_PIC32CZ_POSTDIV0_Pos,
-                .outEnMask = WHAL_PIC32CZ_OUTEN0_Msk,
-                .outEnPos = WHAL_PIC32CZ_OUTEN0_Pos,
-                .postDiv = 3,
-            },
-        },
-        .mclkCfg = &(whal_Pic32czClock_MclkCfg) {
-            .div = 2,
-        },
-        .gclkCfgCount = 1,
-        .gclkCfg = &(whal_Pic32czClock_GclkCfg) {
-            .gen = 0,
-            .genSrc = WHAL_PIC32CZ_GENSRC_PLL0_CLOCKOUT0,
-            .genDiv = 1,
-        },
-    },
+    .regmap = { WHAL_PIC32CZ_CLOCK_REGMAP },
 };
 
 /* Peripheral clocks */
-static const whal_Pic32czClock_Clk g_peripheralClocks[] = {
+static const whal_Pic32cz_Clock_PeriphClk g_periphClks[] = {
     { /* SERCOM 4 (UART) */
         .gclkPeriphChannel = 25,
         .gclkPeriphSrc = 0, /* GEN 0 */
@@ -58,16 +26,16 @@ static const whal_Pic32czClock_Clk g_peripheralClocks[] = {
         .mclkEnablePos = 3,
     },
 };
-#define CLOCK_COUNT (sizeof(g_peripheralClocks) / sizeof(g_peripheralClocks[0]))
+#define PERIPH_CLK_COUNT (sizeof(g_periphClks) / sizeof(g_periphClks[0]))
 
 /* GPIO */
 whal_Gpio g_whalGpio = {
     .regmap = { WHAL_PIC32CZ_GPIO_REGMAP },
     /* .driver: direct API mapping */
 
-    .cfg = &(whal_Pic32czGpio_Cfg) {
+    .cfg = &(whal_Pic32cz_Gpio_Cfg) {
         .pinCfgCount = 3,
-        .pinCfg = (whal_Pic32czGpio_PinCfg[]) {
+        .pinCfg = (whal_Pic32cz_Gpio_PinCfg[]) {
             { /* LED */
                 .port = 1,
                 .pin = 21,
@@ -95,7 +63,7 @@ whal_Uart g_whalUart = {
     .regmap = { WHAL_PIC32CZ_SERCOM4_UART_REGMAP },
     /* .driver: direct API mapping */
 
-    .cfg = &(whal_Pic32czUart_Cfg) {
+    .cfg = &(whal_Pic32cz_Uart_Cfg) {
         .baud = WHAL_PIC32CZ_UART_BAUD(115200, 300000000),
         .txPad = WHAL_PIC32CZ_UART_TXPO_PAD0,
         .rxPad = WHAL_PIC32CZ_UART_RXPO_PAD1,
@@ -157,26 +125,46 @@ whal_Error Board_Init(void)
 {
     whal_Error err;
 
-    err = whal_Supply_Init(&g_whalSupply);
-    if (err) {
-        return err;
-    }
-
     /* Enable PLL power supply before clock init */
-    err = whal_Supply_Enable(&g_whalSupply,
-                             &(whal_Pic32czSupc_Supply){WHAL_PIC32CZ_SUPPLY_PLL});
+    err = whal_Pic32cz_Supc_EnableSupply(&g_whalPower,
+            &(whal_Pic32cz_Supc_Supply){WHAL_PIC32CZ_SUPC_PLL});
     if (err) {
         return err;
     }
 
-    err = whal_Clock_Init(&g_whalClock);
-    if (err) {
+    /* PLL0: DFLL48 / 12 * 225 / 3 = 300 MHz, then GCLK0 from PLL0 OUT0,
+     * then MCLK CPU divider /2 = 150 MHz CPU. */
+    err = whal_Pic32cz_Clock_EnablePll(&g_whalClock, &(whal_Pic32cz_Clock_PllCfg){
+        .pllInst = WHAL_PIC32CZ_PLL0,
+        .refSel = WHAL_PIC32CZ_REFSEL_DFLL48M,
+        .bwSel = WHAL_PIC32CZ_BWSEL_10MHz_TO_20MHz,
+        .fbDiv = 225,
+        .refDiv = 12,
+        .outCfgCount = 1,
+        .outCfg = &(whal_Pic32cz_Clock_PllOutCfg){
+            .postDivMask = WHAL_PIC32CZ_POSTDIV0_Msk,
+            .postDivPos  = WHAL_PIC32CZ_POSTDIV0_Pos,
+            .outEnMask   = WHAL_PIC32CZ_OUTEN0_Msk,
+            .outEnPos    = WHAL_PIC32CZ_OUTEN0_Pos,
+            .postDiv = 3,
+        },
+    });
+    if (err)
         return err;
-    }
+    err = whal_Pic32cz_Clock_SetMclkDiv(&g_whalClock, 2);
+    if (err)
+        return err;
+    err = whal_Pic32cz_Clock_EnableGclkGen(&g_whalClock, &(whal_Pic32cz_Clock_GenCfg){
+        .gen = 0,
+        .genSrc = WHAL_PIC32CZ_GENSRC_PLL0_CLOCKOUT0,
+        .genDiv = 1,
+    });
+    if (err)
+        return err;
 
     /* Enable peripheral clocks */
-    for (size_t i = 0; i < CLOCK_COUNT; i++) {
-        err = whal_Clock_Enable(&g_whalClock, &g_peripheralClocks[i]);
+    for (size_t i = 0; i < PERIPH_CLK_COUNT; i++) {
+        err = whal_Pic32cz_Clock_EnablePeriphClk(&g_whalClock, &g_periphClks[i]);
         if (err)
             return err;
     }
@@ -249,21 +237,13 @@ whal_Error Board_Deinit(void)
     }
 
     /* Disable peripheral clocks */
-    for (size_t i = 0; i < CLOCK_COUNT; i++) {
-        err = whal_Clock_Disable(&g_whalClock, &g_peripheralClocks[i]);
+    for (size_t i = 0; i < PERIPH_CLK_COUNT; i++) {
+        err = whal_Pic32cz_Clock_DisablePeriphClk(&g_whalClock, &g_periphClks[i]);
         if (err)
             return err;
     }
 
-    err = whal_Clock_Deinit(&g_whalClock);
-    if (err) {
-        return err;
-    }
-
-    err = whal_Supply_Deinit(&g_whalSupply);
-    if (err) {
-        return err;
-    }
+    /* SUPC outputs are left as-is; no Deinit operation. */
 
     return WHAL_SUCCESS;
 }

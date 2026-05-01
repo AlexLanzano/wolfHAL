@@ -104,16 +104,16 @@ static whal_Error Process_Hash(whal_Crypto *cryptoDev, const void *in,
 }
 
 
-#if defined(WHAL_CFG_CRYPTO_API_MAPPING_STM32WBA_HASH) || \
-    defined(WHAL_CFG_CRYPTO_API_MAPPING_STM32N6_HASH)
-#define whal_Stm32wbaHash_Init    whal_Crypto_Init
-#define whal_Stm32wbaHash_Deinit  whal_Crypto_Deinit
-#define whal_Stm32wbaHash_StartOp whal_Crypto_StartOp
-#define whal_Stm32wbaHash_Process whal_Crypto_Process
-#define whal_Stm32wbaHash_EndOp   whal_Crypto_EndOp
+#if defined(WHAL_CFG_STM32WBA_HASH_DIRECT_API_MAPPING) || \
+    defined(WHAL_CFG_STM32N6_HASH_DIRECT_API_MAPPING)
+#define whal_Stm32wba_Hash_Init    whal_Crypto_Init
+#define whal_Stm32wba_Hash_Deinit  whal_Crypto_Deinit
+#define whal_Stm32wba_Hash_StartOp whal_Crypto_StartOp
+#define whal_Stm32wba_Hash_Process whal_Crypto_Process
+#define whal_Stm32wba_Hash_EndOp   whal_Crypto_EndOp
 #endif
 
-whal_Error whal_Stm32wbaHash_Init(whal_Crypto *cryptoDev)
+whal_Error whal_Stm32wba_Hash_Init(whal_Crypto *cryptoDev)
 {
     if (!cryptoDev || !cryptoDev->cfg)
         return WHAL_EINVAL;
@@ -121,7 +121,7 @@ whal_Error whal_Stm32wbaHash_Init(whal_Crypto *cryptoDev)
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_Stm32wbaHash_Deinit(whal_Crypto *cryptoDev)
+whal_Error whal_Stm32wba_Hash_Deinit(whal_Crypto *cryptoDev)
 {
     if (!cryptoDev || !cryptoDev->cfg)
         return WHAL_EINVAL;
@@ -151,8 +151,8 @@ static whal_Error EndOp_Hash(whal_Crypto *cryptoDev, size_t expectedDigestSz,
                              void *opArgs)
 {
     whal_Crypto_HashArgs *args = (whal_Crypto_HashArgs *)opArgs;
-    const whal_Stm32wbaHash_Cfg *cfg =
-        (const whal_Stm32wbaHash_Cfg *)cryptoDev->cfg;
+    const whal_Stm32wba_Hash_Cfg *cfg =
+        (const whal_Stm32wba_Hash_Cfg *)cryptoDev->cfg;
     size_t base = cryptoDev->regmap.base;
     whal_Error err;
 
@@ -180,8 +180,8 @@ static whal_Error StartOp_Hmac(whal_Crypto *cryptoDev, size_t algo,
                                void *opArgs)
 {
     whal_Crypto_HmacArgs *args = (whal_Crypto_HmacArgs *)opArgs;
-    const whal_Stm32wbaHash_Cfg *cfg =
-        (const whal_Stm32wbaHash_Cfg *)cryptoDev->cfg;
+    const whal_Stm32wba_Hash_Cfg *cfg =
+        (const whal_Stm32wba_Hash_Cfg *)cryptoDev->cfg;
     size_t base = cryptoDev->regmap.base;
     size_t lkey;
     whal_Error err;
@@ -218,8 +218,8 @@ static whal_Error EndOp_Hmac(whal_Crypto *cryptoDev, size_t expectedDigestSz,
                              void *opArgs)
 {
     whal_Crypto_HmacArgs *args = (whal_Crypto_HmacArgs *)opArgs;
-    const whal_Stm32wbaHash_Cfg *cfg =
-        (const whal_Stm32wbaHash_Cfg *)cryptoDev->cfg;
+    const whal_Stm32wba_Hash_Cfg *cfg =
+        (const whal_Stm32wba_Hash_Cfg *)cryptoDev->cfg;
     size_t base = cryptoDev->regmap.base;
     whal_Error err;
 
@@ -251,7 +251,7 @@ static whal_Error EndOp_Hmac(whal_Crypto *cryptoDev, size_t expectedDigestSz,
 
 /* --- Dispatch --- */
 
-whal_Error whal_Stm32wbaHash_StartOp(whal_Crypto *cryptoDev, size_t opId,
+whal_Error whal_Stm32wba_Hash_StartOp(whal_Crypto *cryptoDev, size_t opId,
                                      void *opArgs)
 {
     if (!cryptoDev)
@@ -287,7 +287,7 @@ whal_Error whal_Stm32wbaHash_StartOp(whal_Crypto *cryptoDev, size_t opId,
     }
 }
 
-whal_Error whal_Stm32wbaHash_Process(whal_Crypto *cryptoDev, size_t opId,
+whal_Error whal_Stm32wba_Hash_Process(whal_Crypto *cryptoDev, size_t opId,
                                      void *opArgs)
 {
     if (!cryptoDev || !opArgs)
@@ -331,7 +331,7 @@ whal_Error whal_Stm32wbaHash_Process(whal_Crypto *cryptoDev, size_t opId,
     }
 }
 
-whal_Error whal_Stm32wbaHash_EndOp(whal_Crypto *cryptoDev, size_t opId,
+whal_Error whal_Stm32wba_Hash_EndOp(whal_Crypto *cryptoDev, size_t opId,
                                    void *opArgs)
 {
     if (!cryptoDev || !opArgs)
@@ -367,13 +367,13 @@ whal_Error whal_Stm32wbaHash_EndOp(whal_Crypto *cryptoDev, size_t opId,
     }
 }
 
-#if !defined(WHAL_CFG_CRYPTO_API_MAPPING_STM32WBA_HASH) && \
-    !defined(WHAL_CFG_CRYPTO_API_MAPPING_STM32N6_HASH)
-const whal_CryptoDriver whal_Stm32wbaHash_Driver = {
-    .Init = whal_Stm32wbaHash_Init,
-    .Deinit = whal_Stm32wbaHash_Deinit,
-    .StartOp = whal_Stm32wbaHash_StartOp,
-    .Process = whal_Stm32wbaHash_Process,
-    .EndOp = whal_Stm32wbaHash_EndOp,
+#if !defined(WHAL_CFG_STM32WBA_HASH_DIRECT_API_MAPPING) && \
+    !defined(WHAL_CFG_STM32N6_HASH_DIRECT_API_MAPPING)
+const whal_CryptoDriver whal_Stm32wba_Hash_Driver = {
+    .Init = whal_Stm32wba_Hash_Init,
+    .Deinit = whal_Stm32wba_Hash_Deinit,
+    .StartOp = whal_Stm32wba_Hash_StartOp,
+    .Process = whal_Stm32wba_Hash_Process,
+    .EndOp = whal_Stm32wba_Hash_EndOp,
 };
-#endif /* !WHAL_CFG_CRYPTO_API_MAPPING_STM32WBA_HASH */
+#endif /* !WHAL_CFG_STM32WBA_HASH_DIRECT_API_MAPPING */

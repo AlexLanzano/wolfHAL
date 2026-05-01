@@ -34,85 +34,79 @@
 
 /* --- Regmap and driver macros --- */
 
-#define WHAL_STM32WBA55_RCC_PLL_REGMAP  \
+#define WHAL_STM32WBA55_RCC_REGMAP      \
     .base = 0x46020C00,                 \
     .size = 0x400
-#define WHAL_STM32WBA55_RCC_PLL_DRIVER &whal_Stm32wbaRccPll_Driver
-
-#define WHAL_STM32WBA55_RCC_HSE_REGMAP  \
-    .base = 0x46020C00,                 \
-    .size = 0x400
-#define WHAL_STM32WBA55_RCC_HSE_DRIVER &whal_Stm32wbaRccHse_Driver
 
 #define WHAL_STM32WBA55_GPIO_REGMAP     \
     .base = 0x42020000,                 \
     .size = 0x2000
-#define WHAL_STM32WBA55_GPIO_DRIVER &whal_Stm32wbaGpio_Driver
+#define WHAL_STM32WBA55_GPIO_DRIVER &whal_Stm32wba_Gpio_Driver
 
 #define WHAL_STM32WBA55_USART1_REGMAP   \
     .base = 0x40013800,                 \
     .size = 0x400
-#define WHAL_STM32WBA55_USART1_DRIVER &whal_Stm32wbaUart_Driver
+#define WHAL_STM32WBA55_USART1_DRIVER &whal_Stm32wba_Uart_Driver
 
 #define WHAL_STM32WBA55_USART2_REGMAP   \
     .base = 0x40004400,                 \
     .size = 0x400
-#define WHAL_STM32WBA55_USART2_DRIVER &whal_Stm32wbaUart_Driver
+#define WHAL_STM32WBA55_USART2_DRIVER &whal_Stm32wba_Uart_Driver
 
 #define WHAL_STM32WBA55_LPUART1_REGMAP  \
     .base = 0x46002400,                 \
     .size = 0x400
-#define WHAL_STM32WBA55_LPUART1_DRIVER &whal_Stm32wbaUart_Driver
+#define WHAL_STM32WBA55_LPUART1_DRIVER &whal_Stm32wba_Uart_Driver
 
 #define WHAL_STM32WBA55_SPI1_REGMAP     \
     .base = 0x40013000,                 \
     .size = 0x400
-#define WHAL_STM32WBA55_SPI1_DRIVER &whal_Stm32wbaSpi_Driver
+#define WHAL_STM32WBA55_SPI1_DRIVER &whal_Stm32wba_Spi_Driver
 
 #define WHAL_STM32WBA55_I2C1_REGMAP     \
     .base = 0x40005400,                 \
     .size = 0x400
-#define WHAL_STM32WBA55_I2C1_DRIVER &whal_Stm32wbaI2c_Driver
+#define WHAL_STM32WBA55_I2C1_DRIVER &whal_Stm32wba_I2c_Driver
 
 #define WHAL_STM32WBA55_I2C3_REGMAP     \
     .base = 0x46002800,                 \
     .size = 0x400
-#define WHAL_STM32WBA55_I2C3_DRIVER &whal_Stm32wbaI2c_Driver
+#define WHAL_STM32WBA55_I2C3_DRIVER &whal_Stm32wba_I2c_Driver
 
 #define WHAL_STM32WBA55_FLASH_REGMAP    \
     .base = 0x40022000,                 \
     .size = 0x400
-#define WHAL_STM32WBA55_FLASH_DRIVER &whal_Stm32wbaFlash_Driver
+#define WHAL_STM32WBA55_FLASH_DRIVER &whal_Stm32wba_Flash_Driver
 
 #define WHAL_STM32WBA55_RNG_REGMAP      \
     .base = 0x420C0800,                 \
     .size = 0x400
-#define WHAL_STM32WBA55_RNG_DRIVER &whal_Stm32wbaRng_Driver
+#define WHAL_STM32WBA55_RNG_DRIVER &whal_Stm32wba_Rng_Driver
 
 #define WHAL_STM32WBA55_GPDMA1_REGMAP   \
     .base = 0x40020000,                 \
     .size = 0x1000
-#define WHAL_STM32WBA55_GPDMA1_DRIVER &whal_Stm32wbaGpdma_Driver
+#define WHAL_STM32WBA55_GPDMA1_DRIVER &whal_Stm32wba_Gpdma_Driver
 
 #define WHAL_STM32WBA55_AES_REGMAP      \
     .base = 0x420C0000,                 \
     .size = 0x400
-#define WHAL_STM32WBA55_AES_DRIVER &whal_Stm32wbaAes_Driver
+#define WHAL_STM32WBA55_AES_DRIVER &whal_Stm32wba_Aes_Driver
 
 #define WHAL_STM32WBA55_HASH_REGMAP     \
     .base = 0x420C0400,                 \
     .size = 0x400
-#define WHAL_STM32WBA55_HASH_DRIVER &whal_Stm32wbaHash_Driver
+#define WHAL_STM32WBA55_HASH_DRIVER &whal_Stm32wba_Hash_Driver
 
 #define WHAL_STM32WBA55_IWDG_REGMAP     \
     .base = 0x40003000,                 \
     .size = 0x400
-#define WHAL_STM32WBA55_IWDG_DRIVER &whal_Stm32wbaIwdg_Driver
+#define WHAL_STM32WBA55_IWDG_DRIVER &whal_Stm32wba_Iwdg_Driver
 
 #define WHAL_STM32WBA55_WWDG_REGMAP     \
     .base = 0x40002C00,                 \
     .size = 0x400
-#define WHAL_STM32WBA55_WWDG_DRIVER &whal_Stm32wbaWwdg_Driver
+#define WHAL_STM32WBA55_WWDG_DRIVER &whal_Stm32wba_Wwdg_Driver
 
 /* --- Clock gate macros --- */
 /* RCC base: 0x46020C00, offsets from base */

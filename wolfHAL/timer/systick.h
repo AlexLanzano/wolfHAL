@@ -34,7 +34,7 @@ typedef struct {
     whal_SysTick_TickInt tickInt;
 } whal_SysTick_Cfg;
 
-#ifndef WHAL_CFG_TIMER_API_MAPPING_SYSTICK
+#ifndef WHAL_CFG_SYSTICK_TIMER_DIRECT_API_MAPPING
 /*
  * @brief Driver instance for the Cortex-M SysTick timer.
  */
@@ -85,6 +85,6 @@ whal_Error whal_SysTick_Stop(whal_Timer *timerDev);
  * @retval WHAL_EINVAL  Invalid arguments.
  */
 whal_Error whal_SysTick_Reset(whal_Timer *timerDev);
-#endif /* !WHAL_CFG_TIMER_API_MAPPING_SYSTICK */
+#endif /* !WHAL_CFG_SYSTICK_TIMER_DIRECT_API_MAPPING */
 
 #endif /* WHAL_SYSTICK_H */

@@ -35,7 +35,7 @@
  * Use WHAL_STM32WB_GPIO_PIN() to build values and
  * WHAL_STM32WB_GPIO_GET_*() to extract fields.
  */
-typedef uint32_t whal_Stm32wbGpio_PinCfg;
+typedef uint32_t whal_Stm32wb_Gpio_PinCfg;
 
 /* Field positions */
 #define WHAL_STM32WB_GPIO_PORT_Pos      0
@@ -103,19 +103,19 @@ typedef uint32_t whal_Stm32wbGpio_PinCfg;
  * Contains clock control references and an array of pin configurations.
  */
 typedef struct {
-    whal_Stm32wbGpio_PinCfg *pinCfg; /* Array of pin configurations */
+    whal_Stm32wb_Gpio_PinCfg *pinCfg; /* Array of pin configurations */
     size_t pinCount;                  /* Number of pins to configure */
-} whal_Stm32wbGpio_Cfg;
+} whal_Stm32wb_Gpio_Cfg;
 
-#if !defined(WHAL_CFG_GPIO_API_MAPPING_STM32WB) && \
-    !defined(WHAL_CFG_GPIO_API_MAPPING_STM32F4) && \
-    !defined(WHAL_CFG_GPIO_API_MAPPING_STM32H5) && \
-    !defined(WHAL_CFG_GPIO_API_MAPPING_STM32C0) && \
-    !defined(WHAL_CFG_GPIO_API_MAPPING_STM32F0)
+#if !defined(WHAL_CFG_STM32WB_GPIO_DIRECT_API_MAPPING) && \
+    !defined(WHAL_CFG_STM32F4_GPIO_DIRECT_API_MAPPING) && \
+    !defined(WHAL_CFG_STM32H5_GPIO_DIRECT_API_MAPPING) && \
+    !defined(WHAL_CFG_STM32C0_GPIO_DIRECT_API_MAPPING) && \
+    !defined(WHAL_CFG_STM32F0_GPIO_DIRECT_API_MAPPING)
 /*
  * @brief Driver instance for STM32 GPIO.
  */
-extern const whal_GpioDriver whal_Stm32wbGpio_Driver;
+extern const whal_GpioDriver whal_Stm32wb_Gpio_Driver;
 
 /*
  * @brief Initialize the STM32 GPIO peripheral and configured pins.
@@ -125,7 +125,7 @@ extern const whal_GpioDriver whal_Stm32wbGpio_Driver;
  * @retval WHAL_SUCCESS Initialization completed.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_Stm32wbGpio_Init(whal_Gpio *gpioDev);
+whal_Error whal_Stm32wb_Gpio_Init(whal_Gpio *gpioDev);
 /*
  * @brief Deinitialize the STM32 GPIO peripheral.
  *
@@ -134,7 +134,7 @@ whal_Error whal_Stm32wbGpio_Init(whal_Gpio *gpioDev);
  * @retval WHAL_SUCCESS Deinit completed.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_Stm32wbGpio_Deinit(whal_Gpio *gpioDev);
+whal_Error whal_Stm32wb_Gpio_Deinit(whal_Gpio *gpioDev);
 /*
  * @brief Read a GPIO pin value.
  *
@@ -145,7 +145,7 @@ whal_Error whal_Stm32wbGpio_Deinit(whal_Gpio *gpioDev);
  * @retval WHAL_SUCCESS Pin value read.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_Stm32wbGpio_Get(whal_Gpio *gpioDev, size_t pin, size_t *value);
+whal_Error whal_Stm32wb_Gpio_Get(whal_Gpio *gpioDev, size_t pin, size_t *value);
 /*
  * @brief Set a GPIO pin value.
  *
@@ -156,7 +156,7 @@ whal_Error whal_Stm32wbGpio_Get(whal_Gpio *gpioDev, size_t pin, size_t *value);
  * @retval WHAL_SUCCESS Pin updated.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_Stm32wbGpio_Set(whal_Gpio *gpioDev, size_t pin, size_t value);
+whal_Error whal_Stm32wb_Gpio_Set(whal_Gpio *gpioDev, size_t pin, size_t value);
 #endif /* !WHAL_CFG_GPIO_API_MAPPING */
 
 #endif /* WHAL_STM32WB_GPIO_H */

@@ -34,13 +34,13 @@ typedef struct {
     uint8_t prescaler;    /* Timebase prescaler (WHAL_STM32WB_WWDG_TB_*) */
     uint8_t window;       /* 7-bit window value (must be > 0x3F) */
     uint8_t counter;      /* 7-bit counter value (must be > 0x3F) */
-} whal_Stm32wbWwdg_Cfg;
+} whal_Stm32wb_Wwdg_Cfg;
 
-#ifndef WHAL_CFG_WATCHDOG_API_MAPPING_STM32WB_WWDG
+#ifndef WHAL_CFG_STM32WB_WWDG_DIRECT_API_MAPPING
 /*
  * @brief Driver instance for STM32WB WWDG.
  */
-extern const whal_WatchdogDriver whal_Stm32wbWwdg_Driver;
+extern const whal_WatchdogDriver whal_Stm32wb_Wwdg_Driver;
 
 /*
  * @brief Configure and start the STM32WB WWDG.
@@ -53,7 +53,7 @@ extern const whal_WatchdogDriver whal_Stm32wbWwdg_Driver;
  * @retval WHAL_SUCCESS Watchdog started.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_Stm32wbWwdg_Init(whal_Watchdog *wdgDev);
+whal_Error whal_Stm32wb_Wwdg_Init(whal_Watchdog *wdgDev);
 
 /*
  * @brief Deinitialize the STM32WB WWDG.
@@ -62,7 +62,7 @@ whal_Error whal_Stm32wbWwdg_Init(whal_Watchdog *wdgDev);
  *
  * @retval WHAL_SUCCESS Always (no-op, WWDG can only be stopped by reset).
  */
-whal_Error whal_Stm32wbWwdg_Deinit(whal_Watchdog *wdgDev);
+whal_Error whal_Stm32wb_Wwdg_Deinit(whal_Watchdog *wdgDev);
 
 /*
  * @brief Refresh the WWDG counter within the window.
@@ -76,7 +76,7 @@ whal_Error whal_Stm32wbWwdg_Deinit(whal_Watchdog *wdgDev);
  * @retval WHAL_SUCCESS Counter refreshed.
  * @retval WHAL_EINVAL  Null pointer.
  */
-whal_Error whal_Stm32wbWwdg_Refresh(whal_Watchdog *wdgDev);
-#endif /* !WHAL_CFG_WATCHDOG_API_MAPPING_STM32WB_WWDG */
+whal_Error whal_Stm32wb_Wwdg_Refresh(whal_Watchdog *wdgDev);
+#endif /* !WHAL_CFG_STM32WB_WWDG_DIRECT_API_MAPPING */
 
 #endif /* WHAL_STM32WB_WWDG_H */

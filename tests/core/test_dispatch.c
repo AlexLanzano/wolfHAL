@@ -7,18 +7,10 @@
 /*
  * Mock drivers that return SUCCESS for all operations.
  * Used to verify the generic dispatch layer.
+ *
+ * Clock and power are board-level drivers — they have no generic
+ * whal_<Type>_* API or vtable, so they are not exercised here.
  */
-
-static whal_Error MockClockInit(whal_Clock *d) { (void)d; return WHAL_SUCCESS; }
-static whal_Error MockClockDeinit(whal_Clock *d) { (void)d; return WHAL_SUCCESS; }
-static whal_Error MockClockEnable(whal_Clock *d, const void *c) { (void)d; (void)c; return WHAL_SUCCESS; }
-static whal_Error MockClockDisable(whal_Clock *d, const void *c) { (void)d; (void)c; return WHAL_SUCCESS; }
-static const whal_ClockDriver mockClockDriver = {
-    .Init = MockClockInit,
-    .Deinit = MockClockDeinit,
-    .Enable = MockClockEnable,
-    .Disable = MockClockDisable,
-};
 
 static whal_Error MockGpioInit(whal_Gpio *d) { (void)d; return WHAL_SUCCESS; }
 static whal_Error MockGpioDeinit(whal_Gpio *d) { (void)d; return WHAL_SUCCESS; }
@@ -98,45 +90,6 @@ static const whal_RngDriver mockRngDriver = {
     .Generate = MockRngGenerate,
 };
 
-/* --- Clock dispatch tests --- */
-
-static void Test_Clock_NullDev(void)
-{
-    WHAL_ASSERT_EQ(whal_Clock_Init(NULL), WHAL_EINVAL);
-    WHAL_ASSERT_EQ(whal_Clock_Deinit(NULL), WHAL_EINVAL);
-    WHAL_ASSERT_EQ(whal_Clock_Enable(NULL, NULL), WHAL_EINVAL);
-    WHAL_ASSERT_EQ(whal_Clock_Disable(NULL, NULL), WHAL_EINVAL);
-}
-
-static void Test_Clock_NullClk(void)
-{
-    whal_Clock dev = { .driver = &mockClockDriver };
-    WHAL_ASSERT_EQ(whal_Clock_Enable(&dev, NULL), WHAL_EINVAL);
-    WHAL_ASSERT_EQ(whal_Clock_Disable(&dev, NULL), WHAL_EINVAL);
-}
-
-static void Test_Clock_NullDriver(void)
-{
-    whal_Clock dev = { .driver = NULL };
-    WHAL_ASSERT_EQ(whal_Clock_Init(&dev), WHAL_ENOTSUP);
-}
-
-static void Test_Clock_NullVtableEntry(void)
-{
-    static const whal_ClockDriver emptyDriver = { 0 };
-    whal_Clock dev = { .driver = &emptyDriver };
-    WHAL_ASSERT_EQ(whal_Clock_Init(&dev), WHAL_ENOTSUP);
-}
-
-static void Test_Clock_ValidDispatch(void)
-{
-    int dummy;
-    whal_Clock dev = { .driver = &mockClockDriver };
-    WHAL_ASSERT_EQ(whal_Clock_Init(&dev), WHAL_SUCCESS);
-    WHAL_ASSERT_EQ(whal_Clock_Deinit(&dev), WHAL_SUCCESS);
-    WHAL_ASSERT_EQ(whal_Clock_Enable(&dev, &dummy), WHAL_SUCCESS);
-    WHAL_ASSERT_EQ(whal_Clock_Disable(&dev, &dummy), WHAL_SUCCESS);
-}
 
 /* --- GPIO dispatch tests --- */
 
@@ -375,11 +328,6 @@ static void Test_Block_ValidDispatch(void)
 void whal_Test_Dispatch(void)
 {
     WHAL_TEST_SUITE_START("dispatch");
-    WHAL_TEST(Test_Clock_NullDev);
-    WHAL_TEST(Test_Clock_NullDriver);
-    WHAL_TEST(Test_Clock_NullVtableEntry);
-    WHAL_TEST(Test_Clock_NullClk);
-    WHAL_TEST(Test_Clock_ValidDispatch);
     WHAL_TEST(Test_Gpio_NullDev);
     WHAL_TEST(Test_Gpio_NullDriver);
     WHAL_TEST(Test_Gpio_ValidDispatch);

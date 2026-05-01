@@ -134,16 +134,16 @@
 /* MDIO clock range for AXI bus */
 #define ETH_MDIO_CR 4
 
-#ifdef WHAL_CFG_ETH_API_MAPPING_STM32N6
-#define whal_Stm32n6Eth_Init      whal_Eth_Init
-#define whal_Stm32n6Eth_Deinit    whal_Eth_Deinit
-#define whal_Stm32n6Eth_Start     whal_Eth_Start
-#define whal_Stm32n6Eth_Stop      whal_Eth_Stop
-#define whal_Stm32n6Eth_Send      whal_Eth_Send
-#define whal_Stm32n6Eth_Recv      whal_Eth_Recv
-#define whal_Stm32n6Eth_MdioRead  whal_Eth_MdioRead
-#define whal_Stm32n6Eth_MdioWrite whal_Eth_MdioWrite
-#endif /* WHAL_CFG_ETH_API_MAPPING_STM32N6 */
+#ifdef WHAL_CFG_STM32N6_ETH_DIRECT_API_MAPPING
+#define whal_Stm32n6_Eth_Init      whal_Eth_Init
+#define whal_Stm32n6_Eth_Deinit    whal_Eth_Deinit
+#define whal_Stm32n6_Eth_Start     whal_Eth_Start
+#define whal_Stm32n6_Eth_Stop      whal_Eth_Stop
+#define whal_Stm32n6_Eth_Send      whal_Eth_Send
+#define whal_Stm32n6_Eth_Recv      whal_Eth_Recv
+#define whal_Stm32n6_Eth_MdioRead  whal_Eth_MdioRead
+#define whal_Stm32n6_Eth_MdioWrite whal_Eth_MdioWrite
+#endif /* WHAL_CFG_STM32N6_ETH_DIRECT_API_MAPPING */
 
 static whal_Error MdioPoll(size_t base, whal_Timeout *timeout)
 {
@@ -151,16 +151,16 @@ static whal_Error MdioPoll(size_t base, whal_Timeout *timeout)
                              ETH_MACMDIOAR_MB_Msk, 0, timeout);
 }
 
-whal_Error whal_Stm32n6Eth_Init(whal_Eth *ethDev)
+whal_Error whal_Stm32n6_Eth_Init(whal_Eth *ethDev)
 {
-    whal_Stm32n6Eth_Cfg *cfg;
+    whal_Stm32n6_Eth_Cfg *cfg;
     size_t base;
     whal_Error err;
 
     if (!ethDev || !ethDev->cfg)
         return WHAL_EINVAL;
 
-    cfg = (whal_Stm32n6Eth_Cfg *)ethDev->cfg;
+    cfg = (whal_Stm32n6_Eth_Cfg *)ethDev->cfg;
     base = ethDev->regmap.base;
 
     if (!cfg->txDescs || !cfg->txBufs || cfg->txDescCount == 0 ||
@@ -260,7 +260,7 @@ whal_Error whal_Stm32n6Eth_Init(whal_Eth *ethDev)
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_Stm32n6Eth_Deinit(whal_Eth *ethDev)
+whal_Error whal_Stm32n6_Eth_Deinit(whal_Eth *ethDev)
 {
     if (!ethDev)
         return WHAL_EINVAL;
@@ -271,16 +271,16 @@ whal_Error whal_Stm32n6Eth_Deinit(whal_Eth *ethDev)
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_Stm32n6Eth_Start(whal_Eth *ethDev, uint8_t speed,
+whal_Error whal_Stm32n6_Eth_Start(whal_Eth *ethDev, uint8_t speed,
                                   uint8_t duplex)
 {
-    whal_Stm32n6Eth_Cfg *cfg;
+    whal_Stm32n6_Eth_Cfg *cfg;
     size_t base;
 
     if (!ethDev || !ethDev->cfg)
         return WHAL_EINVAL;
 
-    cfg = (whal_Stm32n6Eth_Cfg *)ethDev->cfg;
+    cfg = (whal_Stm32n6_Eth_Cfg *)ethDev->cfg;
     base = ethDev->regmap.base;
 
     /* Configure MAC speed and duplex to match PHY. PS=1 selects the
@@ -312,7 +312,7 @@ whal_Error whal_Stm32n6Eth_Start(whal_Eth *ethDev, uint8_t speed,
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_Stm32n6Eth_Stop(whal_Eth *ethDev)
+whal_Error whal_Stm32n6_Eth_Stop(whal_Eth *ethDev)
 {
     size_t base;
 
@@ -334,19 +334,19 @@ whal_Error whal_Stm32n6Eth_Stop(whal_Eth *ethDev)
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_Stm32n6Eth_Send(whal_Eth *ethDev, const void *frame,
+whal_Error whal_Stm32n6_Eth_Send(whal_Eth *ethDev, const void *frame,
                                  size_t len)
 {
     const uint8_t *frameBuf = (const uint8_t *)frame;
-    whal_Stm32n6Eth_Cfg *cfg;
-    whal_Stm32n6Eth_TxDesc *desc;
+    whal_Stm32n6_Eth_Cfg *cfg;
+    whal_Stm32n6_Eth_TxDesc *desc;
     size_t base;
     size_t idx;
 
     if (!ethDev || !ethDev->cfg || !frame || len == 0)
         return WHAL_EINVAL;
 
-    cfg = (whal_Stm32n6Eth_Cfg *)ethDev->cfg;
+    cfg = (whal_Stm32n6_Eth_Cfg *)ethDev->cfg;
 
     if (len > cfg->txBufSize)
         return WHAL_EINVAL;
@@ -384,12 +384,12 @@ whal_Error whal_Stm32n6Eth_Send(whal_Eth *ethDev, const void *frame,
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_Stm32n6Eth_Recv(whal_Eth *ethDev, void *frame,
+whal_Error whal_Stm32n6_Eth_Recv(whal_Eth *ethDev, void *frame,
                                  size_t *len)
 {
     uint8_t *frameBuf = (uint8_t *)frame;
-    whal_Stm32n6Eth_Cfg *cfg;
-    whal_Stm32n6Eth_RxDesc *desc;
+    whal_Stm32n6_Eth_Cfg *cfg;
+    whal_Stm32n6_Eth_RxDesc *desc;
     size_t base;
     size_t idx;
     uint32_t rdes3;
@@ -398,7 +398,7 @@ whal_Error whal_Stm32n6Eth_Recv(whal_Eth *ethDev, void *frame,
     if (!ethDev || !ethDev->cfg || !frame || !len)
         return WHAL_EINVAL;
 
-    cfg = (whal_Stm32n6Eth_Cfg *)ethDev->cfg;
+    cfg = (whal_Stm32n6_Eth_Cfg *)ethDev->cfg;
     base = ethDev->regmap.base;
     idx = cfg->rxHead;
     desc = &cfg->rxDescs[idx];
@@ -449,17 +449,17 @@ whal_Error whal_Stm32n6Eth_Recv(whal_Eth *ethDev, void *frame,
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_Stm32n6Eth_MdioRead(whal_Eth *ethDev, uint8_t phyAddr,
+whal_Error whal_Stm32n6_Eth_MdioRead(whal_Eth *ethDev, uint8_t phyAddr,
                                       uint8_t reg, uint16_t *val)
 {
-    whal_Stm32n6Eth_Cfg *cfg;
+    whal_Stm32n6_Eth_Cfg *cfg;
     size_t base;
     whal_Error err;
 
     if (!ethDev || !ethDev->cfg || !val)
         return WHAL_EINVAL;
 
-    cfg = (whal_Stm32n6Eth_Cfg *)ethDev->cfg;
+    cfg = (whal_Stm32n6_Eth_Cfg *)ethDev->cfg;
     base = ethDev->regmap.base;
 
     err = MdioPoll(base, cfg->timeout);
@@ -487,17 +487,17 @@ whal_Error whal_Stm32n6Eth_MdioRead(whal_Eth *ethDev, uint8_t phyAddr,
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_Stm32n6Eth_MdioWrite(whal_Eth *ethDev, uint8_t phyAddr,
+whal_Error whal_Stm32n6_Eth_MdioWrite(whal_Eth *ethDev, uint8_t phyAddr,
                                        uint8_t reg, uint16_t val)
 {
-    whal_Stm32n6Eth_Cfg *cfg;
+    whal_Stm32n6_Eth_Cfg *cfg;
     size_t base;
     whal_Error err;
 
     if (!ethDev || !ethDev->cfg)
         return WHAL_EINVAL;
 
-    cfg = (whal_Stm32n6Eth_Cfg *)ethDev->cfg;
+    cfg = (whal_Stm32n6_Eth_Cfg *)ethDev->cfg;
     base = ethDev->regmap.base;
 
     err = MdioPoll(base, cfg->timeout);
@@ -527,7 +527,7 @@ whal_Error whal_Stm32n6Eth_MdioWrite(whal_Eth *ethDev, uint8_t phyAddr,
 #define ETH_MACCR_LM_Pos    12
 #define ETH_MACCR_LM_Msk    (1UL << ETH_MACCR_LM_Pos)
 
-whal_Error whal_Stm32n6Eth_Ext_EnableLoopback(whal_Eth *ethDev,
+whal_Error whal_Stm32n6_Eth_Ext_EnableLoopback(whal_Eth *ethDev,
                                                 uint8_t enable)
 {
     if (!ethDev)
@@ -540,15 +540,15 @@ whal_Error whal_Stm32n6Eth_Ext_EnableLoopback(whal_Eth *ethDev,
     return WHAL_SUCCESS;
 }
 
-#ifndef WHAL_CFG_ETH_API_MAPPING_STM32N6
-const whal_EthDriver whal_Stm32n6Eth_Driver = {
-    .Init = whal_Stm32n6Eth_Init,
-    .Deinit = whal_Stm32n6Eth_Deinit,
-    .Start = whal_Stm32n6Eth_Start,
-    .Stop = whal_Stm32n6Eth_Stop,
-    .Send = whal_Stm32n6Eth_Send,
-    .Recv = whal_Stm32n6Eth_Recv,
-    .MdioRead = whal_Stm32n6Eth_MdioRead,
-    .MdioWrite = whal_Stm32n6Eth_MdioWrite,
+#ifndef WHAL_CFG_STM32N6_ETH_DIRECT_API_MAPPING
+const whal_EthDriver whal_Stm32n6_Eth_Driver = {
+    .Init = whal_Stm32n6_Eth_Init,
+    .Deinit = whal_Stm32n6_Eth_Deinit,
+    .Start = whal_Stm32n6_Eth_Start,
+    .Stop = whal_Stm32n6_Eth_Stop,
+    .Send = whal_Stm32n6_Eth_Send,
+    .Recv = whal_Stm32n6_Eth_Recv,
+    .MdioRead = whal_Stm32n6_Eth_MdioRead,
+    .MdioWrite = whal_Stm32n6_Eth_MdioWrite,
 };
-#endif /* !WHAL_CFG_ETH_API_MAPPING_STM32N6 */
+#endif /* !WHAL_CFG_STM32N6_ETH_DIRECT_API_MAPPING */

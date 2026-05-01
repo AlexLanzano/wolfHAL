@@ -32,18 +32,18 @@
 /* Alternate function high register - 4 bits per pin for pins 8-15 */
 #define GPIO_ALTFNH_REG   0x24
 
-#if defined(WHAL_CFG_GPIO_API_MAPPING_STM32WB) || \
-    defined(WHAL_CFG_GPIO_API_MAPPING_STM32F4) || \
-    defined(WHAL_CFG_GPIO_API_MAPPING_STM32H5) || \
-    defined(WHAL_CFG_GPIO_API_MAPPING_STM32C0) || \
-    defined(WHAL_CFG_GPIO_API_MAPPING_STM32F0) || \
-    defined(WHAL_CFG_GPIO_API_MAPPING_STM32F3) || \
-    defined(WHAL_CFG_GPIO_API_MAPPING_STM32L1) || \
-    defined(WHAL_CFG_GPIO_API_MAPPING_STM32N6)
-#define whal_Stm32wbGpio_Init   whal_Gpio_Init
-#define whal_Stm32wbGpio_Deinit whal_Gpio_Deinit
-#define whal_Stm32wbGpio_Get    whal_Gpio_Get
-#define whal_Stm32wbGpio_Set    whal_Gpio_Set
+#if defined(WHAL_CFG_STM32WB_GPIO_DIRECT_API_MAPPING) || \
+    defined(WHAL_CFG_STM32F4_GPIO_DIRECT_API_MAPPING) || \
+    defined(WHAL_CFG_STM32H5_GPIO_DIRECT_API_MAPPING) || \
+    defined(WHAL_CFG_STM32C0_GPIO_DIRECT_API_MAPPING) || \
+    defined(WHAL_CFG_STM32F0_GPIO_DIRECT_API_MAPPING) || \
+    defined(WHAL_CFG_STM32F3_GPIO_DIRECT_API_MAPPING) || \
+    defined(WHAL_CFG_STM32L1_GPIO_DIRECT_API_MAPPING) || \
+    defined(WHAL_CFG_STM32N6_GPIO_DIRECT_API_MAPPING)
+#define whal_Stm32wb_Gpio_Init   whal_Gpio_Init
+#define whal_Stm32wb_Gpio_Deinit whal_Gpio_Deinit
+#define whal_Stm32wb_Gpio_Get    whal_Gpio_Get
+#define whal_Stm32wb_Gpio_Set    whal_Gpio_Set
 #endif /* WHAL_CFG_GPIO_API_MAPPING */
 
 /*
@@ -56,8 +56,8 @@
 /*
  * Initialize a single GPIO pin with the specified configuration.
  */
-static inline whal_Error whal_Stm32wbGpio_InitPin(whal_Gpio *gpioDev,
-                                                    whal_Stm32wbGpio_PinCfg cfg)
+static inline whal_Error whal_Stm32wb_Gpio_InitPin(whal_Gpio *gpioDev,
+                                                    whal_Stm32wb_Gpio_PinCfg cfg)
 {
     uint8_t pin = WHAL_STM32WB_GPIO_GET_PIN(cfg);
     size_t portBase;
@@ -97,22 +97,22 @@ static inline whal_Error whal_Stm32wbGpio_InitPin(whal_Gpio *gpioDev,
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_Stm32wbGpio_Init(whal_Gpio *gpioDev)
+whal_Error whal_Stm32wb_Gpio_Init(whal_Gpio *gpioDev)
 {
     whal_Error err;
-    whal_Stm32wbGpio_Cfg *cfg;
-    whal_Stm32wbGpio_PinCfg *pinCfg;
+    whal_Stm32wb_Gpio_Cfg *cfg;
+    whal_Stm32wb_Gpio_PinCfg *pinCfg;
 
     if (!gpioDev || !gpioDev->cfg) {
         return WHAL_EINVAL;
     }
 
-    cfg = (whal_Stm32wbGpio_Cfg *)gpioDev->cfg;
+    cfg = (whal_Stm32wb_Gpio_Cfg *)gpioDev->cfg;
     pinCfg = cfg->pinCfg;
 
     /* Initialize each pin in the configuration array */
     for (size_t pin = 0; pin < cfg->pinCount; ++pin) {
-        err = whal_Stm32wbGpio_InitPin(gpioDev, pinCfg[pin]);
+        err = whal_Stm32wb_Gpio_InitPin(gpioDev, pinCfg[pin]);
         if (err) {
             return err;
         }
@@ -121,7 +121,7 @@ whal_Error whal_Stm32wbGpio_Init(whal_Gpio *gpioDev)
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_Stm32wbGpio_Deinit(whal_Gpio *gpioDev)
+whal_Error whal_Stm32wb_Gpio_Deinit(whal_Gpio *gpioDev)
 {
     if (!gpioDev) {
         return WHAL_EINVAL;
@@ -136,11 +136,11 @@ whal_Error whal_Stm32wbGpio_Deinit(whal_Gpio *gpioDev)
  * For set operations (set=1): writes value to ODR register
  * For get operations (set=0): reads value from IDR register
  */
-static whal_Error whal_Stm32wbGpio_SetOrGet(whal_Gpio *gpioDev, size_t idx,
+static whal_Error whal_Stm32wb_Gpio_SetOrGet(whal_Gpio *gpioDev, size_t idx,
                                              size_t *value, uint8_t set)
 {
-    whal_Stm32wbGpio_Cfg *cfg;
-    whal_Stm32wbGpio_PinCfg pinCfg;
+    whal_Stm32wb_Gpio_Cfg *cfg;
+    whal_Stm32wb_Gpio_PinCfg pinCfg;
     uint8_t port, pin;
     size_t portBase, mask;
 
@@ -148,7 +148,7 @@ static whal_Error whal_Stm32wbGpio_SetOrGet(whal_Gpio *gpioDev, size_t idx,
         return WHAL_EINVAL;
     }
 
-    cfg = (whal_Stm32wbGpio_Cfg *)gpioDev->cfg;
+    cfg = (whal_Stm32wb_Gpio_Cfg *)gpioDev->cfg;
     pinCfg = cfg->pinCfg[idx];
     port = WHAL_STM32WB_GPIO_GET_PORT(pinCfg);
     pin = WHAL_STM32WB_GPIO_GET_PIN(pinCfg);
@@ -170,27 +170,27 @@ static whal_Error whal_Stm32wbGpio_SetOrGet(whal_Gpio *gpioDev, size_t idx,
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_Stm32wbGpio_Get(whal_Gpio *gpioDev, size_t pin, size_t *value)
+whal_Error whal_Stm32wb_Gpio_Get(whal_Gpio *gpioDev, size_t pin, size_t *value)
 {
-    return whal_Stm32wbGpio_SetOrGet(gpioDev, pin, value, 0);
+    return whal_Stm32wb_Gpio_SetOrGet(gpioDev, pin, value, 0);
 }
 
-whal_Error whal_Stm32wbGpio_Set(whal_Gpio *gpioDev, size_t pin, size_t value)
+whal_Error whal_Stm32wb_Gpio_Set(whal_Gpio *gpioDev, size_t pin, size_t value)
 {
-    return whal_Stm32wbGpio_SetOrGet(gpioDev, pin, &value, 1);
+    return whal_Stm32wb_Gpio_SetOrGet(gpioDev, pin, &value, 1);
 }
 
-#if !defined(WHAL_CFG_GPIO_API_MAPPING_STM32WB) && \
-    !defined(WHAL_CFG_GPIO_API_MAPPING_STM32F4) && \
-    !defined(WHAL_CFG_GPIO_API_MAPPING_STM32H5) && \
-    !defined(WHAL_CFG_GPIO_API_MAPPING_STM32C0) && \
-    !defined(WHAL_CFG_GPIO_API_MAPPING_STM32F0) && \
-    !defined(WHAL_CFG_GPIO_API_MAPPING_STM32F3) && \
-    !defined(WHAL_CFG_GPIO_API_MAPPING_STM32L1)
-const whal_GpioDriver whal_Stm32wbGpio_Driver = {
-    .Init = whal_Stm32wbGpio_Init,
-    .Deinit = whal_Stm32wbGpio_Deinit,
-    .Get = whal_Stm32wbGpio_Get,
-    .Set = whal_Stm32wbGpio_Set,
+#if !defined(WHAL_CFG_STM32WB_GPIO_DIRECT_API_MAPPING) && \
+    !defined(WHAL_CFG_STM32F4_GPIO_DIRECT_API_MAPPING) && \
+    !defined(WHAL_CFG_STM32H5_GPIO_DIRECT_API_MAPPING) && \
+    !defined(WHAL_CFG_STM32C0_GPIO_DIRECT_API_MAPPING) && \
+    !defined(WHAL_CFG_STM32F0_GPIO_DIRECT_API_MAPPING) && \
+    !defined(WHAL_CFG_STM32F3_GPIO_DIRECT_API_MAPPING) && \
+    !defined(WHAL_CFG_STM32L1_GPIO_DIRECT_API_MAPPING)
+const whal_GpioDriver whal_Stm32wb_Gpio_Driver = {
+    .Init = whal_Stm32wb_Gpio_Init,
+    .Deinit = whal_Stm32wb_Gpio_Deinit,
+    .Get = whal_Stm32wb_Gpio_Get,
+    .Set = whal_Stm32wb_Gpio_Set,
 };
 #endif /* !WHAL_CFG_GPIO_API_MAPPING */

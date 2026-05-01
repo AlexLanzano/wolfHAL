@@ -68,7 +68,7 @@ enum {
  *   - pmux: Peripheral function (A-N) to assign
  *   - Other fields are ignored; peripheral controls the pin
  */
-typedef struct whal_Pic32czGpio_PinCfg {
+typedef struct whal_Pic32cz_Gpio_PinCfg {
     uint8_t port;   /* Port index (0=A, 1=B, 2=C, ...) */
     uint8_t pin;    /* Pin number within port (0-31) */
     uint8_t dir;    /* Direction: WHAL_PIC32CZ_DIR_INPUT/OUTPUT */
@@ -77,23 +77,23 @@ typedef struct whal_Pic32czGpio_PinCfg {
     uint8_t out;    /* Initial output value (0 or 1) */
     uint8_t pmuxEn; /* Peripheral mux enable (1=use pmux function) */
     uint8_t pmux;   /* Peripheral function (WHAL_PIC32CZ_PMUX_x) */
-} whal_Pic32czGpio_PinCfg;
+} whal_Pic32cz_Gpio_PinCfg;
 
 /*
  * @brief GPIO device configuration.
  *
  * Contains an array of pin configurations to be applied during Init.
  */
-typedef struct whal_Pic32czGpio_Cfg {
+typedef struct whal_Pic32cz_Gpio_Cfg {
     size_t pinCfgCount;              /* Number of pins to configure */
-    whal_Pic32czGpio_PinCfg *pinCfg; /* Array of pin configurations */
-} whal_Pic32czGpio_Cfg;
+    whal_Pic32cz_Gpio_PinCfg *pinCfg; /* Array of pin configurations */
+} whal_Pic32cz_Gpio_Cfg;
 
-#ifndef WHAL_CFG_GPIO_API_MAPPING_PIC32CZ
+#ifndef WHAL_CFG_PIC32CZ_GPIO_DIRECT_API_MAPPING
 /*
  * @brief Driver instance for PIC32CZ GPIO.
  */
-extern const whal_GpioDriver whal_Pic32czGpio_Driver;
+extern const whal_GpioDriver whal_Pic32cz_Gpio_Driver;
 
 /*
  * @brief Initialize the PIC32CZ GPIO peripheral.
@@ -103,7 +103,7 @@ extern const whal_GpioDriver whal_Pic32czGpio_Driver;
  * @retval WHAL_SUCCESS Initialization completed.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_Pic32czGpio_Init(whal_Gpio *gpioDev);
+whal_Error whal_Pic32cz_Gpio_Init(whal_Gpio *gpioDev);
 /*
  * @brief Deinitialize the PIC32CZ GPIO peripheral.
  *
@@ -112,7 +112,7 @@ whal_Error whal_Pic32czGpio_Init(whal_Gpio *gpioDev);
  * @retval WHAL_SUCCESS Deinit completed.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_Pic32czGpio_Deinit(whal_Gpio *gpioDev);
+whal_Error whal_Pic32cz_Gpio_Deinit(whal_Gpio *gpioDev);
 /*
  * @brief Read a GPIO pin value.
  *
@@ -123,7 +123,7 @@ whal_Error whal_Pic32czGpio_Deinit(whal_Gpio *gpioDev);
  * @retval WHAL_SUCCESS Pin value read.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_Pic32czGpio_Get(whal_Gpio *gpioDev, size_t pin, size_t *value);
+whal_Error whal_Pic32cz_Gpio_Get(whal_Gpio *gpioDev, size_t pin, size_t *value);
 /*
  * @brief Set a GPIO pin value.
  *
@@ -134,7 +134,7 @@ whal_Error whal_Pic32czGpio_Get(whal_Gpio *gpioDev, size_t pin, size_t *value);
  * @retval WHAL_SUCCESS Pin updated.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_Pic32czGpio_Set(whal_Gpio *gpioDev, size_t pin, size_t value);
-#endif /* !WHAL_CFG_GPIO_API_MAPPING_PIC32CZ */
+whal_Error whal_Pic32cz_Gpio_Set(whal_Gpio *gpioDev, size_t pin, size_t value);
+#endif /* !WHAL_CFG_PIC32CZ_GPIO_DIRECT_API_MAPPING */
 
 #endif /* WHAL_PIC32CZ_GPIO_H */

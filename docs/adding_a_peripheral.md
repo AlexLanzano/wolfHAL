@@ -1,8 +1,22 @@
 # Adding a Peripheral
 
+> **Scope.** This document describes the `boards/peripheral/` registry — a
+> convenience mechanism used inside this repository so that tests and
+> examples can dynamically opt a peripheral (SPI-NOR flash, SD card, IMU,
+> etc.) into any compatible board via a build flag. It exists to make
+> cross-board testing of peripheral drivers cheap.
+>
+> **In an actual application project**, you would not use this registry.
+> You would simply define the peripheral instances you need directly in
+> your `board.c` (the same way you define `g_whalUart`, `g_whalSpi`, etc.)
+> and call them directly from your application. The registry adds a layer
+> of indirection that's only worth its cost when you're trying to
+> mix-and-match peripherals across many boards from a single test binary.
+
 This guide covers how to add an external peripheral device to the wolfHAL
-peripheral system. Peripherals are bus-attached devices (e.g., SPI-NOR flash,
-SD cards) that live in `boards/peripheral/` and are opt-in at build time.
+peripheral registry. Peripherals are bus-attached devices (e.g., SPI-NOR
+flash, SD cards) that live in `boards/peripheral/` and are opt-in at build
+time.
 
 ## Overview
 
@@ -12,7 +26,7 @@ A peripheral consists of three parts:
    board-specific parameters (SPI bus, CS pin, clock speed, etc.)
 2. An **entry in the peripheral registry** (`peripheral.c`) so that board init
    and tests can discover the device
-3. A **Makefile.inc entry** to conditionally compile the peripheral and its
+3. A **board.mk entry** to conditionally compile the peripheral and its
    driver source
 
 ## File Layout
@@ -23,7 +37,7 @@ Peripherals are organized by device type under `boards/peripheral/`:
 boards/peripheral/
   peripheral.h          # Registry structs and extern arrays
   peripheral.c          # Registry arrays (g_peripheralBlock[], g_peripheralFlash[], g_peripheralSensor[])
-  Makefile.inc          # Conditional build rules
+  board.mk          # Conditional build rules
   block/
     sdhc_spi_sdcard32gb.h
     sdhc_spi_sdcard32gb.c
@@ -130,7 +144,7 @@ can iterate without knowing the count.
 
 ## Step 3: Add Build Rules
 
-In `boards/peripheral/Makefile.inc`, add a conditional block for your
+In `boards/peripheral/board.mk`, add a conditional block for your
 peripheral. The block checks whether the peripheral name appears in the
 `PERIPHERALS` variable and adds the define, config source, and driver source:
 

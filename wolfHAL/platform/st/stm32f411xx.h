@@ -28,30 +28,29 @@
 
 /* --- Device macros --- */
 
-#define WHAL_STM32F411_RCC_PLL_REGMAP   \
+#define WHAL_STM32F411_RCC_REGMAP       \
     .base = 0x40023800,                 \
     .size = 0x400
-#define WHAL_STM32F411_RCC_PLL_DRIVER &whal_Stm32f4RccPll_Driver
 
 #define WHAL_STM32F411_GPIO_REGMAP      \
     .base = 0x40020000,                 \
     .size = 0x2000
-#define WHAL_STM32F411_GPIO_DRIVER &whal_Stm32f4Gpio_Driver
+#define WHAL_STM32F411_GPIO_DRIVER &whal_Stm32f4_Gpio_Driver
 
 #define WHAL_STM32F411_USART1_REGMAP    \
     .base = 0x40011000,                 \
     .size = 0x400
-#define WHAL_STM32F411_USART1_DRIVER &whal_Stm32f4Uart_Driver
+#define WHAL_STM32F411_USART1_DRIVER &whal_Stm32f4_Uart_Driver
 
 #define WHAL_STM32F411_USART2_REGMAP    \
     .base = 0x40004400,                 \
     .size = 0x400
-#define WHAL_STM32F411_USART2_DRIVER &whal_Stm32f4Uart_Driver
+#define WHAL_STM32F411_USART2_DRIVER &whal_Stm32f4_Uart_Driver
 
 #define WHAL_STM32F411_USART6_REGMAP    \
     .base = 0x40011400,                 \
     .size = 0x400
-#define WHAL_STM32F411_USART6_DRIVER &whal_Stm32f4Uart_Driver
+#define WHAL_STM32F411_USART6_DRIVER &whal_Stm32f4_Uart_Driver
 
 /* --- Clock gate macros --- */
 /* RCC_AHB1ENR (offset 0x030) */
@@ -127,18 +126,18 @@
 #define WHAL_STM32F411_SPI1_REGMAP  \
     .base = 0x40013000,             \
     .size = 0x400
-#define WHAL_STM32F411_SPI1_DRIVER &whal_Stm32f4Spi_Driver
+#define WHAL_STM32F411_SPI1_DRIVER &whal_Stm32f4_Spi_Driver
 
 #define WHAL_STM32F411_SPI2_REGMAP  \
     .base = 0x40003800,             \
     .size = 0x400
-#define WHAL_STM32F411_SPI2_DRIVER &whal_Stm32f4Spi_Driver
+#define WHAL_STM32F411_SPI2_DRIVER &whal_Stm32f4_Spi_Driver
 
 /* Flash device macros */
 
 #define WHAL_STM32F411_FLASH_REGMAP \
     .base = 0x40023C00,             \
     .size = 0x400
-#define WHAL_STM32F411_FLASH_DRIVER &whal_Stm32f4Flash_Driver
+#define WHAL_STM32F411_FLASH_DRIVER &whal_Stm32f4_Flash_Driver
 
 #endif /* WHAL_STM32F411XX_H */

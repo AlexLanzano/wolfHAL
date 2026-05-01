@@ -18,17 +18,17 @@
 /*
  * @brief Flash device configuration.
  */
-typedef struct whal_Stm32h5Flash_Cfg {
+typedef struct whal_Stm32h5_Flash_Cfg {
     size_t startAddr;     /* Flash base address (typically 0x08000000) */
     size_t size;          /* Flash size in bytes */
     whal_Timeout *timeout;
-} whal_Stm32h5Flash_Cfg;
+} whal_Stm32h5_Flash_Cfg;
 
-#ifndef WHAL_CFG_FLASH_API_MAPPING_STM32H5
+#ifndef WHAL_CFG_STM32H5_FLASH_DIRECT_API_MAPPING
 /*
  * @brief Driver instance for STM32H5 flash.
  */
-extern const whal_FlashDriver whal_Stm32h5Flash_Driver;
+extern const whal_FlashDriver whal_Stm32h5_Flash_Driver;
 
 /*
  * @brief Initialize the STM32H5 flash interface.
@@ -38,7 +38,7 @@ extern const whal_FlashDriver whal_Stm32h5Flash_Driver;
  * @retval WHAL_SUCCESS Initialization completed.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_Stm32h5Flash_Init(whal_Flash *flashDev);
+whal_Error whal_Stm32h5_Flash_Init(whal_Flash *flashDev);
 
 /*
  * @brief Deinitialize the STM32H5 flash interface.
@@ -48,7 +48,7 @@ whal_Error whal_Stm32h5Flash_Init(whal_Flash *flashDev);
  * @retval WHAL_SUCCESS Deinit completed.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_Stm32h5Flash_Deinit(whal_Flash *flashDev);
+whal_Error whal_Stm32h5_Flash_Deinit(whal_Flash *flashDev);
 
 /*
  * @brief Lock the flash control register.
@@ -60,7 +60,7 @@ whal_Error whal_Stm32h5Flash_Deinit(whal_Flash *flashDev);
  * @retval WHAL_SUCCESS Lock applied.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_Stm32h5Flash_Lock(whal_Flash *flashDev, size_t addr,
+whal_Error whal_Stm32h5_Flash_Lock(whal_Flash *flashDev, size_t addr,
                                    size_t len);
 
 /*
@@ -73,7 +73,7 @@ whal_Error whal_Stm32h5Flash_Lock(whal_Flash *flashDev, size_t addr,
  * @retval WHAL_SUCCESS Unlock applied.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_Stm32h5Flash_Unlock(whal_Flash *flashDev, size_t addr,
+whal_Error whal_Stm32h5_Flash_Unlock(whal_Flash *flashDev, size_t addr,
                                      size_t len);
 
 /*
@@ -86,7 +86,7 @@ whal_Error whal_Stm32h5Flash_Unlock(whal_Flash *flashDev, size_t addr,
  *
  * @retval WHAL_SUCCESS Read completed.
  */
-whal_Error whal_Stm32h5Flash_Read(whal_Flash *flashDev, size_t addr,
+whal_Error whal_Stm32h5_Flash_Read(whal_Flash *flashDev, size_t addr,
                                    void *data, size_t dataSz);
 
 /*
@@ -104,7 +104,7 @@ whal_Error whal_Stm32h5Flash_Read(whal_Flash *flashDev, size_t addr,
  * @retval WHAL_EINVAL    Invalid arguments or alignment.
  * @retval WHAL_EHARDWARE Flash error during programming.
  */
-whal_Error whal_Stm32h5Flash_Write(whal_Flash *flashDev, size_t addr,
+whal_Error whal_Stm32h5_Flash_Write(whal_Flash *flashDev, size_t addr,
                                     const void *data, size_t dataSz);
 
 /*
@@ -120,9 +120,9 @@ whal_Error whal_Stm32h5Flash_Write(whal_Flash *flashDev, size_t addr,
  * @retval WHAL_EINVAL    Invalid arguments.
  * @retval WHAL_EHARDWARE Flash error during erase.
  */
-whal_Error whal_Stm32h5Flash_Erase(whal_Flash *flashDev, size_t addr,
+whal_Error whal_Stm32h5_Flash_Erase(whal_Flash *flashDev, size_t addr,
                                     size_t dataSz);
-#endif /* !WHAL_CFG_FLASH_API_MAPPING_STM32H5 */
+#endif /* !WHAL_CFG_STM32H5_FLASH_DIRECT_API_MAPPING */
 
 /*
  * @brief Set flash access latency (wait states) and write high-frequency mode.
@@ -138,7 +138,7 @@ whal_Error whal_Stm32h5Flash_Erase(whal_Flash *flashDev, size_t addr,
  * @retval WHAL_SUCCESS Latency updated.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_Stm32h5Flash_Ext_SetLatency(whal_Flash *flashDev,
+whal_Error whal_Stm32h5_Flash_Ext_SetLatency(whal_Flash *flashDev,
                                              uint8_t latency);
 
 #endif /* WHAL_STM32H5_FLASH_H */

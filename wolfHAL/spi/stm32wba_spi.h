@@ -12,15 +12,15 @@
 
 #include <wolfHAL/spi/stm32h5_spi.h>
 
-typedef whal_Stm32h5Spi_Cfg whal_Stm32wbaSpi_Cfg;
+typedef whal_Stm32h5_Spi_Cfg whal_Stm32wba_Spi_Cfg;
 
-#ifndef WHAL_CFG_SPI_API_MAPPING_STM32WBA
-#define whal_Stm32wbaSpi_Driver   whal_Stm32h5Spi_Driver
-#define whal_Stm32wbaSpi_Init     whal_Stm32h5Spi_Init
-#define whal_Stm32wbaSpi_Deinit   whal_Stm32h5Spi_Deinit
-#define whal_Stm32wbaSpi_StartCom whal_Stm32h5Spi_StartCom
-#define whal_Stm32wbaSpi_EndCom   whal_Stm32h5Spi_EndCom
-#define whal_Stm32wbaSpi_SendRecv whal_Stm32h5Spi_SendRecv
-#endif /* !WHAL_CFG_SPI_API_MAPPING_STM32WBA */
+#ifndef WHAL_CFG_STM32WBA_SPI_DIRECT_API_MAPPING
+#define whal_Stm32wba_Spi_Driver   whal_Stm32h5_Spi_Driver
+#define whal_Stm32wba_Spi_Init     whal_Stm32h5_Spi_Init
+#define whal_Stm32wba_Spi_Deinit   whal_Stm32h5_Spi_Deinit
+#define whal_Stm32wba_Spi_StartCom whal_Stm32h5_Spi_StartCom
+#define whal_Stm32wba_Spi_EndCom   whal_Stm32h5_Spi_EndCom
+#define whal_Stm32wba_Spi_SendRecv whal_Stm32h5_Spi_SendRecv
+#endif /* !WHAL_CFG_STM32WBA_SPI_DIRECT_API_MAPPING */
 
 #endif /* WHAL_STM32WBA_SPI_H */

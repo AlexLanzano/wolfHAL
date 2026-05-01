@@ -23,13 +23,13 @@ typedef struct {
 
     /* Driver-internal state, not initialized by user. */
     uint8_t       ccmCtr0[16];
-} whal_Stm32n6Cryp_Cfg;
+} whal_Stm32n6_Cryp_Cfg;
 
-#ifndef WHAL_CFG_CRYPTO_API_MAPPING_STM32N6_CRYP
+#ifndef WHAL_CFG_STM32N6_CRYP_DIRECT_API_MAPPING
 /**
  * @brief Driver instance for the STM32N6 CRYP peripheral.
  */
-extern const whal_CryptoDriver whal_Stm32n6Cryp_Driver;
+extern const whal_CryptoDriver whal_Stm32n6_Cryp_Driver;
 
 /**
  * @brief Initialize the CRYP peripheral.
@@ -39,7 +39,7 @@ extern const whal_CryptoDriver whal_Stm32n6Cryp_Driver;
  * @retval WHAL_SUCCESS Initialization completed.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_Stm32n6Cryp_Init(whal_Crypto *cryptoDev);
+whal_Error whal_Stm32n6_Cryp_Init(whal_Crypto *cryptoDev);
 
 /**
  * @brief Deinitialize the CRYP peripheral.
@@ -49,7 +49,7 @@ whal_Error whal_Stm32n6Cryp_Init(whal_Crypto *cryptoDev);
  * @retval WHAL_SUCCESS Deinit completed.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_Stm32n6Cryp_Deinit(whal_Crypto *cryptoDev);
+whal_Error whal_Stm32n6_Cryp_Deinit(whal_Crypto *cryptoDev);
 
 /**
  * @brief Start an AES operation: configure CR, load key/IV, process AAD.
@@ -63,7 +63,7 @@ whal_Error whal_Stm32n6Cryp_Deinit(whal_Crypto *cryptoDev);
  * @retval WHAL_ENOTSUP   Unsupported opId or parameter.
  * @retval WHAL_EHARDWARE Hardware error during setup.
  */
-whal_Error whal_Stm32n6Cryp_StartOp(whal_Crypto *cryptoDev, size_t opId,
+whal_Error whal_Stm32n6_Cryp_StartOp(whal_Crypto *cryptoDev, size_t opId,
                                     void *opArgs);
 
 /**
@@ -78,7 +78,7 @@ whal_Error whal_Stm32n6Cryp_StartOp(whal_Crypto *cryptoDev, size_t opId,
  * @retval WHAL_ENOTSUP   Unsupported opId.
  * @retval WHAL_EHARDWARE Hardware error during processing.
  */
-whal_Error whal_Stm32n6Cryp_Process(whal_Crypto *cryptoDev, size_t opId,
+whal_Error whal_Stm32n6_Cryp_Process(whal_Crypto *cryptoDev, size_t opId,
                                     void *opArgs);
 
 /**
@@ -93,8 +93,8 @@ whal_Error whal_Stm32n6Cryp_Process(whal_Crypto *cryptoDev, size_t opId,
  * @retval WHAL_ENOTSUP   Unsupported opId.
  * @retval WHAL_EHARDWARE Hardware error during finalization.
  */
-whal_Error whal_Stm32n6Cryp_EndOp(whal_Crypto *cryptoDev, size_t opId,
+whal_Error whal_Stm32n6_Cryp_EndOp(whal_Crypto *cryptoDev, size_t opId,
                                   void *opArgs);
-#endif /* !WHAL_CFG_CRYPTO_API_MAPPING_STM32N6_CRYP */
+#endif /* !WHAL_CFG_STM32N6_CRYP_DIRECT_API_MAPPING */
 
 #endif /* WHAL_STM32N6_CRYP_H */

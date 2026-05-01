@@ -12,14 +12,14 @@
 
 #include <wolfHAL/watchdog/stm32wb_iwdg.h>
 
-typedef whal_Stm32wbIwdg_Cfg whal_Stm32wbaIwdg_Cfg;
+typedef whal_Stm32wb_Iwdg_Cfg whal_Stm32wba_Iwdg_Cfg;
 
-#ifndef WHAL_CFG_WATCHDOG_API_MAPPING_STM32WBA_IWDG
-#define whal_Stm32wbaIwdg_Driver  whal_Stm32wbIwdg_Driver
-#define whal_Stm32wbaIwdg_Init    whal_Stm32wbIwdg_Init
-#define whal_Stm32wbaIwdg_Deinit  whal_Stm32wbIwdg_Deinit
-#define whal_Stm32wbaIwdg_Refresh whal_Stm32wbIwdg_Refresh
-#endif /* !WHAL_CFG_WATCHDOG_API_MAPPING_STM32WBA_IWDG */
+#ifndef WHAL_CFG_STM32WBA_IWDG_DIRECT_API_MAPPING
+#define whal_Stm32wba_Iwdg_Driver  whal_Stm32wb_Iwdg_Driver
+#define whal_Stm32wba_Iwdg_Init    whal_Stm32wb_Iwdg_Init
+#define whal_Stm32wba_Iwdg_Deinit  whal_Stm32wb_Iwdg_Deinit
+#define whal_Stm32wba_Iwdg_Refresh whal_Stm32wb_Iwdg_Refresh
+#endif /* !WHAL_CFG_STM32WBA_IWDG_DIRECT_API_MAPPING */
 
 /*
  * @brief Prescaler values (re-exported from STM32WB).

@@ -30,18 +30,9 @@ whal_Timeout g_whalTimeout = {
 /* Clock — PLL at 48 MHz (HSI/2 * 12) */
 whal_Clock g_whalClock = {
     .regmap = { WHAL_STM32F091_RCC_REGMAP },
-
-    .cfg = &(whal_Stm32f0Rcc_Cfg) {
-        .sysClkSrc = WHAL_STM32F0_RCC_SYSCLK_SRC_PLL,
-        .pllCfg = &(whal_Stm32f0Rcc_PllCfg) {
-            .clkSrc = WHAL_STM32F0_RCC_PLLSRC_HSI_DIV2,
-            .prediv = 1,
-            .pllmul = 12,
-        },
-    },
 };
 
-static const whal_Stm32f0Rcc_Clk g_clocks[] = {
+static const whal_Stm32f0_Rcc_PeriphClk g_periphClks[] = {
     {WHAL_STM32F091_GPIOA_CLOCK},
     {WHAL_STM32F091_GPIOB_CLOCK},
     {WHAL_STM32F091_GPIOC_CLOCK},
@@ -49,14 +40,14 @@ static const whal_Stm32f0Rcc_Clk g_clocks[] = {
     {WHAL_STM32F091_SPI1_CLOCK},
     {WHAL_STM32F091_I2C1_CLOCK},
 };
-#define CLOCK_COUNT (sizeof(g_clocks) / sizeof(g_clocks[0]))
+#define PERIPH_CLK_COUNT (sizeof(g_periphClks) / sizeof(g_periphClks[0]))
 
 /* GPIO */
 whal_Gpio g_whalGpio = {
     .regmap = { WHAL_STM32F091_GPIO_REGMAP },
 
-    .cfg = &(whal_Stm32f0Gpio_Cfg) {
-        .pinCfg = (whal_Stm32f0Gpio_PinCfg[PIN_COUNT]) {
+    .cfg = &(whal_Stm32f0_Gpio_Cfg) {
+        .pinCfg = (whal_Stm32f0_Gpio_PinCfg[PIN_COUNT]) {
             /* LD2 Green LED on PA5 */
             [LED_PIN] = WHAL_STM32F0_GPIO_PIN(
                 WHAL_STM32F0_GPIO_PORT_A, 5, WHAL_STM32F0_GPIO_MODE_OUT,
@@ -123,7 +114,7 @@ whal_Timer g_whalTimer = {
 whal_Uart g_whalUart = {
     .regmap = { WHAL_STM32F091_USART2_REGMAP },
 
-    .cfg = &(whal_Stm32f0Uart_Cfg) {
+    .cfg = &(whal_Stm32f0_Uart_Cfg) {
         .timeout = &g_whalTimeout,
         .brr = WHAL_STM32F0_UART_BRR(48000000, 115200),
     },
@@ -133,7 +124,7 @@ whal_Uart g_whalUart = {
 whal_Spi g_whalSpi = {
     .regmap = { WHAL_STM32F091_SPI1_REGMAP },
 
-    .cfg = &(whal_Stm32f0Spi_Cfg) {
+    .cfg = &(whal_Stm32f0_Spi_Cfg) {
         .pclk = 48000000,
         .timeout = &g_whalTimeout,
     },
@@ -143,7 +134,7 @@ whal_Spi g_whalSpi = {
 whal_I2c g_whalI2c = {
     .regmap = { WHAL_STM32F091_I2C1_REGMAP },
 
-    .cfg = &(whal_Stm32f0I2c_Cfg) {
+    .cfg = &(whal_Stm32f0_I2c_Cfg) {
         .pclk = 48000000,
         .timeout = &g_whalTimeout,
     },
@@ -154,7 +145,7 @@ whal_Flash g_whalFlash = {
     .regmap = { WHAL_STM32F091_FLASH_REGMAP },
     .driver = WHAL_STM32F091_FLASH_DRIVER,
 
-    .cfg = &(whal_Stm32f0Flash_Cfg) {
+    .cfg = &(whal_Stm32f0_Flash_Cfg) {
         .startAddr = 0x08000000,
         .size = 0x40000,
         .timeout = &g_whalTimeout,
@@ -166,7 +157,7 @@ whal_Watchdog g_whalWatchdog = {
     .regmap = { WHAL_STM32F091_IWDG_REGMAP },
     .driver = WHAL_STM32F091_IWDG_DRIVER,
 
-    .cfg = &(whal_Stm32f0Iwdg_Cfg) {
+    .cfg = &(whal_Stm32f0_Iwdg_Cfg) {
         .prescaler = WHAL_STM32F0_IWDG_PR_64,
         .reload = 500,
         .timeout = &g_whalTimeout,
@@ -186,17 +177,29 @@ whal_Error Board_Init(void)
     whal_Error err;
 
     /* Set flash latency before increasing clock speed */
-    err = whal_Stm32f0Flash_Ext_SetLatency(&g_whalFlash,
+    err = whal_Stm32f0_Flash_Ext_SetLatency(&g_whalFlash,
                                              WHAL_STM32F0_FLASH_LATENCY_1);
     if (err)
         return err;
 
-    err = whal_Clock_Init(&g_whalClock);
+    /* HSI -> PLL (HSI/2 * 12 = 48 MHz) -> SYSCLK = PLL */
+    err = whal_Stm32f0_Rcc_EnableOsc(&g_whalClock,
+        &(whal_Stm32f0_Rcc_OscCfg){WHAL_STM32F0_RCC_HSI_CFG});
+    if (err)
+        return err;
+    err = whal_Stm32f0_Rcc_EnablePll(&g_whalClock, &(whal_Stm32f0_Rcc_PllCfg){
+        .clkSrc = WHAL_STM32F0_RCC_PLLSRC_HSI_DIV2,
+        .prediv = 1,
+        .pllmul = 12,
+    });
+    if (err)
+        return err;
+    err = whal_Stm32f0_Rcc_SetSysClock(&g_whalClock, WHAL_STM32F0_RCC_SYSCLK_SRC_PLL);
     if (err)
         return err;
 
-    for (size_t i = 0; i < CLOCK_COUNT; i++) {
-        err = whal_Clock_Enable(&g_whalClock, &g_clocks[i]);
+    for (size_t i = 0; i < PERIPH_CLK_COUNT; i++) {
+        err = whal_Stm32f0_Rcc_EnablePeriphClk(&g_whalClock, &g_periphClks[i]);
         if (err)
             return err;
     }
@@ -264,13 +267,16 @@ whal_Error Board_Deinit(void)
     if (err)
         return err;
 
-    for (size_t i = 0; i < CLOCK_COUNT; i++) {
-        err = whal_Clock_Disable(&g_whalClock, &g_clocks[i]);
+    for (size_t i = PERIPH_CLK_COUNT; i-- > 0; ) {
+        err = whal_Stm32f0_Rcc_DisablePeriphClk(&g_whalClock, &g_periphClks[i]);
         if (err)
             return err;
     }
 
-    err = whal_Clock_Deinit(&g_whalClock);
+    err = whal_Stm32f0_Rcc_SetSysClock(&g_whalClock, WHAL_STM32F0_RCC_SYSCLK_SRC_HSI);
+    if (err)
+        return err;
+    err = whal_Stm32f0_Rcc_DisablePll(&g_whalClock);
     if (err)
         return err;
 

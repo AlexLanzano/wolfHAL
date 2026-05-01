@@ -12,14 +12,14 @@
 
 #include <wolfHAL/watchdog/stm32wb_wwdg.h>
 
-typedef whal_Stm32wbWwdg_Cfg whal_Stm32n6Wwdg_Cfg;
+typedef whal_Stm32wb_Wwdg_Cfg whal_Stm32n6_Wwdg_Cfg;
 
-#ifndef WHAL_CFG_WATCHDOG_API_MAPPING_STM32N6_WWDG
-#define whal_Stm32n6Wwdg_Driver  whal_Stm32wbWwdg_Driver
-#define whal_Stm32n6Wwdg_Init    whal_Stm32wbWwdg_Init
-#define whal_Stm32n6Wwdg_Deinit  whal_Stm32wbWwdg_Deinit
-#define whal_Stm32n6Wwdg_Refresh whal_Stm32wbWwdg_Refresh
-#endif /* !WHAL_CFG_WATCHDOG_API_MAPPING_STM32N6_WWDG */
+#ifndef WHAL_CFG_STM32N6_WWDG_DIRECT_API_MAPPING
+#define whal_Stm32n6_Wwdg_Driver  whal_Stm32wb_Wwdg_Driver
+#define whal_Stm32n6_Wwdg_Init    whal_Stm32wb_Wwdg_Init
+#define whal_Stm32n6_Wwdg_Deinit  whal_Stm32wb_Wwdg_Deinit
+#define whal_Stm32n6_Wwdg_Refresh whal_Stm32wb_Wwdg_Refresh
+#endif /* !WHAL_CFG_STM32N6_WWDG_DIRECT_API_MAPPING */
 
 #define WHAL_STM32N6_WWDG_TB_1   WHAL_STM32WB_WWDG_TB_1
 #define WHAL_STM32N6_WWDG_TB_2   WHAL_STM32WB_WWDG_TB_2

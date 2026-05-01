@@ -19,13 +19,13 @@
  */
 typedef struct {
     whal_Timeout *timeout;
-} whal_Stm32wbAes_Cfg;
+} whal_Stm32wb_Aes_Cfg;
 
-#ifndef WHAL_CFG_CRYPTO_API_MAPPING_STM32WB_AES
+#ifndef WHAL_CFG_STM32WB_AES_DIRECT_API_MAPPING
 /*
  * @brief Driver instance for STM32WB AES peripheral.
  */
-extern const whal_CryptoDriver whal_Stm32wbAes_Driver;
+extern const whal_CryptoDriver whal_Stm32wb_Aes_Driver;
 
 /*
  * @brief Initialize the STM32WB AES peripheral.
@@ -35,7 +35,7 @@ extern const whal_CryptoDriver whal_Stm32wbAes_Driver;
  * @retval WHAL_SUCCESS Initialization completed.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_Stm32wbAes_Init(whal_Crypto *cryptoDev);
+whal_Error whal_Stm32wb_Aes_Init(whal_Crypto *cryptoDev);
 
 /*
  * @brief Deinitialize the STM32WB AES peripheral.
@@ -45,7 +45,7 @@ whal_Error whal_Stm32wbAes_Init(whal_Crypto *cryptoDev);
  * @retval WHAL_SUCCESS Deinit completed.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
-whal_Error whal_Stm32wbAes_Deinit(whal_Crypto *cryptoDev);
+whal_Error whal_Stm32wb_Aes_Deinit(whal_Crypto *cryptoDev);
 
 /*
  * @brief Start an AES cipher operation.
@@ -59,7 +59,7 @@ whal_Error whal_Stm32wbAes_Deinit(whal_Crypto *cryptoDev);
  * @retval WHAL_ENOTSUP   Unsupported opId or parameter (e.g. key size).
  * @retval WHAL_EHARDWARE Hardware error during setup.
  */
-whal_Error whal_Stm32wbAes_StartOp(whal_Crypto *cryptoDev, size_t opId,
+whal_Error whal_Stm32wb_Aes_StartOp(whal_Crypto *cryptoDev, size_t opId,
                                    void *opArgs);
 
 /*
@@ -74,7 +74,7 @@ whal_Error whal_Stm32wbAes_StartOp(whal_Crypto *cryptoDev, size_t opId,
  * @retval WHAL_ENOTSUP   Unsupported opId.
  * @retval WHAL_EHARDWARE Hardware error during processing.
  */
-whal_Error whal_Stm32wbAes_Process(whal_Crypto *cryptoDev, size_t opId,
+whal_Error whal_Stm32wb_Aes_Process(whal_Crypto *cryptoDev, size_t opId,
                                    void *opArgs);
 
 /*
@@ -89,8 +89,8 @@ whal_Error whal_Stm32wbAes_Process(whal_Crypto *cryptoDev, size_t opId,
  * @retval WHAL_ENOTSUP   Unsupported opId.
  * @retval WHAL_EHARDWARE Hardware error during finalization.
  */
-whal_Error whal_Stm32wbAes_EndOp(whal_Crypto *cryptoDev, size_t opId,
+whal_Error whal_Stm32wb_Aes_EndOp(whal_Crypto *cryptoDev, size_t opId,
                                  void *opArgs);
-#endif /* !WHAL_CFG_CRYPTO_API_MAPPING_STM32WB_AES */
+#endif /* !WHAL_CFG_STM32WB_AES_DIRECT_API_MAPPING */
 
 #endif /* WHAL_STM32WB_AES_H */

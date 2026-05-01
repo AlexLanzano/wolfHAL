@@ -79,29 +79,29 @@
 #define FLASH_KEY1 0x45670123UL
 #define FLASH_KEY2 0xCDEF89ABUL
 
-#ifdef WHAL_CFG_FLASH_API_MAPPING_STM32F4
-#define whal_Stm32f4Flash_Init   whal_Flash_Init
-#define whal_Stm32f4Flash_Deinit whal_Flash_Deinit
-#define whal_Stm32f4Flash_Lock   whal_Flash_Lock
-#define whal_Stm32f4Flash_Unlock whal_Flash_Unlock
-#define whal_Stm32f4Flash_Read   whal_Flash_Read
-#define whal_Stm32f4Flash_Write  whal_Flash_Write
-#define whal_Stm32f4Flash_Erase  whal_Flash_Erase
-#endif /* WHAL_CFG_FLASH_API_MAPPING_STM32F4 */
+#ifdef WHAL_CFG_STM32F4_FLASH_DIRECT_API_MAPPING
+#define whal_Stm32f4_Flash_Init   whal_Flash_Init
+#define whal_Stm32f4_Flash_Deinit whal_Flash_Deinit
+#define whal_Stm32f4_Flash_Lock   whal_Flash_Lock
+#define whal_Stm32f4_Flash_Unlock whal_Flash_Unlock
+#define whal_Stm32f4_Flash_Read   whal_Flash_Read
+#define whal_Stm32f4_Flash_Write  whal_Flash_Write
+#define whal_Stm32f4_Flash_Erase  whal_Flash_Erase
+#endif /* WHAL_CFG_STM32F4_FLASH_DIRECT_API_MAPPING */
 
-whal_Error whal_Stm32f4Flash_Init(whal_Flash *flashDev)
+whal_Error whal_Stm32f4_Flash_Init(whal_Flash *flashDev)
 {
     (void)flashDev;
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_Stm32f4Flash_Deinit(whal_Flash *flashDev)
+whal_Error whal_Stm32f4_Flash_Deinit(whal_Flash *flashDev)
 {
     (void)flashDev;
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_Stm32f4Flash_Lock(whal_Flash *flashDev, size_t addr, size_t len)
+whal_Error whal_Stm32f4_Flash_Lock(whal_Flash *flashDev, size_t addr, size_t len)
 {
     const whal_Regmap *regmap;
 
@@ -119,7 +119,7 @@ whal_Error whal_Stm32f4Flash_Lock(whal_Flash *flashDev, size_t addr, size_t len)
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_Stm32f4Flash_Unlock(whal_Flash *flashDev, size_t addr, size_t len)
+whal_Error whal_Stm32f4_Flash_Unlock(whal_Flash *flashDev, size_t addr, size_t len)
 {
     const whal_Regmap *regmap;
 
@@ -137,11 +137,11 @@ whal_Error whal_Stm32f4Flash_Unlock(whal_Flash *flashDev, size_t addr, size_t le
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_Stm32f4Flash_Read(whal_Flash *flashDev, size_t addr,
+whal_Error whal_Stm32f4_Flash_Read(whal_Flash *flashDev, size_t addr,
                                    void *data, size_t dataSz)
 {
     uint8_t *dataBuf = (uint8_t *)data;
-    whal_Stm32f4Flash_Cfg *cfg;
+    whal_Stm32f4_Flash_Cfg *cfg;
 
     if (!flashDev || !flashDev->cfg || !data)
         return WHAL_EINVAL;
@@ -158,11 +158,11 @@ whal_Error whal_Stm32f4Flash_Read(whal_Flash *flashDev, size_t addr,
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_Stm32f4Flash_Write(whal_Flash *flashDev, size_t addr,
+whal_Error whal_Stm32f4_Flash_Write(whal_Flash *flashDev, size_t addr,
                                     const void *data, size_t dataSz)
 {
     const uint8_t *dataBuf = (const uint8_t *)data;
-    whal_Stm32f4Flash_Cfg *cfg;
+    whal_Stm32f4_Flash_Cfg *cfg;
     const whal_Regmap *regmap;
     whal_Error err = WHAL_SUCCESS;
 
@@ -222,10 +222,10 @@ cleanup:
     return err;
 }
 
-whal_Error whal_Stm32f4Flash_Erase(whal_Flash *flashDev, size_t addr,
+whal_Error whal_Stm32f4_Flash_Erase(whal_Flash *flashDev, size_t addr,
                                     size_t dataSz)
 {
-    whal_Stm32f4Flash_Cfg *cfg;
+    whal_Stm32f4_Flash_Cfg *cfg;
     const whal_Regmap *regmap;
     whal_Error err = WHAL_SUCCESS;
 
@@ -291,8 +291,8 @@ cleanup:
     return err;
 }
 
-whal_Error whal_Stm32f4Flash_Ext_SetLatency(whal_Flash *flashDev,
-                                             enum whal_Stm32f4Flash_Latency latency)
+whal_Error whal_Stm32f4_Flash_Ext_SetLatency(whal_Flash *flashDev,
+                                             enum whal_Stm32f4_Flash_Latency latency)
 {
     if (!flashDev)
         return WHAL_EINVAL;
@@ -303,14 +303,14 @@ whal_Error whal_Stm32f4Flash_Ext_SetLatency(whal_Flash *flashDev,
     return WHAL_SUCCESS;
 }
 
-#ifndef WHAL_CFG_FLASH_API_MAPPING_STM32F4
-const whal_FlashDriver whal_Stm32f4Flash_Driver = {
-    .Init = whal_Stm32f4Flash_Init,
-    .Deinit = whal_Stm32f4Flash_Deinit,
-    .Lock = whal_Stm32f4Flash_Lock,
-    .Unlock = whal_Stm32f4Flash_Unlock,
-    .Read = whal_Stm32f4Flash_Read,
-    .Write = whal_Stm32f4Flash_Write,
-    .Erase = whal_Stm32f4Flash_Erase,
+#ifndef WHAL_CFG_STM32F4_FLASH_DIRECT_API_MAPPING
+const whal_FlashDriver whal_Stm32f4_Flash_Driver = {
+    .Init = whal_Stm32f4_Flash_Init,
+    .Deinit = whal_Stm32f4_Flash_Deinit,
+    .Lock = whal_Stm32f4_Flash_Lock,
+    .Unlock = whal_Stm32f4_Flash_Unlock,
+    .Read = whal_Stm32f4_Flash_Read,
+    .Write = whal_Stm32f4_Flash_Write,
+    .Erase = whal_Stm32f4_Flash_Erase,
 };
-#endif /* !WHAL_CFG_FLASH_API_MAPPING_STM32F4 */
+#endif /* !WHAL_CFG_STM32F4_FLASH_DIRECT_API_MAPPING */

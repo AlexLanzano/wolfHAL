@@ -88,24 +88,24 @@
 #define DMAMUX_CxCR_DMAREQ_ID_Pos  0
 #define DMAMUX_CxCR_DMAREQ_ID_Msk  (WHAL_BITMASK(6) << DMAMUX_CxCR_DMAREQ_ID_Pos)
 
-#ifdef WHAL_CFG_DMA_API_MAPPING_STM32WB
-#define whal_Stm32wbDma_Init      whal_Dma_Init
-#define whal_Stm32wbDma_Deinit    whal_Dma_Deinit
-#define whal_Stm32wbDma_Configure whal_Dma_Configure
-#define whal_Stm32wbDma_Start     whal_Dma_Start
-#define whal_Stm32wbDma_Stop      whal_Dma_Stop
-#endif /* WHAL_CFG_DMA_API_MAPPING_STM32WB */
+#ifdef WHAL_CFG_STM32WB_DMA_DIRECT_API_MAPPING
+#define whal_Stm32wb_Dma_Init      whal_Dma_Init
+#define whal_Stm32wb_Dma_Deinit    whal_Dma_Deinit
+#define whal_Stm32wb_Dma_Configure whal_Dma_Configure
+#define whal_Stm32wb_Dma_Start     whal_Dma_Start
+#define whal_Stm32wb_Dma_Stop      whal_Dma_Stop
+#endif /* WHAL_CFG_STM32WB_DMA_DIRECT_API_MAPPING */
 
-whal_Error whal_Stm32wbDma_Init(whal_Dma *dmaDev)
+whal_Error whal_Stm32wb_Dma_Init(whal_Dma *dmaDev)
 {
-    whal_Stm32wbDma_Cfg *cfg;
+    whal_Stm32wb_Dma_Cfg *cfg;
     size_t base;
 
     if (!dmaDev || !dmaDev->cfg) {
         return WHAL_EINVAL;
     }
 
-    cfg = (whal_Stm32wbDma_Cfg *)dmaDev->cfg;
+    cfg = (whal_Stm32wb_Dma_Cfg *)dmaDev->cfg;
     base = dmaDev->regmap.base;
 
     /* Clear all interrupt flags for all channels */
@@ -120,16 +120,16 @@ whal_Error whal_Stm32wbDma_Init(whal_Dma *dmaDev)
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_Stm32wbDma_Deinit(whal_Dma *dmaDev)
+whal_Error whal_Stm32wb_Dma_Deinit(whal_Dma *dmaDev)
 {
-    whal_Stm32wbDma_Cfg *cfg;
+    whal_Stm32wb_Dma_Cfg *cfg;
     size_t base;
 
     if (!dmaDev || !dmaDev->cfg) {
         return WHAL_EINVAL;
     }
 
-    cfg = (whal_Stm32wbDma_Cfg *)dmaDev->cfg;
+    cfg = (whal_Stm32wb_Dma_Cfg *)dmaDev->cfg;
     base = dmaDev->regmap.base;
 
     /* Disable all channels and clear all interrupt flags */
@@ -150,11 +150,11 @@ whal_Error whal_Stm32wbDma_Deinit(whal_Dma *dmaDev)
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_Stm32wbDma_Configure(whal_Dma *dmaDev, size_t ch,
+whal_Error whal_Stm32wb_Dma_Configure(whal_Dma *dmaDev, size_t ch,
                                              const void *chCfg)
 {
-    whal_Stm32wbDma_Cfg *cfg;
-    const whal_Stm32wbDma_ChCfg *dmaChCfg;
+    whal_Stm32wb_Dma_Cfg *cfg;
+    const whal_Stm32wb_Dma_ChCfg *dmaChCfg;
     size_t base;
     size_t hw_ch;
     size_t ccr;
@@ -169,8 +169,8 @@ whal_Error whal_Stm32wbDma_Configure(whal_Dma *dmaDev, size_t ch,
         return WHAL_EINVAL;
     }
 
-    cfg = (whal_Stm32wbDma_Cfg *)dmaDev->cfg;
-    dmaChCfg = (const whal_Stm32wbDma_ChCfg *)chCfg;
+    cfg = (whal_Stm32wb_Dma_Cfg *)dmaDev->cfg;
+    dmaChCfg = (const whal_Stm32wb_Dma_ChCfg *)chCfg;
     base = dmaDev->regmap.base;
 
     if (ch >= cfg->numChannels) {
@@ -270,9 +270,9 @@ whal_Error whal_Stm32wbDma_Configure(whal_Dma *dmaDev, size_t ch,
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_Stm32wbDma_Start(whal_Dma *dmaDev, size_t ch)
+whal_Error whal_Stm32wb_Dma_Start(whal_Dma *dmaDev, size_t ch)
 {
-    whal_Stm32wbDma_Cfg *cfg;
+    whal_Stm32wb_Dma_Cfg *cfg;
     size_t base;
     size_t hw_ch;
 
@@ -280,7 +280,7 @@ whal_Error whal_Stm32wbDma_Start(whal_Dma *dmaDev, size_t ch)
         return WHAL_EINVAL;
     }
 
-    cfg = (whal_Stm32wbDma_Cfg *)dmaDev->cfg;
+    cfg = (whal_Stm32wb_Dma_Cfg *)dmaDev->cfg;
     base = dmaDev->regmap.base;
 
     if (ch >= cfg->numChannels) {
@@ -300,9 +300,9 @@ whal_Error whal_Stm32wbDma_Start(whal_Dma *dmaDev, size_t ch)
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_Stm32wbDma_Stop(whal_Dma *dmaDev, size_t ch)
+whal_Error whal_Stm32wb_Dma_Stop(whal_Dma *dmaDev, size_t ch)
 {
-    whal_Stm32wbDma_Cfg *cfg;
+    whal_Stm32wb_Dma_Cfg *cfg;
     size_t base;
     size_t hw_ch;
 
@@ -310,7 +310,7 @@ whal_Error whal_Stm32wbDma_Stop(whal_Dma *dmaDev, size_t ch)
         return WHAL_EINVAL;
     }
 
-    cfg = (whal_Stm32wbDma_Cfg *)dmaDev->cfg;
+    cfg = (whal_Stm32wb_Dma_Cfg *)dmaDev->cfg;
     base = dmaDev->regmap.base;
 
     if (ch >= cfg->numChannels) {
@@ -330,8 +330,8 @@ whal_Error whal_Stm32wbDma_Stop(whal_Dma *dmaDev, size_t ch)
     return WHAL_SUCCESS;
 }
 
-void whal_Stm32wbDma_IRQHandler(whal_Dma *dmaDev, size_t ch,
-                                 whal_Stm32wbDma_Callback cb, void *ctx)
+void whal_Stm32wb_Dma_IRQHandler(whal_Dma *dmaDev, size_t ch,
+                                 whal_Stm32wb_Dma_Callback cb, void *ctx)
 {
     size_t base;
     size_t hw_ch;
@@ -358,12 +358,12 @@ void whal_Stm32wbDma_IRQHandler(whal_Dma *dmaDev, size_t ch,
     }
 }
 
-#ifndef WHAL_CFG_DMA_API_MAPPING_STM32WB
-const whal_DmaDriver whal_Stm32wbDma_Driver = {
-    .Init = whal_Stm32wbDma_Init,
-    .Deinit = whal_Stm32wbDma_Deinit,
-    .Configure = whal_Stm32wbDma_Configure,
-    .Start = whal_Stm32wbDma_Start,
-    .Stop = whal_Stm32wbDma_Stop,
+#ifndef WHAL_CFG_STM32WB_DMA_DIRECT_API_MAPPING
+const whal_DmaDriver whal_Stm32wb_Dma_Driver = {
+    .Init = whal_Stm32wb_Dma_Init,
+    .Deinit = whal_Stm32wb_Dma_Deinit,
+    .Configure = whal_Stm32wb_Dma_Configure,
+    .Start = whal_Stm32wb_Dma_Start,
+    .Stop = whal_Stm32wb_Dma_Stop,
 };
-#endif /* !WHAL_CFG_DMA_API_MAPPING_STM32WB */
+#endif /* !WHAL_CFG_STM32WB_DMA_DIRECT_API_MAPPING */

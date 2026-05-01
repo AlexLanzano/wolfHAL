@@ -2,253 +2,157 @@
 #define WHAL_PIC32CZ_CLOCK_H
 
 #include <stdint.h>
+#include <stddef.h>
 #include <wolfHAL/bitops.h>
 #include <wolfHAL/clock/clock.h>
 
 /*
  * @file pic32cz_clock.h
- * @brief PIC32CZ clock system driver configuration.
+ * @brief PIC32CZ clock system driver.
  *
- * The PIC32CZ clock system consists of three main subsystems:
+ * Boards bring up the clock tree imperatively from Board_Init.
  *
- * 1. OSCCTRL (Oscillator Controller) - Contains PLLs and oscillator sources
- *    - PLL0/PLL1: Fractional PLLs with up to 4 independent outputs each
- *    - Reference sources: GCLK, XOSC, or internal DFLL48M
+ * The PIC32CZ clock subsystems:
+ *   OSCCTRL — PLL0/PLL1 fractional PLLs (each up to 4 outputs).
+ *   GCLK    — N generic clock generators routed to peripheral channels.
+ *   MCLK    — main clock controller (CPU divider + peripheral bus gates).
  *
- * 2. GCLK (Generic Clock Controller) - Routes clocks to peripherals
- *    - Generators: Divide and select clock sources
- *    - Peripheral Channels: Connect generators to specific peripherals
- *
- * 3. MCLK (Main Clock Controller) - Controls CPU and bus clocks
- *    - Provides clock gating for peripheral buses (APB, AHB)
- *    - Configures CPU clock dividers
- *
- * Clock path: Reference -> PLL -> GCLK Generator -> GCLK Peripheral Channel -> Peripheral
- *                                      |
- *                                      v
- *                              MCLK -> CPU/Bus clocks
+ * Path:  Reference -> PLL -> GCLK Generator -> GCLK Peripheral Channel -> Peripheral
+ *                                            -> MCLK -> CPU/bus clocks
  */
 
 /*
- * @brief PLL instance selection.
- *
- * PIC32CZ has two independent PLLs that can be configured separately.
+ * @brief PLL instance.
  */
-typedef enum whal_Pic32czClockPll_Inst{
+typedef enum {
     WHAL_PIC32CZ_PLL0,
     WHAL_PIC32CZ_PLL1,
-} whal_Pic32czClockPll_Inst;
+} whal_Pic32cz_Clock_PllInst;
 
 /*
  * @brief PLL reference clock source selection.
- *
- * Determines the input clock source for the PLL.
  */
-typedef enum whal_Pic32czClockPll_RefSel{
-    WHAL_PIC32CZ_REFSEL_GCLK,    /* Generic clock as reference */
-    WHAL_PIC32CZ_REFSEL_XOSC,    /* External crystal oscillator */
-    WHAL_PIC32CZ_REFSEL_DFLL48M, /* Internal 48MHz DFLL */
-} whal_Pic32czClockPll_RefSel;
+typedef enum {
+    WHAL_PIC32CZ_REFSEL_GCLK,
+    WHAL_PIC32CZ_REFSEL_XOSC,
+    WHAL_PIC32CZ_REFSEL_DFLL48M,
+} whal_Pic32cz_Clock_PllRefSel;
 
 /*
  * @brief PLL loop filter bandwidth selection.
- *
- * Must be selected based on the PLL reference frequency after the
- * reference divider (f_ref / refDiv). Incorrect selection may cause
- * PLL instability or failure to lock.
  */
-typedef enum whal_Pic32czClockPll_BwSel {
-    WHAL_PIC32CZ_BWSEL_4MHz_TO_10MHz = 1,  /* Use for 4-10 MHz ref */
-    WHAL_PIC32CZ_BWSEL_10MHz_TO_20MHz,     /* Use for 10-20 MHz ref */
-    WHAL_PIC32CZ_BWSEL_20MHz_TO_30MHz,     /* Use for 20-30 MHz ref */
-    WHAL_PIC32CZ_BWSEL_30MHz_TO_60MHz,     /* Use for 30-60 MHz ref */
-} whal_Pic32czClockPll_BwSel;
+typedef enum {
+    WHAL_PIC32CZ_BWSEL_4MHz_TO_10MHz  = 1,
+    WHAL_PIC32CZ_BWSEL_10MHz_TO_20MHz,
+    WHAL_PIC32CZ_BWSEL_20MHz_TO_30MHz,
+    WHAL_PIC32CZ_BWSEL_30MHz_TO_60MHz,
+} whal_Pic32cz_Clock_PllBwSel;
 
 /*
  * @brief GCLK generator source selection.
- *
- * Selects which clock source feeds a GCLK generator. Each PLL has
- * up to 4 independent clock outputs that can be used as sources.
  */
-typedef enum whal_Pic32czClock_GenSrc {
+typedef enum {
     WHAL_PIC32CZ_GENSRC_PLL0_CLOCKOUT0 = 0x6,
     WHAL_PIC32CZ_GENSRC_PLL0_CLOCKOUT1,
     WHAL_PIC32CZ_GENSRC_PLL0_CLOCKOUT2,
     WHAL_PIC32CZ_GENSRC_PLL0_CLOCKOUT3,
-} whal_Pic32czClock_GenSrc;
+} whal_Pic32cz_Clock_GenSrc;
 
-/* PLL output post-divider masks for PLLxPOSTDIVA register */
-#define WHAL_PIC32CZ_POSTDIV0_Pos (0)  /* POSTDIV0[5:0] */
+/* PLL output post-divider field positions for PLLxPOSTDIVA */
+#define WHAL_PIC32CZ_POSTDIV0_Pos (0)
 #define WHAL_PIC32CZ_POSTDIV0_Msk (WHAL_BITMASK(6) << 0)
-
-#define WHAL_PIC32CZ_POSTDIV1_Pos (8)  /* POSTDIV1[5:0] */
+#define WHAL_PIC32CZ_POSTDIV1_Pos (8)
 #define WHAL_PIC32CZ_POSTDIV1_Msk (WHAL_BITMASK(6) << 8)
-
-#define WHAL_PIC32CZ_POSTDIV2_Pos (16)  /* POSTDIV2[5:0] */
+#define WHAL_PIC32CZ_POSTDIV2_Pos (16)
 #define WHAL_PIC32CZ_POSTDIV2_Msk (WHAL_BITMASK(6) << 16)
-
-#define WHAL_PIC32CZ_POSTDIV3_Pos (24)  /* POSTDIV3[5:0] */
+#define WHAL_PIC32CZ_POSTDIV3_Pos (24)
 #define WHAL_PIC32CZ_POSTDIV3_Msk (WHAL_BITMASK(6) << 24)
-
-/* PLL output enable masks for PLLxPOSTDIVA register */
-#define WHAL_PIC32CZ_OUTEN0_Pos (7)  /* OUTEN0 */
+#define WHAL_PIC32CZ_OUTEN0_Pos (7)
 #define WHAL_PIC32CZ_OUTEN0_Msk (1UL << 7)
-
-#define WHAL_PIC32CZ_OUTEN1_Pos (15)  /* OUTEN1 */
+#define WHAL_PIC32CZ_OUTEN1_Pos (15)
 #define WHAL_PIC32CZ_OUTEN1_Msk (1UL << 15)
-
-#define WHAL_PIC32CZ_OUTEN2_Pos (23)  /* OUTEN2 */
+#define WHAL_PIC32CZ_OUTEN2_Pos (23)
 #define WHAL_PIC32CZ_OUTEN2_Msk (1UL << 23)
-
-#define WHAL_PIC32CZ_OUTEN3_Pos (31)  /* OUTEN3 */
+#define WHAL_PIC32CZ_OUTEN3_Pos (31)
 #define WHAL_PIC32CZ_OUTEN3_Msk (1UL << 31)
 
 /*
- * @brief PLL output configuration.
- *
- * Each PLL has up to 4 independent outputs, each with its own post-divider.
- * Output frequency = VCO frequency / postDiv
+ * @brief One PLL output configuration. f_out = f_vco / postDiv.
  */
-typedef struct whal_Pic32czClockPll_OutCfg {
-    size_t postDivMask; /* Use WHAL_PIC32CZ_POSTDIVx_Msk */
-    size_t postDivPos; /* Use WHAL_PIC32CZ_POSTDIVx_Pos */
-    size_t outEnMask;   /* Use WHAL_PIC32CZ_OUTENx_Msk */
-    size_t outEnPos;   /* Use WHAL_PIC32CZ_OUTENx_Pos */
-    uint8_t postDiv;    /* Post-divider value (1-63) */
-} whal_Pic32czClockPll_OutCfg;
+typedef struct {
+    size_t postDivMask;
+    size_t postDivPos;
+    size_t outEnMask;
+    size_t outEnPos;
+    uint8_t postDiv;
+} whal_Pic32cz_Clock_PllOutCfg;
 
 /*
- * @brief PLL oscillator controller configuration.
- *
- * Configures a PLL within the OSCCTRL subsystem. The PLL output frequency
- * is calculated as:
- *
+ * @brief PLL configuration.
  *   f_vco = (f_ref / refDiv) * fbDiv
- *   f_out = f_vco / postDiv
- *
- * Where:
- *   f_ref   = Reference clock frequency (GCLK, XOSC, or DFLL48M)
- *   refDiv  = Reference divider (1-63)
- *   fbDiv   = Feedback divider (16-1023)
- *   postDiv = Per-output post-divider (1-63)
- *
- * Example: 48MHz ref, refDiv=12, fbDiv=225, postDiv=3
- *   f_vco = (48MHz / 12) * 225 = 900MHz
- *   f_out = 900MHz / 3 = 300MHz
+ *   refDiv: 1-63
+ *   fbDiv:  16-1023
  */
-typedef struct whal_Pic32czClockPll_OscCtrlCfg {
-    whal_Pic32czClockPll_Inst pllInst;   /* PLL0 or PLL1 */
-    whal_Pic32czClockPll_RefSel refSel;  /* Reference clock source */
-    whal_Pic32czClockPll_BwSel bwSel;    /* Loop filter bandwidth */
-
-    uint8_t refDiv;   /* Reference divider (1-63) */
-    uint16_t fbDiv;   /* Feedback divider (16-1023) */
-
-    uint8_t outCfgCount;              /* Number of outputs to configure */
-    whal_Pic32czClockPll_OutCfg *outCfg; /* Array of output configurations */
-} whal_Pic32czClockPll_OscCtrlCfg;
+typedef struct {
+    whal_Pic32cz_Clock_PllInst pllInst;
+    whal_Pic32cz_Clock_PllRefSel refSel;
+    whal_Pic32cz_Clock_PllBwSel bwSel;
+    uint8_t refDiv;
+    uint16_t fbDiv;
+    uint8_t outCfgCount;
+    const whal_Pic32cz_Clock_PllOutCfg *outCfg;
+} whal_Pic32cz_Clock_PllCfg;
 
 /*
  * @brief GCLK generator configuration.
- *
- * Configures a generic clock generator. The generator takes a source clock
- * and optionally divides it before routing to peripheral channels.
- *
- *   f_gclk = f_source / genDiv
+ *   gen:    generator index (0-11)
+ *   genSrc: clock source for this generator
+ *   genDiv: divider (1-65535, 0 = off)
  */
-typedef struct whal_Pic32czClock_GclkCfg {
-    uint8_t gen;                     /* Generator number (0-11) */
-    whal_Pic32czClock_GenSrc genSrc; /* Clock source for this generator */
-    uint16_t genDiv;                 /* Division factor (1-65535, 0 = off) */
-} whal_Pic32czClock_GclkCfg;
+typedef struct {
+    uint8_t gen;
+    whal_Pic32cz_Clock_GenSrc genSrc;
+    uint16_t genDiv;
+} whal_Pic32cz_Clock_GenCfg;
 
 /*
- * @brief MCLK (Main Clock) configuration.
- *
- * Configures the main clock controller which provides clocks to the CPU
- * and peripheral buses.
+ * @brief Peripheral clock descriptor (GCLK channel + MCLK enable bit).
  */
-typedef struct whal_Pic32czClock_MclkCfg {
-    uint8_t div; /* CPU clock divider */
-} whal_Pic32czClock_MclkCfg;
+typedef struct {
+    size_t gclkPeriphChannel;
+    uint8_t gclkPeriphSrc;
+    size_t mclkEnableInst;
+    size_t mclkEnableMask;
+    size_t mclkEnablePos;
+} whal_Pic32cz_Clock_PeriphClk;
 
 /*
- * @brief Complete clock system configuration.
- *
- * Combines OSCCTRL, GCLK, and MCLK settings for full clock tree setup.
+ * @brief Configure and enable a PLL. Blocks until lock is detected.
  */
-typedef struct whal_Pic32czClock_Cfg {
-    void *oscCtrlCfg;                    /* Oscillator config (PLL or other) */
-    uint8_t gclkCfgCount;                /* Number of GCLK generators to configure */
-    whal_Pic32czClock_GclkCfg *gclkCfg;  /* Array of generator configurations */
-    whal_Pic32czClock_MclkCfg *mclkCfg;  /* Main clock configuration */
-} whal_Pic32czClock_Cfg;
+whal_Error whal_Pic32cz_Clock_EnablePll(whal_Clock *clkDev,
+                                       const whal_Pic32cz_Clock_PllCfg *cfg);
 
 /*
- * @brief Peripheral clock descriptor.
- *
- * Describes how to enable clocking for a specific peripheral. Each peripheral
- * needs both a GCLK peripheral channel connection and an MCLK bus enable.
- *
- * The gclkPeriphChannel and gclkPeriphSrc connect the peripheral to a GCLK
- * generator. The mclkEnableInst and mclkEnableMask enable the peripheral's
- * bus clock in the MCLK controller.
- *
- * These values are found in the datasheet's "Peripheral Clock Masking" and
- * "GCLK Peripheral Channel Mapping" tables.
+ * @brief Configure and enable a GCLK generator. Blocks until sync clears.
  */
-typedef struct whal_Pic32czClock_Clk {
-    size_t gclkPeriphChannel; /* GCLK peripheral channel index */
-    uint8_t gclkPeriphSrc;    /* GCLK generator to use as source */
-    size_t mclkEnableInst;    /* MCLK mask register instance */
-    size_t mclkEnableMask;    /* Bit mask within the MCLK mask register */
-    size_t mclkEnablePos;     /* Bit position within the MCLK mask register */
-} whal_Pic32czClock_Clk;
-
-#ifndef WHAL_CFG_CLOCK_API_MAPPING_PIC32CZ_PLL
-/*
- * @brief Driver instance for PIC32CZ oscillator clock.
- */
-extern const whal_ClockDriver whal_Pic32czClockPll_Driver;
+whal_Error whal_Pic32cz_Clock_EnableGclkGen(whal_Clock *clkDev,
+                                           const whal_Pic32cz_Clock_GenCfg *cfg);
 
 /*
- * @brief Initialize the PIC32CZ oscillator clock.
- *
- * @param clkDev Clock device instance to initialize.
- *
- * @retval WHAL_SUCCESS Initialization completed.
- * @retval WHAL_EINVAL  Invalid arguments.
+ * @brief Set the MCLK CPU divider. Blocks until ready.
  */
-whal_Error whal_Pic32czClock_Init(whal_Clock *clkDev);
+whal_Error whal_Pic32cz_Clock_SetMclkDiv(whal_Clock *clkDev, uint8_t div);
+
 /*
- * @brief Deinitialize the PIC32CZ oscillator clock.
- *
- * @param clkDev Clock device instance to deinitialize.
- *
- * @retval WHAL_SUCCESS Deinit completed.
- * @retval WHAL_EINVAL  Invalid arguments.
+ * @brief Enable a peripheral clock — connects GCLK channel to a generator
+ *        and enables the peripheral's MCLK bus gate.
  */
-whal_Error whal_Pic32czClock_Deinit(whal_Clock *clkDev);
+whal_Error whal_Pic32cz_Clock_EnablePeriphClk(whal_Clock *clkDev,
+                                             const whal_Pic32cz_Clock_PeriphClk *clk);
 /*
- * @brief Enable the PIC32CZ oscillator clock.
- *
- * @param clkDev Clock device instance to enable.
- * @param clk    Clock selector (unused in stub).
- *
- * @retval WHAL_SUCCESS Clock enabled.
- * @retval WHAL_EINVAL  Invalid arguments.
+ * @brief Disable a peripheral clock.
  */
-whal_Error whal_Pic32czClock_Enable(whal_Clock *clkDev, const void *clk);
-/*
- * @brief Disable the PIC32CZ oscillator clock.
- *
- * @param clkDev Clock device instance to disable.
- * @param clk    Clock selector (unused in stub).
- *
- * @retval WHAL_SUCCESS Clock disabled.
- * @retval WHAL_EINVAL  Invalid arguments.
- */
-whal_Error whal_Pic32czClock_Disable(whal_Clock *clkDev, const void *clk);
-#endif /* !WHAL_CFG_CLOCK_API_MAPPING_PIC32CZ_PLL */
+whal_Error whal_Pic32cz_Clock_DisablePeriphClk(whal_Clock *clkDev,
+                                              const whal_Pic32cz_Clock_PeriphClk *clk);
 
 #endif /* WHAL_PIC32CZ_CLOCK_H */

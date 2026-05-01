@@ -29,20 +29,20 @@ build configuration.
 
 Each board directory contains:
 
-- **`Makefile.inc`** - Build configuration: toolchain, CPU flags, platform
+- **`board.mk`** - Build configuration: toolchain, CPU flags, platform
   drivers, and linker script. Included by application Makefiles via
-  `include $(BOARD_DIR)/Makefile.inc`.
+  `include $(BOARD_DIR)/board.mk`.
 - **`board.h`** - Board-level declarations: global peripheral instances,
   pin definitions, and `Board_Init()`/`Board_Deinit()` prototypes.
 - **`board.c`** - Peripheral instantiation and `Board_Init()` implementation
-  (supply, clock, GPIO, UART, flash, timer).
+  (power, clock, GPIO, UART, flash, timer).
 - **`linker.ld`** - Linker script defining memory regions (flash, RAM).
 - Any additional board-specific source files (e.g. interrupt vector table,
   architecture-specific startup code).
 
-## Makefile.inc Convention
+## board.mk Convention
 
-Board `Makefile.inc` files use a self-referencing pattern so that they can be
+Board `board.mk` files use a self-referencing pattern so that they can be
 included from any directory:
 
 ```makefile
@@ -52,11 +52,11 @@ _BOARD_DIR := $(patsubst %/,%,$(dir $(lastword $(MAKEFILE_LIST))))
 `_BOARD_DIR` points to the board's own directory, while the application
 Makefile sets `BOARD_DIR` which may point elsewhere (e.g. a private board
 overlay). This enables private repositories to extend a board by including
-the base `Makefile.inc` and adding additional sources.
+the base `board.mk` and adding additional sources.
 
 ### What `BOARD_SOURCE` includes
 
-Board `Makefile.inc` populates `BOARD_SOURCE` with all of the sources
+Board `board.mk` populates `BOARD_SOURCE` with all of the sources
 required to build the wolfHAL tests and sample applications for that board:
 
 - Board files: `board.c` and any additional board-specific source files
@@ -66,13 +66,13 @@ required to build the wolfHAL tests and sample applications for that board:
   `gpio.c`, `clock.c`, `uart.c`, and other files under `src/*.c`
 
 In your own projects you may either reuse these defaults by including the
-board `Makefile.inc` as-is, or define your own `BOARD_SOURCE` in your
+board `board.mk` as-is, or define your own `BOARD_SOURCE` in your
 application Makefile to select a different set of modules.
 
 ## Adding a New Board
 
 1. Create a new directory: `boards/<vendor>_<board>/`
-2. Add `Makefile.inc` following the `_BOARD_DIR` pattern above
+2. Add `board.mk` following the `_BOARD_DIR` pattern above
 3. Implement `board.h`, `board.c`, and `linker.ld`
 4. Set `PLATFORM`, `TESTS`, toolchain variables, `CFLAGS`, and `BOARD_SOURCE`
 5. Build with `make BOARD=<your_board>`

@@ -13,18 +13,54 @@
  * 1/2/4/8), unlike the WB which has a 3-bit WDGTB at bits 13:11.
  */
 
+/*
+ * @brief STM32F0 WWDG configuration.
+ */
 typedef struct {
-    uint8_t prescaler;
-    uint8_t window;
-    uint8_t counter;
-} whal_Stm32f0Wwdg_Cfg;
+    uint8_t prescaler; /* WDGTB value (0–3): div 1, 2, 4, or 8 */
+    uint8_t window;    /* WWDG window value (0x40–0x7F) */
+    uint8_t counter;   /* Initial counter value (0x40–0x7F) */
+} whal_Stm32f0_Wwdg_Cfg;
 
-#ifndef WHAL_CFG_WATCHDOG_API_MAPPING_STM32F0_WWDG
-extern const whal_WatchdogDriver whal_Stm32f0Wwdg_Driver;
+#ifndef WHAL_CFG_STM32F0_WWDG_DIRECT_API_MAPPING
+/*
+ * @brief Driver instance for the STM32F0 window watchdog.
+ */
+extern const whal_WatchdogDriver whal_Stm32f0_Wwdg_Driver;
 
-whal_Error whal_Stm32f0Wwdg_Init(whal_Watchdog *wdgDev);
-whal_Error whal_Stm32f0Wwdg_Deinit(whal_Watchdog *wdgDev);
-whal_Error whal_Stm32f0Wwdg_Refresh(whal_Watchdog *wdgDev);
-#endif /* !WHAL_CFG_WATCHDOG_API_MAPPING_STM32F0_WWDG */
+/*
+ * @brief Initialize and start the WWDG. Programs CFR (window/prescaler)
+ *        and CR (enable + initial counter). The watchdog cannot be stopped
+ *        once started.
+ *
+ * @param wdgDev Watchdog device instance.
+ *
+ * @retval WHAL_SUCCESS Watchdog started.
+ * @retval WHAL_EINVAL  Null pointer or missing cfg.
+ */
+whal_Error whal_Stm32f0_Wwdg_Init(whal_Watchdog *wdgDev);
+
+/*
+ * @brief Deinitialize the WWDG (driver-side cleanup only — the hardware
+ *        cannot be stopped).
+ *
+ * @param wdgDev Watchdog device instance.
+ *
+ * @retval WHAL_SUCCESS Driver deinitialized.
+ * @retval WHAL_EINVAL  Null pointer.
+ */
+whal_Error whal_Stm32f0_Wwdg_Deinit(whal_Watchdog *wdgDev);
+
+/*
+ * @brief Refresh the WWDG counter. Must be called after the window opens
+ *        and before the counter underflows, or a reset is generated.
+ *
+ * @param wdgDev Watchdog device instance.
+ *
+ * @retval WHAL_SUCCESS Counter refreshed.
+ * @retval WHAL_EINVAL  Null pointer.
+ */
+whal_Error whal_Stm32f0_Wwdg_Refresh(whal_Watchdog *wdgDev);
+#endif /* !WHAL_CFG_STM32F0_WWDG_DIRECT_API_MAPPING */
 
 #endif /* WHAL_STM32F0_WWDG_H */

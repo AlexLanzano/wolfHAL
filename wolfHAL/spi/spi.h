@@ -67,24 +67,6 @@ struct whal_Spi {
  * @retval WHAL_EINVAL   Null pointer.
  * @retval WHAL_ENOTSUP Operation not implemented by this driver.
  */
-#ifdef WHAL_CFG_DIRECT_CALLBACKS
-#define whal_Spi_Init(spiDev) ((spiDev)->driver->Init((spiDev)))
-#define whal_Spi_Deinit(spiDev) ((spiDev)->driver->Deinit((spiDev)))
-#define whal_Spi_StartCom(spiDev, spiComCfg) \
-    ((spiDev)->driver->StartCom((spiDev), (spiComCfg)))
-#define whal_Spi_EndCom(spiDev) ((spiDev)->driver->EndCom((spiDev)))
-#define whal_Spi_SendRecv(spiDev, tx, txLen, rx, rxLen) \
-    ((spiDev)->driver->SendRecv((spiDev), (tx), (txLen), (rx), (rxLen)))
-#else
-/*
- * @brief Initializes an SPI device and its driver.
- *
- * @param spiDev Pointer to the SPI instance to initialize.
- *
- * @retval WHAL_SUCCESS Driver-specific init completed.
- * @retval WHAL_EINVAL   Null pointer.
- * @retval WHAL_ENOTSUP Operation not implemented by this driver.
- */
 whal_Error whal_Spi_Init(whal_Spi *spiDev);
 /*
  * @brief Deinitializes an SPI device and releases resources.
@@ -142,6 +124,5 @@ whal_Error whal_Spi_EndCom(whal_Spi *spiDev);
  * @retval WHAL_ENOTSUP Operation not implemented by this driver.
  */
 whal_Error whal_Spi_SendRecv(whal_Spi *spiDev, const void *tx, size_t txLen, void *rx, size_t rxLen);
-#endif
 
 #endif /* WHAL_SPI_H */

@@ -46,7 +46,7 @@ typedef struct {
     void (*DelayMs)(size_t ms);   /* Millisecond delay function */
 } whal_Bmi270_Cfg;
 
-#ifndef WHAL_CFG_SENSOR_API_MAPPING_BMI270
+#ifndef WHAL_CFG_BMI270_SENSOR_DIRECT_API_MAPPING
 /*
  * @brief Driver instance for the BMI270.
  */
@@ -91,6 +91,6 @@ whal_Error whal_Bmi270_Deinit(whal_Sensor *dev);
  * @retval WHAL_EINVAL  Invalid arguments.
  */
 whal_Error whal_Bmi270_Read(whal_Sensor *dev, void *data);
-#endif /* !WHAL_CFG_SENSOR_API_MAPPING_BMI270 */
+#endif /* !WHAL_CFG_BMI270_SENSOR_DIRECT_API_MAPPING */
 
 #endif /* WHAL_IMU_BMI270_H */

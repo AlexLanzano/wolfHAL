@@ -11,7 +11,7 @@
 #include <wolfHAL/i2c/stm32l1_i2c.h>
 #include <wolfHAL/watchdog/stm32l1_iwdg.h>
 #include <wolfHAL/watchdog/stm32l1_wwdg.h>
-#include <wolfHAL/supply/stm32l1_pwr.h>
+#include <wolfHAL/power/stm32l1_pwr.h>
 
 /*
  * @file stm32l152re.h
@@ -34,72 +34,70 @@
 #define WHAL_STM32L152_RCC_REGMAP       \
     .base = 0x40023800,                 \
     .size = 0x400
-#define WHAL_STM32L152_RCC_DRIVER &whal_Stm32l1Rcc_Driver
 
 #define WHAL_STM32L152_GPIO_REGMAP      \
     .base = 0x40020000,                 \
     .size = 0x2000
-#define WHAL_STM32L152_GPIO_DRIVER &whal_Stm32l1Gpio_Driver
+#define WHAL_STM32L152_GPIO_DRIVER &whal_Stm32l1_Gpio_Driver
 
 #define WHAL_STM32L152_USART1_REGMAP    \
     .base = 0x40013800,                 \
     .size = 0x400
-#define WHAL_STM32L152_USART1_DRIVER &whal_Stm32l1Uart_Driver
+#define WHAL_STM32L152_USART1_DRIVER &whal_Stm32l1_Uart_Driver
 
 #define WHAL_STM32L152_USART2_REGMAP    \
     .base = 0x40004400,                 \
     .size = 0x400
-#define WHAL_STM32L152_USART2_DRIVER &whal_Stm32l1Uart_Driver
+#define WHAL_STM32L152_USART2_DRIVER &whal_Stm32l1_Uart_Driver
 
 #define WHAL_STM32L152_USART3_REGMAP    \
     .base = 0x40004800,                 \
     .size = 0x400
-#define WHAL_STM32L152_USART3_DRIVER &whal_Stm32l1Uart_Driver
+#define WHAL_STM32L152_USART3_DRIVER &whal_Stm32l1_Uart_Driver
 
 #define WHAL_STM32L152_SPI1_REGMAP      \
     .base = 0x40013000,                 \
     .size = 0x400
-#define WHAL_STM32L152_SPI1_DRIVER &whal_Stm32l1Spi_Driver
+#define WHAL_STM32L152_SPI1_DRIVER &whal_Stm32l1_Spi_Driver
 
 #define WHAL_STM32L152_SPI2_REGMAP      \
     .base = 0x40003800,                 \
     .size = 0x400
-#define WHAL_STM32L152_SPI2_DRIVER &whal_Stm32l1Spi_Driver
+#define WHAL_STM32L152_SPI2_DRIVER &whal_Stm32l1_Spi_Driver
 
 #define WHAL_STM32L152_SPI3_REGMAP      \
     .base = 0x40003C00,                 \
     .size = 0x400
-#define WHAL_STM32L152_SPI3_DRIVER &whal_Stm32l1Spi_Driver
+#define WHAL_STM32L152_SPI3_DRIVER &whal_Stm32l1_Spi_Driver
 
 #define WHAL_STM32L152_I2C1_REGMAP      \
     .base = 0x40005400,                 \
     .size = 0x400
-#define WHAL_STM32L152_I2C1_DRIVER &whal_Stm32l1I2c_Driver
+#define WHAL_STM32L152_I2C1_DRIVER &whal_Stm32l1_I2c_Driver
 
 #define WHAL_STM32L152_I2C2_REGMAP      \
     .base = 0x40005800,                 \
     .size = 0x400
-#define WHAL_STM32L152_I2C2_DRIVER &whal_Stm32l1I2c_Driver
+#define WHAL_STM32L152_I2C2_DRIVER &whal_Stm32l1_I2c_Driver
 
 #define WHAL_STM32L152_FLASH_REGMAP     \
     .base = 0x40023C00,                 \
     .size = 0x400
-#define WHAL_STM32L152_FLASH_DRIVER &whal_Stm32l1Flash_Driver
+#define WHAL_STM32L152_FLASH_DRIVER &whal_Stm32l1_Flash_Driver
 
 #define WHAL_STM32L152_IWDG_REGMAP      \
     .base = 0x40003000,                 \
     .size = 0x400
-#define WHAL_STM32L152_IWDG_DRIVER &whal_Stm32l1Iwdg_Driver
+#define WHAL_STM32L152_IWDG_DRIVER &whal_Stm32l1_Iwdg_Driver
 
 #define WHAL_STM32L152_WWDG_REGMAP      \
     .base = 0x40002C00,                 \
     .size = 0x400
-#define WHAL_STM32L152_WWDG_DRIVER &whal_Stm32l1Wwdg_Driver
+#define WHAL_STM32L152_WWDG_DRIVER &whal_Stm32l1_Wwdg_Driver
 
 #define WHAL_STM32L152_PWR_REGMAP       \
     .base = 0x40007000,                 \
     .size = 0x400
-#define WHAL_STM32L152_PWR_DRIVER &whal_Stm32l1Pwr_Driver
 
 /* --- Clock gate macros --- */
 

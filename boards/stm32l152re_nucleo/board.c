@@ -35,20 +35,11 @@ whal_Timeout g_whalTimeout = {
  */
 whal_Clock g_whalClock = {
     .regmap = { WHAL_STM32L152_RCC_REGMAP },
-
-    .cfg = &(whal_Stm32l1Rcc_Cfg) {
-        .sysClkSrc = WHAL_STM32L1_RCC_SYSCLK_SRC_PLL,
-        .pllCfg = &(whal_Stm32l1Rcc_PllCfg) {
-            .clkSrc = WHAL_STM32L1_RCC_PLLSRC_HSI,
-            .pllmul = WHAL_STM32L1_RCC_PLLMUL_4,
-            .plldiv = WHAL_STM32L1_RCC_PLLDIV_2,
-        },
-    },
 };
 
-static const whal_Stm32l1Rcc_Clk g_pwrClock = {WHAL_STM32L152_PWR_CLOCK};
+static const whal_Stm32l1_Rcc_PeriphClk g_pwrClock = {WHAL_STM32L152_PWR_CLOCK};
 
-static const whal_Stm32l1Rcc_Clk g_clocks[] = {
+static const whal_Stm32l1_Rcc_PeriphClk g_periphClks[] = {
     {WHAL_STM32L152_GPIOA_CLOCK},
     {WHAL_STM32L152_GPIOB_CLOCK},
     {WHAL_STM32L152_GPIOC_CLOCK},
@@ -59,25 +50,19 @@ static const whal_Stm32l1Rcc_Clk g_clocks[] = {
     {WHAL_STM32L152_WWDG_CLOCK},
 #endif
 };
-#define CLOCK_COUNT (sizeof(g_clocks) / sizeof(g_clocks[0]))
+#define PERIPH_CLK_COUNT (sizeof(g_periphClks) / sizeof(g_periphClks[0]))
 
 /* PWR -- Range 1 (1.8 V) to allow SYSCLK up to 32 MHz. */
-whal_Supply g_whalSupply = {
+whal_Power g_whalPower = {
     .regmap = { WHAL_STM32L152_PWR_REGMAP },
-    .driver = WHAL_STM32L152_PWR_DRIVER,
-
-    .cfg = &(whal_Stm32l1Pwr_Cfg) {
-        .vosRange = WHAL_STM32L1_PWR_VOS_RANGE_1,
-        .timeout = &g_whalTimeout,
-    },
 };
 
 /* GPIO */
 whal_Gpio g_whalGpio = {
     .regmap = { WHAL_STM32L152_GPIO_REGMAP },
 
-    .cfg = &(whal_Stm32l1Gpio_Cfg) {
-        .pinCfg = (whal_Stm32l1Gpio_PinCfg[PIN_COUNT]) {
+    .cfg = &(whal_Stm32l1_Gpio_Cfg) {
+        .pinCfg = (whal_Stm32l1_Gpio_PinCfg[PIN_COUNT]) {
             /* LD2 Green LED on PA5 (per UM1724, NUCLEO-L152RE) */
             [LED_PIN] = WHAL_STM32L1_GPIO_PIN(
                 WHAL_STM32L1_GPIO_PORT_A, 5, WHAL_STM32L1_GPIO_MODE_OUT,
@@ -144,7 +129,7 @@ whal_Timer g_whalTimer = {
 whal_Uart g_whalUart = {
     .regmap = { WHAL_STM32L152_USART2_REGMAP },
 
-    .cfg = &(whal_Stm32l1Uart_Cfg) {
+    .cfg = &(whal_Stm32l1_Uart_Cfg) {
         .timeout = &g_whalTimeout,
         .brr = WHAL_STM32L1_UART_BRR(32000000, 115200),
     },
@@ -154,7 +139,7 @@ whal_Uart g_whalUart = {
 whal_Spi g_whalSpi = {
     .regmap = { WHAL_STM32L152_SPI3_REGMAP },
 
-    .cfg = &(whal_Stm32l1Spi_Cfg) {
+    .cfg = &(whal_Stm32l1_Spi_Cfg) {
         .pclk = 32000000,
         .timeout = &g_whalTimeout,
     },
@@ -164,7 +149,7 @@ whal_Spi g_whalSpi = {
 whal_I2c g_whalI2c = {
     .regmap = { WHAL_STM32L152_I2C1_REGMAP },
 
-    .cfg = &(whal_Stm32l1I2c_Cfg) {
+    .cfg = &(whal_Stm32l1_I2c_Cfg) {
         .pclk = 32000000,
         .timeout = &g_whalTimeout,
     },
@@ -175,7 +160,7 @@ whal_Flash g_whalFlash = {
     .regmap = { WHAL_STM32L152_FLASH_REGMAP },
     .driver = WHAL_STM32L152_FLASH_DRIVER,
 
-    .cfg = &(whal_Stm32l1Flash_Cfg) {
+    .cfg = &(whal_Stm32l1_Flash_Cfg) {
         .startAddr = 0x08000000,
         .size = 0x80000,
         .timeout = &g_whalTimeout,
@@ -187,7 +172,7 @@ whal_Watchdog g_whalWatchdog = {
     .regmap = { WHAL_STM32L152_IWDG_REGMAP },
     .driver = WHAL_STM32L152_IWDG_DRIVER,
 
-    .cfg = &(whal_Stm32l1Iwdg_Cfg) {
+    .cfg = &(whal_Stm32l1_Iwdg_Cfg) {
         .prescaler = WHAL_STM32L1_IWDG_PR_64,
         .reload = 500,
         .timeout = &g_whalTimeout,
@@ -198,7 +183,7 @@ whal_Watchdog g_whalWatchdog = {
     .regmap = { WHAL_STM32L152_WWDG_REGMAP },
     .driver = WHAL_STM32L152_WWDG_DRIVER,
 
-    .cfg = &(whal_Stm32l1Wwdg_Cfg) {
+    .cfg = &(whal_Stm32l1_Wwdg_Cfg) {
         .prescaler = 3,
         .window = 0x7F,
         .counter = 0x7F,
@@ -217,32 +202,46 @@ whal_Error Board_Init(void)
 {
     whal_Error err;
 
-    /* Enable PWR peripheral clock so the supply driver can program VOS.
+    /* Enable PWR peripheral clock so the power driver can program VOS.
      * The RCC device only uses regmap.base for clock gating, so calling
      * Enable before Init is safe. */
-    err = whal_Clock_Enable(&g_whalClock, &g_pwrClock);
+    err = whal_Stm32l1_Rcc_EnablePeriphClk(&g_whalClock, &g_pwrClock);
     if (err)
         return err;
 
     /* Switch regulator to range 1 (1.8 V) so the PLL can reach 32 MHz.
      * Reset default is range 2, which caps PLL VCO at 48 MHz and SYSCLK at
      * 16 MHz. */
-    err = whal_Supply_Init(&g_whalSupply);
+    err = whal_Stm32l1_Pwr_SetVosRange(&g_whalPower,
+                                       WHAL_STM32L1_PWR_VOS_RANGE_1,
+                                       &g_whalTimeout);
     if (err)
         return err;
 
     /* Set flash latency before increasing clock speed.
      * STM32L1: 0 WS for HCLK <= 16 MHz, 1 WS for 16 < HCLK <= 32 MHz. */
-    err = whal_Stm32l1Flash_Ext_SetLatency(WHAL_STM32L1_FLASH_LATENCY_1);
+    err = whal_Stm32l1_Flash_Ext_SetLatency(WHAL_STM32L1_FLASH_LATENCY_1);
     if (err)
         return err;
 
-    err = whal_Clock_Init(&g_whalClock);
+    /* HSI 16 MHz -> PLL (HSI * 4 / 2 = 32 MHz) -> SYSCLK = PLL */
+    err = whal_Stm32l1_Rcc_EnableOsc(&g_whalClock,
+        &(whal_Stm32l1_Rcc_OscCfg){WHAL_STM32L1_RCC_HSI_CFG});
+    if (err)
+        return err;
+    err = whal_Stm32l1_Rcc_EnablePll(&g_whalClock, &(whal_Stm32l1_Rcc_PllCfg){
+        .clkSrc = WHAL_STM32L1_RCC_PLLSRC_HSI,
+        .pllmul = WHAL_STM32L1_RCC_PLLMUL_4,
+        .plldiv = WHAL_STM32L1_RCC_PLLDIV_2,
+    });
+    if (err)
+        return err;
+    err = whal_Stm32l1_Rcc_SetSysClock(&g_whalClock, WHAL_STM32L1_RCC_SYSCLK_SRC_PLL);
     if (err)
         return err;
 
-    for (size_t i = 0; i < CLOCK_COUNT; i++) {
-        err = whal_Clock_Enable(&g_whalClock, &g_clocks[i]);
+    for (size_t i = 0; i < PERIPH_CLK_COUNT; i++) {
+        err = whal_Stm32l1_Rcc_EnablePeriphClk(&g_whalClock, &g_periphClks[i]);
         if (err)
             return err;
     }
@@ -310,21 +309,22 @@ whal_Error Board_Deinit(void)
     if (err)
         return err;
 
-    for (size_t i = 0; i < CLOCK_COUNT; i++) {
-        err = whal_Clock_Disable(&g_whalClock, &g_clocks[i]);
+    for (size_t i = PERIPH_CLK_COUNT; i-- > 0; ) {
+        err = whal_Stm32l1_Rcc_DisablePeriphClk(&g_whalClock, &g_periphClks[i]);
         if (err)
             return err;
     }
 
-    err = whal_Supply_Deinit(&g_whalSupply);
+    /* PWR is left in its current voltage range; no Deinit operation. */
+
+    err = whal_Stm32l1_Rcc_DisablePeriphClk(&g_whalClock, &g_pwrClock);
     if (err)
         return err;
 
-    err = whal_Clock_Disable(&g_whalClock, &g_pwrClock);
+    err = whal_Stm32l1_Rcc_SetSysClock(&g_whalClock, WHAL_STM32L1_RCC_SYSCLK_SRC_MSI);
     if (err)
         return err;
-
-    err = whal_Clock_Deinit(&g_whalClock);
+    err = whal_Stm32l1_Rcc_DisablePll(&g_whalClock);
     if (err)
         return err;
 

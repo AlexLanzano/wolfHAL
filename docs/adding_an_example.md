@@ -51,7 +51,7 @@ BUILD_DIR = build/$(BOARD)
 
 INCLUDE = -I$(WHAL_DIR)
 
-include $(BOARD_DIR)/Makefile.inc
+include $(BOARD_DIR)/board.mk
 
 SOURCE = main.c
 SOURCE += $(BOARD_SOURCE)
@@ -80,7 +80,7 @@ clean:
 -include $(DEPENDS)
 ```
 
-This Makefile is the same for all examples. The board's `Makefile.inc` provides
+This Makefile is the same for all examples. The board's `board.mk` provides
 the toolchain, flags, and platform sources.
 
 ## Step 2: Build

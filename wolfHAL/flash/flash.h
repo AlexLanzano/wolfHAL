@@ -51,24 +51,6 @@ struct whal_Flash {
  * @retval WHAL_EINVAL   Null pointer.
  * @retval WHAL_ENOTSUP Operation not implemented by this driver.
  */
-#ifdef WHAL_CFG_DIRECT_CALLBACKS
-#define whal_Flash_Init(flashDev) ((flashDev)->driver->Init((flashDev)))
-#define whal_Flash_Deinit(flashDev) ((flashDev)->driver->Deinit((flashDev)))
-#define whal_Flash_Lock(flashDev, addr, len) ((flashDev)->driver->Lock((flashDev), (addr), (len)))
-#define whal_Flash_Unlock(flashDev, addr, len) ((flashDev)->driver->Unlock((flashDev), (addr), (len)))
-#define whal_Flash_Read(flashDev, addr, data, dataSz) ((flashDev)->driver->Read((flashDev), (addr), (data), (dataSz)))
-#define whal_Flash_Write(flashDev, addr, data, dataSz) ((flashDev)->driver->Write((flashDev), (addr), (data), (dataSz)))
-#define whal_Flash_Erase(flashDev, addr, dataSz) ((flashDev)->driver->Erase((flashDev), (addr), (dataSz)))
-#else
-/*
- * @brief Initialize a flash device and its driver.
- *
- * @param flashDev Flash instance to initialize.
- *
- * @retval WHAL_SUCCESS Driver-specific init completed.
- * @retval WHAL_EINVAL   Null pointer.
- * @retval WHAL_ENOTSUP Operation not implemented by this driver.
- */
 whal_Error whal_Flash_Init(whal_Flash *flashDev);
 /*
  * @brief Deinitialize a flash device.
@@ -142,6 +124,5 @@ whal_Error whal_Flash_Write(whal_Flash *flashDev, size_t addr, const void *data,
  * @retval WHAL_ENOTSUP Operation not implemented by this driver.
  */
 whal_Error whal_Flash_Erase(whal_Flash *flashDev, size_t addr, size_t dataSz);
-#endif
 
 #endif /* WHAL_FLASH_H */

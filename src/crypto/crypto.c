@@ -1,7 +1,7 @@
 #include <wolfHAL/crypto/crypto.h>
 #include <wolfHAL/error.h>
 
-#ifndef WHAL_CFG_CRYPTO_API_MAPPING_STM32WB_AES
+#ifndef WHAL_CFG_STM32WB_AES_DIRECT_API_MAPPING
 whal_Error whal_Crypto_Init(whal_Crypto *cryptoDev)
 {
     if (!cryptoDev)

@@ -46,22 +46,6 @@ struct whal_Timer{
  * @retval WHAL_EINVAL   Null pointer.
  * @retval WHAL_ENOTSUP Operation not implemented by this driver.
  */
-#ifdef WHAL_CFG_DIRECT_CALLBACKS
-#define whal_Timer_Init(timerDev) ((timerDev)->driver->Init((timerDev)))
-#define whal_Timer_Deinit(timerDev) ((timerDev)->driver->Deinit((timerDev)))
-#define whal_Timer_Start(timerDev) ((timerDev)->driver->Start((timerDev)))
-#define whal_Timer_Stop(timerDev) ((timerDev)->driver->Stop((timerDev)))
-#define whal_Timer_Reset(timerDev) ((timerDev)->driver->Reset((timerDev)))
-#else
-/*
- * @brief Initialize a timer device.
- *
- * @param timerDev Timer instance to initialize.
- *
- * @retval WHAL_SUCCESS Driver-specific init completed.
- * @retval WHAL_EINVAL   Null pointer.
- * @retval WHAL_ENOTSUP Operation not implemented by this driver.
- */
 whal_Error whal_Timer_Init(whal_Timer *timerDev);
 /*
  * @brief Deinitialize a timer device.
@@ -103,6 +87,5 @@ whal_Error whal_Timer_Stop(whal_Timer *timerDev);
  * @retval WHAL_ENOTSUP Operation not implemented by this driver.
  */
 whal_Error whal_Timer_Reset(whal_Timer *timerDev);
-#endif
 
 #endif /* WHAL_TIMER_H */

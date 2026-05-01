@@ -62,32 +62,6 @@ struct whal_Eth {
 /*
  * @brief Initialize an Ethernet device and its driver.
  *
- * Configures the MAC, sets up DMA descriptor rings, and sets the MAC
- * address. Does not enable TX/RX — call Start for that.
- *
- * @param ethDev Ethernet device instance.
- *
- * @retval WHAL_SUCCESS Initialization completed.
- * @retval WHAL_EINVAL  Invalid arguments.
- */
-#ifdef WHAL_CFG_DIRECT_CALLBACKS
-#define whal_Eth_Init(ethDev) ((ethDev)->driver->Init((ethDev)))
-#define whal_Eth_Deinit(ethDev) ((ethDev)->driver->Deinit((ethDev)))
-#define whal_Eth_Start(ethDev, speed, duplex) \
-    ((ethDev)->driver->Start((ethDev), (speed), (duplex)))
-#define whal_Eth_Stop(ethDev) ((ethDev)->driver->Stop((ethDev)))
-#define whal_Eth_Send(ethDev, frame, len) \
-    ((ethDev)->driver->Send((ethDev), (frame), (len)))
-#define whal_Eth_Recv(ethDev, frame, len) \
-    ((ethDev)->driver->Recv((ethDev), (frame), (len)))
-#define whal_Eth_MdioRead(ethDev, phyAddr, reg, val) \
-    ((ethDev)->driver->MdioRead((ethDev), (phyAddr), (reg), (val)))
-#define whal_Eth_MdioWrite(ethDev, phyAddr, reg, val) \
-    ((ethDev)->driver->MdioWrite((ethDev), (phyAddr), (reg), (val)))
-#else
-/*
- * @brief Initialize an Ethernet device and its driver.
- *
  * @param ethDev Ethernet device instance.
  *
  * @retval WHAL_SUCCESS Initialization completed.
@@ -180,6 +154,5 @@ whal_Error whal_Eth_MdioRead(whal_Eth *ethDev, uint8_t phyAddr, uint8_t reg,
  */
 whal_Error whal_Eth_MdioWrite(whal_Eth *ethDev, uint8_t phyAddr, uint8_t reg,
                                uint16_t val);
-#endif
 
 #endif /* WHAL_ETH_H */

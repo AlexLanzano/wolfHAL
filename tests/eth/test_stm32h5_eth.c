@@ -30,7 +30,7 @@ static void Test_Eth_Loopback(void)
     size_t rxLen = sizeof(rxFrame);
     whal_Error err;
 
-    WHAL_ASSERT_EQ(whal_Stm32h5Eth_Ext_EnableLoopback(&g_whalEth, 1),
+    WHAL_ASSERT_EQ(whal_Stm32h5_Eth_Ext_EnableLoopback(&g_whalEth, 1),
                    WHAL_SUCCESS);
 
     WHAL_ASSERT_EQ(whal_Eth_Start(&g_whalEth, WHAL_ETH_SPEED_100,
@@ -51,7 +51,7 @@ static void Test_Eth_Loopback(void)
 
     WHAL_ASSERT_EQ(whal_Eth_Stop(&g_whalEth), WHAL_SUCCESS);
 
-    WHAL_ASSERT_EQ(whal_Stm32h5Eth_Ext_EnableLoopback(&g_whalEth, 0),
+    WHAL_ASSERT_EQ(whal_Stm32h5_Eth_Ext_EnableLoopback(&g_whalEth, 0),
                    WHAL_SUCCESS);
 }
 
