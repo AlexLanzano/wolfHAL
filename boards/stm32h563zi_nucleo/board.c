@@ -36,7 +36,7 @@ static const whal_Stm32h5_Rcc_PeriphClk g_periphClks[] = {
     {WHAL_STM32H563_GPIOD_CLOCK},
     {WHAL_STM32H563_GPIOC_CLOCK},
     {WHAL_STM32H563_GPIOG_CLOCK},
-    {WHAL_STM32H563_USART2_CLOCK},
+    {WHAL_STM32H563_USART3_CLOCK},
     {WHAL_STM32H563_SPI1_CLOCK},
     {WHAL_STM32H563_RNG_CLOCK},
     {WHAL_STM32H563_SBS_CLOCK},
@@ -62,14 +62,14 @@ whal_Gpio g_whalGpio = {
                 WHAL_STM32H5_GPIO_PORT_B, 0, WHAL_STM32H5_GPIO_MODE_OUT,
                 WHAL_STM32H5_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32H5_GPIO_SPEED_LOW,
                 WHAL_STM32H5_GPIO_PULL_NONE, 0),
-            /* USART2 TX on PD5 */
+            /* USART3 TX on PD8, AF7 (ST-Link VCP) */
             [UART_TX_PIN] = WHAL_STM32H5_GPIO_PIN(
-                WHAL_STM32H5_GPIO_PORT_D, 5, WHAL_STM32H5_GPIO_MODE_ALTFN,
+                WHAL_STM32H5_GPIO_PORT_D, 8, WHAL_STM32H5_GPIO_MODE_ALTFN,
                 WHAL_STM32H5_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32H5_GPIO_SPEED_FAST,
                 WHAL_STM32H5_GPIO_PULL_UP, 7),
-            /* USART2 RX on PD6 */
+            /* USART3 RX on PD9, AF7 (ST-Link VCP) */
             [UART_RX_PIN] = WHAL_STM32H5_GPIO_PIN(
-                WHAL_STM32H5_GPIO_PORT_D, 6, WHAL_STM32H5_GPIO_MODE_ALTFN,
+                WHAL_STM32H5_GPIO_PORT_D, 9, WHAL_STM32H5_GPIO_MODE_ALTFN,
                 WHAL_STM32H5_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32H5_GPIO_SPEED_FAST,
                 WHAL_STM32H5_GPIO_PULL_UP, 7),
             /* SPI1 SCK on PA5 */
@@ -156,7 +156,7 @@ whal_Timer g_whalTimer = {
 
 /* UART */
 whal_Uart g_whalUart = {
-    .regmap = { WHAL_STM32H563_USART2_REGMAP },
+    .regmap = { WHAL_STM32H563_USART3_REGMAP },
     /* .driver: direct API mapping */
 
     .cfg = &(whal_Stm32h5_Uart_Cfg) {
@@ -266,16 +266,26 @@ whal_Error Board_Init(void)
     *(volatile uint32_t *)FLASH_ACR_ADDR = FLASH_ACR_LATENCY_168MHZ;
 
     /* HSI 64 MHz -> PLL1 (HSI/8 * 63 / 3 = 168 MHz) -> SYSCLK = PLL1 */
+
+    /* RCC_CR.HSIDIV resets to /4 (16 MHz) on H5, not /1. Force it back to
+     * /1 so the PLL sees 64 MHz; otherwise the divider chain below silently
+     * lands on 42 MHz instead of 168 MHz. */
+    err = whal_Stm32h5_Rcc_SetHsiDiv(&g_whalClock, 0);
+    if (err)
+        return err;
+
     err = whal_Stm32h5_Rcc_EnableOsc(&g_whalClock,
         &(whal_Stm32h5_Rcc_OscCfg){WHAL_STM32H5_RCC_HSI_CFG});
     if (err)
         return err;
+
     err = whal_Stm32h5_Rcc_EnablePll1(&g_whalClock, &(whal_Stm32h5_Rcc_PllCfg){
         .clkSrc = WHAL_STM32H5_RCC_PLLCLK_SRC_HSI,
         .m = 8, .n = 62, .p = 2, .q = 2, .r = 2,
     });
     if (err)
         return err;
+
     err = whal_Stm32h5_Rcc_SetSysClock(&g_whalClock, WHAL_STM32H5_RCC_SYSCLK_SRC_PLL1);
     if (err)
         return err;
