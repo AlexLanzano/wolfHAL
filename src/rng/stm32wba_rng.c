@@ -68,24 +68,24 @@
 whal_Error whal_Stm32wba_Rng_Init(whal_Rng *rngDev)
 {
     const whal_Stm32wba_Rng_Cfg *cfg;
-    const whal_Regmap *reg;
+    size_t base;
 
     if (!rngDev || !rngDev->cfg)
         return WHAL_EINVAL;
 
     cfg = (const whal_Stm32wba_Rng_Cfg *)rngDev->cfg;
-    reg = &rngDev->regmap;
+    base = rngDev->base;
 
     /* Apply Configuration C with CONDRST=1 and RNGEN=1 */
-    whal_Reg_Write(reg->base, RNG_CR_REG,
+    whal_Reg_Write(base, RNG_CR_REG,
                    RNG_CR_CONDRST_Msk | RNG_CR_CONFIG_C | RNG_CR_RNGEN_Msk);
 
     /* Clear CONDRST to start conditioning */
-    whal_Reg_Write(reg->base, RNG_CR_REG,
+    whal_Reg_Write(base, RNG_CR_REG,
                    RNG_CR_CONFIG_C | RNG_CR_RNGEN_Msk);
 
     /* Wait for CONDRST to self-clear */
-    return whal_Reg_ReadPoll(reg->base, RNG_CR_REG, RNG_CR_CONDRST_Msk, 0,
+    return whal_Reg_ReadPoll(base, RNG_CR_REG, RNG_CR_CONDRST_Msk, 0,
                              cfg->timeout);
 }
 
@@ -95,7 +95,7 @@ whal_Error whal_Stm32wba_Rng_Deinit(whal_Rng *rngDev)
         return WHAL_EINVAL;
 
     /* Disable RNG */
-    whal_Reg_Update(rngDev->regmap.base, RNG_CR_REG, RNG_CR_RNGEN_Msk, 0);
+    whal_Reg_Update(rngDev->base, RNG_CR_REG, RNG_CR_RNGEN_Msk, 0);
 
     return WHAL_SUCCESS;
 }
@@ -105,7 +105,7 @@ whal_Error whal_Stm32wba_Rng_Generate(whal_Rng *rngDev, void *rngData, size_t rn
     uint8_t *rngBuf = (uint8_t *)rngData;
     whal_Error err = WHAL_SUCCESS;
     whal_Stm32wba_Rng_Cfg *cfg;
-    const whal_Regmap *reg;
+    size_t base;
     size_t sr;
     size_t offset = 0;
 
@@ -113,7 +113,7 @@ whal_Error whal_Stm32wba_Rng_Generate(whal_Rng *rngDev, void *rngData, size_t rn
         return WHAL_EINVAL;
 
     cfg = (whal_Stm32wba_Rng_Cfg *)rngDev->cfg;
-    reg = &rngDev->regmap;
+    base = rngDev->base;
 #ifdef WHAL_CFG_NO_TIMEOUT
     (void)(cfg);
 #endif
@@ -126,7 +126,7 @@ whal_Error whal_Stm32wba_Rng_Generate(whal_Rng *rngDev, void *rngData, size_t rn
                 goto exit;
             }
 
-            sr = whal_Reg_Read(reg->base, RNG_SR_REG);
+            sr = whal_Reg_Read(base, RNG_SR_REG);
 
             if (sr & RNG_SR_SECS_Msk) {
                 err = WHAL_EHARDWARE;
@@ -141,7 +141,7 @@ whal_Error whal_Stm32wba_Rng_Generate(whal_Rng *rngDev, void *rngData, size_t rn
                 break;
         }
 
-        uint32_t rnd = *(volatile uint32_t *)(reg->base + RNG_DR_REG);
+        uint32_t rnd = *(volatile uint32_t *)(base + RNG_DR_REG);
 
         for (size_t i = 0; i < 4 && offset < rngDataSz; i++, offset++)
             rngBuf[offset] = (uint8_t)(rnd >> (i * 8));

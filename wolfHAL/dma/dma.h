@@ -2,7 +2,6 @@
 #define WHAL_DMA_H
 
 #include <wolfHAL/error.h>
-#include <wolfHAL/regmap.h>
 #include <stddef.h>
 
 /*
@@ -46,7 +45,7 @@ typedef struct {
  * @brief DMA device instance containing driver and configuration data.
  */
 struct whal_Dma {
-    const whal_Regmap regmap;
+    const size_t base;
     const whal_DmaDriver *driver;
     const void *cfg;
 };

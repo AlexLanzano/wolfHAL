@@ -117,22 +117,22 @@ static uint32_t Stm32h5_Spi_CalcMbr(size_t pclk, uint32_t targetBaud)
 
 whal_Error whal_Stm32h5_Spi_Init(whal_Spi *spiDev)
 {
-    const whal_Regmap *reg;
+    size_t base;
 
     if (!spiDev || !spiDev->cfg)
         return WHAL_EINVAL;
 
-    reg = &spiDev->regmap;
+    base = spiDev->base;
 
     /* Disable SPI before configuring */
-    whal_Reg_Update(reg->base, SPI_CR1_REG, SPI_CR1_SPE_Msk,
+    whal_Reg_Update(base, SPI_CR1_REG, SPI_CR1_SPE_Msk,
                     whal_SetBits(SPI_CR1_SPE_Msk, SPI_CR1_SPE_Pos, 0));
 
-    whal_Reg_Update(reg->base, SPI_CR1_REG, SPI_CR1_SSI_Msk,
+    whal_Reg_Update(base, SPI_CR1_REG, SPI_CR1_SSI_Msk,
                     whal_SetBits(SPI_CR1_SSI_Msk, SPI_CR1_SSI_Pos, 1));
 
     /* Master mode, software slave management, SSI high */
-    whal_Reg_Update(reg->base, SPI_CFG2_REG,
+    whal_Reg_Update(base, SPI_CFG2_REG,
                     SPI_CFG2_MASTER_Msk | SPI_CFG2_SSM_Msk,
                     whal_SetBits(SPI_CFG2_MASTER_Msk, SPI_CFG2_MASTER_Pos, 1) |
                     whal_SetBits(SPI_CFG2_SSM_Msk, SPI_CFG2_SSM_Pos, 1));
@@ -142,14 +142,14 @@ whal_Error whal_Stm32h5_Spi_Init(whal_Spi *spiDev)
 
 whal_Error whal_Stm32h5_Spi_Deinit(whal_Spi *spiDev)
 {
-    const whal_Regmap *reg;
+    size_t base;
 
     if (!spiDev || !spiDev->cfg)
         return WHAL_EINVAL;
 
-    reg = &spiDev->regmap;
+    base = spiDev->base;
 
-    whal_Reg_Update(reg->base, SPI_CR1_REG, SPI_CR1_SPE_Msk,
+    whal_Reg_Update(base, SPI_CR1_REG, SPI_CR1_SPE_Msk,
                     whal_SetBits(SPI_CR1_SPE_Msk, SPI_CR1_SPE_Pos, 0));
 
     return WHAL_SUCCESS;
@@ -157,7 +157,7 @@ whal_Error whal_Stm32h5_Spi_Deinit(whal_Spi *spiDev)
 
 whal_Error whal_Stm32h5_Spi_StartCom(whal_Spi *spiDev, whal_Spi_ComCfg *comCfg)
 {
-    const whal_Regmap *reg;
+    size_t base;
     whal_Stm32h5_Spi_Cfg *cfg;
     uint32_t cpol, cpha, mbr, dsize, fthlv;
 
@@ -170,11 +170,11 @@ whal_Error whal_Stm32h5_Spi_StartCom(whal_Spi *spiDev, whal_Spi_ComCfg *comCfg)
     if (comCfg->mode > 3 || comCfg->dataLines != 1 || comCfg->freq == 0)
         return WHAL_EINVAL;
 
-    reg = &spiDev->regmap;
+    base = spiDev->base;
     cfg = (whal_Stm32h5_Spi_Cfg *)spiDev->cfg;
 
     /* Disable SPE before reconfiguring */
-    whal_Reg_Update(reg->base, SPI_CR1_REG, SPI_CR1_SPE_Msk,
+    whal_Reg_Update(base, SPI_CR1_REG, SPI_CR1_SPE_Msk,
                     whal_SetBits(SPI_CR1_SPE_Msk, SPI_CR1_SPE_Pos, 0));
 
     mbr = Stm32h5_Spi_CalcMbr(cfg->pclk, comCfg->freq);
@@ -184,27 +184,27 @@ whal_Error whal_Stm32h5_Spi_StartCom(whal_Spi *spiDev, whal_Spi_ComCfg *comCfg)
     fthlv = 0; /* 1 data frame threshold */
 
     /* Set baud rate, data size, FIFO threshold */
-    whal_Reg_Update(reg->base, SPI_CFG1_REG,
+    whal_Reg_Update(base, SPI_CFG1_REG,
                     SPI_CFG1_MBR_Msk | SPI_CFG1_DSIZE_Msk | SPI_CFG1_FTHLV_Msk,
                     whal_SetBits(SPI_CFG1_MBR_Msk, SPI_CFG1_MBR_Pos, mbr) |
                     whal_SetBits(SPI_CFG1_DSIZE_Msk, SPI_CFG1_DSIZE_Pos, dsize) |
                     whal_SetBits(SPI_CFG1_FTHLV_Msk, SPI_CFG1_FTHLV_Pos, fthlv));
 
     /* Set CPOL, CPHA */
-    whal_Reg_Update(reg->base, SPI_CFG2_REG,
+    whal_Reg_Update(base, SPI_CFG2_REG,
                     SPI_CFG2_CPOL_Msk | SPI_CFG2_CPHA_Msk,
                     whal_SetBits(SPI_CFG2_CPOL_Msk, SPI_CFG2_CPOL_Pos, cpol) |
                     whal_SetBits(SPI_CFG2_CPHA_Msk, SPI_CFG2_CPHA_Pos, cpha));
 
     /* Endless transfer mode (TSIZE = 0) */
-    whal_Reg_Update(reg->base, SPI_CR2_REG, SPI_CR2_TSIZE_Msk, 0);
+    whal_Reg_Update(base, SPI_CR2_REG, SPI_CR2_TSIZE_Msk, 0);
 
     /* Enable SPI */
-    whal_Reg_Update(reg->base, SPI_CR1_REG, SPI_CR1_SPE_Msk,
+    whal_Reg_Update(base, SPI_CR1_REG, SPI_CR1_SPE_Msk,
                     whal_SetBits(SPI_CR1_SPE_Msk, SPI_CR1_SPE_Pos, 1));
 
     /* Start master transfer */
-    whal_Reg_Update(reg->base, SPI_CR1_REG, SPI_CR1_CSTART_Msk,
+    whal_Reg_Update(base, SPI_CR1_REG, SPI_CR1_CSTART_Msk,
                     whal_SetBits(SPI_CR1_CSTART_Msk, SPI_CR1_CSTART_Pos, 1));
 
     return WHAL_SUCCESS;
@@ -212,19 +212,19 @@ whal_Error whal_Stm32h5_Spi_StartCom(whal_Spi *spiDev, whal_Spi_ComCfg *comCfg)
 
 whal_Error whal_Stm32h5_Spi_EndCom(whal_Spi *spiDev)
 {
-    const whal_Regmap *reg;
+    size_t base;
 
     if (!spiDev || !spiDev->cfg)
         return WHAL_EINVAL;
 
-    reg = &spiDev->regmap;
+    base = spiDev->base;
 
     /* Disable SPI */
-    whal_Reg_Update(reg->base, SPI_CR1_REG, SPI_CR1_SPE_Msk,
+    whal_Reg_Update(base, SPI_CR1_REG, SPI_CR1_SPE_Msk,
                     whal_SetBits(SPI_CR1_SPE_Msk, SPI_CR1_SPE_Pos, 0));
 
     /* Clear EOT and TXTF flags */
-    whal_Reg_Write(reg->base, SPI_IFCR_REG,
+    whal_Reg_Write(base, SPI_IFCR_REG,
                    SPI_IFCR_EOTC_Msk | SPI_IFCR_TXTFC_Msk);
 
     return WHAL_SUCCESS;
@@ -236,7 +236,7 @@ whal_Error whal_Stm32h5_Spi_SendRecv(whal_Spi *spiDev,
 {
     const uint8_t *txBuf = (const uint8_t *)tx;
     uint8_t *rxBuf = (uint8_t *)rx;
-    const whal_Regmap *reg;
+    size_t base;
     whal_Stm32h5_Spi_Cfg *cfg;
     size_t totalLen;
     whal_Error err;
@@ -245,13 +245,13 @@ whal_Error whal_Stm32h5_Spi_SendRecv(whal_Spi *spiDev,
     if (!spiDev || !spiDev->cfg || (!tx && txLen) || (!rx && rxLen))
         return WHAL_EINVAL;
 
-    reg = &spiDev->regmap;
+    base = spiDev->base;
     cfg = (whal_Stm32h5_Spi_Cfg *)spiDev->cfg;
     totalLen = txLen > rxLen ? txLen : rxLen;
 
     for (size_t i = 0; i < totalLen; i++) {
         /* Wait for TXP (TX FIFO has space) */
-        err = whal_Reg_ReadPoll(reg->base, SPI_SR_REG,
+        err = whal_Reg_ReadPoll(base, SPI_SR_REG,
                                 SPI_SR_TXP_Msk, SPI_SR_TXP_Msk,
                                 cfg->timeout);
         if (err)
@@ -259,10 +259,10 @@ whal_Error whal_Stm32h5_Spi_SendRecv(whal_Spi *spiDev,
 
         /* Write TX data, pad with 0xFF when exhausted */
         txByte = (txBuf && i < txLen) ? txBuf[i] : 0xFF;
-        *(volatile uint8_t *)(reg->base + SPI_TXDR_REG) = txByte;
+        *(volatile uint8_t *)(base + SPI_TXDR_REG) = txByte;
 
         /* Wait for RXP (RX FIFO has data) */
-        err = whal_Reg_ReadPoll(reg->base, SPI_SR_REG,
+        err = whal_Reg_ReadPoll(base, SPI_SR_REG,
                                 SPI_SR_RXP_Msk, SPI_SR_RXP_Msk,
                                 cfg->timeout);
         if (err)
@@ -270,9 +270,9 @@ whal_Error whal_Stm32h5_Spi_SendRecv(whal_Spi *spiDev,
 
         /* Read RX byte */
         if (rxBuf && i < rxLen)
-            rxBuf[i] = *(volatile uint8_t *)(reg->base + SPI_RXDR_REG);
+            rxBuf[i] = *(volatile uint8_t *)(base + SPI_RXDR_REG);
         else
-            (void)*(volatile uint8_t *)(reg->base + SPI_RXDR_REG);
+            (void)*(volatile uint8_t *)(base + SPI_RXDR_REG);
     }
 
     return WHAL_SUCCESS;

@@ -3,7 +3,6 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#include <wolfHAL/regmap.h>
 #include <wolfHAL/error.h>
 
 /*
@@ -35,7 +34,7 @@ typedef struct {
  * @brief UART device instance tying a register map and driver.
  */
 struct whal_Uart {
-    const whal_Regmap regmap;
+    const size_t base;
     const whal_UartDriver *driver;
     void *cfg;
 };

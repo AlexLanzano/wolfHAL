@@ -27,13 +27,13 @@ whal_Timeout g_whalTimeout = {
 
 /* IRQ */
 whal_Irq g_whalIrq = {
-    .regmap = { WHAL_CORTEX_M4_NVIC_REGMAP },
+    .base = WHAL_CORTEX_M4_NVIC_BASE,
     .driver = WHAL_CORTEX_M4_NVIC_DRIVER,
 };
 
 /* Clock */
 whal_Clock g_whalClock = {
-    .regmap = { WHAL_STM32WB55_RCC_REGMAP },
+    .base = WHAL_STM32WB55_RCC_BASE,
     /* .driver: direct API mapping */
 };
 
@@ -53,7 +53,7 @@ static const whal_Stm32wb_Rcc_PeriphClk g_periphClks[] = {
 
 /* GPIO */
 whal_Gpio g_whalGpio = {
-    .regmap = { WHAL_STM32WB55_GPIO_REGMAP },
+    .base = WHAL_STM32WB55_GPIO_BASE,
     /* .driver: direct API mapping */
 
     .cfg = &(whal_Stm32wb_Gpio_Cfg) {
@@ -110,7 +110,7 @@ whal_Gpio g_whalGpio = {
 
 /* I2C */
 whal_I2c g_whalI2c = {
-    .regmap = { WHAL_STM32WB55_I2C1_REGMAP },
+    .base = WHAL_STM32WB55_I2C1_BASE,
     /* .driver: direct API mapping */
 
     .cfg = &(whal_Stm32wb_I2c_Cfg) {
@@ -121,7 +121,7 @@ whal_I2c g_whalI2c = {
 
 /* SPI */
 whal_Spi g_whalSpi = {
-    .regmap = { WHAL_STM32WB55_SPI1_REGMAP },
+    .base = WHAL_STM32WB55_SPI1_BASE,
     /* .driver: direct API mapping */
 
     .cfg = &(whal_Stm32wb_Spi_Cfg) {
@@ -132,7 +132,7 @@ whal_Spi g_whalSpi = {
 
 /* Timer */
 whal_Timer g_whalTimer = {
-    .regmap = { WHAL_CORTEX_M4_SYSTICK_REGMAP },
+    .base = WHAL_CORTEX_M4_SYSTICK_BASE,
     .driver = WHAL_CORTEX_M4_SYSTICK_DRIVER,
 
     .cfg = &(whal_SysTick_Cfg) {
@@ -146,7 +146,7 @@ whal_Timer g_whalTimer = {
 #ifdef BOARD_DMA
 
 whal_Dma g_whalDma1 = {
-    .regmap = { WHAL_STM32WB55_DMA1_REGMAP },
+    .base = WHAL_STM32WB55_DMA1_BASE,
     /* .driver: direct API mapping */
     .cfg = &(whal_Stm32wb_Dma_Cfg){WHAL_STM32WB55_DMA1_CFG},
 };
@@ -167,7 +167,7 @@ void DMA1_Channel5_IRQHandler(void)
 /* UART */
 #ifdef BOARD_DMA
 whal_Uart g_whalUart = {
-    .regmap = { WHAL_STM32WB55_UART1_REGMAP },
+    .base = WHAL_STM32WB55_UART1_BASE,
     /* .driver: direct API mapping */
     .cfg = &(whal_Stm32wb_UartDma_Cfg) {
         .base = {
@@ -183,7 +183,7 @@ whal_Uart g_whalUart = {
 };
 #else
 whal_Uart g_whalUart = {
-    .regmap = { WHAL_STM32WB55_UART1_REGMAP },
+    .base = WHAL_STM32WB55_UART1_BASE,
     /* .driver: direct API mapping */
 
     .cfg = &(whal_Stm32wb_Uart_Cfg) {
@@ -196,7 +196,7 @@ whal_Uart g_whalUart = {
 
 /* Flash */
 whal_Flash g_whalFlash = {
-    .regmap = { WHAL_STM32WB55_FLASH_REGMAP },
+    .base = WHAL_STM32WB55_FLASH_BASE,
     .driver = WHAL_STM32WB55_FLASH_DRIVER,
 
     .cfg = &(whal_Stm32wb_Flash_Cfg) {
@@ -209,7 +209,7 @@ whal_Flash g_whalFlash = {
 
 /* RNG */
 whal_Rng g_whalRng = {
-    .regmap = { WHAL_STM32WB55_RNG_REGMAP },
+    .base = WHAL_STM32WB55_RNG_BASE,
     /* .driver: direct API mapping */
 
     .cfg = &(whal_Stm32wb_Rng_Cfg) {
@@ -219,7 +219,7 @@ whal_Rng g_whalRng = {
 
 /* Crypto */
 whal_Crypto g_whalCrypto = {
-    .regmap = { WHAL_STM32WB55_AES1_REGMAP },
+    .base = WHAL_STM32WB55_AES1_BASE,
     /* .driver: direct API mapping */
 
     .cfg = &(whal_Stm32wb_Aes_Cfg) {
@@ -229,7 +229,7 @@ whal_Crypto g_whalCrypto = {
 
 #ifdef BOARD_WATCHDOG_IWDG
 whal_Watchdog g_whalWatchdog = {
-    .regmap = { WHAL_STM32WB55_IWDG_REGMAP },
+    .base = WHAL_STM32WB55_IWDG_BASE,
     .driver = WHAL_STM32WB55_IWDG_DRIVER,
 
     .cfg = &(whal_Stm32wb_Iwdg_Cfg) {
@@ -240,7 +240,7 @@ whal_Watchdog g_whalWatchdog = {
 };
 #elif defined(BOARD_WATCHDOG_WWDG)
 whal_Watchdog g_whalWatchdog = {
-    .regmap = { WHAL_STM32WB55_WWDG_REGMAP },
+    .base = WHAL_STM32WB55_WWDG_BASE,
     .driver = WHAL_STM32WB55_WWDG_DRIVER,
 
     .cfg = &(whal_Stm32wb_Wwdg_Cfg) {

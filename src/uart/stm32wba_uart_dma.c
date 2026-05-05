@@ -28,7 +28,7 @@ whal_Error whal_Stm32wba_UartDma_SendAsync(whal_Uart *uartDev, const void *data,
                                            size_t dataSz)
 {
     whal_Stm32wba_UartDma_Cfg *cfg;
-    const whal_Regmap *reg;
+    size_t base;
     whal_Error err;
 
     if (!uartDev || !uartDev->cfg || !data || dataSz > 0xFFFF)
@@ -42,7 +42,7 @@ whal_Error whal_Stm32wba_UartDma_SendAsync(whal_Uart *uartDev, const void *data,
     if (cfg->txResult == WHAL_ENOTREADY)
         return WHAL_ENOTREADY;
 
-    reg = &uartDev->regmap;
+    base = uartDev->base;
 
     /* Single-byte DMA from flash fails on GPDMA — bounce through SRAM */
     static volatile uint8_t txBounce;
@@ -52,7 +52,7 @@ whal_Error whal_Stm32wba_UartDma_SendAsync(whal_Uart *uartDev, const void *data,
     } else {
         cfg->txChCfg->srcAddr = (size_t)data;
     }
-    cfg->txChCfg->dstAddr = reg->base + UART_TDR_REG;
+    cfg->txChCfg->dstAddr = base + UART_TDR_REG;
     cfg->txChCfg->nbytes = dataSz;
 
     cfg->txResult = WHAL_ENOTREADY;
@@ -69,9 +69,9 @@ whal_Error whal_Stm32wba_UartDma_SendAsync(whal_Uart *uartDev, const void *data,
         return err;
     }
 
-    whal_Reg_Write(reg->base, UART_ICR_REG, UART_ICR_TCCF_Msk);
+    whal_Reg_Write(base, UART_ICR_REG, UART_ICR_TCCF_Msk);
 
-    whal_Reg_Update(reg->base, UART_CR3_REG, UART_CR3_DMAT_Msk,
+    whal_Reg_Update(base, UART_CR3_REG, UART_CR3_DMAT_Msk,
                     UART_CR3_DMAT_Msk);
 
     return WHAL_SUCCESS;
@@ -81,7 +81,7 @@ whal_Error whal_Stm32wba_UartDma_RecvAsync(whal_Uart *uartDev, void *data,
                                            size_t dataSz)
 {
     whal_Stm32wba_UartDma_Cfg *cfg;
-    const whal_Regmap *reg;
+    size_t base;
     whal_Error err;
 
     if (!uartDev || !uartDev->cfg || !data || dataSz > 0xFFFF)
@@ -95,9 +95,9 @@ whal_Error whal_Stm32wba_UartDma_RecvAsync(whal_Uart *uartDev, void *data,
     if (cfg->rxResult == WHAL_ENOTREADY)
         return WHAL_ENOTREADY;
 
-    reg = &uartDev->regmap;
+    base = uartDev->base;
 
-    cfg->rxChCfg->srcAddr = reg->base + UART_RDR_REG;
+    cfg->rxChCfg->srcAddr = base + UART_RDR_REG;
     cfg->rxChCfg->dstAddr = (size_t)data;
     cfg->rxChCfg->nbytes = dataSz;
 
@@ -109,12 +109,12 @@ whal_Error whal_Stm32wba_UartDma_RecvAsync(whal_Uart *uartDev, void *data,
         return err;
     }
 
-    whal_Reg_Update(reg->base, UART_CR3_REG, UART_CR3_DMAR_Msk,
+    whal_Reg_Update(base, UART_CR3_REG, UART_CR3_DMAR_Msk,
                     UART_CR3_DMAR_Msk);
 
     err = whal_Dma_Start(cfg->dma, cfg->rxCh);
     if (err) {
-        whal_Reg_Update(reg->base, UART_CR3_REG, UART_CR3_DMAR_Msk, 0);
+        whal_Reg_Update(base, UART_CR3_REG, UART_CR3_DMAR_Msk, 0);
         cfg->rxResult = err;
         return err;
     }
@@ -149,13 +149,13 @@ whal_Error whal_Stm32wba_UartDma_Send(whal_Uart *uartDev, const void *data,
 
     /* Wait for TC (transmission complete) so the last byte has shifted out
      * before we tear down the DMA channel */
-    err = whal_Reg_ReadPoll(uartDev->regmap.base, UART_ISR_REG,
+    err = whal_Reg_ReadPoll(uartDev->base, UART_ISR_REG,
                             UART_ISR_TC_Msk, UART_ISR_TC_Msk,
                             cfg->base.timeout);
 
 cleanup:
     whal_Dma_Stop(cfg->dma, cfg->txCh);
-    whal_Reg_Update(uartDev->regmap.base, UART_CR3_REG, UART_CR3_DMAT_Msk, 0);
+    whal_Reg_Update(uartDev->base, UART_CR3_REG, UART_CR3_DMAT_Msk, 0);
     cfg->txResult = err;
 
     return err;
@@ -185,7 +185,7 @@ whal_Error whal_Stm32wba_UartDma_Recv(whal_Uart *uartDev, void *data,
 
 cleanup:
     whal_Dma_Stop(cfg->dma, cfg->rxCh);
-    whal_Reg_Update(uartDev->regmap.base, UART_CR3_REG, UART_CR3_DMAR_Msk, 0);
+    whal_Reg_Update(uartDev->base, UART_CR3_REG, UART_CR3_DMAR_Msk, 0);
     cfg->rxResult = err;
 
     return err;

@@ -2,7 +2,6 @@
 #include <wolfHAL/wolfHAL.h>
 #include <wolfHAL/eth/eth.h>
 #include <wolfHAL/eth/stm32n6_eth.h>
-#include <wolfHAL/regmap.h>
 #include "board.h"
 #include "test.h"
 
@@ -45,7 +44,7 @@ static void Test_Eth_Loopback(void)
     };
     uint8_t rxFrame[1536];
     size_t rxLen = sizeof(rxFrame);
-    size_t base = g_whalEth.regmap.base;
+    size_t base = g_whalEth.base;
     whal_Stm32n6_Eth_Cfg *ethCfg = (whal_Stm32n6_Eth_Cfg *)g_whalEth.cfg;
     whal_Error err;
     uint16_t bcr = 0;

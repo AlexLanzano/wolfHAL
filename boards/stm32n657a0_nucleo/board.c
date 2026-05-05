@@ -27,7 +27,7 @@ whal_Timeout g_whalTimeout = {
 
 /* IRQ */
 whal_Irq g_whalIrq = {
-    .regmap = { WHAL_CORTEX_M55_NVIC_REGMAP },
+    .base = WHAL_CORTEX_M55_NVIC_BASE,
     .driver = WHAL_CORTEX_M55_NVIC_DRIVER,
 };
 
@@ -36,7 +36,7 @@ whal_Irq g_whalIrq = {
  * For initial bring-up, run at HSI 64 MHz. */
 /* API is directly mapped */
 whal_Clock g_whalClock = {
-    .regmap = { WHAL_STM32N657_RCC_REGMAP },
+    .base = WHAL_STM32N657_RCC_BASE,
 };
 
 static const whal_Stm32n6_Rcc_PeriphClk g_periphClks[] = {
@@ -68,7 +68,7 @@ static const whal_Stm32n6_Rcc_PeriphClk g_ethClocks[] = {
 /* GPIO */
 /* API is directly mapped */
 whal_Gpio g_whalGpio = {
-    .regmap = { WHAL_STM32N657_GPIO_REGMAP },
+    .base = WHAL_STM32N657_GPIO_BASE,
 
     .cfg = &(whal_Stm32n6_Gpio_Cfg) {
         .pinCfg = (whal_Stm32n6_Gpio_PinCfg[PIN_COUNT]) {
@@ -170,7 +170,7 @@ whal_Gpio g_whalGpio = {
 /* I2C */
 /* API is directly mapped */
 whal_I2c g_whalI2c = {
-    .regmap = { WHAL_STM32N657_I2C1_REGMAP },
+    .base = WHAL_STM32N657_I2C1_BASE,
 
     .cfg = &(whal_Stm32n6_I2c_Cfg) {
         .pclk = 64000000,
@@ -181,7 +181,7 @@ whal_I2c g_whalI2c = {
 /* SPI */
 /* API is directly mapped */
 whal_Spi g_whalSpi = {
-    .regmap = { WHAL_STM32N657_SPI1_REGMAP },
+    .base = WHAL_STM32N657_SPI1_BASE,
 
     .cfg = &(whal_Stm32n6_Spi_Cfg) {
         .pclk = 64000000,
@@ -191,7 +191,7 @@ whal_Spi g_whalSpi = {
 
 /* Timer (SysTick at 64 MHz HSI) */
 whal_Timer g_whalTimer = {
-    .regmap = { WHAL_CORTEX_M55_SYSTICK_REGMAP },
+    .base = WHAL_CORTEX_M55_SYSTICK_BASE,
     .driver = WHAL_CORTEX_M55_SYSTICK_DRIVER,
 
     .cfg = &(whal_SysTick_Cfg) {
@@ -205,7 +205,7 @@ whal_Timer g_whalTimer = {
 #ifdef BOARD_DMA
 /* API is directly mapped */
 whal_Dma g_whalDma1 = {
-    .regmap = { WHAL_STM32N657_GPDMA1_REGMAP },
+    .base = WHAL_STM32N657_GPDMA1_BASE,
     .cfg = &(whal_Stm32n6_Gpdma_Cfg){
         .numChannels = 16,
         .timeout = &g_whalTimeout,
@@ -218,7 +218,7 @@ static const whal_Stm32n6_Rcc_PeriphClk g_dmaClock = {WHAL_STM32N657_GPDMA1_CLOC
 /* UART (USART1 via VCP at 115200 baud, 64 MHz HSI) */
 /* API is directly mapped */
 whal_Uart g_whalUart = {
-    .regmap = { WHAL_STM32N657_USART1_REGMAP },
+    .base = WHAL_STM32N657_USART1_BASE,
 
     .cfg = &(whal_Stm32n6_Uart_Cfg) {
         .timeout = &g_whalTimeout,
@@ -229,7 +229,7 @@ whal_Uart g_whalUart = {
 /* RNG */
 /* API is directly mapped */
 whal_Rng g_whalRng = {
-    .regmap = { WHAL_STM32N657_RNG_REGMAP },
+    .base = WHAL_STM32N657_RNG_BASE,
 
     .cfg = &(whal_Stm32n6_Rng_Cfg) {
         .timeout = &g_whalTimeout,
@@ -238,7 +238,7 @@ whal_Rng g_whalRng = {
 
 /* Crypto (CRYP hardware accelerator) */
 whal_Crypto g_whalCrypto = {
-    .regmap = { WHAL_STM32N657_CRYP_REGMAP },
+    .base = WHAL_STM32N657_CRYP_BASE,
     .driver = WHAL_STM32N657_CRYP_DRIVER,
 
     .cfg = &(whal_Stm32n6_Cryp_Cfg) {
@@ -248,7 +248,7 @@ whal_Crypto g_whalCrypto = {
 
 /* Hash (HASH hardware accelerator) */
 whal_Crypto g_whalHash = {
-    .regmap = { WHAL_STM32N657_HASH_REGMAP },
+    .base = WHAL_STM32N657_HASH_BASE,
     .driver = WHAL_STM32N657_HASH_DRIVER,
 
     .cfg = &(whal_Stm32n6_Hash_Cfg) {
@@ -258,7 +258,7 @@ whal_Crypto g_whalHash = {
 
 #ifdef BOARD_WATCHDOG_IWDG
 whal_Watchdog g_whalWatchdog = {
-    .regmap = { WHAL_STM32N657_IWDG_REGMAP },
+    .base = WHAL_STM32N657_IWDG_BASE,
     .driver = WHAL_STM32N657_IWDG_DRIVER,
 
     .cfg = &(whal_Stm32n6_Iwdg_Cfg) {
@@ -269,7 +269,7 @@ whal_Watchdog g_whalWatchdog = {
 };
 #elif defined(BOARD_WATCHDOG_WWDG)
 whal_Watchdog g_whalWatchdog = {
-    .regmap = { WHAL_STM32N657_WWDG_REGMAP },
+    .base = WHAL_STM32N657_WWDG_BASE,
     .driver = WHAL_STM32N657_WWDG_DRIVER,
 
     .cfg = &(whal_Stm32n6_Wwdg_Cfg) {
@@ -301,7 +301,7 @@ static uint8_t ethRxBufs[ETH_RX_DESC_COUNT * ETH_RX_BUF_SIZE]
 
 /* API is directly mapped */
 whal_Eth g_whalEth = {
-    .regmap = { WHAL_STM32N657_ETH_REGMAP },
+    .base = WHAL_STM32N657_ETH_BASE,
 
     .macAddr = {0x00, 0x80, 0xE1, 0x00, 0x00, 0x01},
     .cfg = &(whal_Stm32n6_Eth_Cfg) {

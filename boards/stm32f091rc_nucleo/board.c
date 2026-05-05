@@ -29,7 +29,7 @@ whal_Timeout g_whalTimeout = {
 
 /* Clock — PLL at 48 MHz (HSI/2 * 12) */
 whal_Clock g_whalClock = {
-    .regmap = { WHAL_STM32F091_RCC_REGMAP },
+    .base = WHAL_STM32F091_RCC_BASE,
 };
 
 static const whal_Stm32f0_Rcc_PeriphClk g_periphClks[] = {
@@ -44,7 +44,7 @@ static const whal_Stm32f0_Rcc_PeriphClk g_periphClks[] = {
 
 /* GPIO */
 whal_Gpio g_whalGpio = {
-    .regmap = { WHAL_STM32F091_GPIO_REGMAP },
+    .base = WHAL_STM32F091_GPIO_BASE,
 
     .cfg = &(whal_Stm32f0_Gpio_Cfg) {
         .pinCfg = (whal_Stm32f0_Gpio_PinCfg[PIN_COUNT]) {
@@ -100,7 +100,7 @@ whal_Gpio g_whalGpio = {
 
 /* Timer — SysTick at 1 ms */
 whal_Timer g_whalTimer = {
-    .regmap = { WHAL_CORTEX_M0_SYSTICK_REGMAP },
+    .base = WHAL_CORTEX_M0_SYSTICK_BASE,
     .driver = WHAL_CORTEX_M0_SYSTICK_DRIVER,
 
     .cfg = &(whal_SysTick_Cfg) {
@@ -112,7 +112,7 @@ whal_Timer g_whalTimer = {
 
 /* UART — USART2 at 115200 baud */
 whal_Uart g_whalUart = {
-    .regmap = { WHAL_STM32F091_USART2_REGMAP },
+    .base = WHAL_STM32F091_USART2_BASE,
 
     .cfg = &(whal_Stm32f0_Uart_Cfg) {
         .timeout = &g_whalTimeout,
@@ -122,7 +122,7 @@ whal_Uart g_whalUart = {
 
 /* SPI */
 whal_Spi g_whalSpi = {
-    .regmap = { WHAL_STM32F091_SPI1_REGMAP },
+    .base = WHAL_STM32F091_SPI1_BASE,
 
     .cfg = &(whal_Stm32f0_Spi_Cfg) {
         .pclk = 48000000,
@@ -132,7 +132,7 @@ whal_Spi g_whalSpi = {
 
 /* I2C — I2C1 */
 whal_I2c g_whalI2c = {
-    .regmap = { WHAL_STM32F091_I2C1_REGMAP },
+    .base = WHAL_STM32F091_I2C1_BASE,
 
     .cfg = &(whal_Stm32f0_I2c_Cfg) {
         .pclk = 48000000,
@@ -142,7 +142,7 @@ whal_I2c g_whalI2c = {
 
 /* Flash — 256 KB */
 whal_Flash g_whalFlash = {
-    .regmap = { WHAL_STM32F091_FLASH_REGMAP },
+    .base = WHAL_STM32F091_FLASH_BASE,
     .driver = WHAL_STM32F091_FLASH_DRIVER,
 
     .cfg = &(whal_Stm32f0_Flash_Cfg) {
@@ -154,7 +154,7 @@ whal_Flash g_whalFlash = {
 
 #ifdef BOARD_WATCHDOG_IWDG
 whal_Watchdog g_whalWatchdog = {
-    .regmap = { WHAL_STM32F091_IWDG_REGMAP },
+    .base = WHAL_STM32F091_IWDG_BASE,
     .driver = WHAL_STM32F091_IWDG_DRIVER,
 
     .cfg = &(whal_Stm32f0_Iwdg_Cfg) {

@@ -27,7 +27,7 @@ whal_Timeout g_whalTimeout = {
 
 /* Clock */
 whal_Clock g_whalClock = {
-    .regmap = { WHAL_STM32H563_RCC_REGMAP },
+    .base = WHAL_STM32H563_RCC_BASE,
 };
 
 static const whal_Stm32h5_Rcc_PeriphClk g_periphClks[] = {
@@ -52,7 +52,7 @@ static const whal_Stm32h5_Rcc_PeriphClk g_ethClocks[] = {
 
 /* GPIO */
 whal_Gpio g_whalGpio = {
-    .regmap = { WHAL_STM32H563_GPIO_REGMAP },
+    .base = WHAL_STM32H563_GPIO_BASE,
     /* .driver: direct API mapping */
 
     .cfg = &(whal_Stm32h5_Gpio_Cfg) {
@@ -144,7 +144,7 @@ whal_Gpio g_whalGpio = {
 
 /* Timer */
 whal_Timer g_whalTimer = {
-    .regmap = { WHAL_CORTEX_M33_SYSTICK_REGMAP },
+    .base = WHAL_CORTEX_M33_SYSTICK_BASE,
     .driver = WHAL_CORTEX_M33_SYSTICK_DRIVER,
 
     .cfg = &(whal_SysTick_Cfg) {
@@ -156,7 +156,7 @@ whal_Timer g_whalTimer = {
 
 /* UART */
 whal_Uart g_whalUart = {
-    .regmap = { WHAL_STM32H563_USART3_REGMAP },
+    .base = WHAL_STM32H563_USART3_BASE,
     /* .driver: direct API mapping */
 
     .cfg = &(whal_Stm32h5_Uart_Cfg) {
@@ -167,7 +167,7 @@ whal_Uart g_whalUart = {
 
 /* SPI */
 whal_Spi g_whalSpi = {
-    .regmap = { WHAL_STM32H563_SPI1_REGMAP },
+    .base = WHAL_STM32H563_SPI1_BASE,
     /* .driver: direct API mapping */
 
     .cfg = &(whal_Stm32h5_Spi_Cfg) {
@@ -178,7 +178,7 @@ whal_Spi g_whalSpi = {
 
 /* RNG */
 whal_Rng g_whalRng = {
-    .regmap = { WHAL_STM32H563_RNG_REGMAP },
+    .base = WHAL_STM32H563_RNG_BASE,
     /* .driver: direct API mapping */
 
     .cfg = &(whal_Stm32h5_Rng_Cfg) {
@@ -189,7 +189,7 @@ whal_Rng g_whalRng = {
 
 /* Flash */
 whal_Flash g_whalFlash = {
-    .regmap = { WHAL_STM32H563_FLASH_REGMAP },
+    .base = WHAL_STM32H563_FLASH_BASE,
     .driver = WHAL_STM32H563_FLASH_DRIVER,
 
     .cfg = &(whal_Stm32h5_Flash_Cfg) {
@@ -215,7 +215,7 @@ static uint8_t ethRxBufs[ETH_RX_DESC_COUNT * ETH_RX_BUF_SIZE]
     __attribute__((aligned(4)));
 
 whal_Eth g_whalEth = {
-    .regmap = { WHAL_STM32H563_ETH_REGMAP },
+    .base = WHAL_STM32H563_ETH_BASE,
     /* .driver: direct API mapping */
 
     .macAddr = {0x00, 0x80, 0xE1, 0x00, 0x00, 0x01},

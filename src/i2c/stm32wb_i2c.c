@@ -371,26 +371,26 @@ static whal_Error Stm32wb_I2c_TransferMsg(size_t base, whal_I2c_Msg *msg,
 
 whal_Error whal_Stm32wb_I2c_Init(whal_I2c *i2cDev)
 {
-    const whal_Regmap *reg;
+    size_t base;
 
     if (!i2cDev || !i2cDev->cfg) {
         return WHAL_EINVAL;
     }
 
-    reg = &i2cDev->regmap;
+    base = i2cDev->base;
 
     /* Disable PE before configuring */
-    whal_Reg_Update(reg->base, I2C_CR1_REG, I2C_CR1_PE_Msk,
+    whal_Reg_Update(base, I2C_CR1_REG, I2C_CR1_PE_Msk,
                     whal_SetBits(I2C_CR1_PE_Msk, I2C_CR1_PE_Pos, 0));
 
     /* Enable analog noise filter (ANFOFF=0), disable digital filter (DNF=0) */
-    whal_Reg_Update(reg->base, I2C_CR1_REG,
+    whal_Reg_Update(base, I2C_CR1_REG,
                     I2C_CR1_ANFOFF_Msk | I2C_CR1_DNF_Msk,
                     whal_SetBits(I2C_CR1_ANFOFF_Msk, I2C_CR1_ANFOFF_Pos, 0) |
                     whal_SetBits(I2C_CR1_DNF_Msk, I2C_CR1_DNF_Pos, 0));
 
     /* Enable peripheral */
-    whal_Reg_Update(reg->base, I2C_CR1_REG, I2C_CR1_PE_Msk,
+    whal_Reg_Update(base, I2C_CR1_REG, I2C_CR1_PE_Msk,
                     whal_SetBits(I2C_CR1_PE_Msk, I2C_CR1_PE_Pos, 1));
 
     return WHAL_SUCCESS;
@@ -398,16 +398,16 @@ whal_Error whal_Stm32wb_I2c_Init(whal_I2c *i2cDev)
 
 whal_Error whal_Stm32wb_I2c_Deinit(whal_I2c *i2cDev)
 {
-    const whal_Regmap *reg;
+    size_t base;
 
     if (!i2cDev || !i2cDev->cfg) {
         return WHAL_EINVAL;
     }
 
-    reg = &i2cDev->regmap;
+    base = i2cDev->base;
 
     /* Disable peripheral */
-    whal_Reg_Update(reg->base, I2C_CR1_REG, I2C_CR1_PE_Msk,
+    whal_Reg_Update(base, I2C_CR1_REG, I2C_CR1_PE_Msk,
                     whal_SetBits(I2C_CR1_PE_Msk, I2C_CR1_PE_Pos, 0));
 
     return WHAL_SUCCESS;
@@ -415,7 +415,7 @@ whal_Error whal_Stm32wb_I2c_Deinit(whal_I2c *i2cDev)
 
 whal_Error whal_Stm32wb_I2c_StartCom(whal_I2c *i2cDev, whal_I2c_ComCfg *comCfg)
 {
-    const whal_Regmap *reg;
+    size_t base;
     whal_Stm32wb_I2c_Cfg *cfg;
     uint32_t cr2 = 0;
 
@@ -427,19 +427,19 @@ whal_Error whal_Stm32wb_I2c_StartCom(whal_I2c *i2cDev, whal_I2c_ComCfg *comCfg)
         return WHAL_EINVAL;
     }
 
-    reg = &i2cDev->regmap;
+    base = i2cDev->base;
     cfg = (whal_Stm32wb_I2c_Cfg *)i2cDev->cfg;
 
     /* Disable PE to configure timing */
-    whal_Reg_Update(reg->base, I2C_CR1_REG, I2C_CR1_PE_Msk,
+    whal_Reg_Update(base, I2C_CR1_REG, I2C_CR1_PE_Msk,
                     whal_SetBits(I2C_CR1_PE_Msk, I2C_CR1_PE_Pos, 0));
 
     /* Compute and write timing register */
-    whal_Reg_Write(reg->base, I2C_TIMINGR_REG,
+    whal_Reg_Write(base, I2C_TIMINGR_REG,
                    Stm32wb_I2c_CalcTimingr(cfg->pclk, comCfg->freq));
 
     /* Re-enable PE */
-    whal_Reg_Update(reg->base, I2C_CR1_REG, I2C_CR1_PE_Msk,
+    whal_Reg_Update(base, I2C_CR1_REG, I2C_CR1_PE_Msk,
                     whal_SetBits(I2C_CR1_PE_Msk, I2C_CR1_PE_Pos, 1));
 
     /* Configure target address and addressing mode in CR2 */
@@ -452,7 +452,7 @@ whal_Error whal_Stm32wb_I2c_StartCom(whal_I2c *i2cDev, whal_I2c_ComCfg *comCfg)
                              (uint32_t)comCfg->addr << 1);
     }
 
-    whal_Reg_Update(reg->base, I2C_CR2_REG,
+    whal_Reg_Update(base, I2C_CR2_REG,
                     I2C_CR2_SADD_Msk | I2C_CR2_ADD10_Msk, cr2);
 
     return WHAL_SUCCESS;
@@ -460,16 +460,16 @@ whal_Error whal_Stm32wb_I2c_StartCom(whal_I2c *i2cDev, whal_I2c_ComCfg *comCfg)
 
 whal_Error whal_Stm32wb_I2c_EndCom(whal_I2c *i2cDev)
 {
-    const whal_Regmap *reg;
+    size_t base;
 
     if (!i2cDev || !i2cDev->cfg) {
         return WHAL_EINVAL;
     }
 
-    reg = &i2cDev->regmap;
+    base = i2cDev->base;
 
     /* Clear target address and addressing mode */
-    whal_Reg_Update(reg->base, I2C_CR2_REG,
+    whal_Reg_Update(base, I2C_CR2_REG,
                     I2C_CR2_SADD_Msk | I2C_CR2_ADD10_Msk, 0);
 
     return WHAL_SUCCESS;
@@ -478,7 +478,7 @@ whal_Error whal_Stm32wb_I2c_EndCom(whal_I2c *i2cDev)
 whal_Error whal_Stm32wb_I2c_Transfer(whal_I2c *i2cDev, whal_I2c_Msg *msgs,
                                      size_t numMsgs)
 {
-    const whal_Regmap *reg;
+    size_t base;
     whal_Stm32wb_I2c_Cfg *cfg;
     whal_Error err;
 
@@ -486,7 +486,7 @@ whal_Error whal_Stm32wb_I2c_Transfer(whal_I2c *i2cDev, whal_I2c_Msg *msgs,
         return WHAL_EINVAL;
     }
 
-    reg = &i2cDev->regmap;
+    base = i2cDev->base;
     cfg = (whal_Stm32wb_I2c_Cfg *)i2cDev->cfg;
 
     for (size_t i = 0; i < numMsgs; i++) {
@@ -502,7 +502,7 @@ whal_Error whal_Stm32wb_I2c_Transfer(whal_I2c *i2cDev, whal_I2c_Msg *msgs,
             reloadLast = 1;
         }
 
-        err = Stm32wb_I2c_TransferMsg(reg->base, &msgs[i], reloadLast,
+        err = Stm32wb_I2c_TransferMsg(base, &msgs[i], reloadLast,
                                       cfg->timeout);
         if (err)
             return err;

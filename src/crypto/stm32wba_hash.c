@@ -98,7 +98,7 @@ static whal_Error Process_Hash(whal_Crypto *cryptoDev, const void *in,
     if (!in)
         return WHAL_EINVAL;
 
-    WriteData(cryptoDev->regmap.base, (const uint8_t *)in, inSz);
+    WriteData(cryptoDev->base, (const uint8_t *)in, inSz);
 
     return WHAL_SUCCESS;
 }
@@ -135,7 +135,7 @@ whal_Error whal_Stm32wba_Hash_Deinit(whal_Crypto *cryptoDev)
     defined(WHAL_CFG_CRYPTO_SHA256)
 static whal_Error StartOp_Hash(whal_Crypto *cryptoDev, size_t algo)
 {
-    size_t base = cryptoDev->regmap.base;
+    size_t base = cryptoDev->base;
 
     whal_Reg_Update(base, HASH_STR_REG, HASH_STR_NBLW_Msk, 0);
 
@@ -153,7 +153,7 @@ static whal_Error EndOp_Hash(whal_Crypto *cryptoDev, size_t expectedDigestSz,
     whal_Crypto_HashArgs *args = (whal_Crypto_HashArgs *)opArgs;
     const whal_Stm32wba_Hash_Cfg *cfg =
         (const whal_Stm32wba_Hash_Cfg *)cryptoDev->cfg;
-    size_t base = cryptoDev->regmap.base;
+    size_t base = cryptoDev->base;
     whal_Error err;
 
     if (!args->digest || args->digestSz != expectedDigestSz)
@@ -182,7 +182,7 @@ static whal_Error StartOp_Hmac(whal_Crypto *cryptoDev, size_t algo,
     whal_Crypto_HmacArgs *args = (whal_Crypto_HmacArgs *)opArgs;
     const whal_Stm32wba_Hash_Cfg *cfg =
         (const whal_Stm32wba_Hash_Cfg *)cryptoDev->cfg;
-    size_t base = cryptoDev->regmap.base;
+    size_t base = cryptoDev->base;
     size_t lkey;
     whal_Error err;
 
@@ -220,7 +220,7 @@ static whal_Error EndOp_Hmac(whal_Crypto *cryptoDev, size_t expectedDigestSz,
     whal_Crypto_HmacArgs *args = (whal_Crypto_HmacArgs *)opArgs;
     const whal_Stm32wba_Hash_Cfg *cfg =
         (const whal_Stm32wba_Hash_Cfg *)cryptoDev->cfg;
-    size_t base = cryptoDev->regmap.base;
+    size_t base = cryptoDev->base;
     whal_Error err;
 
     if (!args->key || !args->digest || args->digestSz != expectedDigestSz)

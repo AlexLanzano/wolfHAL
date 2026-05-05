@@ -3,7 +3,6 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#include <wolfHAL/regmap.h>
 #include <wolfHAL/error.h>
 
 /*
@@ -169,7 +168,7 @@ typedef struct {
  * @brief Crypto device instance tying a register map, driver, and configuration.
  */
 struct whal_Crypto {
-    const whal_Regmap regmap;
+    const size_t base;
     const whal_CryptoDriver *driver;
     const void *cfg;
 };

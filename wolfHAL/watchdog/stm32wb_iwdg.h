@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include <wolfHAL/timeout.h>
 #include <wolfHAL/watchdog/watchdog.h>
 
 /*

@@ -13,7 +13,7 @@ whal_Error whal_Pic32cz_Supc_EnableSupply(whal_Power *powerDev,
     if (!powerDev || !supply)
         return WHAL_EINVAL;
 
-    whal_Reg_Update(powerDev->regmap.base, VREGCTRL_REG, supply->enableMask,
+    whal_Reg_Update(powerDev->base, VREGCTRL_REG, supply->enableMask,
                     whal_SetBits(supply->enableMask, supply->enablePos, 1));
     return WHAL_SUCCESS;
 }
@@ -24,7 +24,7 @@ whal_Error whal_Pic32cz_Supc_DisableSupply(whal_Power *powerDev,
     if (!powerDev || !supply)
         return WHAL_EINVAL;
 
-    whal_Reg_Update(powerDev->regmap.base, VREGCTRL_REG, supply->enableMask,
+    whal_Reg_Update(powerDev->base, VREGCTRL_REG, supply->enableMask,
                     whal_SetBits(supply->enableMask, supply->enablePos, 0));
     return WHAL_SUCCESS;
 }

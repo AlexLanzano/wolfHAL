@@ -2,7 +2,6 @@
 #define WHAL_SPI_H
 
 #include <wolfHAL/error.h>
-#include <wolfHAL/regmap.h>
 #include <stdint.h>
 #include <stddef.h>
 
@@ -53,7 +52,7 @@ typedef struct {
  * @brief SPI device instance tying a register map and driver.
  */
 struct whal_Spi {
-    const whal_Regmap regmap;
+    const size_t base;
     const whal_SpiDriver *driver;
     void *cfg;
 };

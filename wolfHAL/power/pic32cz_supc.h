@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include <wolfHAL/error.h>
 #include <wolfHAL/power/power.h>
 
 /*

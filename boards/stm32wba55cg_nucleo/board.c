@@ -26,7 +26,7 @@ whal_Timeout g_whalTimeout = {
 
 /* IRQ */
 whal_Irq g_whalIrq = {
-    .regmap = { WHAL_CORTEX_M33_NVIC_REGMAP },
+    .base = WHAL_CORTEX_M33_NVIC_BASE,
     .driver = WHAL_CORTEX_M33_NVIC_DRIVER,
 };
 
@@ -38,7 +38,7 @@ whal_Irq g_whalIrq = {
  *   PLL1RGE = 3 (8-16 MHz range)
  */
 whal_Clock g_whalClock = {
-    .regmap = { WHAL_STM32WBA55_RCC_REGMAP },
+    .base = WHAL_STM32WBA55_RCC_BASE,
 };
 
 static const whal_Stm32wba_Rcc_PeriphClk g_flashClock = {WHAL_STM32WBA55_FLASH_CLOCK};
@@ -61,7 +61,7 @@ static const whal_Stm32wba_Rcc_PeriphClk g_periphClks[] = {
 
 /* GPIO */
 whal_Gpio g_whalGpio = {
-    .regmap = { WHAL_STM32WBA55_GPIO_REGMAP },
+    .base = WHAL_STM32WBA55_GPIO_BASE,
     .driver = WHAL_STM32WBA55_GPIO_DRIVER,
 
     .cfg = &(whal_Stm32wba_Gpio_Cfg) {
@@ -118,7 +118,7 @@ whal_Gpio g_whalGpio = {
 
 /* I2C */
 whal_I2c g_whalI2c = {
-    .regmap = { WHAL_STM32WBA55_I2C1_REGMAP },
+    .base = WHAL_STM32WBA55_I2C1_BASE,
     .driver = WHAL_STM32WBA55_I2C1_DRIVER,
 
     .cfg = &(whal_Stm32wba_I2c_Cfg) {
@@ -129,7 +129,7 @@ whal_I2c g_whalI2c = {
 
 /* SPI */
 whal_Spi g_whalSpi = {
-    .regmap = { WHAL_STM32WBA55_SPI1_REGMAP },
+    .base = WHAL_STM32WBA55_SPI1_BASE,
     .driver = WHAL_STM32WBA55_SPI1_DRIVER,
 
     .cfg = &(whal_Stm32wba_Spi_Cfg) {
@@ -140,7 +140,7 @@ whal_Spi g_whalSpi = {
 
 /* Timer (SysTick at 100 MHz) */
 whal_Timer g_whalTimer = {
-    .regmap = { WHAL_CORTEX_M33_SYSTICK_REGMAP },
+    .base = WHAL_CORTEX_M33_SYSTICK_BASE,
     .driver = WHAL_CORTEX_M33_SYSTICK_DRIVER,
 
     .cfg = &(whal_SysTick_Cfg) {
@@ -154,7 +154,7 @@ whal_Timer g_whalTimer = {
 #ifdef BOARD_DMA
 
 whal_Dma g_whalDma1 = {
-    .regmap = { WHAL_STM32WBA55_GPDMA1_REGMAP },
+    .base = WHAL_STM32WBA55_GPDMA1_BASE,
     .driver = WHAL_STM32WBA55_GPDMA1_DRIVER,
     .cfg = &(whal_Stm32wba_Gpdma_Cfg){
         .numChannels = 8,
@@ -182,7 +182,7 @@ void GPDMA1_Channel1_IRQHandler(void)
 /* UART (USART1 via VCP at 115200 baud) */
 #ifdef BOARD_DMA
 whal_Uart g_whalUart = {
-    .regmap = { WHAL_STM32WBA55_USART1_REGMAP },
+    .base = WHAL_STM32WBA55_USART1_BASE,
     .driver = &whal_Stm32wba_UartDma_Driver,
     .cfg = &(whal_Stm32wba_UartDma_Cfg) {
         .base = {
@@ -198,7 +198,7 @@ whal_Uart g_whalUart = {
 };
 #else
 whal_Uart g_whalUart = {
-    .regmap = { WHAL_STM32WBA55_USART1_REGMAP },
+    .base = WHAL_STM32WBA55_USART1_BASE,
     .driver = WHAL_STM32WBA55_USART1_DRIVER,
 
     .cfg = &(whal_Stm32wba_Uart_Cfg) {
@@ -210,7 +210,7 @@ whal_Uart g_whalUart = {
 
 /* Flash */
 whal_Flash g_whalFlash = {
-    .regmap = { WHAL_STM32WBA55_FLASH_REGMAP },
+    .base = WHAL_STM32WBA55_FLASH_BASE,
     .driver = WHAL_STM32WBA55_FLASH_DRIVER,
 
     .cfg = &(whal_Stm32wba_Flash_Cfg) {
@@ -222,7 +222,7 @@ whal_Flash g_whalFlash = {
 
 /* RNG */
 whal_Rng g_whalRng = {
-    .regmap = { WHAL_STM32WBA55_RNG_REGMAP },
+    .base = WHAL_STM32WBA55_RNG_BASE,
     .driver = WHAL_STM32WBA55_RNG_DRIVER,
 
     .cfg = &(whal_Stm32wba_Rng_Cfg) {
@@ -232,7 +232,7 @@ whal_Rng g_whalRng = {
 
 /* Crypto (AES hardware accelerator) */
 whal_Crypto g_whalCrypto = {
-    .regmap = { WHAL_STM32WBA55_AES_REGMAP },
+    .base = WHAL_STM32WBA55_AES_BASE,
     .driver = WHAL_STM32WBA55_AES_DRIVER,
 
     .cfg = &(whal_Stm32wba_Aes_Cfg) {
@@ -242,7 +242,7 @@ whal_Crypto g_whalCrypto = {
 
 /* Hash (HASH hardware accelerator) */
 whal_Crypto g_whalHash = {
-    .regmap = { WHAL_STM32WBA55_HASH_REGMAP },
+    .base = WHAL_STM32WBA55_HASH_BASE,
     .driver = WHAL_STM32WBA55_HASH_DRIVER,
 
     .cfg = &(whal_Stm32wba_Hash_Cfg) {
@@ -252,7 +252,7 @@ whal_Crypto g_whalHash = {
 
 #ifdef BOARD_WATCHDOG_IWDG
 whal_Watchdog g_whalWatchdog = {
-    .regmap = { WHAL_STM32WBA55_IWDG_REGMAP },
+    .base = WHAL_STM32WBA55_IWDG_BASE,
     .driver = WHAL_STM32WBA55_IWDG_DRIVER,
 
     .cfg = &(whal_Stm32wba_Iwdg_Cfg) {
@@ -263,7 +263,7 @@ whal_Watchdog g_whalWatchdog = {
 };
 #elif defined(BOARD_WATCHDOG_WWDG)
 whal_Watchdog g_whalWatchdog = {
-    .regmap = { WHAL_STM32WBA55_WWDG_REGMAP },
+    .base = WHAL_STM32WBA55_WWDG_BASE,
     .driver = WHAL_STM32WBA55_WWDG_DRIVER,
 
     .cfg = &(whal_Stm32wba_Wwdg_Cfg) {

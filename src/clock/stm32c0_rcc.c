@@ -32,13 +32,13 @@ whal_Error whal_Stm32c0_Rcc_EnableHsi(whal_Clock *clkDev,
     if (!clkDev)
         return WHAL_EINVAL;
 
-    whal_Reg_Update(clkDev->regmap.base, RCC_CR_REG, RCC_CR_HSION_Msk,
+    whal_Reg_Update(clkDev->base, RCC_CR_REG, RCC_CR_HSION_Msk,
                     RCC_CR_HSION_Msk);
     do {
-        whal_Reg_Get(clkDev->regmap.base, RCC_CR_REG, RCC_CR_HSIRDY_Msk,
+        whal_Reg_Get(clkDev->base, RCC_CR_REG, RCC_CR_HSIRDY_Msk,
                      RCC_CR_HSIRDY_Pos, &rdy);
     } while (!rdy);
-    whal_Reg_Update(clkDev->regmap.base, RCC_CR_REG, RCC_CR_HSIDIV_Msk,
+    whal_Reg_Update(clkDev->base, RCC_CR_REG, RCC_CR_HSIDIV_Msk,
                     whal_SetBits(RCC_CR_HSIDIV_Msk, RCC_CR_HSIDIV_Pos, hsidiv));
     return WHAL_SUCCESS;
 }
@@ -51,10 +51,10 @@ whal_Error whal_Stm32c0_Rcc_SetSysClock(whal_Clock *clkDev,
     if (!clkDev)
         return WHAL_EINVAL;
 
-    whal_Reg_Update(clkDev->regmap.base, RCC_CFGR_REG, RCC_CFGR_SW_Msk,
+    whal_Reg_Update(clkDev->base, RCC_CFGR_REG, RCC_CFGR_SW_Msk,
                     whal_SetBits(RCC_CFGR_SW_Msk, RCC_CFGR_SW_Pos, src));
     do {
-        whal_Reg_Get(clkDev->regmap.base, RCC_CFGR_REG, RCC_CFGR_SWS_Msk,
+        whal_Reg_Get(clkDev->base, RCC_CFGR_REG, RCC_CFGR_SWS_Msk,
                      RCC_CFGR_SWS_Pos, &sws);
     } while (sws != (size_t)src);
     return WHAL_SUCCESS;
@@ -66,7 +66,7 @@ whal_Error whal_Stm32c0_Rcc_EnablePeriphClk(whal_Clock *clkDev,
     if (!clkDev || !clk)
         return WHAL_EINVAL;
 
-    whal_Reg_Update(clkDev->regmap.base, clk->regOffset, clk->enableMask,
+    whal_Reg_Update(clkDev->base, clk->regOffset, clk->enableMask,
                     whal_SetBits(clk->enableMask, clk->enablePos, 1));
     return WHAL_SUCCESS;
 }
@@ -77,7 +77,7 @@ whal_Error whal_Stm32c0_Rcc_DisablePeriphClk(whal_Clock *clkDev,
     if (!clkDev || !clk)
         return WHAL_EINVAL;
 
-    whal_Reg_Update(clkDev->regmap.base, clk->regOffset, clk->enableMask,
+    whal_Reg_Update(clkDev->base, clk->regOffset, clk->enableMask,
                     whal_SetBits(clk->enableMask, clk->enablePos, 0));
     return WHAL_SUCCESS;
 }

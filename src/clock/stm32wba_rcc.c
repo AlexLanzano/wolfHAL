@@ -56,9 +56,9 @@ whal_Error whal_Stm32wba_Rcc_EnableOsc(whal_Clock *clkDev,
     if (!clkDev || !cfg)
         return WHAL_EINVAL;
 
-    whal_Reg_Update(clkDev->regmap.base, cfg->onReg, cfg->onMsk, cfg->onMsk);
+    whal_Reg_Update(clkDev->base, cfg->onReg, cfg->onMsk, cfg->onMsk);
     do {
-        whal_Reg_Get(clkDev->regmap.base, cfg->rdyReg, cfg->rdyMsk,
+        whal_Reg_Get(clkDev->base, cfg->rdyReg, cfg->rdyMsk,
                      cfg->rdyPos, &rdy);
     } while (!rdy);
     return WHAL_SUCCESS;
@@ -70,7 +70,7 @@ whal_Error whal_Stm32wba_Rcc_DisableOsc(whal_Clock *clkDev,
     if (!clkDev || !cfg)
         return WHAL_EINVAL;
 
-    whal_Reg_Update(clkDev->regmap.base, cfg->onReg, cfg->onMsk, 0);
+    whal_Reg_Update(clkDev->base, cfg->onReg, cfg->onMsk, 0);
     return WHAL_SUCCESS;
 }
 
@@ -83,27 +83,27 @@ whal_Error whal_Stm32wba_Rcc_EnablePll1(whal_Clock *clkDev,
         return WHAL_EINVAL;
 
     /* Disable PLL1 before reconfiguring; wait until off. */
-    whal_Reg_Update(clkDev->regmap.base, RCC_CR_REG, RCC_CR_PLL1ON_Msk, 0);
+    whal_Reg_Update(clkDev->base, RCC_CR_REG, RCC_CR_PLL1ON_Msk, 0);
     do {
-        whal_Reg_Get(clkDev->regmap.base, RCC_CR_REG, RCC_CR_PLL1RDY_Msk,
+        whal_Reg_Get(clkDev->base, RCC_CR_REG, RCC_CR_PLL1RDY_Msk,
                      RCC_CR_PLL1RDY_Pos, &rdy);
     } while (rdy);
 
-    whal_Reg_Write(clkDev->regmap.base, RCC_PLL1CFGR_REG,
+    whal_Reg_Write(clkDev->base, RCC_PLL1CFGR_REG,
                    whal_SetBits(RCC_PLL1CFGR_SRC_Msk, RCC_PLL1CFGR_SRC_Pos, cfg->clkSrc) |
                    whal_SetBits(RCC_PLL1CFGR_RGE_Msk, RCC_PLL1CFGR_RGE_Pos, cfg->rge) |
                    whal_SetBits(RCC_PLL1CFGR_M_Msk,   RCC_PLL1CFGR_M_Pos,   cfg->m) |
                    whal_SetBits(RCC_PLL1CFGR_REN_Msk, RCC_PLL1CFGR_REN_Pos, 1));
-    whal_Reg_Write(clkDev->regmap.base, RCC_PLL1DIVR_REG,
+    whal_Reg_Write(clkDev->base, RCC_PLL1DIVR_REG,
                    whal_SetBits(RCC_PLL1DIVR_N_Msk, RCC_PLL1DIVR_N_Pos, cfg->n) |
                    whal_SetBits(RCC_PLL1DIVR_P_Msk, RCC_PLL1DIVR_P_Pos, cfg->p) |
                    whal_SetBits(RCC_PLL1DIVR_Q_Msk, RCC_PLL1DIVR_Q_Pos, cfg->q) |
                    whal_SetBits(RCC_PLL1DIVR_R_Msk, RCC_PLL1DIVR_R_Pos, cfg->r));
 
-    whal_Reg_Update(clkDev->regmap.base, RCC_CR_REG, RCC_CR_PLL1ON_Msk,
+    whal_Reg_Update(clkDev->base, RCC_CR_REG, RCC_CR_PLL1ON_Msk,
                     RCC_CR_PLL1ON_Msk);
     do {
-        whal_Reg_Get(clkDev->regmap.base, RCC_CR_REG, RCC_CR_PLL1RDY_Msk,
+        whal_Reg_Get(clkDev->base, RCC_CR_REG, RCC_CR_PLL1RDY_Msk,
                      RCC_CR_PLL1RDY_Pos, &rdy);
     } while (!rdy);
     return WHAL_SUCCESS;
@@ -113,7 +113,7 @@ whal_Error whal_Stm32wba_Rcc_DisablePll1(whal_Clock *clkDev)
 {
     if (!clkDev)
         return WHAL_EINVAL;
-    whal_Reg_Update(clkDev->regmap.base, RCC_CR_REG, RCC_CR_PLL1ON_Msk, 0);
+    whal_Reg_Update(clkDev->base, RCC_CR_REG, RCC_CR_PLL1ON_Msk, 0);
     return WHAL_SUCCESS;
 }
 
@@ -124,10 +124,10 @@ whal_Error whal_Stm32wba_Rcc_EnableLsi(whal_Clock *clkDev)
     if (!clkDev)
         return WHAL_EINVAL;
 
-    whal_Reg_Update(clkDev->regmap.base, RCC_BDCR1_REG, RCC_BDCR1_LSI1ON_Msk,
+    whal_Reg_Update(clkDev->base, RCC_BDCR1_REG, RCC_BDCR1_LSI1ON_Msk,
                     RCC_BDCR1_LSI1ON_Msk);
     do {
-        whal_Reg_Get(clkDev->regmap.base, RCC_BDCR1_REG, RCC_BDCR1_LSI1RDY_Msk,
+        whal_Reg_Get(clkDev->base, RCC_BDCR1_REG, RCC_BDCR1_LSI1RDY_Msk,
                      RCC_BDCR1_LSI1RDY_Pos, &rdy);
     } while (!rdy);
     return WHAL_SUCCESS;
@@ -137,7 +137,7 @@ whal_Error whal_Stm32wba_Rcc_DisableLsi(whal_Clock *clkDev)
 {
     if (!clkDev)
         return WHAL_EINVAL;
-    whal_Reg_Update(clkDev->regmap.base, RCC_BDCR1_REG, RCC_BDCR1_LSI1ON_Msk, 0);
+    whal_Reg_Update(clkDev->base, RCC_BDCR1_REG, RCC_BDCR1_LSI1ON_Msk, 0);
     return WHAL_SUCCESS;
 }
 
@@ -149,10 +149,10 @@ whal_Error whal_Stm32wba_Rcc_SetSysClock(whal_Clock *clkDev,
     if (!clkDev)
         return WHAL_EINVAL;
 
-    whal_Reg_Update(clkDev->regmap.base, RCC_CFGR1_REG, RCC_CFGR1_SW_Msk,
+    whal_Reg_Update(clkDev->base, RCC_CFGR1_REG, RCC_CFGR1_SW_Msk,
                     whal_SetBits(RCC_CFGR1_SW_Msk, RCC_CFGR1_SW_Pos, src));
     do {
-        whal_Reg_Get(clkDev->regmap.base, RCC_CFGR1_REG, RCC_CFGR1_SWS_Msk,
+        whal_Reg_Get(clkDev->base, RCC_CFGR1_REG, RCC_CFGR1_SWS_Msk,
                      RCC_CFGR1_SWS_Pos, &sws);
     } while (sws != (size_t)src);
     return WHAL_SUCCESS;
@@ -163,7 +163,7 @@ whal_Error whal_Stm32wba_Rcc_SetRngClockSrc(whal_Clock *clkDev,
 {
     if (!clkDev)
         return WHAL_EINVAL;
-    whal_Reg_Update(clkDev->regmap.base, RCC_CCIPR2_REG, RCC_CCIPR2_RNGSEL_Msk,
+    whal_Reg_Update(clkDev->base, RCC_CCIPR2_REG, RCC_CCIPR2_RNGSEL_Msk,
                     whal_SetBits(RCC_CCIPR2_RNGSEL_Msk, RCC_CCIPR2_RNGSEL_Pos,
                                  src));
     return WHAL_SUCCESS;
@@ -173,7 +173,7 @@ whal_Error whal_Stm32wba_Rcc_SetHpre5(whal_Clock *clkDev, uint8_t hpre5)
 {
     if (!clkDev)
         return WHAL_EINVAL;
-    whal_Reg_Update(clkDev->regmap.base, RCC_CFGR4_REG, RCC_CFGR4_HPRE5_Msk,
+    whal_Reg_Update(clkDev->base, RCC_CFGR4_REG, RCC_CFGR4_HPRE5_Msk,
                     whal_SetBits(RCC_CFGR4_HPRE5_Msk, RCC_CFGR4_HPRE5_Pos, hpre5));
     return WHAL_SUCCESS;
 }
@@ -183,7 +183,7 @@ whal_Error whal_Stm32wba_Rcc_EnablePeriphClk(whal_Clock *clkDev,
 {
     if (!clkDev || !clk)
         return WHAL_EINVAL;
-    whal_Reg_Update(clkDev->regmap.base, clk->regOffset, clk->enableMask,
+    whal_Reg_Update(clkDev->base, clk->regOffset, clk->enableMask,
                     whal_SetBits(clk->enableMask, clk->enablePos, 1));
     return WHAL_SUCCESS;
 }
@@ -193,7 +193,7 @@ whal_Error whal_Stm32wba_Rcc_DisablePeriphClk(whal_Clock *clkDev,
 {
     if (!clkDev || !clk)
         return WHAL_EINVAL;
-    whal_Reg_Update(clkDev->regmap.base, clk->regOffset, clk->enableMask,
+    whal_Reg_Update(clkDev->base, clk->regOffset, clk->enableMask,
                     whal_SetBits(clk->enableMask, clk->enablePos, 0));
     return WHAL_SUCCESS;
 }

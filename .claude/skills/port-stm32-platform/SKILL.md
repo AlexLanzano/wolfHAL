@@ -51,7 +51,7 @@ For each device type, decide **reuse existing driver (with alias)** OR **write a
 
 The clock driver is almost always new per family. GPIO, I2C, and IWDG/WWDG are almost always reusable. UART, flash, RNG, DMA require careful diffing.
 
-**Clock is the architectural exception.** Unlike every other driver type, the clock subsystem has no `whal_ClockDriver` vtable and no generic `whal_Clock_Init`/`Enable`/`Disable` API. Chip clock drivers expose imperative `Enable*`/`Disable*`/`Set*` helpers (e.g. `whal_<Platform>_Rcc_EnableOsc`, `EnablePll`, `SetSysClock`, `EnablePeriphClk`) and boards call them directly. See `docs/writing_a_driver.md` "Clock" section. The platform header does NOT define a `WHAL_<PLATFORM>_RCC_DRIVER` macro, and the chip's `g_whalClock` global has only `.regmap = { ... }` — no `.driver`, no `.cfg`. Reference: `wolfHAL/clock/stm32wb_rcc.h` and `boards/stm32wb55xx_nucleo/board.c`.
+**Clock is the architectural exception.** Unlike every other driver type, the clock subsystem has no `whal_ClockDriver` vtable and no generic `whal_Clock_Init`/`Enable`/`Disable` API. Chip clock drivers expose imperative `Enable*`/`Disable*`/`Set*` helpers (e.g. `whal_<Platform>_Rcc_EnableOsc`, `EnablePll`, `SetSysClock`, `EnablePeriphClk`) and boards call them directly. See `docs/writing_a_driver.md` "Clock" section. The platform header does NOT define a `WHAL_<PLATFORM>_RCC_DRIVER` macro, and the chip's `g_whalClock` global has only `.base = ...` — no `.driver`, no `.cfg`. Reference: `wolfHAL/clock/stm32wb_rcc.h` and `boards/stm32wb55xx_nucleo/board.c`.
 
 ## Phase 2 — Platform header
 
@@ -74,7 +74,7 @@ Skeleton:
 /* ...one include per device type... */
 
 #define WHAL_<PLATFORM>_USART1_DEVICE   \
-    .regmap = { .base = 0x<addr>, .size = 0x400 }, \
+    .base = 0x<addr>, \
     .driver = &whal_<Platform>Uart_Driver
 
 #define WHAL_<PLATFORM>_USART1_CLOCK \
@@ -188,7 +188,7 @@ Create `boards/<board_name>/` with:
 Exports `extern whal_<Type>` instances and declares `Board_Init`/`Board_Deinit`/`Board_WaitMs`. Follow `docs/adding_a_board.md`.
 
 ### `board.c`
-Define each `whal_<Type>` global with its platform macro + board-specific config (pins, baud rates, timeout, DMA channel assignments). The `whal_Clock` global is just `.regmap = { ... }` (no `.driver`, no `.cfg`) since the clock subsystem has no vtable. Implement `Board_Init` in dependency order: PWR → bring up clock tree imperatively (oscillator on, PLL configure+enable, sysclk switch) → enable peripheral clocks → GPIO → UART → Timer → the rest. Keep the watchdog out of `Board_Init` (the app starts it when ready to refresh) per `docs/adding_a_board.md`. Guard DMA-specific setup under `#ifdef BOARD_DMA`, matching `boards/stm32wba55cg_nucleo/board.c`.
+Define each `whal_<Type>` global with its platform macro + board-specific config (pins, baud rates, timeout, DMA channel assignments). The `whal_Clock` global is just `.base = ...` (no `.driver`, no `.cfg`) since the clock subsystem has no vtable. Implement `Board_Init` in dependency order: PWR → bring up clock tree imperatively (oscillator on, PLL configure+enable, sysclk switch) → enable peripheral clocks → GPIO → UART → Timer → the rest. Keep the watchdog out of `Board_Init` (the app starts it when ready to refresh) per `docs/adding_a_board.md`. Guard DMA-specific setup under `#ifdef BOARD_DMA`, matching `boards/stm32wba55cg_nucleo/board.c`.
 
 ### GPIO pin conflict check
 After writing the `pinCfg` array in `board.c`, scan every entry pair and verify no two entries share the same physical port+pin. This is a common mistake when a pin serves double duty (e.g., PA5 used as both an LED and SPI1_SCK). If a conflict is found, consult the chip's alternate-function table in the datasheet and remap the conflicting peripheral to an alternate pin on a different port.

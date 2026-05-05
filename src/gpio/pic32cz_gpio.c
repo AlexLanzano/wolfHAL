@@ -1,4 +1,5 @@
 #include <wolfHAL/gpio/pic32cz_gpio.h>
+#include <wolfHAL/regmap.h>
 #include <wolfHAL/bitops.h>
 #include <wolfHAL/error.h>
 
@@ -81,12 +82,12 @@ whal_Error whal_Pic32cz_Gpio_Init(whal_Gpio *gpioDev)
             size_t pmuxenMask = PINCFGx_PMUXEN_Msk(pinCfg->pin);
             size_t pmuxenPos = PINCFGx_PMUXEN_Pos(pinCfg->pin);
 
-            whal_Reg_Update(gpioDev->regmap.base,
+            whal_Reg_Update(gpioDev->base,
                             PMUXx_REG(pinCfg->port, pinCfg->pin),
                             pmuxMask,
                             whal_SetBits(pmuxMask, pmuxPos, pinCfg->pmux));
 
-            whal_Reg_Update(gpioDev->regmap.base,
+            whal_Reg_Update(gpioDev->base,
                             PINCFGx_REG(pinCfg->port, pinCfg->pin),
                             pmuxenMask,
                             whal_SetBits(pmuxenMask, pmuxenPos, 1));
@@ -102,12 +103,12 @@ whal_Error whal_Pic32cz_Gpio_Init(whal_Gpio *gpioDev)
          */
 
         /* Set pin direction */
-        whal_Reg_Update(gpioDev->regmap.base, DIR_REG(pinCfg->port),
+        whal_Reg_Update(gpioDev->base, DIR_REG(pinCfg->port),
                         pinMask,
                         whal_SetBits(pinMask, pinCfg->pin, pinCfg->dir));
 
         /* Set initial output value */
-        whal_Reg_Update(gpioDev->regmap.base, OUT_REG(pinCfg->port),
+        whal_Reg_Update(gpioDev->base, OUT_REG(pinCfg->port),
                         pinMask,
                         whal_SetBits(pinMask, pinCfg->pin, pinCfg->out));
 
@@ -118,7 +119,7 @@ whal_Error whal_Pic32cz_Gpio_Init(whal_Gpio *gpioDev)
             size_t pullenMask = PINCFGx_PULLEN_Msk(pinCfg->pin);
             size_t pullenPos = PINCFGx_PULLEN_Pos(pinCfg->pin);
 
-            whal_Reg_Update(gpioDev->regmap.base,
+            whal_Reg_Update(gpioDev->base,
                             PINCFGx_REG(pinCfg->port, pinCfg->pin),
                             inenMask | pullenMask,
                             whal_SetBits(inenMask, inenPos, pinCfg->inEn) |
@@ -166,7 +167,7 @@ whal_Error whal_Pic32cz_Gpio_Get(whal_Gpio *gpioDev, size_t pin, size_t *value)
         reg = IN_REG(pinCfg->port);
     }
 
-    whal_Reg_Get(gpioDev->regmap.base, reg, pinMask, pinCfg->pin, value);
+    whal_Reg_Get(gpioDev->base, reg, pinMask, pinCfg->pin, value);
 
     return WHAL_SUCCESS;
 }
@@ -187,7 +188,7 @@ whal_Error whal_Pic32cz_Gpio_Set(whal_Gpio *gpioDev, size_t pin, size_t value)
     size_t pinMask = (1UL << (pinCfg->pin));
 
     /* Update the output register to drive the new value */
-    whal_Reg_Update(gpioDev->regmap.base, OUT_REG(pinCfg->port),
+    whal_Reg_Update(gpioDev->base, OUT_REG(pinCfg->port),
                     pinMask,
                     whal_SetBits(pinMask, pinCfg->pin, value));
 

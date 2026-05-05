@@ -1,4 +1,5 @@
 #include <wolfHAL/error.h>
+#include <wolfHAL/regmap.h>
 #include <wolfHAL/bitops.h>
 #include <wolfHAL/timer/timer.h>
 #include <wolfHAL/timer/systick.h>
@@ -31,22 +32,22 @@
 whal_Error whal_SysTick_Init(whal_Timer *timerDev)
 {
     whal_SysTick_Cfg *cfg;
-    const whal_Regmap *reg;
+    size_t base;
 
     if (!timerDev || !timerDev->cfg) {
         return WHAL_EINVAL;
     }
 
-    reg = &timerDev->regmap;
+    base = timerDev->base;
 
     cfg = (whal_SysTick_Cfg *)timerDev->cfg;
 
-    whal_Reg_Update(reg->base, SYSTICK_CSR_REG,
+    whal_Reg_Update(base, SYSTICK_CSR_REG,
                           SYSTICK_CSR_CLKSOURCE_Msk | SYSTICK_CSR_TICKINT_Msk,
                           whal_SetBits(SYSTICK_CSR_CLKSOURCE_Msk, SYSTICK_CSR_CLKSOURCE_Pos, cfg->clkSrc) |
                           whal_SetBits(SYSTICK_CSR_TICKINT_Msk, SYSTICK_CSR_TICKINT_Pos, cfg->tickInt));
 
-    whal_Reg_Update(reg->base, SYSTICK_RVR_REG,
+    whal_Reg_Update(base, SYSTICK_RVR_REG,
                     SYSTICK_RVR_RELOAD_Msk,
                     whal_SetBits(SYSTICK_RVR_RELOAD_Msk, SYSTICK_RVR_RELOAD_Pos, cfg->cyclesPerTick));
 
@@ -64,15 +65,15 @@ whal_Error whal_SysTick_Deinit(whal_Timer *timerDev)
 
 whal_Error whal_SysTick_Start(whal_Timer *timerDev)
 {
-    const whal_Regmap *reg;
+    size_t base;
 
     if (!timerDev || !timerDev->cfg) {
         return WHAL_EINVAL;
     }
 
-    reg = &timerDev->regmap;
+    base = timerDev->base;
 
-    whal_Reg_Update(reg->base, SYSTICK_CSR_REG, SYSTICK_CSR_ENABLE_Msk,
+    whal_Reg_Update(base, SYSTICK_CSR_REG, SYSTICK_CSR_ENABLE_Msk,
                     whal_SetBits(SYSTICK_CSR_ENABLE_Msk, SYSTICK_CSR_ENABLE_Pos, 1));
 
     return WHAL_SUCCESS;
@@ -80,15 +81,15 @@ whal_Error whal_SysTick_Start(whal_Timer *timerDev)
 
 whal_Error whal_SysTick_Stop(whal_Timer *timerDev)
 {
-    const whal_Regmap *reg;
+    size_t base;
 
     if (!timerDev || !timerDev->cfg) {
         return WHAL_EINVAL;
     }
 
-    reg = &timerDev->regmap;
+    base = timerDev->base;
 
-    whal_Reg_Update(reg->base, SYSTICK_CSR_REG, SYSTICK_CSR_ENABLE_Msk,
+    whal_Reg_Update(base, SYSTICK_CSR_REG, SYSTICK_CSR_ENABLE_Msk,
                     whal_SetBits(SYSTICK_CSR_ENABLE_Msk, SYSTICK_CSR_ENABLE_Pos, 0));
 
     return WHAL_SUCCESS;

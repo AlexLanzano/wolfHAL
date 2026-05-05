@@ -29,7 +29,7 @@ whal_Timeout g_whalTimeout = {
 
 /* Clock — PLL at 48 MHz (HSI/2 * 12) */
 whal_Clock g_whalClock = {
-    .regmap = { WHAL_STM32F302_RCC_REGMAP },
+    .base = WHAL_STM32F302_RCC_BASE,
 };
 
 static const whal_Stm32f3_Rcc_PeriphClk g_periphClks[] = {
@@ -47,7 +47,7 @@ static const whal_Stm32f3_Rcc_PeriphClk g_periphClks[] = {
 
 /* GPIO */
 whal_Gpio g_whalGpio = {
-    .regmap = { WHAL_STM32F302_GPIO_REGMAP },
+    .base = WHAL_STM32F302_GPIO_BASE,
 
     .cfg = &(whal_Stm32f3_Gpio_Cfg) {
         .pinCfg = (whal_Stm32f3_Gpio_PinCfg[PIN_COUNT]) {
@@ -103,7 +103,7 @@ whal_Gpio g_whalGpio = {
 
 /* Timer — SysTick at 1 ms */
 whal_Timer g_whalTimer = {
-    .regmap = { WHAL_CORTEX_M4_SYSTICK_REGMAP },
+    .base = WHAL_CORTEX_M4_SYSTICK_BASE,
     .driver = WHAL_CORTEX_M4_SYSTICK_DRIVER,
 
     .cfg = &(whal_SysTick_Cfg) {
@@ -115,7 +115,7 @@ whal_Timer g_whalTimer = {
 
 /* UART — USART2 at 115200 baud */
 whal_Uart g_whalUart = {
-    .regmap = { WHAL_STM32F302_USART2_REGMAP },
+    .base = WHAL_STM32F302_USART2_BASE,
 
     .cfg = &(whal_Stm32f3_Uart_Cfg) {
         .timeout = &g_whalTimeout,
@@ -125,7 +125,7 @@ whal_Uart g_whalUart = {
 
 /* SPI — SPI3 */
 whal_Spi g_whalSpi = {
-    .regmap = { WHAL_STM32F302_SPI3_REGMAP },
+    .base = WHAL_STM32F302_SPI3_BASE,
 
     .cfg = &(whal_Stm32f3_Spi_Cfg) {
         .pclk = 48000000,
@@ -135,7 +135,7 @@ whal_Spi g_whalSpi = {
 
 /* I2C — I2C1 (HSI at 8 MHz per RCC_CFGR3.I2C1SW reset default) */
 whal_I2c g_whalI2c = {
-    .regmap = { WHAL_STM32F302_I2C1_REGMAP },
+    .base = WHAL_STM32F302_I2C1_BASE,
 
     .cfg = &(whal_Stm32f3_I2c_Cfg) {
         .pclk = 8000000,
@@ -145,7 +145,7 @@ whal_I2c g_whalI2c = {
 
 /* Flash — 64 KB */
 whal_Flash g_whalFlash = {
-    .regmap = { WHAL_STM32F302_FLASH_REGMAP },
+    .base = WHAL_STM32F302_FLASH_BASE,
     .driver = WHAL_STM32F302_FLASH_DRIVER,
 
     .cfg = &(whal_Stm32f3_Flash_Cfg) {
@@ -157,7 +157,7 @@ whal_Flash g_whalFlash = {
 
 #ifdef BOARD_WATCHDOG_IWDG
 whal_Watchdog g_whalWatchdog = {
-    .regmap = { WHAL_STM32F302_IWDG_REGMAP },
+    .base = WHAL_STM32F302_IWDG_BASE,
     .driver = WHAL_STM32F302_IWDG_DRIVER,
 
     .cfg = &(whal_Stm32f3_Iwdg_Cfg) {
@@ -168,7 +168,7 @@ whal_Watchdog g_whalWatchdog = {
 };
 #elif defined(BOARD_WATCHDOG_WWDG)
 whal_Watchdog g_whalWatchdog = {
-    .regmap = { WHAL_STM32F302_WWDG_REGMAP },
+    .base = WHAL_STM32F302_WWDG_BASE,
     .driver = WHAL_STM32F302_WWDG_DRIVER,
 
     .cfg = &(whal_Stm32f3_Wwdg_Cfg) {

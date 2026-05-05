@@ -106,7 +106,7 @@ whal_Error whal_Stm32wb_Dma_Init(whal_Dma *dmaDev)
     }
 
     cfg = (whal_Stm32wb_Dma_Cfg *)dmaDev->cfg;
-    base = dmaDev->regmap.base;
+    base = dmaDev->base;
 
     /* Clear all interrupt flags for all channels */
     {
@@ -130,7 +130,7 @@ whal_Error whal_Stm32wb_Dma_Deinit(whal_Dma *dmaDev)
     }
 
     cfg = (whal_Stm32wb_Dma_Cfg *)dmaDev->cfg;
-    base = dmaDev->regmap.base;
+    base = dmaDev->base;
 
     /* Disable all channels and clear all interrupt flags */
     for (size_t i = 1; i <= cfg->numChannels; ++i) {
@@ -171,7 +171,7 @@ whal_Error whal_Stm32wb_Dma_Configure(whal_Dma *dmaDev, size_t ch,
 
     cfg = (whal_Stm32wb_Dma_Cfg *)dmaDev->cfg;
     dmaChCfg = (const whal_Stm32wb_Dma_ChCfg *)chCfg;
-    base = dmaDev->regmap.base;
+    base = dmaDev->base;
 
     if (ch >= cfg->numChannels) {
         return WHAL_EINVAL;
@@ -281,7 +281,7 @@ whal_Error whal_Stm32wb_Dma_Start(whal_Dma *dmaDev, size_t ch)
     }
 
     cfg = (whal_Stm32wb_Dma_Cfg *)dmaDev->cfg;
-    base = dmaDev->regmap.base;
+    base = dmaDev->base;
 
     if (ch >= cfg->numChannels) {
         return WHAL_EINVAL;
@@ -311,7 +311,7 @@ whal_Error whal_Stm32wb_Dma_Stop(whal_Dma *dmaDev, size_t ch)
     }
 
     cfg = (whal_Stm32wb_Dma_Cfg *)dmaDev->cfg;
-    base = dmaDev->regmap.base;
+    base = dmaDev->base;
 
     if (ch >= cfg->numChannels) {
         return WHAL_EINVAL;
@@ -340,7 +340,7 @@ void whal_Stm32wb_Dma_IRQHandler(whal_Dma *dmaDev, size_t ch,
     if (!dmaDev)
         return;
 
-    base = dmaDev->regmap.base;
+    base = dmaDev->base;
     hw_ch = ch + 1;
 
     isr = whal_Reg_Read(base, DMA_ISR_REG);

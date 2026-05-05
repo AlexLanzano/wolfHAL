@@ -3,7 +3,6 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#include <wolfHAL/regmap.h>
 #include <wolfHAL/error.h>
 
 /*
@@ -29,7 +28,7 @@ typedef struct {
  * @brief RNG device instance tying a register map and driver.
  */
 struct whal_Rng {
-    const whal_Regmap regmap;
+    const size_t base;
     const whal_RngDriver *driver;
     void *cfg;
 };

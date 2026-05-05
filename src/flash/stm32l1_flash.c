@@ -126,7 +126,7 @@ whal_Error whal_Stm32l1_Flash_Lock(whal_Flash *flashDev, size_t addr, size_t len
         return WHAL_EINVAL;
 
     /* Set PELOCK to lock everything */
-    whal_Reg_Update(flashDev->regmap.base, FLASH_PECR_REG,
+    whal_Reg_Update(flashDev->base, FLASH_PECR_REG,
                     FLASH_PECR_PELOCK_Msk,
                     whal_SetBits(FLASH_PECR_PELOCK_Msk,
                                  FLASH_PECR_PELOCK_Pos, 1));
@@ -142,7 +142,7 @@ whal_Error whal_Stm32l1_Flash_Unlock(whal_Flash *flashDev, size_t addr, size_t l
     if (!flashDev)
         return WHAL_EINVAL;
 
-    size_t base = flashDev->regmap.base;
+    size_t base = flashDev->base;
 
     /* Unlock PECR then program memory */
     UnlockPecr(base);
@@ -195,7 +195,7 @@ whal_Error whal_Stm32l1_Flash_Write(whal_Flash *flashDev, size_t addr,
         return WHAL_EINVAL;
 
     cfg = flashDev->cfg;
-    base = flashDev->regmap.base;
+    base = flashDev->base;
 
     if (addr < cfg->startAddr || addr + dataSz > cfg->startAddr + cfg->size)
         return WHAL_EINVAL;
@@ -243,7 +243,7 @@ whal_Error whal_Stm32l1_Flash_Erase(whal_Flash *flashDev, size_t addr,
         return WHAL_SUCCESS;
 
     cfg = flashDev->cfg;
-    base = flashDev->regmap.base;
+    base = flashDev->base;
 
     if (addr < cfg->startAddr || addr + dataSz > cfg->startAddr + cfg->size)
         return WHAL_EINVAL;

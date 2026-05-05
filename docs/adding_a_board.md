@@ -59,7 +59,7 @@ static whal_Myplatform_Gpio_Cfg gpioConfig = {
 };
 
 whal_Gpio g_whalGpio = {
-    .regmap = { WHAL_MYPLATFORM_GPIO_REGMAP },
+    .base = WHAL_MYPLATFORM_GPIO_BASE,
     .cfg = &gpioConfig,
 };
 

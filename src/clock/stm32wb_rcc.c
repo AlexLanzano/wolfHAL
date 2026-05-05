@@ -55,9 +55,9 @@ whal_Error whal_Stm32wb_Rcc_EnableOsc(whal_Clock *clkDev,
     if (!clkDev || !cfg)
         return WHAL_EINVAL;
 
-    whal_Reg_Update(clkDev->regmap.base, cfg->onReg, cfg->onMsk, cfg->onMsk);
+    whal_Reg_Update(clkDev->base, cfg->onReg, cfg->onMsk, cfg->onMsk);
     do {
-        whal_Reg_Get(clkDev->regmap.base, cfg->rdyReg, cfg->rdyMsk,
+        whal_Reg_Get(clkDev->base, cfg->rdyReg, cfg->rdyMsk,
                      cfg->rdyPos, &rdy);
     } while (!rdy);
     return WHAL_SUCCESS;
@@ -69,7 +69,7 @@ whal_Error whal_Stm32wb_Rcc_DisableOsc(whal_Clock *clkDev,
     if (!clkDev || !cfg)
         return WHAL_EINVAL;
 
-    whal_Reg_Update(clkDev->regmap.base, cfg->onReg, cfg->onMsk, 0);
+    whal_Reg_Update(clkDev->base, cfg->onReg, cfg->onMsk, 0);
     return WHAL_SUCCESS;
 }
 
@@ -81,13 +81,13 @@ whal_Error whal_Stm32wb_Rcc_EnableMsi(whal_Clock *clkDev,
     if (!clkDev)
         return WHAL_EINVAL;
 
-    whal_Reg_Update(clkDev->regmap.base, RCC_CR_REG, RCC_CR_MSION_Msk,
+    whal_Reg_Update(clkDev->base, RCC_CR_REG, RCC_CR_MSION_Msk,
                     RCC_CR_MSION_Msk);
     do {
-        whal_Reg_Get(clkDev->regmap.base, RCC_CR_REG, RCC_CR_MSIRDY_Msk,
+        whal_Reg_Get(clkDev->base, RCC_CR_REG, RCC_CR_MSIRDY_Msk,
                      RCC_CR_MSIRDY_Pos, &rdy);
     } while (!rdy);
-    whal_Reg_Update(clkDev->regmap.base, RCC_CR_REG, RCC_CR_MSIRANGE_Msk,
+    whal_Reg_Update(clkDev->base, RCC_CR_REG, RCC_CR_MSIRANGE_Msk,
                     whal_SetBits(RCC_CR_MSIRANGE_Msk, RCC_CR_MSIRANGE_Pos,
                                  range));
     return WHAL_SUCCESS;
@@ -101,7 +101,7 @@ whal_Error whal_Stm32wb_Rcc_EnablePll(whal_Clock *clkDev,
     if (!clkDev || !cfg)
         return WHAL_EINVAL;
 
-    whal_Reg_Update(clkDev->regmap.base, RCC_PLLCFGR_REG, RCC_PLLCFGR_Msk,
+    whal_Reg_Update(clkDev->base, RCC_PLLCFGR_REG, RCC_PLLCFGR_Msk,
                     whal_SetBits(RCC_PLLCFGR_PLLSRC_Msk, RCC_PLLCFGR_PLLSRC_Pos, cfg->clkSrc) |
                     whal_SetBits(RCC_PLLCFGR_PLLM_Msk,   RCC_PLLCFGR_PLLM_Pos,   cfg->m) |
                     whal_SetBits(RCC_PLLCFGR_PLLN_Msk,   RCC_PLLCFGR_PLLN_Pos,   cfg->n) |
@@ -109,10 +109,10 @@ whal_Error whal_Stm32wb_Rcc_EnablePll(whal_Clock *clkDev,
                     whal_SetBits(RCC_PLLCFGR_PLLQ_Msk,   RCC_PLLCFGR_PLLQ_Pos,   cfg->q) |
                     whal_SetBits(RCC_PLLCFGR_PLLREN_Msk, RCC_PLLCFGR_PLLREN_Pos, 1) |
                     whal_SetBits(RCC_PLLCFGR_PLLR_Msk,   RCC_PLLCFGR_PLLR_Pos,   cfg->r));
-    whal_Reg_Update(clkDev->regmap.base, RCC_CR_REG, RCC_CR_PLLON_Msk,
+    whal_Reg_Update(clkDev->base, RCC_CR_REG, RCC_CR_PLLON_Msk,
                     RCC_CR_PLLON_Msk);
     do {
-        whal_Reg_Get(clkDev->regmap.base, RCC_CR_REG, RCC_CR_PLLRDY_Msk,
+        whal_Reg_Get(clkDev->base, RCC_CR_REG, RCC_CR_PLLRDY_Msk,
                      RCC_CR_PLLRDY_Pos, &rdy);
     } while (!rdy);
     return WHAL_SUCCESS;
@@ -123,7 +123,7 @@ whal_Error whal_Stm32wb_Rcc_DisablePll(whal_Clock *clkDev)
     if (!clkDev)
         return WHAL_EINVAL;
 
-    whal_Reg_Update(clkDev->regmap.base, RCC_CR_REG, RCC_CR_PLLON_Msk, 0);
+    whal_Reg_Update(clkDev->base, RCC_CR_REG, RCC_CR_PLLON_Msk, 0);
     return WHAL_SUCCESS;
 }
 
@@ -135,10 +135,10 @@ whal_Error whal_Stm32wb_Rcc_SetSysClock(whal_Clock *clkDev,
     if (!clkDev)
         return WHAL_EINVAL;
 
-    whal_Reg_Update(clkDev->regmap.base, RCC_CFGR_REG, RCC_CFGR_SW_Msk,
+    whal_Reg_Update(clkDev->base, RCC_CFGR_REG, RCC_CFGR_SW_Msk,
                     whal_SetBits(RCC_CFGR_SW_Msk, RCC_CFGR_SW_Pos, src));
     do {
-        whal_Reg_Get(clkDev->regmap.base, RCC_CFGR_REG, RCC_CFGR_SWS_Msk,
+        whal_Reg_Get(clkDev->base, RCC_CFGR_REG, RCC_CFGR_SWS_Msk,
                      RCC_CFGR_SWS_Pos, &sws);
     } while (sws != (size_t)src);
     return WHAL_SUCCESS;
@@ -150,7 +150,7 @@ whal_Error whal_Stm32wb_Rcc_EnablePeriphClk(whal_Clock *clkDev,
     if (!clkDev || !clk)
         return WHAL_EINVAL;
 
-    whal_Reg_Update(clkDev->regmap.base, clk->regOffset, clk->enableMask,
+    whal_Reg_Update(clkDev->base, clk->regOffset, clk->enableMask,
                     whal_SetBits(clk->enableMask, clk->enablePos, 1));
     return WHAL_SUCCESS;
 }
@@ -161,7 +161,7 @@ whal_Error whal_Stm32wb_Rcc_DisablePeriphClk(whal_Clock *clkDev,
     if (!clkDev || !clk)
         return WHAL_EINVAL;
 
-    whal_Reg_Update(clkDev->regmap.base, clk->regOffset, clk->enableMask,
+    whal_Reg_Update(clkDev->base, clk->regOffset, clk->enableMask,
                     whal_SetBits(clk->enableMask, clk->enablePos, 0));
     return WHAL_SUCCESS;
 }

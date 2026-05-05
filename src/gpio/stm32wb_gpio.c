@@ -67,7 +67,7 @@ static inline whal_Error whal_Stm32wb_Gpio_InitPin(whal_Gpio *gpioDev,
     if (pin > 15)
         return WHAL_EINVAL;
 
-    portBase = gpioDev->regmap.base +
+    portBase = gpioDev->base +
                (WHAL_STM32WB_GPIO_GET_PORT(cfg) * GPIO_PORT_SIZE);
     pos2 = pin << 1;
     mask2 = WHAL_BITMASK(2) << pos2;
@@ -157,7 +157,7 @@ static whal_Error whal_Stm32wb_Gpio_SetOrGet(whal_Gpio *gpioDev, size_t idx,
         return WHAL_EINVAL;
     }
 
-    portBase = gpioDev->regmap.base + (port * GPIO_PORT_SIZE);
+    portBase = gpioDev->base + (port * GPIO_PORT_SIZE);
     mask = 1UL << pin;
 
     if (set) {

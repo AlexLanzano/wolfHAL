@@ -12,14 +12,6 @@
  */
 
 /*
- * @brief Description of a contiguous register map.
- */
-typedef struct whal_Regmap {
-    size_t base;
-    size_t size;
-} whal_Regmap;
-
-/*
  * @brief Update a masked field within a memory-mapped register.
  *
  * The function applies a read-modify-write using @p mask to only touch the

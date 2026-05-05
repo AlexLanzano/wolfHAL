@@ -150,7 +150,7 @@ whal_Error whal_Stm32h5_Eth_Init(whal_Eth *ethDev)
         return WHAL_EINVAL;
 
     cfg = (whal_Stm32h5_Eth_Cfg *)ethDev->cfg;
-    base = ethDev->regmap.base;
+    base = ethDev->base;
 
     if (!cfg->txDescs || !cfg->txBufs || cfg->txDescCount == 0 ||
         !cfg->rxDescs || !cfg->rxBufs || cfg->rxDescCount == 0 ||
@@ -237,7 +237,7 @@ whal_Error whal_Stm32h5_Eth_Deinit(whal_Eth *ethDev)
     if (!ethDev)
         return WHAL_EINVAL;
 
-    whal_Reg_Update(ethDev->regmap.base, ETH_DMAMR_REG,
+    whal_Reg_Update(ethDev->base, ETH_DMAMR_REG,
                     ETH_DMAMR_SWR_Msk, ETH_DMAMR_SWR_Msk);
 
     return WHAL_SUCCESS;
@@ -253,7 +253,7 @@ whal_Error whal_Stm32h5_Eth_Start(whal_Eth *ethDev, uint8_t speed,
         return WHAL_EINVAL;
 
     cfg = (whal_Stm32h5_Eth_Cfg *)ethDev->cfg;
-    base = ethDev->regmap.base;
+    base = ethDev->base;
 
     /* Configure MAC speed and duplex to match PHY */
     whal_Reg_Update(base, ETH_MACCR_REG,
@@ -288,7 +288,7 @@ whal_Error whal_Stm32h5_Eth_Stop(whal_Eth *ethDev)
     if (!ethDev)
         return WHAL_EINVAL;
 
-    base = ethDev->regmap.base;
+    base = ethDev->base;
 
     /* Stop DMA TX */
     whal_Reg_Update(base, ETH_DMACTXCR_REG, ETH_DMACTXCR_ST_Msk, 0);
@@ -319,7 +319,7 @@ whal_Error whal_Stm32h5_Eth_Send(whal_Eth *ethDev, const void *frame,
 
     if (len > cfg->txBufSize)
         return WHAL_EINVAL;
-    base = ethDev->regmap.base;
+    base = ethDev->base;
     idx = cfg->txHead;
     desc = &cfg->txDescs[idx];
 
@@ -363,7 +363,7 @@ whal_Error whal_Stm32h5_Eth_Recv(whal_Eth *ethDev, void *frame,
         return WHAL_EINVAL;
 
     cfg = (whal_Stm32h5_Eth_Cfg *)ethDev->cfg;
-    base = ethDev->regmap.base;
+    base = ethDev->base;
     idx = cfg->rxHead;
     desc = &cfg->rxDescs[idx];
 
@@ -421,7 +421,7 @@ whal_Error whal_Stm32h5_Eth_MdioRead(whal_Eth *ethDev, uint8_t phyAddr,
         return WHAL_EINVAL;
 
     cfg = (whal_Stm32h5_Eth_Cfg *)ethDev->cfg;
-    base = ethDev->regmap.base;
+    base = ethDev->base;
 
     err = MdioPoll(base, cfg->timeout);
     if (err)
@@ -459,7 +459,7 @@ whal_Error whal_Stm32h5_Eth_MdioWrite(whal_Eth *ethDev, uint8_t phyAddr,
         return WHAL_EINVAL;
 
     cfg = (whal_Stm32h5_Eth_Cfg *)ethDev->cfg;
-    base = ethDev->regmap.base;
+    base = ethDev->base;
 
     err = MdioPoll(base, cfg->timeout);
     if (err)
@@ -494,7 +494,7 @@ whal_Error whal_Stm32h5_Eth_Ext_EnableLoopback(whal_Eth *ethDev,
     if (!ethDev)
         return WHAL_EINVAL;
 
-    whal_Reg_Update(ethDev->regmap.base, ETH_MACCR_REG, ETH_MACCR_LM_Msk,
+    whal_Reg_Update(ethDev->base, ETH_MACCR_REG, ETH_MACCR_LM_Msk,
                     whal_SetBits(ETH_MACCR_LM_Msk, ETH_MACCR_LM_Pos,
                                  enable ? 1 : 0));
 

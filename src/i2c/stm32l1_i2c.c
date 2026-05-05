@@ -293,7 +293,7 @@ whal_Error whal_Stm32l1_I2c_Init(whal_I2c *i2cDev)
     if (!i2cDev || !i2cDev->cfg)
         return WHAL_EINVAL;
 
-    base = i2cDev->regmap.base;
+    base = i2cDev->base;
 
     whal_Reg_Update(base, I2C_CR1, CR1_PE_Msk, 0);
     whal_Reg_Update(base, I2C_CR1, CR1_SWRST_Msk, CR1_SWRST_Msk);
@@ -308,7 +308,7 @@ whal_Error whal_Stm32l1_I2c_Deinit(whal_I2c *i2cDev)
     if (!i2cDev || !i2cDev->cfg)
         return WHAL_EINVAL;
 
-    whal_Reg_Update(i2cDev->regmap.base, I2C_CR1, CR1_PE_Msk, 0);
+    whal_Reg_Update(i2cDev->base, I2C_CR1, CR1_PE_Msk, 0);
 
     return WHAL_SUCCESS;
 }
@@ -326,7 +326,7 @@ whal_Error whal_Stm32l1_I2c_StartCom(whal_I2c *i2cDev, whal_I2c_ComCfg *comCfg)
         return WHAL_EINVAL;
 
     cfg = (whal_Stm32l1_I2c_Cfg *)i2cDev->cfg;
-    base = i2cDev->regmap.base;
+    base = i2cDev->base;
 
     whal_Reg_Update(base, I2C_CR1, CR1_PE_Msk, 0);
 
@@ -371,7 +371,7 @@ whal_Error whal_Stm32l1_I2c_Transfer(whal_I2c *i2cDev, whal_I2c_Msg *msgs,
         return WHAL_EINVAL;
 
     cfg = (whal_Stm32l1_I2c_Cfg *)i2cDev->cfg;
-    base = i2cDev->regmap.base;
+    base = i2cDev->base;
 
     for (size_t i = 0; i < numMsgs; i++) {
         uint8_t isRead = (msgs[i].flags & WHAL_I2C_MSG_READ) ? 1 : 0;

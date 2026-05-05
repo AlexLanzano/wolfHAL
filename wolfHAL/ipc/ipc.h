@@ -3,7 +3,6 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#include <wolfHAL/regmap.h>
 #include <wolfHAL/error.h>
 
 /*
@@ -31,7 +30,7 @@ typedef struct {
  * @brief IPC device instance tying a register map and driver.
  */
 struct whal_Ipc {
-    const whal_Regmap regmap;
+    const size_t base;
     const whal_IpcDriver *driver;
     void *cfg;
 };

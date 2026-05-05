@@ -23,11 +23,11 @@ static void Test_Clock_EnableDisable(void)
 
     /* Save original state */
     size_t origChen = 0;
-    whal_Reg_Get(g_whalClock.regmap.base, GCLK_PCHCTRL_OFFSET(25),
+    whal_Reg_Get(g_whalClock.base, GCLK_PCHCTRL_OFFSET(25),
                  GCLK_PCHCTRL_CHEN_Msk, GCLK_PCHCTRL_CHEN_Pos, &origChen);
 
     size_t origMclk = 0;
-    whal_Reg_Get(g_whalClock.regmap.base, MCLK_CLKMSK_OFFSET(1),
+    whal_Reg_Get(g_whalClock.base, MCLK_CLKMSK_OFFSET(1),
                  (1UL << 3), 3, &origMclk);
 
     size_t val = 0;
@@ -35,18 +35,18 @@ static void Test_Clock_EnableDisable(void)
     /* Enable and verify */
     WHAL_ASSERT_EQ(whal_Pic32cz_Clock_EnablePeriphClk(&g_whalClock, &testClk), WHAL_SUCCESS);
 
-    whal_Reg_Get(g_whalClock.regmap.base, GCLK_PCHCTRL_OFFSET(25),
+    whal_Reg_Get(g_whalClock.base, GCLK_PCHCTRL_OFFSET(25),
                  GCLK_PCHCTRL_CHEN_Msk, GCLK_PCHCTRL_CHEN_Pos, &val);
     WHAL_ASSERT_EQ(val, 1);
 
-    whal_Reg_Get(g_whalClock.regmap.base, MCLK_CLKMSK_OFFSET(1),
+    whal_Reg_Get(g_whalClock.base, MCLK_CLKMSK_OFFSET(1),
                  (1UL << 3), 3, &val);
     WHAL_ASSERT_EQ(val, 1);
 
     /* Disable and verify */
     WHAL_ASSERT_EQ(whal_Pic32cz_Clock_DisablePeriphClk(&g_whalClock, &testClk), WHAL_SUCCESS);
 
-    whal_Reg_Get(g_whalClock.regmap.base, GCLK_PCHCTRL_OFFSET(25),
+    whal_Reg_Get(g_whalClock.base, GCLK_PCHCTRL_OFFSET(25),
                  GCLK_PCHCTRL_CHEN_Msk, GCLK_PCHCTRL_CHEN_Pos, &val);
     WHAL_ASSERT_EQ(val, 0);
 

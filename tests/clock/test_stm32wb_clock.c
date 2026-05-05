@@ -11,19 +11,19 @@ static void Test_Clock_EnableDisable(void)
 
     /* Save original state */
     size_t origVal = 0;
-    whal_Reg_Get(g_whalClock.regmap.base, 0x4C, (1 << 0), 0, &origVal);
+    whal_Reg_Get(g_whalClock.base, 0x4C, (1 << 0), 0, &origVal);
 
     /* Enable and verify */
     WHAL_ASSERT_EQ(whal_Stm32wb_Rcc_EnablePeriphClk(&g_whalClock, &testClk), WHAL_SUCCESS);
 
     size_t val = 0;
-    whal_Reg_Get(g_whalClock.regmap.base, 0x4C, (1 << 0), 0, &val);
+    whal_Reg_Get(g_whalClock.base, 0x4C, (1 << 0), 0, &val);
     WHAL_ASSERT_EQ(val, 1);
 
     /* Disable and verify */
     WHAL_ASSERT_EQ(whal_Stm32wb_Rcc_DisablePeriphClk(&g_whalClock, &testClk), WHAL_SUCCESS);
 
-    whal_Reg_Get(g_whalClock.regmap.base, 0x4C, (1 << 0), 0, &val);
+    whal_Reg_Get(g_whalClock.base, 0x4C, (1 << 0), 0, &val);
     WHAL_ASSERT_EQ(val, 0);
 
     /* Restore original state */

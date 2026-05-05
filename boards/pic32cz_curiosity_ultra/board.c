@@ -8,12 +8,12 @@
 
 /* Power */
 static whal_Power g_whalPower = {
-    .regmap = { WHAL_PIC32CZ_SUPC_REGMAP },
+    .base = WHAL_PIC32CZ_SUPC_BASE,
 };
 
 /* Clock */
 whal_Clock g_whalClock = {
-    .regmap = { WHAL_PIC32CZ_CLOCK_REGMAP },
+    .base = WHAL_PIC32CZ_CLOCK_BASE,
 };
 
 /* Peripheral clocks */
@@ -30,7 +30,7 @@ static const whal_Pic32cz_Clock_PeriphClk g_periphClks[] = {
 
 /* GPIO */
 whal_Gpio g_whalGpio = {
-    .regmap = { WHAL_PIC32CZ_GPIO_REGMAP },
+    .base = WHAL_PIC32CZ_GPIO_BASE,
     /* .driver: direct API mapping */
 
     .cfg = &(whal_Pic32cz_Gpio_Cfg) {
@@ -60,7 +60,7 @@ whal_Gpio g_whalGpio = {
 
 /* UART */
 whal_Uart g_whalUart = {
-    .regmap = { WHAL_PIC32CZ_SERCOM4_UART_REGMAP },
+    .base = WHAL_PIC32CZ_SERCOM4_UART_BASE,
     /* .driver: direct API mapping */
 
     .cfg = &(whal_Pic32cz_Uart_Cfg) {
@@ -72,7 +72,7 @@ whal_Uart g_whalUart = {
 
 /* Timer */
 whal_Timer g_whalTimer = {
-    .regmap = { WHAL_CORTEX_M7_SYSTICK_REGMAP },
+    .base = WHAL_CORTEX_M7_SYSTICK_BASE,
     .driver = WHAL_CORTEX_M7_SYSTICK_DRIVER,
 
     .cfg = &(whal_SysTick_Cfg) {
@@ -84,7 +84,7 @@ whal_Timer g_whalTimer = {
 
 /* Flash */
 whal_Flash g_whalFlash = {
-    .regmap = { WHAL_PIC32CZ_FLASH_REGMAP },
+    .base = WHAL_PIC32CZ_FLASH_BASE,
     .driver = WHAL_PIC32CZ_FLASH_DRIVER,
 };
 

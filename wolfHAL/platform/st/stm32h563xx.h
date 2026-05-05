@@ -27,28 +27,18 @@
 
 /* --- Device macros --- */
 
-#define WHAL_STM32H563_RCC_REGMAP       \
-    .base = 0x44020C00,                 \
-    .size = 0x400
+#define WHAL_STM32H563_RCC_BASE 0x44020C00
 
-#define WHAL_STM32H563_GPIO_REGMAP      \
-    .base = 0x42020000,                 \
-    .size = 0x2400
+#define WHAL_STM32H563_GPIO_BASE 0x42020000
 #define WHAL_STM32H563_GPIO_DRIVER &whal_Stm32h5_Gpio_Driver
 
-#define WHAL_STM32H563_USART1_REGMAP    \
-    .base = 0x40013800,                 \
-    .size = 0x400
+#define WHAL_STM32H563_USART1_BASE 0x40013800
 #define WHAL_STM32H563_USART1_DRIVER &whal_Stm32h5_Uart_Driver
 
-#define WHAL_STM32H563_USART2_REGMAP    \
-    .base = 0x40004400,                 \
-    .size = 0x400
+#define WHAL_STM32H563_USART2_BASE 0x40004400
 #define WHAL_STM32H563_USART2_DRIVER &whal_Stm32h5_Uart_Driver
 
-#define WHAL_STM32H563_USART3_REGMAP    \
-    .base = 0x40004800,                 \
-    .size = 0x400
+#define WHAL_STM32H563_USART3_BASE 0x40004800
 #define WHAL_STM32H563_USART3_DRIVER &whal_Stm32h5_Uart_Driver
 
 /* --- Clock gate macros --- */
@@ -132,16 +122,12 @@
 
 /* SPI device macros */
 
-#define WHAL_STM32H563_SPI1_REGMAP  \
-    .base = 0x40013000,             \
-    .size = 0x400
+#define WHAL_STM32H563_SPI1_BASE 0x40013000
 #define WHAL_STM32H563_SPI1_DRIVER &whal_Stm32h5_Spi_Driver
 
 /* RNG device macros */
 
-#define WHAL_STM32H563_RNG_REGMAP   \
-    .base = 0x420C0800,             \
-    .size = 0x400
+#define WHAL_STM32H563_RNG_BASE 0x420C0800
 #define WHAL_STM32H563_RNG_DRIVER &whal_Stm32h5_Rng_Driver
 
 /* RCC_AHB2ENR (offset 0x08C), bit 18 */
@@ -152,9 +138,7 @@
 
 /* Flash device macros */
 
-#define WHAL_STM32H563_FLASH_REGMAP \
-    .base = 0x40022000,             \
-    .size = 0x400
+#define WHAL_STM32H563_FLASH_BASE 0x40022000
 #define WHAL_STM32H563_FLASH_DRIVER &whal_Stm32h5_Flash_Driver
 
 /* RCC_APB3ENR (offset 0x0A8), bit 1 */
@@ -165,9 +149,7 @@
 
 /* Ethernet device macros */
 
-#define WHAL_STM32H563_ETH_REGMAP   \
-    .base = 0x40028000,             \
-    .size = 0x1200
+#define WHAL_STM32H563_ETH_BASE 0x40028000
 #define WHAL_STM32H563_ETH_DRIVER &whal_Stm32h5_Eth_Driver
 
 /* RCC_AHB1ENR (offset 0x088), bit 19 */

@@ -67,25 +67,25 @@ three fields:
 
 ```c
 struct whal_Gpio {
-    const whal_Regmap regmap;        /* base address and size */
+    const size_t base;               /* peripheral base address */
     const whal_GpioDriver *driver;   /* vtable of function pointers */
     const void *cfg;                 /* platform-specific configuration */
 };
 ```
 
-- **regmap** — identifies the peripheral's memory-mapped register block
+- **base** — the peripheral's memory-mapped register base address
 - **driver** — points to the driver implementation (the vtable)
 - **cfg** — points to a driver-specific configuration struct that the
   driver reads during Init
 
-Platform headers provide `_REGMAP` and `_DRIVER` macros for each peripheral,
+Platform headers provide `_BASE` and `_DRIVER` macros for each peripheral,
 so you only need to fill in the `cfg`:
 
 ```c
 #include <wolfHAL/platform/st/stm32wb55xx.h>
 
 whal_Gpio g_whalGpio = {
-    .regmap = { WHAL_STM32WB55_GPIO_REGMAP },
+    .base = WHAL_STM32WB55_GPIO_BASE,
     .driver = WHAL_STM32WB55_GPIO_DRIVER,
     .cfg = &gpioConfig,
 };
@@ -119,11 +119,11 @@ driver) — the device pointer determines which implementation runs.
 ### Board-level drivers
 
 Board-level drivers (clock, power) only expose chip-specific helpers — no
-vtable, no generic `whal_<Type>_*` API. The device struct is just a regmap:
+vtable, no generic `whal_<Type>_*` API. The device struct is just a base address:
 
 ```c
 whal_Clock g_whalClock = {
-    .regmap = { WHAL_STM32WB55_RCC_REGMAP },
+    .base = WHAL_STM32WB55_RCC_BASE,
 };
 ```
 
@@ -143,7 +143,7 @@ each entry compactly:
 
 ```c
 whal_Gpio g_whalGpio = {
-    .regmap = { WHAL_STM32WB55_GPIO_REGMAP },
+    .base = WHAL_STM32WB55_GPIO_BASE,
     /* .driver: direct API mapping */
 
     .cfg = &(whal_Stm32wb_Gpio_Cfg) {
@@ -163,7 +163,7 @@ timeout:
 
 ```c
 whal_Uart g_whalUart = {
-    .regmap = { WHAL_STM32WB55_UART1_REGMAP },
+    .base = WHAL_STM32WB55_UART1_BASE,
     /* .driver: direct API mapping */
 
     .cfg = &(whal_Stm32wb_Uart_Cfg) {
@@ -343,7 +343,7 @@ static const whal_GpioDriver myGpioDriver = {
 };
 
 whal_Gpio g_whalGpio = {
-    .regmap = { .base = 0x48000000, .size = 0x2000 },
+    .base = 0x48000000,
     .driver = &myGpioDriver,
     .cfg = &gpioConfig,
 };

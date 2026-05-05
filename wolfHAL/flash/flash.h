@@ -2,7 +2,6 @@
 #define WHAL_FLASH_H
 
 #include <wolfHAL/error.h>
-#include <wolfHAL/regmap.h>
 #include <stddef.h>
 #include <stdint.h>
 
@@ -37,7 +36,7 @@ typedef struct {
  * @brief Flash device instance tying configuration to a driver implementation.
  */
 struct whal_Flash {
-    const whal_Regmap regmap;
+    const size_t base;
     const whal_FlashDriver *driver;
     void *cfg;
 };

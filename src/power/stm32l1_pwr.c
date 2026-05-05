@@ -20,7 +20,7 @@ whal_Error whal_Stm32l1_Pwr_SetVosRange(whal_Power *powerDev,
     if (!powerDev)
         return WHAL_EINVAL;
 
-    base = powerDev->regmap.base;
+    base = powerDev->base;
 
     err = whal_Reg_ReadPoll(base, PWR_CSR_REG, PWR_CSR_VOSF_Msk, 0, timeout);
     if (err)

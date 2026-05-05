@@ -152,7 +152,7 @@ There are two exceptions:
 
 ### Register Access
 
-wolfHAL provides register access helpers in `wolfHAL/regmap.h`:
+wolfHAL provides register access helpers in `wolfHAL/reg.h`:
 
 - `whal_Reg_Write()` — write a full register value
 - `whal_Reg_Read()` — read a full register value
@@ -190,7 +190,7 @@ do not need to know the tick rate.
 #### whal_Reg_ReadPoll
 
 For the common case of polling a register bit, use `whal_Reg_ReadPoll` from
-`wolfHAL/regmap.h`:
+`wolfHAL/reg.h`:
 
 ```c
 whal_Error whal_Reg_ReadPoll(size_t base, size_t offset,
@@ -347,14 +347,12 @@ than a clean separate implementation.
 
 ### Platform Device Macros
 
-Add regmap and driver macros to your platform header
+Add base address and driver macros to your platform header
 (`wolfHAL/platform/<vendor>/<device>.h`) so that board configs can instantiate
 devices without knowing the register addresses or driver symbols:
 
 ```c
-#define WHAL_MYPLATFORM_FOO_REGMAP \
-    .base = 0x40000000, \
-    .size = 0x400
+#define WHAL_MYPLATFORM_FOO_BASE   0x40000000
 #define WHAL_MYPLATFORM_FOO_DRIVER &whal_Myplatform_Foo_Driver
 ```
 
@@ -362,7 +360,7 @@ The board uses these in device struct initializers:
 
 ```c
 whal_Foo g_whalFoo = {
-    .regmap = { WHAL_MYPLATFORM_FOO_REGMAP },
+    .base = WHAL_MYPLATFORM_FOO_BASE,
     .driver = WHAL_MYPLATFORM_FOO_DRIVER,
     .cfg = &fooCfg,
 };
@@ -374,7 +372,7 @@ you are doing so with the following comment.
 
 ```c
 whal_Foo g_whalFoo = {
-    .regmap = { WHAL_MYPLATFORM_FOO_REGMAP },
+    .base = WHAL_MYPLATFORM_FOO_BASE,
     /* .driver: direct API mapping */
     .cfg = &fooCfg,
 };
@@ -387,7 +385,7 @@ whal_Foo g_whalFoo = {
 Header: `wolfHAL/clock/clock.h`
 
 Clock is a **board-level driver** (see Driver Categories). The generic
-`clock.h` declares only the typed handle `whal_Clock { regmap }` — no
+`clock.h` declares only the typed handle `whal_Clock { base }` — no
 `whal_Clock_Init`/`Deinit`/`Enable`/`Disable` API, no `whal_ClockDriver`
 vtable. Each chip clock driver exposes imperative chip-specific helpers
 that boards call directly from `Board_Init` in the right order.
@@ -964,7 +962,7 @@ streaming use cases.
 
 ```c
 struct whal_Crypto {
-    const whal_Regmap regmap;
+    const size_t base;
     const whal_CryptoDriver *driver;
     const void *cfg;
 };
@@ -1045,7 +1043,7 @@ instantiates the crypto device:
 
 ```c
 whal_Crypto g_whalCrypto = {
-    .regmap = { WHAL_STM32WB55_AES1_REGMAP },
+    .base = WHAL_STM32WB55_AES1_BASE,
     .cfg = &(whal_Stm32wb_Aes_Cfg) { .timeout = &g_whalTimeout },
 };
 ```
@@ -1061,7 +1059,7 @@ vtable indirection.
 Header: `wolfHAL/power/power.h`
 
 Power is a **board-level driver** (see Driver Categories). The generic
-`power.h` declares only the typed handle `whal_Power { regmap }` — no
+`power.h` declares only the typed handle `whal_Power { base }` — no
 `whal_Power_Init`/`Deinit`/`Enable`/`Disable` API, no `whal_PowerDriver`
 vtable. Each chip power driver exposes imperative chip-specific helpers
 that boards call directly from `Board_Init` (typically before clock setup,

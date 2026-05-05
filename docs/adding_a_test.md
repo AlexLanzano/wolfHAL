@@ -79,7 +79,7 @@ Create `tests/<device>/test_<platform>_<device>.c`:
 static void Test_Foo_SomeRegister(void)
 {
     size_t val = 0;
-    whal_Reg_Get(g_whalFoo.regmap.base, REG_OFFSET, MASK, POS, &val);
+    whal_Reg_Get(g_whalFoo.base, REG_OFFSET, MASK, POS, &val);
     WHAL_ASSERT_EQ(val, EXPECTED);
 }
 

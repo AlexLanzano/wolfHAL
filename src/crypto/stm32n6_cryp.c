@@ -239,7 +239,7 @@ whal_Error whal_Stm32n6_Cryp_Deinit(whal_Crypto *cryptoDev)
         return WHAL_EINVAL;
     }
 
-    Disable(cryptoDev->regmap.base);
+    Disable(cryptoDev->base);
     return WHAL_SUCCESS;
 }
 
@@ -277,7 +277,7 @@ static whal_Error Process_BlockCipher(whal_Crypto *cryptoDev,
 {
     const whal_Stm32n6_Cryp_Cfg *cfg =
         (const whal_Stm32n6_Cryp_Cfg *)cryptoDev->cfg;
-    size_t base = cryptoDev->regmap.base;
+    size_t base = cryptoDev->base;
     whal_Error err;
     size_t i;
 
@@ -302,7 +302,7 @@ static whal_Error Process_BlockCipher(whal_Crypto *cryptoDev,
 
 static whal_Error EndOp_BlockCipher(whal_Crypto *cryptoDev)
 {
-    Disable(cryptoDev->regmap.base);
+    Disable(cryptoDev->base);
     return WHAL_SUCCESS;
 }
 #endif /* AES_ECB || AES_CBC || AES_CTR */
@@ -313,7 +313,7 @@ static whal_Error StartOp_AesEcb(whal_Crypto *cryptoDev, void *opArgs)
     whal_Crypto_AesEcbArgs *args = (whal_Crypto_AesEcbArgs *)opArgs;
     const whal_Stm32n6_Cryp_Cfg *cfg =
         (const whal_Stm32n6_Cryp_Cfg *)cryptoDev->cfg;
-    size_t base = cryptoDev->regmap.base;
+    size_t base = cryptoDev->base;
     uint32_t keySizeBits;
     whal_Error err;
 
@@ -353,7 +353,7 @@ static whal_Error StartOp_AesCbc(whal_Crypto *cryptoDev, void *opArgs)
     whal_Crypto_AesCbcArgs *args = (whal_Crypto_AesCbcArgs *)opArgs;
     const whal_Stm32n6_Cryp_Cfg *cfg =
         (const whal_Stm32n6_Cryp_Cfg *)cryptoDev->cfg;
-    size_t base = cryptoDev->regmap.base;
+    size_t base = cryptoDev->base;
     uint32_t keySizeBits;
     whal_Error err;
 
@@ -395,7 +395,7 @@ static whal_Error StartOp_AesCtr(whal_Crypto *cryptoDev, void *opArgs)
     whal_Crypto_AesCtrArgs *args = (whal_Crypto_AesCtrArgs *)opArgs;
     const whal_Stm32n6_Cryp_Cfg *cfg =
         (const whal_Stm32n6_Cryp_Cfg *)cryptoDev->cfg;
-    size_t base = cryptoDev->regmap.base;
+    size_t base = cryptoDev->base;
     uint32_t keySizeBits;
     uint32_t algoDir;
     whal_Error err;
@@ -434,7 +434,7 @@ static whal_Error GcmInit(whal_Crypto *cryptoDev, const uint8_t *key,
 {
     const whal_Stm32n6_Cryp_Cfg *cfg =
         (const whal_Stm32n6_Cryp_Cfg *)cryptoDev->cfg;
-    size_t base = cryptoDev->regmap.base;
+    size_t base = cryptoDev->base;
     whal_Error err;
 
     DisableAndFlush(base);
@@ -461,7 +461,7 @@ static whal_Error GcmHeaderPhase(whal_Crypto *cryptoDev, const uint8_t *aad,
 {
     const whal_Stm32n6_Cryp_Cfg *cfg =
         (const whal_Stm32n6_Cryp_Cfg *)cryptoDev->cfg;
-    size_t base = cryptoDev->regmap.base;
+    size_t base = cryptoDev->base;
     whal_Error err;
     size_t i;
 
@@ -531,7 +531,7 @@ static whal_Error Process_AesGcm(whal_Crypto *cryptoDev, void *opArgs)
     whal_Crypto_AesGcmArgs *args = (whal_Crypto_AesGcmArgs *)opArgs;
     const whal_Stm32n6_Cryp_Cfg *cfg =
         (const whal_Stm32n6_Cryp_Cfg *)cryptoDev->cfg;
-    size_t base = cryptoDev->regmap.base;
+    size_t base = cryptoDev->base;
     whal_Error err;
     size_t i;
 
@@ -593,7 +593,7 @@ static whal_Error EndOp_AesGcm(whal_Crypto *cryptoDev, void *opArgs)
     whal_Crypto_AesGcmArgs *args = (whal_Crypto_AesGcmArgs *)opArgs;
     const whal_Stm32n6_Cryp_Cfg *cfg =
         (const whal_Stm32n6_Cryp_Cfg *)cryptoDev->cfg;
-    size_t base = cryptoDev->regmap.base;
+    size_t base = cryptoDev->base;
     uint8_t tagBuf[16];
     uint64_t aadBits;
     uint64_t payloadBits;
@@ -665,7 +665,7 @@ static whal_Error EndOp_AesGmac(whal_Crypto *cryptoDev, void *opArgs)
     whal_Crypto_AesGmacArgs *args = (whal_Crypto_AesGmacArgs *)opArgs;
     const whal_Stm32n6_Cryp_Cfg *cfg =
         (const whal_Stm32n6_Cryp_Cfg *)cryptoDev->cfg;
-    size_t base = cryptoDev->regmap.base;
+    size_t base = cryptoDev->base;
     uint8_t tagBuf[16];
     uint64_t aadBits;
     whal_Error err;
@@ -730,7 +730,7 @@ static whal_Error StartOp_AesCcm(whal_Crypto *cryptoDev, void *opArgs)
 {
     whal_Crypto_AesCcmArgs *args = (whal_Crypto_AesCcmArgs *)opArgs;
     whal_Stm32n6_Cryp_Cfg *cfg = (whal_Stm32n6_Cryp_Cfg *)cryptoDev->cfg;
-    size_t base = cryptoDev->regmap.base;
+    size_t base = cryptoDev->base;
     uint32_t keySizeBits;
     uint32_t algoDir;
     uint8_t b0[16];
@@ -832,7 +832,7 @@ static whal_Error Process_AesCcm(whal_Crypto *cryptoDev, void *opArgs)
     whal_Crypto_AesCcmArgs *args = (whal_Crypto_AesCcmArgs *)opArgs;
     const whal_Stm32n6_Cryp_Cfg *cfg =
         (const whal_Stm32n6_Cryp_Cfg *)cryptoDev->cfg;
-    size_t base = cryptoDev->regmap.base;
+    size_t base = cryptoDev->base;
     whal_Error err;
     size_t i;
 
@@ -894,7 +894,7 @@ static whal_Error EndOp_AesCcm(whal_Crypto *cryptoDev, void *opArgs)
     whal_Crypto_AesCcmArgs *args = (whal_Crypto_AesCcmArgs *)opArgs;
     const whal_Stm32n6_Cryp_Cfg *cfg =
         (const whal_Stm32n6_Cryp_Cfg *)cryptoDev->cfg;
-    size_t base = cryptoDev->regmap.base;
+    size_t base = cryptoDev->base;
     uint8_t tagBuf[16];
     whal_Error err;
     size_t i;

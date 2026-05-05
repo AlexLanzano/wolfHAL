@@ -46,7 +46,7 @@ whal_Error whal_Nvic_Enable(whal_Irq *irqDev, size_t irq,
         return WHAL_EINVAL;
     }
 
-    size_t base = irqDev->regmap.base;
+    size_t base = irqDev->base;
 
     /* Set priority if config provided */
     if (irqCfg) {
@@ -69,7 +69,7 @@ whal_Error whal_Nvic_Disable(whal_Irq *irqDev, size_t irq)
         return WHAL_EINVAL;
     }
 
-    size_t base = irqDev->regmap.base;
+    size_t base = irqDev->base;
 
     whal_Reg_Write(base, NVIC_ICER_REG(irq), (1UL << (irq & 0x1F)));
 

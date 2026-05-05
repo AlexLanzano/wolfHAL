@@ -38,7 +38,7 @@ whal_Error whal_Stm32wb_Wwdg_Init(whal_Watchdog *wdgDev)
     if (!wdgDev || !wdgDev->cfg)
         return WHAL_EINVAL;
 
-    base = wdgDev->regmap.base;
+    base = wdgDev->base;
     cfg = wdgDev->cfg;
 
     if (cfg->prescaler > 7 || cfg->window > 0x7F || cfg->counter > 0x7F)
@@ -74,7 +74,7 @@ whal_Error whal_Stm32wb_Wwdg_Refresh(whal_Watchdog *wdgDev)
     if (!wdgDev || !wdgDev->cfg)
         return WHAL_EINVAL;
 
-    base = wdgDev->regmap.base;
+    base = wdgDev->base;
     cfg = wdgDev->cfg;
 
     whal_Reg_Update(base, CR_REG, CR_T_Msk,

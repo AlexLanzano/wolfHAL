@@ -132,7 +132,7 @@ whal_Error whal_Stm32wba_Gpdma_Deinit(whal_Dma *dmaDev)
 
     /* Reset all channels */
     for (uint8_t ch = 0; ch < cfg->numChannels; ch++) {
-        whal_Reg_Write(dmaDev->regmap.base, GPDMA_CxCR(ch),
+        whal_Reg_Write(dmaDev->base, GPDMA_CxCR(ch),
                        GPDMA_CxCR_RESET_Msk);
     }
 
@@ -153,7 +153,7 @@ whal_Error whal_Stm32wba_Gpdma_Configure(whal_Dma *dmaDev, size_t ch,
 
     cfg = (const whal_Stm32wba_Gpdma_Cfg *)dmaDev->cfg;
     ccfg = (const whal_Stm32wba_Gpdma_ChCfg *)chCfg;
-    base = dmaDev->regmap.base;
+    base = dmaDev->base;
 
     if (ch >= cfg->numChannels)
         return WHAL_EINVAL;
@@ -230,10 +230,10 @@ whal_Error whal_Stm32wba_Gpdma_Start(whal_Dma *dmaDev, size_t ch)
         return WHAL_EINVAL;
 
     /* Clear any stale flags from the previous transfer before enabling */
-    whal_Reg_Write(dmaDev->regmap.base, GPDMA_CxFCR(ch), GPDMA_CxFCR_ALL);
+    whal_Reg_Write(dmaDev->base, GPDMA_CxFCR(ch), GPDMA_CxFCR_ALL);
 
     /* Set EN bit without disturbing the already-configured interrupt enables */
-    whal_Reg_Update(dmaDev->regmap.base, GPDMA_CxCR(ch), GPDMA_CxCR_EN_Msk,
+    whal_Reg_Update(dmaDev->base, GPDMA_CxCR(ch), GPDMA_CxCR_EN_Msk,
                     GPDMA_CxCR_EN_Msk);
 
     return WHAL_SUCCESS;
@@ -248,7 +248,7 @@ whal_Error whal_Stm32wba_Gpdma_Stop(whal_Dma *dmaDev, size_t ch)
         return WHAL_EINVAL;
 
     cfg = (const whal_Stm32wba_Gpdma_Cfg *)dmaDev->cfg;
-    base = dmaDev->regmap.base;
+    base = dmaDev->base;
 
     if (ch >= cfg->numChannels)
         return WHAL_EINVAL;
@@ -269,7 +269,7 @@ void whal_Stm32wba_Gpdma_IRQHandler(whal_Dma *dmaDev, size_t ch,
     if (!dmaDev)
         return;
 
-    base = dmaDev->regmap.base;
+    base = dmaDev->base;
     sr = whal_Reg_Read(base, GPDMA_CxSR(ch));
 
     if (sr & GPDMA_CxSR_ALL_ERR) {

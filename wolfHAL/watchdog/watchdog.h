@@ -2,7 +2,6 @@
 #define WHAL_WATCHDOG_H
 
 #include <wolfHAL/error.h>
-#include <wolfHAL/regmap.h>
 #include <stdint.h>
 #include <stddef.h>
 
@@ -34,7 +33,7 @@ typedef struct {
  * @brief Watchdog device instance tying a register map and driver.
  */
 struct whal_Watchdog {
-    const whal_Regmap regmap;
+    const size_t base;
     const whal_WatchdogDriver *driver;
     void *cfg;
 };

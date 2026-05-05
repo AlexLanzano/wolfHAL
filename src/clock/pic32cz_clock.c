@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <wolfHAL/regmap.h>
 #include <wolfHAL/bitops.h>
 #include <wolfHAL/clock/pic32cz_clock.h>
 #include <wolfHAL/error.h>
@@ -76,21 +77,21 @@ whal_Error whal_Pic32cz_Clock_EnablePll(whal_Clock *clkDev,
     pllRefdivReg   = OSCCTRL_PLLxREFDIV_REG(cfg->pllInst);
     pllPostdivaReg = OSCCTRL_PLLxPOSTDIVA_REG(cfg->pllInst);
 
-    whal_Reg_Update(clkDev->regmap.base, pllFbdivReg, OSCCTRL_PLLxFBDIV_Msk,
+    whal_Reg_Update(clkDev->base, pllFbdivReg, OSCCTRL_PLLxFBDIV_Msk,
                     whal_SetBits(OSCCTRL_PLLxFBDIV_Msk, OSCCTRL_PLLxFBDIV_Pos,
                                  cfg->fbDiv));
-    whal_Reg_Update(clkDev->regmap.base, pllRefdivReg, OSCCTRL_PLLxREFDIV_Msk,
+    whal_Reg_Update(clkDev->base, pllRefdivReg, OSCCTRL_PLLxREFDIV_Msk,
                     whal_SetBits(OSCCTRL_PLLxREFDIV_Msk, OSCCTRL_PLLxREFDIV_Pos,
                                  cfg->refDiv));
     for (i = 0; i < cfg->outCfgCount; i++) {
         const whal_Pic32cz_Clock_PllOutCfg *out = &cfg->outCfg[i];
-        whal_Reg_Update(clkDev->regmap.base, pllPostdivaReg,
+        whal_Reg_Update(clkDev->base, pllPostdivaReg,
                         out->outEnMask | out->postDivMask,
                         whal_SetBits(out->postDivMask, out->postDivPos, out->postDiv) |
                         whal_SetBits(out->outEnMask, out->outEnPos, 1));
     }
 
-    whal_Reg_Update(clkDev->regmap.base, pllCtrlReg,
+    whal_Reg_Update(clkDev->base, pllCtrlReg,
                     OSCCTRL_PLLxCTRL_ENABLE_Msk |
                     OSCCTRL_PLLxCTRL_REFSEL_Msk |
                     OSCCTRL_PLLxCTRL_BWSEL_Msk,
@@ -99,7 +100,7 @@ whal_Error whal_Pic32cz_Clock_EnablePll(whal_Clock *clkDev,
                     whal_SetBits(OSCCTRL_PLLxCTRL_BWSEL_Msk, OSCCTRL_PLLxCTRL_BWSEL_Pos, cfg->bwSel));
 
     do {
-        whal_Reg_Get(clkDev->regmap.base, OSCCTRL_STATUS_REG,
+        whal_Reg_Get(clkDev->base, OSCCTRL_STATUS_REG,
                      OSCCTRL_STATUS_PLLxLOCK_Msk(cfg->pllInst),
                      OSCCTRL_STATUS_PLLxLOCK_Pos(cfg->pllInst), &status);
     } while (!status);
@@ -114,14 +115,14 @@ whal_Error whal_Pic32cz_Clock_EnableGclkGen(whal_Clock *clkDev,
     if (!clkDev || !cfg)
         return WHAL_EINVAL;
 
-    whal_Reg_Update(clkDev->regmap.base, GCLK_GENCTRLx_REG(cfg->gen),
+    whal_Reg_Update(clkDev->base, GCLK_GENCTRLx_REG(cfg->gen),
                     GCLK_GENCTRLx_SRC_Msk | GCLK_GENCTRLx_GENEN_Msk |
                     GCLK_GENCTRLx_DIV_Msk,
                     whal_SetBits(GCLK_GENCTRLx_SRC_Msk, GCLK_GENCTRLx_SRC_Pos, cfg->genSrc) |
                     GCLK_GENCTRLx_GENEN_Msk |
                     whal_SetBits(GCLK_GENCTRLx_DIV_Msk, GCLK_GENCTRLx_DIV_Pos, cfg->genDiv));
     do {
-        whal_Reg_Get(clkDev->regmap.base, GCLK_SYNCBUSY_REG,
+        whal_Reg_Get(clkDev->base, GCLK_SYNCBUSY_REG,
                      GCLK_SYNCBUSY_GENCTRLx_Msk(cfg->gen),
                      GCLK_SYNCBUSY_GENCTRLx_Pos(cfg->gen), &status);
     } while (status);
@@ -135,10 +136,10 @@ whal_Error whal_Pic32cz_Clock_SetMclkDiv(whal_Clock *clkDev, uint8_t div)
     if (!clkDev)
         return WHAL_EINVAL;
 
-    whal_Reg_Update(clkDev->regmap.base, MCLK_DIV1_REG, MCLK_DIV1_Msk,
+    whal_Reg_Update(clkDev->base, MCLK_DIV1_REG, MCLK_DIV1_Msk,
                     whal_SetBits(MCLK_DIV1_Msk, MCLK_DIV1_Pos, div));
     do {
-        whal_Reg_Get(clkDev->regmap.base, MCLK_INTFLAG_REG,
+        whal_Reg_Get(clkDev->base, MCLK_INTFLAG_REG,
                      MCLK_INTFLAG_CKRDY_Msk, MCLK_INTFLAG_CKRDY_Pos, &status);
     } while (!status);
     return WHAL_SUCCESS;
@@ -150,11 +151,11 @@ whal_Error whal_Pic32cz_Clock_EnablePeriphClk(whal_Clock *clkDev,
     if (!clkDev || !clk)
         return WHAL_EINVAL;
 
-    whal_Reg_Update(clkDev->regmap.base, GCLK_PCHCTRLx_REG(clk->gclkPeriphChannel),
+    whal_Reg_Update(clkDev->base, GCLK_PCHCTRLx_REG(clk->gclkPeriphChannel),
                     GCLK_PCHCTRLx_GEN_Msk | GCLK_PCHCTRLx_CHEN_Msk,
                     whal_SetBits(GCLK_PCHCTRLx_GEN_Msk, GCLK_PCHCTRLx_GEN_Pos, clk->gclkPeriphSrc) |
                     GCLK_PCHCTRLx_CHEN_Msk);
-    whal_Reg_Update(clkDev->regmap.base, MCLK_CLKxMSK_REG(clk->mclkEnableInst),
+    whal_Reg_Update(clkDev->base, MCLK_CLKxMSK_REG(clk->mclkEnableInst),
                     clk->mclkEnableMask,
                     whal_SetBits(clk->mclkEnableMask, clk->mclkEnablePos, 1));
     return WHAL_SUCCESS;
@@ -166,10 +167,10 @@ whal_Error whal_Pic32cz_Clock_DisablePeriphClk(whal_Clock *clkDev,
     if (!clkDev || !clk)
         return WHAL_EINVAL;
 
-    whal_Reg_Update(clkDev->regmap.base, MCLK_CLKxMSK_REG(clk->mclkEnableInst),
+    whal_Reg_Update(clkDev->base, MCLK_CLKxMSK_REG(clk->mclkEnableInst),
                     clk->mclkEnableMask,
                     whal_SetBits(clk->mclkEnableMask, clk->mclkEnablePos, 0));
-    whal_Reg_Update(clkDev->regmap.base, GCLK_PCHCTRLx_REG(clk->gclkPeriphChannel),
+    whal_Reg_Update(clkDev->base, GCLK_PCHCTRLx_REG(clk->gclkPeriphChannel),
                     GCLK_PCHCTRLx_CHEN_Msk, 0);
     return WHAL_SUCCESS;
 }

@@ -1,7 +1,7 @@
 #ifndef WHAL_CLOCK_H
 #define WHAL_CLOCK_H
 
-#include <wolfHAL/regmap.h>
+#include <stddef.h>
 
 /*
  * @file clock.h
@@ -14,7 +14,7 @@
  * provides a typed handle so those helpers have something to take.
  */
 typedef struct {
-    const whal_Regmap regmap;
+    const size_t base;
 } whal_Clock;
 
 #endif /* WHAL_CLOCK_H */

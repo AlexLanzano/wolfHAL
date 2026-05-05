@@ -1,7 +1,7 @@
 #ifndef WHAL_POWER_H
 #define WHAL_POWER_H
 
-#include <wolfHAL/regmap.h>
+#include <stddef.h>
 
 /*
  * @file power.h
@@ -17,7 +17,7 @@
  * Board_<Operation>() wrappers.
  */
 typedef struct {
-    const whal_Regmap regmap;
+    const size_t base;
 } whal_Power;
 
 #endif /* WHAL_POWER_H */

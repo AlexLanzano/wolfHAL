@@ -17,7 +17,7 @@ static inline size_t Board_LedPortBase(void)
 {
     whal_Stm32wb_Gpio_Cfg *cfg = (whal_Stm32wb_Gpio_Cfg *)g_whalGpio.cfg;
     whal_Stm32wb_Gpio_PinCfg led = cfg->pinCfg[BOARD_LED_PIN];
-    return g_whalGpio.regmap.base + WHAL_STM32WB_GPIO_GET_PORT(led) * GPIOx_STRIDE;
+    return g_whalGpio.base + WHAL_STM32WB_GPIO_GET_PORT(led) * GPIOx_STRIDE;
 }
 
 static inline size_t Board_LedPinNum(void)
