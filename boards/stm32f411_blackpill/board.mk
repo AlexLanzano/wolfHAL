@@ -7,7 +7,7 @@ GCC = $(GCC_PATH)arm-none-eabi-gcc
 LD = $(GCC_PATH)arm-none-eabi-ld
 OBJCOPY = $(GCC_PATH)arm-none-eabi-objcopy
 
-CFLAGS += -Wall -Werror $(INCLUDE) -g3 \
+CFLAGS += -Wall -Werror $(INCLUDE) -g3 -Os -ffunction-sections -fdata-sections \
           -ffreestanding -nostdlib -mcpu=cortex-m4 -mfloat-abi=hard \
           -mfpu=fpv4-sp-d16 -mthumb \
           -DPLATFORM_STM32F4 -MMD -MP \
@@ -15,7 +15,7 @@ CFLAGS += -Wall -Werror $(INCLUDE) -g3 \
           -DWHAL_CFG_STM32F4_RCC_DIRECT_API_MAPPING \
           -DWHAL_CFG_STM32F4_UART_DIRECT_API_MAPPING \
           -DWHAL_CFG_STM32F4_SPI_DIRECT_API_MAPPING
-LDFLAGS = --omagic -static
+LDFLAGS = --omagic -static --gc-sections
 
 LINKER_SCRIPT ?= $(_BOARD_DIR)/linker.ld
 
