@@ -1,7 +1,7 @@
 _BOARD_DIR := $(patsubst %/,%,$(dir $(lastword $(MAKEFILE_LIST))))
 
 PLATFORM = stm32wba
-TESTS ?= clock gpio flash timer rng crypto uart spi i2c irq
+TESTS ?= clock gpio flash timer rng crypto aes_ecb aes_cbc aes_ctr aes_gcm aes_gmac aes_ccm sha1 sha224 sha256 hmac_sha1 hmac_sha224 hmac_sha256 uart spi i2c irq
 
 GCC = $(GCC_PATH)arm-none-eabi-gcc
 LD = $(GCC_PATH)arm-none-eabi-ld
@@ -11,15 +11,21 @@ CFLAGS += -Wall -Werror $(INCLUDE) -g3 -Os -ffunction-sections -fdata-sections \
           -ffreestanding -nostdlib -mcpu=cortex-m33 -mthumb \
           -DPLATFORM_STM32WBA -MMD -MP \
           -DWHAL_CFG_STM32WBA_RCC_PLL_DRIVER \
+          -DWHAL_CFG_STM32WBA_AES_ECB_DIRECT_API_MAPPING \
+          -DWHAL_CFG_STM32WBA_AES_CBC_DIRECT_API_MAPPING \
+          -DWHAL_CFG_STM32WBA_AES_CTR_DIRECT_API_MAPPING \
+          -DWHAL_CFG_STM32WBA_AES_GCM_DIRECT_API_MAPPING \
+          -DWHAL_CFG_STM32WBA_AES_GMAC_DIRECT_API_MAPPING \
+          -DWHAL_CFG_STM32WBA_AES_CCM_DIRECT_API_MAPPING \
+          -DWHAL_CFG_STM32WBA_HASH_SHA1_DIRECT_API_MAPPING \
+          -DWHAL_CFG_STM32WBA_HASH_SHA224_DIRECT_API_MAPPING \
+          -DWHAL_CFG_STM32WBA_HASH_SHA256_DIRECT_API_MAPPING \
+          -DWHAL_CFG_STM32WBA_HASH_HMAC_SHA1_DIRECT_API_MAPPING \
+          -DWHAL_CFG_STM32WBA_HASH_HMAC_SHA224_DIRECT_API_MAPPING \
+          -DWHAL_CFG_STM32WBA_HASH_HMAC_SHA256_DIRECT_API_MAPPING \
           $(if $(DMA),-DBOARD_DMA) \
           $(if $(filter iwdg,$(WATCHDOG)),-DBOARD_WATCHDOG_IWDG) \
-          $(if $(filter wwdg,$(WATCHDOG)),-DBOARD_WATCHDOG_WWDG) \
-          -DWHAL_CFG_CRYPTO_AES_ECB  -DWHAL_CFG_CRYPTO_AES_CBC  \
-          -DWHAL_CFG_CRYPTO_AES_CTR  -DWHAL_CFG_CRYPTO_AES_GCM  \
-          -DWHAL_CFG_CRYPTO_AES_GMAC -DWHAL_CFG_CRYPTO_AES_CCM  \
-          -DWHAL_CFG_CRYPTO_SHA1     -DWHAL_CFG_CRYPTO_SHA224    \
-          -DWHAL_CFG_CRYPTO_SHA256   -DWHAL_CFG_CRYPTO_HMAC_SHA1 \
-          -DWHAL_CFG_CRYPTO_HMAC_SHA224 -DWHAL_CFG_CRYPTO_HMAC_SHA256
+          $(if $(filter wwdg,$(WATCHDOG)),-DBOARD_WATCHDOG_WWDG)
 LDFLAGS = --omagic -static --gc-sections
 
 LINKER_SCRIPT ?= $(_BOARD_DIR)/linker.ld

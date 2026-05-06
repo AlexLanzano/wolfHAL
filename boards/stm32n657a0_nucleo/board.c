@@ -239,21 +239,96 @@ whal_Rng g_whalRng = {
 /* Crypto (CRYP hardware accelerator) */
 whal_Crypto g_whalCrypto = {
     .base = WHAL_STM32N657_CRYP_BASE,
-    .driver = WHAL_STM32N657_CRYP_DRIVER,
+    .driver = &whal_Stm32n6_Cryp_CryptoDriver,
 
     .cfg = &(whal_Stm32n6_Cryp_Cfg) {
         .timeout = &g_whalTimeout,
     },
 };
 
+whal_AesEcb g_whalAesEcb = {
+    .crypto = &g_whalCrypto,
+    /* .driver: direct API mapping */
+};
+
+whal_AesCbc g_whalAesCbc = {
+    .crypto = &g_whalCrypto,
+    /* .driver: direct API mapping */
+};
+
+whal_AesCtr g_whalAesCtr = {
+    .crypto = &g_whalCrypto,
+    /* .driver: direct API mapping */
+};
+
+static whal_Stm32n6_AesGcm_State g_aesGcmState;
+
+whal_AesGcm g_whalAesGcm = {
+    .crypto = &g_whalCrypto,
+    /* .driver: direct API mapping */
+    .state = &g_aesGcmState,
+};
+
+whal_AesGmac g_whalAesGmac = {
+    .crypto = &g_whalCrypto,
+    /* .driver: direct API mapping */
+};
+
+static whal_Stm32n6_AesCcm_State g_aesCcmState;
+
+whal_AesCcm g_whalAesCcm = {
+    .crypto = &g_whalCrypto,
+    /* .driver: direct API mapping */
+    .state = &g_aesCcmState,
+};
+
 /* Hash (HASH hardware accelerator) */
 whal_Crypto g_whalHash = {
     .base = WHAL_STM32N657_HASH_BASE,
-    .driver = WHAL_STM32N657_HASH_DRIVER,
+    .driver = &whal_Stm32n6_Hash_CryptoDriver,
 
     .cfg = &(whal_Stm32n6_Hash_Cfg) {
         .timeout = &g_whalTimeout,
     },
+};
+
+whal_Sha1 g_whalSha1 = {
+    .crypto = &g_whalHash,
+    /* .driver: direct API mapping */
+};
+
+whal_Sha224 g_whalSha224 = {
+    .crypto = &g_whalHash,
+    /* .driver: direct API mapping */
+};
+
+whal_Sha256 g_whalSha256 = {
+    .crypto = &g_whalHash,
+    /* .driver: direct API mapping */
+};
+
+static whal_Stm32n6_HmacSha1_State g_hmacSha1State;
+
+whal_HmacSha1 g_whalHmacSha1 = {
+    .crypto = &g_whalHash,
+    /* .driver: direct API mapping */
+    .state = &g_hmacSha1State,
+};
+
+static whal_Stm32n6_HmacSha224_State g_hmacSha224State;
+
+whal_HmacSha224 g_whalHmacSha224 = {
+    .crypto = &g_whalHash,
+    /* .driver: direct API mapping */
+    .state = &g_hmacSha224State,
+};
+
+static whal_Stm32n6_HmacSha256_State g_hmacSha256State;
+
+whal_HmacSha256 g_whalHmacSha256 = {
+    .crypto = &g_whalHash,
+    /* .driver: direct API mapping */
+    .state = &g_hmacSha256State,
 };
 
 #ifdef BOARD_WATCHDOG_IWDG

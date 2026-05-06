@@ -39,7 +39,7 @@
 #define WHAL_STM32WB55_RNG_DRIVER &whal_Stm32wb_Rng_Driver
 
 #define WHAL_STM32WB55_AES1_BASE 0x50060000
-#define WHAL_STM32WB55_AES1_DRIVER &whal_Stm32wb_Aes_Driver
+#define WHAL_STM32WB55_AES1_DRIVER &whal_Stm32wb_Aes_CryptoDriver
 
 #define WHAL_STM32WB55_I2C1_BASE 0x40005400
 #define WHAL_STM32WB55_I2C1_DRIVER &whal_Stm32wb_I2c_Driver

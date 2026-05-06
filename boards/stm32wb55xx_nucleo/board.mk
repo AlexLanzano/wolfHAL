@@ -1,7 +1,7 @@
 _BOARD_DIR := $(patsubst %/,%,$(dir $(lastword $(MAKEFILE_LIST))))
 
 PLATFORM = stm32wb
-TESTS ?= clock gpio flash timer rng crypto block uart i2c dma irq
+TESTS ?= clock gpio flash timer rng crypto aes_ecb aes_cbc aes_ctr aes_gcm aes_gmac aes_ccm block uart i2c dma irq
 
 GCC = $(GCC_PATH)arm-none-eabi-gcc
 LD = $(GCC_PATH)arm-none-eabi-ld
@@ -20,10 +20,13 @@ CFLAGS += -Wall -Werror $(INCLUDE) -g3 -Os -ffunction-sections -fdata-sections \
           -DWHAL_CFG_STM32WB_RCC_DIRECT_API_MAPPING \
           -DWHAL_CFG_STM32WB_RNG_DIRECT_API_MAPPING \
           -DWHAL_CFG_STM32WB_DMA_DIRECT_API_MAPPING \
-          -DWHAL_CFG_STM32WB_AES_DIRECT_API_MAPPING \
-          -DWHAL_CFG_CRYPTO_AES_ECB  -DWHAL_CFG_CRYPTO_AES_CBC  \
-          -DWHAL_CFG_CRYPTO_AES_CTR  -DWHAL_CFG_CRYPTO_AES_GCM  \
-          -DWHAL_CFG_CRYPTO_AES_GMAC -DWHAL_CFG_CRYPTO_AES_CCM
+          -DWHAL_CFG_STM32WB_AES_INIT_DIRECT_API_MAPPING \
+          -DWHAL_CFG_STM32WB_AES_ECB_DIRECT_API_MAPPING \
+          -DWHAL_CFG_STM32WB_AES_CBC_DIRECT_API_MAPPING \
+          -DWHAL_CFG_STM32WB_AES_CTR_DIRECT_API_MAPPING \
+          -DWHAL_CFG_STM32WB_AES_GCM_DIRECT_API_MAPPING \
+          -DWHAL_CFG_STM32WB_AES_GMAC_DIRECT_API_MAPPING \
+          -DWHAL_CFG_STM32WB_AES_CCM_DIRECT_API_MAPPING
 LDFLAGS = --omagic -static --gc-sections
 
 LINKER_SCRIPT ?= $(_BOARD_DIR)/linker.ld
@@ -33,7 +36,6 @@ INCLUDE += -I$(_BOARD_DIR) -I$(WHAL_DIR)/boards/peripheral
 BOARD_SOURCE = $(_BOARD_DIR)/ivt.c
 BOARD_SOURCE += $(_BOARD_DIR)/board.c
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*.c)
-BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/crypto.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/timer.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/flash.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/sensor.c)

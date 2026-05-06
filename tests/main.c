@@ -59,6 +59,54 @@ void whal_Test_Crypto_Platform(void);
 #endif
 #endif
 
+#ifdef WHAL_TEST_ENABLE_AES_ECB
+void whal_Test_AesEcb(void);
+#endif
+
+#ifdef WHAL_TEST_ENABLE_AES_CBC
+void whal_Test_AesCbc(void);
+#endif
+
+#ifdef WHAL_TEST_ENABLE_AES_CTR
+void whal_Test_AesCtr(void);
+#endif
+
+#ifdef WHAL_TEST_ENABLE_AES_GCM
+void whal_Test_AesGcm(void);
+#endif
+
+#ifdef WHAL_TEST_ENABLE_AES_GMAC
+void whal_Test_AesGmac(void);
+#endif
+
+#ifdef WHAL_TEST_ENABLE_AES_CCM
+void whal_Test_AesCcm(void);
+#endif
+
+#ifdef WHAL_TEST_ENABLE_SHA1
+void whal_Test_Sha1(void);
+#endif
+
+#ifdef WHAL_TEST_ENABLE_SHA224
+void whal_Test_Sha224(void);
+#endif
+
+#ifdef WHAL_TEST_ENABLE_SHA256
+void whal_Test_Sha256(void);
+#endif
+
+#ifdef WHAL_TEST_ENABLE_HMAC_SHA1
+void whal_Test_HmacSha1(void);
+#endif
+
+#ifdef WHAL_TEST_ENABLE_HMAC_SHA224
+void whal_Test_HmacSha224(void);
+#endif
+
+#ifdef WHAL_TEST_ENABLE_HMAC_SHA256
+void whal_Test_HmacSha256(void);
+#endif
+
 #ifdef WHAL_TEST_ENABLE_BLOCK
 void whal_Test_Block(void);
 #endif
@@ -202,6 +250,54 @@ void main(void)
 #ifdef WHAL_TEST_ENABLE_CRYPTO_PLATFORM
     whal_Test_Crypto_Platform();
 #endif
+#endif
+
+#ifdef WHAL_TEST_ENABLE_AES_ECB
+    whal_Test_AesEcb();
+#endif
+
+#ifdef WHAL_TEST_ENABLE_AES_CBC
+    whal_Test_AesCbc();
+#endif
+
+#ifdef WHAL_TEST_ENABLE_AES_CTR
+    whal_Test_AesCtr();
+#endif
+
+#ifdef WHAL_TEST_ENABLE_AES_GCM
+    whal_Test_AesGcm();
+#endif
+
+#ifdef WHAL_TEST_ENABLE_AES_GMAC
+    whal_Test_AesGmac();
+#endif
+
+#ifdef WHAL_TEST_ENABLE_AES_CCM
+    whal_Test_AesCcm();
+#endif
+
+#ifdef WHAL_TEST_ENABLE_SHA1
+    whal_Test_Sha1();
+#endif
+
+#ifdef WHAL_TEST_ENABLE_SHA224
+    whal_Test_Sha224();
+#endif
+
+#ifdef WHAL_TEST_ENABLE_SHA256
+    whal_Test_Sha256();
+#endif
+
+#ifdef WHAL_TEST_ENABLE_HMAC_SHA1
+    whal_Test_HmacSha1();
+#endif
+
+#ifdef WHAL_TEST_ENABLE_HMAC_SHA224
+    whal_Test_HmacSha224();
+#endif
+
+#ifdef WHAL_TEST_ENABLE_HMAC_SHA256
+    whal_Test_HmacSha256();
 #endif
 
 #ifdef WHAL_TEST_ENABLE_BLOCK

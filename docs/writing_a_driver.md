@@ -953,12 +953,22 @@ consumption and avoid unnecessary entropy source wear.
 
 Header: `wolfHAL/crypto/crypto.h`
 
-The crypto driver provides access to hardware cryptographic accelerators
-(ciphers, hashes, MACs, and public key operations). The driver vtable uses a
-unified **StartOp / Process / EndOp** pattern that supports both one-shot and
-streaming use cases.
+The crypto subsystem provides access to hardware cryptographic accelerators
+(ciphers, hashes, MACs). Unlike other device types, crypto uses a two-level
+device model: a **hardware device** (`whal_Crypto`) for peripheral lifecycle,
+and **per-algorithm device structs** (`whal_AesGcm`, `whal_Sha256`, etc.)
+that carry typed vtables with direct function arguments.
 
-### Device Struct
+### Architecture
+
+`whal_Crypto` is a platform driver representing a crypto hardware peripheral.
+It provides only `Init` and `Deinit` for hardware lifecycle (enable/disable
+the peripheral, clear error flags). Each algorithm gets its own typed device
+struct that references the underlying `whal_Crypto` and a per-algorithm
+driver vtable. There is no `opId`, no `void*` casting, and no args structs
+in the dispatch path.
+
+### Hardware Device
 
 ```c
 struct whal_Crypto {
@@ -966,91 +976,407 @@ struct whal_Crypto {
     const whal_CryptoDriver *driver;
     const void *cfg;
 };
-```
 
-### Driver Vtable
-
-```c
 typedef struct {
-    whal_Error (*Init)(whal_Crypto *cryptoDev);
-    whal_Error (*Deinit)(whal_Crypto *cryptoDev);
-    whal_Error (*StartOp)(whal_Crypto *cryptoDev, size_t opId, void *opArgs);
-    whal_Error (*Process)(whal_Crypto *cryptoDev, size_t opId, void *opArgs);
-    whal_Error (*EndOp)(whal_Crypto *cryptoDev, size_t opId, void *opArgs);
+    whal_Error (*Init)(whal_Crypto *dev);
+    whal_Error (*Deinit)(whal_Crypto *dev);
 } whal_CryptoDriver;
 ```
 
-The `opId` parameter is a framework-defined enum value (e.g. `WHAL_CRYPTO_AES_GCM`,
-`WHAL_CRYPTO_SHA256`). The `opArgs` parameter is a pointer to an
-algorithm-specific argument struct (e.g., `whal_Crypto_AesGcmArgs`,
-`whal_Crypto_HashArgs`). The driver casts it to the correct type based on
-`opId`. See `wolfHAL/crypto/crypto.h` for the full set of argument structs and
-operation IDs.
+The board must enable the peripheral clock before calling `whal_Crypto_Init`.
+`whal_Crypto_Deinit` disables the crypto accelerator peripheral.
 
-### Init / Deinit
+### Per-Algorithm Device Structs
 
-The board must enable the peripheral clock before calling Init. Deinit should
-disable the crypto accelerator peripheral.
+Each algorithm has its own device struct with a typed vtable. The struct
+shape varies by algorithm category:
+
+**Block ciphers (ECB, CBC, CTR)** — no streaming state needed:
+
+```c
+struct whal_AesCbc {
+    whal_Crypto *crypto;
+    const whal_AesCbcDriver *driver;
+};
+```
+
+**AEAD modes (GCM, CCM) and HMAC** — streaming state for multi-phase ops:
+
+```c
+struct whal_AesGcm {
+    whal_Crypto *crypto;
+    const whal_AesGcmDriver *driver;
+    void *state;
+};
+```
+
+**Hash algorithms (SHA-1, SHA-224, SHA-256)** — no streaming state (the
+hardware retains intermediate context internally):
+
+```c
+struct whal_Sha256 {
+    whal_Crypto *crypto;
+    const whal_Sha256Driver *driver;
+};
+```
+
+The `.crypto` field points to the underlying hardware device. The `.driver`
+field points to the per-algorithm vtable. The `.state` field, when present,
+points to a driver-defined struct that the driver uses to carry data between
+streaming phases (e.g., accumulated AAD/data sizes for GCM's final GHASH, or
+the HMAC key for the outer hash pass).
+
+### Per-Algorithm Vtables
+
+Each algorithm defines a vtable with typed function pointers. The available
+operations depend on the algorithm category:
+
+**Block ciphers** have `Oneshot`, `Start`, and `Process`:
+
+```c
+typedef struct {
+    whal_Error (*Oneshot)(whal_AesCbc *dev, whal_Crypto_Dir dir,
+                          const void *key, size_t keySz,
+                          const void *iv,
+                          const void *in, void *out, size_t sz);
+    whal_Error (*Start)(whal_AesCbc *dev, whal_Crypto_Dir dir,
+                        const void *key, size_t keySz,
+                        const void *iv);
+    whal_Error (*Process)(whal_AesCbc *dev,
+                          const void *in, void *out, size_t sz);
+} whal_AesCbcDriver;
+```
+
+**AEAD modes** add `Finalize` for tag generation:
+
+```c
+typedef struct {
+    whal_Error (*Oneshot)(whal_AesGcm *dev, whal_Crypto_Dir dir,
+                          const void *key, size_t keySz,
+                          const void *iv, size_t ivSz,
+                          const void *aad, size_t aadSz,
+                          const void *in, void *out, size_t sz,
+                          void *tag, size_t tagSz);
+    whal_Error (*Start)(whal_AesGcm *dev, whal_Crypto_Dir dir,
+                        const void *key, size_t keySz,
+                        const void *iv, size_t ivSz,
+                        const void *aad, size_t aadSz);
+    whal_Error (*Process)(whal_AesGcm *dev,
+                          const void *in, void *out, size_t sz);
+    whal_Error (*Finalize)(whal_AesGcm *dev,
+                           void *tag, size_t tagSz);
+} whal_AesGcmDriver;
+```
+
+**Hash algorithms** have `Oneshot`, `Start`, `Process`, and `Finalize`:
+
+```c
+typedef struct {
+    whal_Error (*Oneshot)(whal_Sha256 *dev,
+                          const void *in, size_t inSz,
+                          void *digest, size_t digestSz);
+    whal_Error (*Start)(whal_Sha256 *dev);
+    whal_Error (*Process)(whal_Sha256 *dev, const void *in, size_t inSz);
+    whal_Error (*Finalize)(whal_Sha256 *dev, void *digest, size_t digestSz);
+} whal_Sha256Driver;
+```
+
+**HMAC** adds key parameters to `Oneshot` and `Start`:
+
+```c
+typedef struct {
+    whal_Error (*Oneshot)(whal_HmacSha256 *dev,
+                          const void *key, size_t keySz,
+                          const void *in, size_t inSz,
+                          void *digest, size_t digestSz);
+    whal_Error (*Start)(whal_HmacSha256 *dev,
+                        const void *key, size_t keySz);
+    whal_Error (*Process)(whal_HmacSha256 *dev,
+                          const void *in, size_t inSz);
+    whal_Error (*Finalize)(whal_HmacSha256 *dev,
+                           void *digest, size_t digestSz);
+} whal_HmacSha256Driver;
+```
+
+**Oneshot-only algorithms** (e.g., GMAC) have only `Oneshot`:
+
+```c
+typedef struct {
+    whal_Error (*Oneshot)(whal_AesGmac *dev,
+                          const void *key, size_t keySz,
+                          const void *iv, size_t ivSz,
+                          const void *aad, size_t aadSz,
+                          void *tag, size_t tagSz);
+} whal_AesGmacDriver;
+```
 
 ### Operations
 
-Each crypto operation is split into three phases:
+- **Oneshot** — Performs the entire operation in a single call. Handles key
+  loading, data processing, and finalization internally.
+- **Start** — Begin a streaming session. Load the key (and IV/AAD for modes
+  that need them). For AEAD modes, this covers the init and header phases.
+- **Process** — Feed data through an active session. May be called multiple
+  times. For block ciphers this processes blocks of ciphertext/plaintext.
+  For hash/HMAC this feeds message data.
+- **Finalize** — End a streaming session and produce the final output (tag
+  for AEAD, digest for hash/HMAC). Only present on algorithms that need a
+  finalization step. Block ciphers (ECB, CBC, CTR) do not have Finalize
+  because each Process call produces complete output.
 
-- **StartOp** — Configure hardware, load key/IV, process AAD for AEAD modes.
-- **Process** — Feed data through the hardware. May be called multiple times
-  for streaming. Optional for single-shot operations (e.g. GMAC has no
-  payload).
-- **EndOp** — Finalize the operation, read output (tag, digest), release
-  hardware. On StartOp failure, the driver cleans up internally and EndOp
-  should not be called.
+Unsupported parameter combinations (e.g. AES-192 on hardware that only
+supports 128/256) return `WHAL_ENOTSUP`.
 
-Unsupported `opId` values return `WHAL_ENOTSUP`. Unsupported parameter
-combinations (e.g. AES-192 on hardware that only supports 128/256) also
-return `WHAL_ENOTSUP`.
+### The .state Field
 
-### Convenience Wrappers
+AEAD (GCM, CCM) and HMAC device structs include a `void *state` field that
+points to a driver-defined struct. The driver uses this to carry data between
+`Start`, `Process`, and `Finalize` calls. For example:
 
-`crypto.h` provides typed inline wrappers for each algorithm. One-shot
-wrappers call all three phases in sequence:
+- **AES-GCM**: e.g. `whal_Stm32wb_AesGcm_State` tracks accumulated AAD and
+  data sizes for the final-phase GHASH computation.
+- **AES-CCM**: e.g. `whal_Stm32wb_AesCcm_State` tracks accumulated AAD and
+  data sizes for tag construction.
+- **HMAC**: driver-specific state retains the key pointer for the outer hash
+  pass (e.g., `whal_Stm32wba_HmacSha256_State`).
+
+Block ciphers and plain hash algorithms do not need `.state` because the
+hardware retains all necessary context internally.
+
+### API Usage
+
+One-shot:
 
 ```c
-whal_Crypto_AesGcmArgs args = {
-    .dir = WHAL_CRYPTO_ENCRYPT, .key = key, .keySz = 32,
-    .iv = iv, .ivSz = 12,
-    .in = plaintext, .out = ct, .sz = sizeof(plaintext),
-    .aad = aad, .aadSz = sizeof(aad),
-    .tag = tag, .tagSz = 16,
+whal_AesGcm_Oneshot(&g_whalAesGcm, WHAL_CRYPTO_ENCRYPT,
+                    key, 32, iv, 12, aad, aadSz,
+                    pt, ct, ptSz, tag, 16);
+```
+
+Streaming (AEAD):
+
+```c
+whal_AesGcm_Start(&g_whalAesGcm, WHAL_CRYPTO_ENCRYPT,
+                  key, 32, iv, 12, aad, aadSz);
+whal_AesGcm_Process(&g_whalAesGcm, chunk1, out1, chunk1Sz);
+whal_AesGcm_Process(&g_whalAesGcm, chunk2, out2, chunk2Sz);
+whal_AesGcm_Finalize(&g_whalAesGcm, tag, 16);
+```
+
+Streaming (hash):
+
+```c
+whal_Sha256_Start(&g_whalSha256);
+whal_Sha256_Process(&g_whalSha256, chunk1, chunk1Sz);
+whal_Sha256_Process(&g_whalSha256, chunk2, chunk2Sz);
+whal_Sha256_Finalize(&g_whalSha256, digest, 32);
+```
+
+Streaming (block cipher):
+
+```c
+whal_AesCbc_Start(&g_whalAesCbc, WHAL_CRYPTO_ENCRYPT, key, 32, iv);
+whal_AesCbc_Process(&g_whalAesCbc, block1, out1, 16);
+whal_AesCbc_Process(&g_whalAesCbc, block2, out2, 16);
+```
+
+### Writing a Crypto Driver
+
+A single platform driver file typically implements multiple algorithms that
+share the same hardware peripheral. For example, `stm32wb_aes.c` implements
+AES-ECB, AES-CBC, AES-CTR, AES-GCM, AES-GMAC, and AES-CCM. Functions for
+all operations of a single algorithm should be grouped together, not spread
+by operation type.
+
+The driver must:
+
+1. Implement the `whal_CryptoDriver` vtable (`Init`/`Deinit`) for the
+   hardware peripheral.
+2. Implement per-algorithm vtables for each supported algorithm.
+3. Define any streaming state structs needed for AEAD/HMAC.
+
+#### Hardware Init/Deinit
+
+These go through the `whal_CryptoDriver` vtable on `whal_Crypto`. They
+handle peripheral enable/disable, clearing error flags, etc.
+
+```c
+whal_Error whal_Myplatform_Aes_Init(whal_Crypto *dev)
+{
+    /* Enable peripheral, clear flags */
+}
+
+whal_Error whal_Myplatform_Aes_Deinit(whal_Crypto *dev)
+{
+    /* Disable peripheral */
+}
+```
+
+#### Per-Algorithm Functions
+
+Each algorithm function receives the per-algorithm device struct. To access
+hardware registers, dereference `dev->crypto->base`. To access the config,
+cast `dev->crypto->cfg`.
+
+```c
+whal_Error whal_Myplatform_AesGcm_Oneshot(whal_AesGcm *dev,
+                                          whal_Crypto_Dir dir,
+                                          const void *key, size_t keySz,
+                                          const void *iv, size_t ivSz,
+                                          const void *aad, size_t aadSz,
+                                          const void *in, void *out, size_t sz,
+                                          void *tag, size_t tagSz)
+{
+    size_t base = dev->crypto->base;
+    whal_Myplatform_Aes_Cfg *cfg =
+        (whal_Myplatform_Aes_Cfg *)dev->crypto->cfg;
+    /* Load key, IV, process AAD, encrypt/decrypt, compute tag */
+}
+```
+
+For streaming state, the driver reads and writes `dev->state`:
+
+```c
+whal_Error whal_Myplatform_AesGcm_Start(whal_AesGcm *dev, ...)
+{
+    whal_Myplatform_AesGcm_State *st = (whal_Myplatform_AesGcm_State *)dev->state;
+    st->aadSz = aadSz;
+    st->dataSz = 0;
+    /* Load key, IV, process AAD header */
+}
+
+whal_Error whal_Myplatform_AesGcm_Process(whal_AesGcm *dev,
+                                          const void *in, void *out, size_t sz)
+{
+    whal_Myplatform_AesGcm_State *st = (whal_Myplatform_AesGcm_State *)dev->state;
+    st->dataSz += sz;
+    /* Process payload blocks */
+}
+
+whal_Error whal_Myplatform_AesGcm_Finalize(whal_AesGcm *dev,
+                                           void *tag, size_t tagSz)
+{
+    whal_Myplatform_AesGcm_State *st = (whal_Myplatform_AesGcm_State *)dev->state;
+    /* Use st->aadSz and st->dataSz for final GHASH, produce tag */
+}
+```
+
+#### Vtable Definitions
+
+Define one vtable per algorithm, plus one `whal_CryptoDriver` for
+Init/Deinit. Wrap each in `#ifndef` for the corresponding direct API
+mapping flag:
+
+```c
+#ifndef WHAL_CFG_MYPLATFORM_AES_INIT_DIRECT_API_MAPPING
+const whal_CryptoDriver whal_Myplatform_Aes_CryptoDriver = {
+    .Init   = whal_Myplatform_Aes_Init,
+    .Deinit = whal_Myplatform_Aes_Deinit,
 };
-whal_Crypto_AesGcm(&g_whalCrypto, &args);
+#endif
+
+#ifndef WHAL_CFG_MYPLATFORM_AES_GCM_DIRECT_API_MAPPING
+const whal_AesGcmDriver whal_Myplatform_Aes_GcmDriver = {
+    .Oneshot  = whal_Myplatform_AesGcm_Oneshot,
+    .Start    = whal_Myplatform_AesGcm_Start,
+    .Process  = whal_Myplatform_AesGcm_Process,
+    .Finalize = whal_Myplatform_AesGcm_Finalize,
+};
+#endif
 ```
 
-Streaming wrappers expose each phase individually with typed parameters:
+### Direct API Mapping
+
+Crypto uses per-algorithm direct API mapping flags. Each algorithm can be
+independently mapped. The flags follow the pattern
+`WHAL_CFG_<DRIVER>_<ALGO>_DIRECT_API_MAPPING`:
 
 ```c
-whal_Crypto_Sha256_Start(&g_whalHash);
-whal_Crypto_Sha256_Update(&g_whalHash, chunk1, chunk1Sz);
-whal_Crypto_Sha256_Update(&g_whalHash, chunk2, chunk2Sz);
-whal_Crypto_Sha256_Finalize(&g_whalHash, digest, 32);
+/* In the driver header */
+#ifdef WHAL_CFG_MYPLATFORM_AES_GCM_DIRECT_API_MAPPING
+#define whal_Myplatform_AesGcm_Oneshot  whal_AesGcm_Oneshot
+#define whal_Myplatform_AesGcm_Start    whal_AesGcm_Start
+#define whal_Myplatform_AesGcm_Process  whal_AesGcm_Process
+#define whal_Myplatform_AesGcm_Finalize whal_AesGcm_Finalize
+#endif
+
+#ifdef WHAL_CFG_MYPLATFORM_AES_INIT_DIRECT_API_MAPPING
+#define whal_Myplatform_Aes_Init        whal_Crypto_Init
+#define whal_Myplatform_Aes_Deinit      whal_Crypto_Deinit
+#endif
 ```
 
-Both wrapper styles are guarded by `WHAL_CFG_CRYPTO_<ALGO>` defines (e.g.
-`WHAL_CFG_CRYPTO_AES_GCM`, `WHAL_CFG_CRYPTO_SHA256`).
+The Init/Deinit mapping maps to `whal_Crypto_Init`/`whal_Crypto_Deinit`
+(the hardware device API). Each algorithm mapping maps to that algorithm's
+top-level API (e.g., `whal_AesGcm_Oneshot`).
+
+### Adding a New Algorithm
+
+To add support for a new algorithm (e.g., ChaCha20-Poly1305):
+
+1. Add the per-algorithm device struct, vtable typedef, and API function
+   declarations to `wolfHAL/crypto/crypto.h`. Include a `.state` field if
+   the algorithm needs streaming state.
+2. Add the dispatch functions to `src/crypto/crypto.c`.
+3. Implement the vtable functions in the platform driver (e.g.,
+   `src/crypto/myplatform_aes.c`).
+4. Add direct API mapping guards in the driver header.
+5. Add `WHAL_CFG_<ALGO>` config guards around the new API functions.
 
 ### Board Integration
 
-The board enables supported algorithms via `-D` flags in `board.mk` and
-instantiates the crypto device:
+The board instantiates one `whal_Crypto` device per hardware peripheral, plus
+one per-algorithm device for each algorithm it uses. The per-algorithm device
+structs reference the `whal_Crypto` instance, the appropriate driver vtable,
+and (for AEAD/HMAC) a state struct:
 
 ```c
+/* Hardware device */
 whal_Crypto g_whalCrypto = {
-    .base = WHAL_STM32WB55_AES1_BASE,
-    .cfg = &(whal_Stm32wb_Aes_Cfg) { .timeout = &g_whalTimeout },
+    .base = WHAL_MYPLATFORM_AES1_BASE,
+    .driver = &whal_Myplatform_Aes_CryptoDriver,
+    .cfg = &(whal_Myplatform_Aes_Cfg) { .timeout = &g_whalTimeout },
+};
+
+/* Block cipher — no state */
+whal_AesCbc g_whalAesCbc = {
+    .crypto = &g_whalCrypto,
+    .driver = &whal_Myplatform_Aes_CbcDriver,
+};
+
+/* AEAD — with state for streaming */
+static whal_Myplatform_AesGcm_State g_aesGcmState;
+whal_AesGcm g_whalAesGcm = {
+    .crypto = &g_whalCrypto,
+    .driver = &whal_Myplatform_Aes_GcmDriver,
+    .state = &g_aesGcmState,
+};
+
+/* Hash — no state (hardware retains context) */
+whal_Sha256 g_whalSha256 = {
+    .crypto = &g_whalHash,
+    .driver = &whal_Myplatform_Hash_Sha256Driver,
+};
+
+/* HMAC — with driver-specific state */
+static whal_Myplatform_HmacSha256_State g_hmacState;
+whal_HmacSha256 g_whalHmacSha256 = {
+    .crypto = &g_whalHash,
+    .driver = &whal_Myplatform_Hash_HmacSha256Driver,
+    .state = &g_hmacState,
 };
 ```
 
-When API mapping is active (e.g. `-DWHAL_CFG_CRYPTO_API_MAPPING_STM32WB_AES`),
-the driver functions are mapped directly to the top-level API, eliminating the
-vtable indirection.
+When direct API mapping is active for an algorithm, the `.driver` field is
+omitted from that per-algorithm device. When Init/Deinit mapping is active,
+the `.driver` field is omitted from the `whal_Crypto` device.
+
+### Reference Implementations
+
+- **AES (ECB/CBC/CTR/GCM/GMAC/CCM)**: `wolfHAL/crypto/stm32wb_aes.h` and
+  `src/crypto/stm32wb_aes.c`
+- **Hash/HMAC (SHA-1/SHA-224/SHA-256, HMAC variants)**:
+  `wolfHAL/crypto/stm32wba_hash.h` and `src/crypto/stm32wba_hash.c`
 
 ---
 

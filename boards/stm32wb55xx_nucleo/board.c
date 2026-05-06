@@ -221,10 +221,45 @@ whal_Rng g_whalRng = {
 whal_Crypto g_whalCrypto = {
     .base = WHAL_STM32WB55_AES1_BASE,
     /* .driver: direct API mapping */
-
     .cfg = &(whal_Stm32wb_Aes_Cfg) {
         .timeout = &g_whalTimeout,
     },
+};
+
+whal_AesEcb g_whalAesEcb = {
+    .crypto = &g_whalCrypto,
+    /* .driver: direct API mapping */
+};
+
+whal_AesCbc g_whalAesCbc = {
+    .crypto = &g_whalCrypto,
+    /* .driver: direct API mapping */
+};
+
+whal_AesCtr g_whalAesCtr = {
+    .crypto = &g_whalCrypto,
+    /* .driver: direct API mapping */
+};
+
+static whal_Stm32wb_AesGcm_State g_aesGcmState;
+
+whal_AesGcm g_whalAesGcm = {
+    .crypto = &g_whalCrypto,
+    /* .driver: direct API mapping */
+    .state = &g_aesGcmState,
+};
+
+whal_AesGmac g_whalAesGmac = {
+    .crypto = &g_whalCrypto,
+    /* .driver: direct API mapping */
+};
+
+static whal_Stm32wb_AesCcm_State g_aesCcmState;
+
+whal_AesCcm g_whalAesCcm = {
+    .crypto = &g_whalCrypto,
+    /* .driver: direct API mapping */
+    .state = &g_aesCcmState,
 };
 
 #ifdef BOARD_WATCHDOG_IWDG
@@ -400,6 +435,7 @@ whal_Error Board_Deinit(void)
     if (err) {
         return err;
     }
+
 
     err = whal_Crypto_Deinit(&g_whalCrypto);
     if (err) {

@@ -89,75 +89,117 @@ static void ReadDigest(size_t base, uint8_t *digest, size_t digestSz)
                        whal_Reg_Read(base, HASH_HR_BASE_REG + i * 4));
 }
 
-static whal_Error Process_Hash(whal_Crypto *cryptoDev, const void *in,
-                               size_t inSz)
-{
-    if (inSz == 0)
-        return WHAL_SUCCESS;
-
-    if (!in)
-        return WHAL_EINVAL;
-
-    WriteData(cryptoDev->base, (const uint8_t *)in, inSz);
-
-    return WHAL_SUCCESS;
-}
 
 
-#if defined(WHAL_CFG_STM32WBA_HASH_DIRECT_API_MAPPING) || \
-    defined(WHAL_CFG_STM32N6_HASH_DIRECT_API_MAPPING)
-#define whal_Stm32wba_Hash_Init    whal_Crypto_Init
-#define whal_Stm32wba_Hash_Deinit  whal_Crypto_Deinit
-#define whal_Stm32wba_Hash_StartOp whal_Crypto_StartOp
-#define whal_Stm32wba_Hash_Process whal_Crypto_Process
-#define whal_Stm32wba_Hash_EndOp   whal_Crypto_EndOp
+/* ---- Direct API mapping ---- */
+
+#if defined(WHAL_CFG_STM32WBA_HASH_INIT_DIRECT_API_MAPPING) || \
+    defined(WHAL_CFG_STM32N6_HASH_INIT_DIRECT_API_MAPPING)
+#define whal_Stm32wba_Hash_Init          whal_Crypto_Init
+#define whal_Stm32wba_Hash_Deinit        whal_Crypto_Deinit
 #endif
 
-whal_Error whal_Stm32wba_Hash_Init(whal_Crypto *cryptoDev)
-{
-    if (!cryptoDev || !cryptoDev->cfg)
-        return WHAL_EINVAL;
+#if defined(WHAL_CFG_STM32WBA_HASH_SHA1_DIRECT_API_MAPPING) || \
+    defined(WHAL_CFG_STM32N6_HASH_SHA1_DIRECT_API_MAPPING)
+#define whal_Stm32wba_Sha1_Oneshot       whal_Sha1_Oneshot
+#define whal_Stm32wba_Sha1_Start         whal_Sha1_Start
+#define whal_Stm32wba_Sha1_Process       whal_Sha1_Process
+#define whal_Stm32wba_Sha1_Finalize      whal_Sha1_Finalize
+#endif
 
+#if defined(WHAL_CFG_STM32WBA_HASH_SHA224_DIRECT_API_MAPPING) || \
+    defined(WHAL_CFG_STM32N6_HASH_SHA224_DIRECT_API_MAPPING)
+#define whal_Stm32wba_Sha224_Oneshot     whal_Sha224_Oneshot
+#define whal_Stm32wba_Sha224_Start       whal_Sha224_Start
+#define whal_Stm32wba_Sha224_Process     whal_Sha224_Process
+#define whal_Stm32wba_Sha224_Finalize    whal_Sha224_Finalize
+#endif
+
+#if defined(WHAL_CFG_STM32WBA_HASH_SHA256_DIRECT_API_MAPPING) || \
+    defined(WHAL_CFG_STM32N6_HASH_SHA256_DIRECT_API_MAPPING)
+#define whal_Stm32wba_Sha256_Oneshot     whal_Sha256_Oneshot
+#define whal_Stm32wba_Sha256_Start       whal_Sha256_Start
+#define whal_Stm32wba_Sha256_Process     whal_Sha256_Process
+#define whal_Stm32wba_Sha256_Finalize    whal_Sha256_Finalize
+#endif
+
+#if defined(WHAL_CFG_STM32WBA_HASH_HMAC_SHA1_DIRECT_API_MAPPING) || \
+    defined(WHAL_CFG_STM32N6_HASH_HMAC_SHA1_DIRECT_API_MAPPING)
+#define whal_Stm32wba_HmacSha1_Oneshot   whal_HmacSha1_Oneshot
+#define whal_Stm32wba_HmacSha1_Start     whal_HmacSha1_Start
+#define whal_Stm32wba_HmacSha1_Process   whal_HmacSha1_Process
+#define whal_Stm32wba_HmacSha1_Finalize  whal_HmacSha1_Finalize
+#endif
+
+#if defined(WHAL_CFG_STM32WBA_HASH_HMAC_SHA224_DIRECT_API_MAPPING) || \
+    defined(WHAL_CFG_STM32N6_HASH_HMAC_SHA224_DIRECT_API_MAPPING)
+#define whal_Stm32wba_HmacSha224_Oneshot  whal_HmacSha224_Oneshot
+#define whal_Stm32wba_HmacSha224_Start    whal_HmacSha224_Start
+#define whal_Stm32wba_HmacSha224_Process  whal_HmacSha224_Process
+#define whal_Stm32wba_HmacSha224_Finalize whal_HmacSha224_Finalize
+#endif
+
+#if defined(WHAL_CFG_STM32WBA_HASH_HMAC_SHA256_DIRECT_API_MAPPING) || \
+    defined(WHAL_CFG_STM32N6_HASH_HMAC_SHA256_DIRECT_API_MAPPING)
+#define whal_Stm32wba_HmacSha256_Oneshot  whal_HmacSha256_Oneshot
+#define whal_Stm32wba_HmacSha256_Start    whal_HmacSha256_Start
+#define whal_Stm32wba_HmacSha256_Process  whal_HmacSha256_Process
+#define whal_Stm32wba_HmacSha256_Finalize whal_HmacSha256_Finalize
+#endif
+
+
+/* ---- Init / Deinit ---- */
+
+whal_Error whal_Stm32wba_Hash_Init(whal_Crypto *dev)
+{
+    if (!dev)
+        return WHAL_EINVAL;
     return WHAL_SUCCESS;
 }
 
-whal_Error whal_Stm32wba_Hash_Deinit(whal_Crypto *cryptoDev)
+whal_Error whal_Stm32wba_Hash_Deinit(whal_Crypto *dev)
 {
-    if (!cryptoDev || !cryptoDev->cfg)
+    if (!dev)
         return WHAL_EINVAL;
-
     return WHAL_SUCCESS;
 }
 
-/* --- SHA-1 / SHA-224 / SHA-256 --- */
+const whal_CryptoDriver whal_Stm32wba_Hash_CryptoDriver = {
+    .Init = whal_Stm32wba_Hash_Init,
+    .Deinit = whal_Stm32wba_Hash_Deinit,
+};
 
-#if defined(WHAL_CFG_CRYPTO_SHA1) || defined(WHAL_CFG_CRYPTO_SHA224) || \
-    defined(WHAL_CFG_CRYPTO_SHA256)
-static whal_Error StartOp_Hash(whal_Crypto *cryptoDev, size_t algo)
+
+/* ---- SHA-1 ---- */
+
+whal_Error whal_Stm32wba_Sha1_Oneshot(whal_Sha1 *dev,
+                                      const void *in, size_t inSz,
+                                      void *digest, size_t digestSz)
 {
-    size_t base = cryptoDev->base;
+    const whal_Stm32wba_Hash_Cfg *cfg;
+    size_t base;
+    whal_Error err;
+
+    if (!dev || !dev->crypto || !dev->crypto->cfg)
+        return WHAL_EINVAL;
+    if (!digest || digestSz != 20)
+        return WHAL_EINVAL;
+
+    cfg = (const whal_Stm32wba_Hash_Cfg *)dev->crypto->cfg;
+    base = dev->crypto->base;
 
     whal_Reg_Update(base, HASH_STR_REG, HASH_STR_NBLW_Msk, 0);
 
     whal_Reg_Update(base, HASH_CR_REG,
                     HASH_CR_ALGO_Msk | HASH_CR_DATATYPE_Msk |
                     HASH_CR_MODE_Msk | HASH_CR_LKEY_Msk | HASH_CR_INIT_Msk,
-                    AlgoBits(algo) | HASH_CR_INIT_Msk);
+                    AlgoBits(HASH_ALGO_SHA1) | HASH_CR_INIT_Msk);
 
-    return WHAL_SUCCESS;
-}
-
-static whal_Error EndOp_Hash(whal_Crypto *cryptoDev, size_t expectedDigestSz,
-                             void *opArgs)
-{
-    whal_Crypto_HashArgs *args = (whal_Crypto_HashArgs *)opArgs;
-    const whal_Stm32wba_Hash_Cfg *cfg =
-        (const whal_Stm32wba_Hash_Cfg *)cryptoDev->cfg;
-    size_t base = cryptoDev->base;
-    whal_Error err;
-
-    if (!args->digest || args->digestSz != expectedDigestSz)
-        return WHAL_EINVAL;
+    if (inSz > 0) {
+        if (!in)
+            return WHAL_EINVAL;
+        WriteData(base, (const uint8_t *)in, inSz);
+    }
 
     whal_Reg_Update(base, HASH_STR_REG, HASH_STR_DCAL_Msk,
                     HASH_STR_DCAL_Msk);
@@ -166,43 +208,327 @@ static whal_Error EndOp_Hash(whal_Crypto *cryptoDev, size_t expectedDigestSz,
     if (err)
         return err;
 
-    ReadDigest(base, (uint8_t *)args->digest, args->digestSz);
-
+    ReadDigest(base, (uint8_t *)digest, digestSz);
     return WHAL_SUCCESS;
 }
-#endif /* WHAL_CFG_CRYPTO_SHA1 || SHA224 || SHA256 */
 
-/* --- HMAC-SHA-1 / HMAC-SHA-224 / HMAC-SHA-256 --- */
-
-#if defined(WHAL_CFG_CRYPTO_HMAC_SHA1) || defined(WHAL_CFG_CRYPTO_HMAC_SHA224) || \
-    defined(WHAL_CFG_CRYPTO_HMAC_SHA256)
-static whal_Error StartOp_Hmac(whal_Crypto *cryptoDev, size_t algo,
-                               void *opArgs)
+whal_Error whal_Stm32wba_Sha1_Start(whal_Sha1 *dev)
 {
-    whal_Crypto_HmacArgs *args = (whal_Crypto_HmacArgs *)opArgs;
-    const whal_Stm32wba_Hash_Cfg *cfg =
-        (const whal_Stm32wba_Hash_Cfg *)cryptoDev->cfg;
-    size_t base = cryptoDev->base;
-    size_t lkey;
-    whal_Error err;
+    size_t base;
 
-    if (!args->key)
+    if (!dev || !dev->crypto || !dev->crypto->cfg)
         return WHAL_EINVAL;
 
-    lkey = (args->keySz > 64) ? 1 : 0;
+    base = dev->crypto->base;
 
     whal_Reg_Update(base, HASH_STR_REG, HASH_STR_NBLW_Msk, 0);
 
     whal_Reg_Update(base, HASH_CR_REG,
                     HASH_CR_ALGO_Msk | HASH_CR_DATATYPE_Msk |
                     HASH_CR_MODE_Msk | HASH_CR_LKEY_Msk | HASH_CR_INIT_Msk,
-                    AlgoBits(algo) |
+                    AlgoBits(HASH_ALGO_SHA1) | HASH_CR_INIT_Msk);
+
+    return WHAL_SUCCESS;
+}
+
+whal_Error whal_Stm32wba_Sha1_Process(whal_Sha1 *dev,
+                                      const void *in, size_t inSz)
+{
+    if (!dev || !dev->crypto)
+        return WHAL_EINVAL;
+    if (inSz > 0) {
+        if (!in)
+            return WHAL_EINVAL;
+        WriteData(dev->crypto->base, (const uint8_t *)in, inSz);
+    }
+    return WHAL_SUCCESS;
+}
+
+whal_Error whal_Stm32wba_Sha1_Finalize(whal_Sha1 *dev,
+                                       void *digest, size_t digestSz)
+{
+    const whal_Stm32wba_Hash_Cfg *cfg;
+    size_t base;
+    whal_Error err;
+
+    if (!dev || !dev->crypto || !dev->crypto->cfg)
+        return WHAL_EINVAL;
+    if (!digest || digestSz != 20)
+        return WHAL_EINVAL;
+
+    cfg = (const whal_Stm32wba_Hash_Cfg *)dev->crypto->cfg;
+    base = dev->crypto->base;
+
+    whal_Reg_Update(base, HASH_STR_REG, HASH_STR_DCAL_Msk,
+                    HASH_STR_DCAL_Msk);
+
+    err = WaitForReady(base, cfg->timeout);
+    if (err)
+        return err;
+
+    ReadDigest(base, (uint8_t *)digest, digestSz);
+    return WHAL_SUCCESS;
+}
+
+const whal_Sha1Driver whal_Stm32wba_Hash_Sha1Driver = {
+    .Oneshot = whal_Stm32wba_Sha1_Oneshot,
+    .Start = whal_Stm32wba_Sha1_Start,
+    .Process = whal_Stm32wba_Sha1_Process,
+    .Finalize = whal_Stm32wba_Sha1_Finalize,
+};
+
+
+/* ---- SHA-224 ---- */
+
+whal_Error whal_Stm32wba_Sha224_Oneshot(whal_Sha224 *dev,
+                                        const void *in, size_t inSz,
+                                        void *digest, size_t digestSz)
+{
+    const whal_Stm32wba_Hash_Cfg *cfg;
+    size_t base;
+    whal_Error err;
+
+    if (!dev || !dev->crypto || !dev->crypto->cfg)
+        return WHAL_EINVAL;
+    if (!digest || digestSz != 28)
+        return WHAL_EINVAL;
+
+    cfg = (const whal_Stm32wba_Hash_Cfg *)dev->crypto->cfg;
+    base = dev->crypto->base;
+
+    whal_Reg_Update(base, HASH_STR_REG, HASH_STR_NBLW_Msk, 0);
+
+    whal_Reg_Update(base, HASH_CR_REG,
+                    HASH_CR_ALGO_Msk | HASH_CR_DATATYPE_Msk |
+                    HASH_CR_MODE_Msk | HASH_CR_LKEY_Msk | HASH_CR_INIT_Msk,
+                    AlgoBits(HASH_ALGO_SHA224) | HASH_CR_INIT_Msk);
+
+    if (inSz > 0) {
+        if (!in)
+            return WHAL_EINVAL;
+        WriteData(base, (const uint8_t *)in, inSz);
+    }
+
+    whal_Reg_Update(base, HASH_STR_REG, HASH_STR_DCAL_Msk,
+                    HASH_STR_DCAL_Msk);
+
+    err = WaitForReady(base, cfg->timeout);
+    if (err)
+        return err;
+
+    ReadDigest(base, (uint8_t *)digest, digestSz);
+    return WHAL_SUCCESS;
+}
+
+whal_Error whal_Stm32wba_Sha224_Start(whal_Sha224 *dev)
+{
+    size_t base;
+
+    if (!dev || !dev->crypto || !dev->crypto->cfg)
+        return WHAL_EINVAL;
+
+    base = dev->crypto->base;
+
+    whal_Reg_Update(base, HASH_STR_REG, HASH_STR_NBLW_Msk, 0);
+
+    whal_Reg_Update(base, HASH_CR_REG,
+                    HASH_CR_ALGO_Msk | HASH_CR_DATATYPE_Msk |
+                    HASH_CR_MODE_Msk | HASH_CR_LKEY_Msk | HASH_CR_INIT_Msk,
+                    AlgoBits(HASH_ALGO_SHA224) | HASH_CR_INIT_Msk);
+
+    return WHAL_SUCCESS;
+}
+
+whal_Error whal_Stm32wba_Sha224_Process(whal_Sha224 *dev,
+                                        const void *in, size_t inSz)
+{
+    if (!dev || !dev->crypto)
+        return WHAL_EINVAL;
+    if (inSz > 0) {
+        if (!in)
+            return WHAL_EINVAL;
+        WriteData(dev->crypto->base, (const uint8_t *)in, inSz);
+    }
+    return WHAL_SUCCESS;
+}
+
+whal_Error whal_Stm32wba_Sha224_Finalize(whal_Sha224 *dev,
+                                         void *digest, size_t digestSz)
+{
+    const whal_Stm32wba_Hash_Cfg *cfg;
+    size_t base;
+    whal_Error err;
+
+    if (!dev || !dev->crypto || !dev->crypto->cfg)
+        return WHAL_EINVAL;
+    if (!digest || digestSz != 28)
+        return WHAL_EINVAL;
+
+    cfg = (const whal_Stm32wba_Hash_Cfg *)dev->crypto->cfg;
+    base = dev->crypto->base;
+
+    whal_Reg_Update(base, HASH_STR_REG, HASH_STR_DCAL_Msk,
+                    HASH_STR_DCAL_Msk);
+
+    err = WaitForReady(base, cfg->timeout);
+    if (err)
+        return err;
+
+    ReadDigest(base, (uint8_t *)digest, digestSz);
+    return WHAL_SUCCESS;
+}
+
+const whal_Sha224Driver whal_Stm32wba_Hash_Sha224Driver = {
+    .Oneshot = whal_Stm32wba_Sha224_Oneshot,
+    .Start = whal_Stm32wba_Sha224_Start,
+    .Process = whal_Stm32wba_Sha224_Process,
+    .Finalize = whal_Stm32wba_Sha224_Finalize,
+};
+
+
+/* ---- SHA-256 ---- */
+
+whal_Error whal_Stm32wba_Sha256_Oneshot(whal_Sha256 *dev,
+                                        const void *in, size_t inSz,
+                                        void *digest, size_t digestSz)
+{
+    const whal_Stm32wba_Hash_Cfg *cfg;
+    size_t base;
+    whal_Error err;
+
+    if (!dev || !dev->crypto || !dev->crypto->cfg)
+        return WHAL_EINVAL;
+    if (!digest || digestSz != 32)
+        return WHAL_EINVAL;
+
+    cfg = (const whal_Stm32wba_Hash_Cfg *)dev->crypto->cfg;
+    base = dev->crypto->base;
+
+    whal_Reg_Update(base, HASH_STR_REG, HASH_STR_NBLW_Msk, 0);
+
+    whal_Reg_Update(base, HASH_CR_REG,
+                    HASH_CR_ALGO_Msk | HASH_CR_DATATYPE_Msk |
+                    HASH_CR_MODE_Msk | HASH_CR_LKEY_Msk | HASH_CR_INIT_Msk,
+                    AlgoBits(HASH_ALGO_SHA256) | HASH_CR_INIT_Msk);
+
+    if (inSz > 0) {
+        if (!in)
+            return WHAL_EINVAL;
+        WriteData(base, (const uint8_t *)in, inSz);
+    }
+
+    whal_Reg_Update(base, HASH_STR_REG, HASH_STR_DCAL_Msk,
+                    HASH_STR_DCAL_Msk);
+
+    err = WaitForReady(base, cfg->timeout);
+    if (err)
+        return err;
+
+    ReadDigest(base, (uint8_t *)digest, digestSz);
+    return WHAL_SUCCESS;
+}
+
+whal_Error whal_Stm32wba_Sha256_Start(whal_Sha256 *dev)
+{
+    size_t base;
+
+    if (!dev || !dev->crypto || !dev->crypto->cfg)
+        return WHAL_EINVAL;
+
+    base = dev->crypto->base;
+
+    whal_Reg_Update(base, HASH_STR_REG, HASH_STR_NBLW_Msk, 0);
+
+    whal_Reg_Update(base, HASH_CR_REG,
+                    HASH_CR_ALGO_Msk | HASH_CR_DATATYPE_Msk |
+                    HASH_CR_MODE_Msk | HASH_CR_LKEY_Msk | HASH_CR_INIT_Msk,
+                    AlgoBits(HASH_ALGO_SHA256) | HASH_CR_INIT_Msk);
+
+    return WHAL_SUCCESS;
+}
+
+whal_Error whal_Stm32wba_Sha256_Process(whal_Sha256 *dev,
+                                        const void *in, size_t inSz)
+{
+    if (!dev || !dev->crypto)
+        return WHAL_EINVAL;
+    if (inSz > 0) {
+        if (!in)
+            return WHAL_EINVAL;
+        WriteData(dev->crypto->base, (const uint8_t *)in, inSz);
+    }
+    return WHAL_SUCCESS;
+}
+
+whal_Error whal_Stm32wba_Sha256_Finalize(whal_Sha256 *dev,
+                                         void *digest, size_t digestSz)
+{
+    const whal_Stm32wba_Hash_Cfg *cfg;
+    size_t base;
+    whal_Error err;
+
+    if (!dev || !dev->crypto || !dev->crypto->cfg)
+        return WHAL_EINVAL;
+    if (!digest || digestSz != 32)
+        return WHAL_EINVAL;
+
+    cfg = (const whal_Stm32wba_Hash_Cfg *)dev->crypto->cfg;
+    base = dev->crypto->base;
+
+    whal_Reg_Update(base, HASH_STR_REG, HASH_STR_DCAL_Msk,
+                    HASH_STR_DCAL_Msk);
+
+    err = WaitForReady(base, cfg->timeout);
+    if (err)
+        return err;
+
+    ReadDigest(base, (uint8_t *)digest, digestSz);
+    return WHAL_SUCCESS;
+}
+
+const whal_Sha256Driver whal_Stm32wba_Hash_Sha256Driver = {
+    .Oneshot = whal_Stm32wba_Sha256_Oneshot,
+    .Start = whal_Stm32wba_Sha256_Start,
+    .Process = whal_Stm32wba_Sha256_Process,
+    .Finalize = whal_Stm32wba_Sha256_Finalize,
+};
+
+
+/* ---- HMAC-SHA-1 ---- */
+
+whal_Error whal_Stm32wba_HmacSha1_Oneshot(whal_HmacSha1 *dev,
+                                          const void *key, size_t keySz,
+                                          const void *in, size_t inSz,
+                                          void *digest, size_t digestSz)
+{
+    const whal_Stm32wba_Hash_Cfg *cfg;
+    size_t base;
+    size_t lkey;
+    whal_Error err;
+
+    if (!dev || !dev->crypto || !dev->crypto->cfg)
+        return WHAL_EINVAL;
+
+    cfg = (const whal_Stm32wba_Hash_Cfg *)dev->crypto->cfg;
+    base = dev->crypto->base;
+    if (!key || !digest || digestSz != 20)
+        return WHAL_EINVAL;
+
+    lkey = (keySz > 64) ? 1 : 0;
+
+    whal_Reg_Update(base, HASH_STR_REG, HASH_STR_NBLW_Msk, 0);
+
+    whal_Reg_Update(base, HASH_CR_REG,
+                    HASH_CR_ALGO_Msk | HASH_CR_DATATYPE_Msk |
+                    HASH_CR_MODE_Msk | HASH_CR_LKEY_Msk | HASH_CR_INIT_Msk,
+                    AlgoBits(HASH_ALGO_SHA1) |
                     whal_SetBits(HASH_CR_MODE_Msk, HASH_CR_MODE_Pos,
                                  HASH_MODE_HMAC) |
                     whal_SetBits(HASH_CR_LKEY_Msk, HASH_CR_LKEY_Pos, lkey) |
                     HASH_CR_INIT_Msk);
 
-    WriteData(base, (const uint8_t *)args->key, args->keySz);
+    /* Inner key */
+    WriteData(base, (const uint8_t *)key, keySz);
 
     whal_Reg_Update(base, HASH_STR_REG, HASH_STR_DCAL_Msk,
                     HASH_STR_DCAL_Msk);
@@ -211,30 +537,65 @@ static whal_Error StartOp_Hmac(whal_Crypto *cryptoDev, size_t algo,
     if (err)
         return err;
 
+    /* Message */
+    if (inSz > 0) {
+        if (!in)
+            return WHAL_EINVAL;
+        WriteData(base, (const uint8_t *)in, inSz);
+    }
+
+    whal_Reg_Update(base, HASH_STR_REG, HASH_STR_DCAL_Msk,
+                    HASH_STR_DCAL_Msk);
+
+    err = WaitForReady(base, cfg->timeout);
+    if (err)
+        return err;
+
+    /* Outer key */
+    whal_Reg_Update(base, HASH_STR_REG, HASH_STR_NBLW_Msk, 0);
+    WriteData(base, (const uint8_t *)key, keySz);
+
+    whal_Reg_Update(base, HASH_STR_REG, HASH_STR_DCAL_Msk,
+                    HASH_STR_DCAL_Msk);
+
+    err = WaitForReady(base, cfg->timeout);
+    if (err)
+        return err;
+
+    ReadDigest(base, (uint8_t *)digest, digestSz);
     return WHAL_SUCCESS;
 }
 
-static whal_Error EndOp_Hmac(whal_Crypto *cryptoDev, size_t expectedDigestSz,
-                             void *opArgs)
+whal_Error whal_Stm32wba_HmacSha1_Start(whal_HmacSha1 *dev,
+                                         const void *key, size_t keySz)
 {
-    whal_Crypto_HmacArgs *args = (whal_Crypto_HmacArgs *)opArgs;
-    const whal_Stm32wba_Hash_Cfg *cfg =
-        (const whal_Stm32wba_Hash_Cfg *)cryptoDev->cfg;
-    size_t base = cryptoDev->base;
+    const whal_Stm32wba_Hash_Cfg *cfg;
+    size_t base;
+    size_t lkey;
     whal_Error err;
 
-    if (!args->key || !args->digest || args->digestSz != expectedDigestSz)
+    if (!dev || !dev->crypto || !dev->crypto->cfg || !dev->state)
+        return WHAL_EINVAL;
+    if (!key)
         return WHAL_EINVAL;
 
-    whal_Reg_Update(base, HASH_STR_REG, HASH_STR_DCAL_Msk,
-                    HASH_STR_DCAL_Msk);
-
-    err = WaitForReady(base, cfg->timeout);
-    if (err)
-        return err;
+    cfg = (const whal_Stm32wba_Hash_Cfg *)dev->crypto->cfg;
+    base = dev->crypto->base;
+    lkey = (keySz > 64) ? 1 : 0;
 
     whal_Reg_Update(base, HASH_STR_REG, HASH_STR_NBLW_Msk, 0);
-    WriteData(base, (const uint8_t *)args->key, args->keySz);
+
+    whal_Reg_Update(base, HASH_CR_REG,
+                    HASH_CR_ALGO_Msk | HASH_CR_DATATYPE_Msk |
+                    HASH_CR_MODE_Msk | HASH_CR_LKEY_Msk | HASH_CR_INIT_Msk,
+                    AlgoBits(HASH_ALGO_SHA1) |
+                    whal_SetBits(HASH_CR_MODE_Msk, HASH_CR_MODE_Pos,
+                                 HASH_MODE_HMAC) |
+                    whal_SetBits(HASH_CR_LKEY_Msk, HASH_CR_LKEY_Pos, lkey) |
+                    HASH_CR_INIT_Msk);
+
+    /* Inner key */
+    WriteData(base, (const uint8_t *)key, keySz);
 
     whal_Reg_Update(base, HASH_STR_REG, HASH_STR_DCAL_Msk,
                     HASH_STR_DCAL_Msk);
@@ -243,137 +604,437 @@ static whal_Error EndOp_Hmac(whal_Crypto *cryptoDev, size_t expectedDigestSz,
     if (err)
         return err;
 
-    ReadDigest(base, (uint8_t *)args->digest, args->digestSz);
+    /* Store key for outer-key phase in Finalize */
+    {
+        whal_Stm32wba_HmacSha1_State *st =
+            (whal_Stm32wba_HmacSha1_State *)dev->state;
+        st->key = key;
+        st->keySz = keySz;
+    }
 
     return WHAL_SUCCESS;
 }
-#endif /* WHAL_CFG_CRYPTO_HMAC_SHA1 || HMAC_SHA224 || HMAC_SHA256 */
 
-/* --- Dispatch --- */
-
-whal_Error whal_Stm32wba_Hash_StartOp(whal_Crypto *cryptoDev, size_t opId,
-                                     void *opArgs)
+whal_Error whal_Stm32wba_HmacSha1_Process(whal_HmacSha1 *dev,
+                                           const void *in, size_t inSz)
 {
-    if (!cryptoDev)
+    if (!dev || !dev->crypto)
         return WHAL_EINVAL;
-
-    switch (opId) {
-#ifdef WHAL_CFG_CRYPTO_SHA1
-    case WHAL_CRYPTO_SHA1:
-        return StartOp_Hash(cryptoDev, HASH_ALGO_SHA1);
-#endif
-#ifdef WHAL_CFG_CRYPTO_SHA224
-    case WHAL_CRYPTO_SHA224:
-        return StartOp_Hash(cryptoDev, HASH_ALGO_SHA224);
-#endif
-#ifdef WHAL_CFG_CRYPTO_SHA256
-    case WHAL_CRYPTO_SHA256:
-        return StartOp_Hash(cryptoDev, HASH_ALGO_SHA256);
-#endif
-#ifdef WHAL_CFG_CRYPTO_HMAC_SHA1
-    case WHAL_CRYPTO_HMAC_SHA1:
-        return StartOp_Hmac(cryptoDev, HASH_ALGO_SHA1, opArgs);
-#endif
-#ifdef WHAL_CFG_CRYPTO_HMAC_SHA224
-    case WHAL_CRYPTO_HMAC_SHA224:
-        return StartOp_Hmac(cryptoDev, HASH_ALGO_SHA224, opArgs);
-#endif
-#ifdef WHAL_CFG_CRYPTO_HMAC_SHA256
-    case WHAL_CRYPTO_HMAC_SHA256:
-        return StartOp_Hmac(cryptoDev, HASH_ALGO_SHA256, opArgs);
-#endif
-    default:
-        return WHAL_ENOTSUP;
+    if (inSz > 0) {
+        if (!in)
+            return WHAL_EINVAL;
+        WriteData(dev->crypto->base, (const uint8_t *)in, inSz);
     }
+    return WHAL_SUCCESS;
 }
 
-whal_Error whal_Stm32wba_Hash_Process(whal_Crypto *cryptoDev, size_t opId,
-                                     void *opArgs)
+whal_Error whal_Stm32wba_HmacSha1_Finalize(whal_HmacSha1 *dev,
+                                            void *digest, size_t digestSz)
 {
-    if (!cryptoDev || !opArgs)
+    const whal_Stm32wba_Hash_Cfg *cfg;
+    const whal_Stm32wba_HmacSha1_State *st;
+    size_t base;
+    whal_Error err;
+
+    if (!dev || !dev->crypto || !dev->crypto->cfg || !dev->state)
+        return WHAL_EINVAL;
+    if (!digest || digestSz != 20)
         return WHAL_EINVAL;
 
-    switch (opId) {
-#ifdef WHAL_CFG_CRYPTO_SHA1
-    case WHAL_CRYPTO_SHA1:
-#endif
-#ifdef WHAL_CFG_CRYPTO_SHA224
-    case WHAL_CRYPTO_SHA224:
-#endif
-#ifdef WHAL_CFG_CRYPTO_SHA256
-    case WHAL_CRYPTO_SHA256:
-#endif
-#if defined(WHAL_CFG_CRYPTO_SHA1) || defined(WHAL_CFG_CRYPTO_SHA224) || \
-    defined(WHAL_CFG_CRYPTO_SHA256)
-    {
-        whal_Crypto_HashArgs *args = (whal_Crypto_HashArgs *)opArgs;
-        return Process_Hash(cryptoDev, args->in, args->inSz);
-    }
-#endif
-#ifdef WHAL_CFG_CRYPTO_HMAC_SHA1
-    case WHAL_CRYPTO_HMAC_SHA1:
-#endif
-#ifdef WHAL_CFG_CRYPTO_HMAC_SHA224
-    case WHAL_CRYPTO_HMAC_SHA224:
-#endif
-#ifdef WHAL_CFG_CRYPTO_HMAC_SHA256
-    case WHAL_CRYPTO_HMAC_SHA256:
-#endif
-#if defined(WHAL_CFG_CRYPTO_HMAC_SHA1) || defined(WHAL_CFG_CRYPTO_HMAC_SHA224) || \
-    defined(WHAL_CFG_CRYPTO_HMAC_SHA256)
-    {
-        whal_Crypto_HmacArgs *args = (whal_Crypto_HmacArgs *)opArgs;
-        return Process_Hash(cryptoDev, args->in, args->inSz);
-    }
-#endif
-    default:
-        return WHAL_ENOTSUP;
-    }
+    cfg = (const whal_Stm32wba_Hash_Cfg *)dev->crypto->cfg;
+    base = dev->crypto->base;
+    st = (const whal_Stm32wba_HmacSha1_State *)dev->state;
+
+    /* Message done */
+    whal_Reg_Update(base, HASH_STR_REG, HASH_STR_DCAL_Msk,
+                    HASH_STR_DCAL_Msk);
+
+    err = WaitForReady(base, cfg->timeout);
+    if (err)
+        return err;
+
+    /* Outer key */
+    whal_Reg_Update(base, HASH_STR_REG, HASH_STR_NBLW_Msk, 0);
+    WriteData(base, (const uint8_t *)st->key, st->keySz);
+
+    whal_Reg_Update(base, HASH_STR_REG, HASH_STR_DCAL_Msk,
+                    HASH_STR_DCAL_Msk);
+
+    err = WaitForReady(base, cfg->timeout);
+    if (err)
+        return err;
+
+    ReadDigest(base, (uint8_t *)digest, digestSz);
+    return WHAL_SUCCESS;
 }
 
-whal_Error whal_Stm32wba_Hash_EndOp(whal_Crypto *cryptoDev, size_t opId,
-                                   void *opArgs)
-{
-    if (!cryptoDev || !opArgs)
-        return WHAL_EINVAL;
-
-    switch (opId) {
-#ifdef WHAL_CFG_CRYPTO_SHA1
-    case WHAL_CRYPTO_SHA1:
-        return EndOp_Hash(cryptoDev, 20, opArgs);
-#endif
-#ifdef WHAL_CFG_CRYPTO_SHA224
-    case WHAL_CRYPTO_SHA224:
-        return EndOp_Hash(cryptoDev, 28, opArgs);
-#endif
-#ifdef WHAL_CFG_CRYPTO_SHA256
-    case WHAL_CRYPTO_SHA256:
-        return EndOp_Hash(cryptoDev, 32, opArgs);
-#endif
-#ifdef WHAL_CFG_CRYPTO_HMAC_SHA1
-    case WHAL_CRYPTO_HMAC_SHA1:
-        return EndOp_Hmac(cryptoDev, 20, opArgs);
-#endif
-#ifdef WHAL_CFG_CRYPTO_HMAC_SHA224
-    case WHAL_CRYPTO_HMAC_SHA224:
-        return EndOp_Hmac(cryptoDev, 28, opArgs);
-#endif
-#ifdef WHAL_CFG_CRYPTO_HMAC_SHA256
-    case WHAL_CRYPTO_HMAC_SHA256:
-        return EndOp_Hmac(cryptoDev, 32, opArgs);
-#endif
-    default:
-        return WHAL_ENOTSUP;
-    }
-}
-
-#if !defined(WHAL_CFG_STM32WBA_HASH_DIRECT_API_MAPPING) && \
-    !defined(WHAL_CFG_STM32N6_HASH_DIRECT_API_MAPPING)
-const whal_CryptoDriver whal_Stm32wba_Hash_Driver = {
-    .Init = whal_Stm32wba_Hash_Init,
-    .Deinit = whal_Stm32wba_Hash_Deinit,
-    .StartOp = whal_Stm32wba_Hash_StartOp,
-    .Process = whal_Stm32wba_Hash_Process,
-    .EndOp = whal_Stm32wba_Hash_EndOp,
+const whal_HmacSha1Driver whal_Stm32wba_Hash_HmacSha1Driver = {
+    .Oneshot = whal_Stm32wba_HmacSha1_Oneshot,
+    .Start = whal_Stm32wba_HmacSha1_Start,
+    .Process = whal_Stm32wba_HmacSha1_Process,
+    .Finalize = whal_Stm32wba_HmacSha1_Finalize,
 };
-#endif /* !WHAL_CFG_STM32WBA_HASH_DIRECT_API_MAPPING */
+
+
+/* ---- HMAC-SHA-224 ---- */
+
+whal_Error whal_Stm32wba_HmacSha224_Oneshot(whal_HmacSha224 *dev,
+                                            const void *key, size_t keySz,
+                                            const void *in, size_t inSz,
+                                            void *digest, size_t digestSz)
+{
+    const whal_Stm32wba_Hash_Cfg *cfg;
+    size_t base;
+    size_t lkey;
+    whal_Error err;
+
+    if (!dev || !dev->crypto || !dev->crypto->cfg)
+        return WHAL_EINVAL;
+
+    cfg = (const whal_Stm32wba_Hash_Cfg *)dev->crypto->cfg;
+    base = dev->crypto->base;
+    if (!key || !digest || digestSz != 28)
+        return WHAL_EINVAL;
+
+    lkey = (keySz > 64) ? 1 : 0;
+
+    whal_Reg_Update(base, HASH_STR_REG, HASH_STR_NBLW_Msk, 0);
+
+    whal_Reg_Update(base, HASH_CR_REG,
+                    HASH_CR_ALGO_Msk | HASH_CR_DATATYPE_Msk |
+                    HASH_CR_MODE_Msk | HASH_CR_LKEY_Msk | HASH_CR_INIT_Msk,
+                    AlgoBits(HASH_ALGO_SHA224) |
+                    whal_SetBits(HASH_CR_MODE_Msk, HASH_CR_MODE_Pos,
+                                 HASH_MODE_HMAC) |
+                    whal_SetBits(HASH_CR_LKEY_Msk, HASH_CR_LKEY_Pos, lkey) |
+                    HASH_CR_INIT_Msk);
+
+    /* Inner key */
+    WriteData(base, (const uint8_t *)key, keySz);
+
+    whal_Reg_Update(base, HASH_STR_REG, HASH_STR_DCAL_Msk,
+                    HASH_STR_DCAL_Msk);
+
+    err = WaitForReady(base, cfg->timeout);
+    if (err)
+        return err;
+
+    /* Message */
+    if (inSz > 0) {
+        if (!in)
+            return WHAL_EINVAL;
+        WriteData(base, (const uint8_t *)in, inSz);
+    }
+
+    whal_Reg_Update(base, HASH_STR_REG, HASH_STR_DCAL_Msk,
+                    HASH_STR_DCAL_Msk);
+
+    err = WaitForReady(base, cfg->timeout);
+    if (err)
+        return err;
+
+    /* Outer key */
+    whal_Reg_Update(base, HASH_STR_REG, HASH_STR_NBLW_Msk, 0);
+    WriteData(base, (const uint8_t *)key, keySz);
+
+    whal_Reg_Update(base, HASH_STR_REG, HASH_STR_DCAL_Msk,
+                    HASH_STR_DCAL_Msk);
+
+    err = WaitForReady(base, cfg->timeout);
+    if (err)
+        return err;
+
+    ReadDigest(base, (uint8_t *)digest, digestSz);
+    return WHAL_SUCCESS;
+}
+
+whal_Error whal_Stm32wba_HmacSha224_Start(whal_HmacSha224 *dev,
+                                           const void *key, size_t keySz)
+{
+    const whal_Stm32wba_Hash_Cfg *cfg;
+    size_t base;
+    size_t lkey;
+    whal_Error err;
+
+    if (!dev || !dev->crypto || !dev->crypto->cfg || !dev->state)
+        return WHAL_EINVAL;
+    if (!key)
+        return WHAL_EINVAL;
+
+    cfg = (const whal_Stm32wba_Hash_Cfg *)dev->crypto->cfg;
+    base = dev->crypto->base;
+    lkey = (keySz > 64) ? 1 : 0;
+
+    whal_Reg_Update(base, HASH_STR_REG, HASH_STR_NBLW_Msk, 0);
+
+    whal_Reg_Update(base, HASH_CR_REG,
+                    HASH_CR_ALGO_Msk | HASH_CR_DATATYPE_Msk |
+                    HASH_CR_MODE_Msk | HASH_CR_LKEY_Msk | HASH_CR_INIT_Msk,
+                    AlgoBits(HASH_ALGO_SHA224) |
+                    whal_SetBits(HASH_CR_MODE_Msk, HASH_CR_MODE_Pos,
+                                 HASH_MODE_HMAC) |
+                    whal_SetBits(HASH_CR_LKEY_Msk, HASH_CR_LKEY_Pos, lkey) |
+                    HASH_CR_INIT_Msk);
+
+    /* Inner key */
+    WriteData(base, (const uint8_t *)key, keySz);
+
+    whal_Reg_Update(base, HASH_STR_REG, HASH_STR_DCAL_Msk,
+                    HASH_STR_DCAL_Msk);
+
+    err = WaitForReady(base, cfg->timeout);
+    if (err)
+        return err;
+
+    /* Store key for outer-key phase in Finalize */
+    {
+        whal_Stm32wba_HmacSha224_State *st =
+            (whal_Stm32wba_HmacSha224_State *)dev->state;
+        st->key = key;
+        st->keySz = keySz;
+    }
+
+    return WHAL_SUCCESS;
+}
+
+whal_Error whal_Stm32wba_HmacSha224_Process(whal_HmacSha224 *dev,
+                                             const void *in, size_t inSz)
+{
+    if (!dev || !dev->crypto)
+        return WHAL_EINVAL;
+    if (inSz > 0) {
+        if (!in)
+            return WHAL_EINVAL;
+        WriteData(dev->crypto->base, (const uint8_t *)in, inSz);
+    }
+    return WHAL_SUCCESS;
+}
+
+whal_Error whal_Stm32wba_HmacSha224_Finalize(whal_HmacSha224 *dev,
+                                              void *digest, size_t digestSz)
+{
+    const whal_Stm32wba_Hash_Cfg *cfg;
+    const whal_Stm32wba_HmacSha224_State *st;
+    size_t base;
+    whal_Error err;
+
+    if (!dev || !dev->crypto || !dev->crypto->cfg || !dev->state)
+        return WHAL_EINVAL;
+    if (!digest || digestSz != 28)
+        return WHAL_EINVAL;
+
+    cfg = (const whal_Stm32wba_Hash_Cfg *)dev->crypto->cfg;
+    base = dev->crypto->base;
+    st = (const whal_Stm32wba_HmacSha224_State *)dev->state;
+
+    /* Message done */
+    whal_Reg_Update(base, HASH_STR_REG, HASH_STR_DCAL_Msk,
+                    HASH_STR_DCAL_Msk);
+
+    err = WaitForReady(base, cfg->timeout);
+    if (err)
+        return err;
+
+    /* Outer key */
+    whal_Reg_Update(base, HASH_STR_REG, HASH_STR_NBLW_Msk, 0);
+    WriteData(base, (const uint8_t *)st->key, st->keySz);
+
+    whal_Reg_Update(base, HASH_STR_REG, HASH_STR_DCAL_Msk,
+                    HASH_STR_DCAL_Msk);
+
+    err = WaitForReady(base, cfg->timeout);
+    if (err)
+        return err;
+
+    ReadDigest(base, (uint8_t *)digest, digestSz);
+    return WHAL_SUCCESS;
+}
+
+const whal_HmacSha224Driver whal_Stm32wba_Hash_HmacSha224Driver = {
+    .Oneshot = whal_Stm32wba_HmacSha224_Oneshot,
+    .Start = whal_Stm32wba_HmacSha224_Start,
+    .Process = whal_Stm32wba_HmacSha224_Process,
+    .Finalize = whal_Stm32wba_HmacSha224_Finalize,
+};
+
+
+/* ---- HMAC-SHA-256 ---- */
+
+whal_Error whal_Stm32wba_HmacSha256_Oneshot(whal_HmacSha256 *dev,
+                                            const void *key, size_t keySz,
+                                            const void *in, size_t inSz,
+                                            void *digest, size_t digestSz)
+{
+    const whal_Stm32wba_Hash_Cfg *cfg;
+    size_t base;
+    size_t lkey;
+    whal_Error err;
+
+    if (!dev || !dev->crypto || !dev->crypto->cfg)
+        return WHAL_EINVAL;
+
+    cfg = (const whal_Stm32wba_Hash_Cfg *)dev->crypto->cfg;
+    base = dev->crypto->base;
+    if (!key || !digest || digestSz != 32)
+        return WHAL_EINVAL;
+
+    lkey = (keySz > 64) ? 1 : 0;
+
+    whal_Reg_Update(base, HASH_STR_REG, HASH_STR_NBLW_Msk, 0);
+
+    whal_Reg_Update(base, HASH_CR_REG,
+                    HASH_CR_ALGO_Msk | HASH_CR_DATATYPE_Msk |
+                    HASH_CR_MODE_Msk | HASH_CR_LKEY_Msk | HASH_CR_INIT_Msk,
+                    AlgoBits(HASH_ALGO_SHA256) |
+                    whal_SetBits(HASH_CR_MODE_Msk, HASH_CR_MODE_Pos,
+                                 HASH_MODE_HMAC) |
+                    whal_SetBits(HASH_CR_LKEY_Msk, HASH_CR_LKEY_Pos, lkey) |
+                    HASH_CR_INIT_Msk);
+
+    /* Inner key */
+    WriteData(base, (const uint8_t *)key, keySz);
+
+    whal_Reg_Update(base, HASH_STR_REG, HASH_STR_DCAL_Msk,
+                    HASH_STR_DCAL_Msk);
+
+    err = WaitForReady(base, cfg->timeout);
+    if (err)
+        return err;
+
+    /* Message */
+    if (inSz > 0) {
+        if (!in)
+            return WHAL_EINVAL;
+        WriteData(base, (const uint8_t *)in, inSz);
+    }
+
+    whal_Reg_Update(base, HASH_STR_REG, HASH_STR_DCAL_Msk,
+                    HASH_STR_DCAL_Msk);
+
+    err = WaitForReady(base, cfg->timeout);
+    if (err)
+        return err;
+
+    /* Outer key */
+    whal_Reg_Update(base, HASH_STR_REG, HASH_STR_NBLW_Msk, 0);
+    WriteData(base, (const uint8_t *)key, keySz);
+
+    whal_Reg_Update(base, HASH_STR_REG, HASH_STR_DCAL_Msk,
+                    HASH_STR_DCAL_Msk);
+
+    err = WaitForReady(base, cfg->timeout);
+    if (err)
+        return err;
+
+    ReadDigest(base, (uint8_t *)digest, digestSz);
+    return WHAL_SUCCESS;
+}
+
+whal_Error whal_Stm32wba_HmacSha256_Start(whal_HmacSha256 *dev,
+                                           const void *key, size_t keySz)
+{
+    const whal_Stm32wba_Hash_Cfg *cfg;
+    size_t base;
+    size_t lkey;
+    whal_Error err;
+
+    if (!dev || !dev->crypto || !dev->crypto->cfg || !dev->state)
+        return WHAL_EINVAL;
+    if (!key)
+        return WHAL_EINVAL;
+
+    cfg = (const whal_Stm32wba_Hash_Cfg *)dev->crypto->cfg;
+    base = dev->crypto->base;
+    lkey = (keySz > 64) ? 1 : 0;
+
+    whal_Reg_Update(base, HASH_STR_REG, HASH_STR_NBLW_Msk, 0);
+
+    whal_Reg_Update(base, HASH_CR_REG,
+                    HASH_CR_ALGO_Msk | HASH_CR_DATATYPE_Msk |
+                    HASH_CR_MODE_Msk | HASH_CR_LKEY_Msk | HASH_CR_INIT_Msk,
+                    AlgoBits(HASH_ALGO_SHA256) |
+                    whal_SetBits(HASH_CR_MODE_Msk, HASH_CR_MODE_Pos,
+                                 HASH_MODE_HMAC) |
+                    whal_SetBits(HASH_CR_LKEY_Msk, HASH_CR_LKEY_Pos, lkey) |
+                    HASH_CR_INIT_Msk);
+
+    /* Inner key */
+    WriteData(base, (const uint8_t *)key, keySz);
+
+    whal_Reg_Update(base, HASH_STR_REG, HASH_STR_DCAL_Msk,
+                    HASH_STR_DCAL_Msk);
+
+    err = WaitForReady(base, cfg->timeout);
+    if (err)
+        return err;
+
+    /* Store key for outer-key phase in Finalize */
+    {
+        whal_Stm32wba_HmacSha256_State *st =
+            (whal_Stm32wba_HmacSha256_State *)dev->state;
+        st->key = key;
+        st->keySz = keySz;
+    }
+
+    return WHAL_SUCCESS;
+}
+
+whal_Error whal_Stm32wba_HmacSha256_Process(whal_HmacSha256 *dev,
+                                             const void *in, size_t inSz)
+{
+    if (!dev || !dev->crypto)
+        return WHAL_EINVAL;
+    if (inSz > 0) {
+        if (!in)
+            return WHAL_EINVAL;
+        WriteData(dev->crypto->base, (const uint8_t *)in, inSz);
+    }
+    return WHAL_SUCCESS;
+}
+
+whal_Error whal_Stm32wba_HmacSha256_Finalize(whal_HmacSha256 *dev,
+                                              void *digest, size_t digestSz)
+{
+    const whal_Stm32wba_Hash_Cfg *cfg;
+    const whal_Stm32wba_HmacSha256_State *st;
+    size_t base;
+    whal_Error err;
+
+    if (!dev || !dev->crypto || !dev->crypto->cfg || !dev->state)
+        return WHAL_EINVAL;
+    if (!digest || digestSz != 32)
+        return WHAL_EINVAL;
+
+    cfg = (const whal_Stm32wba_Hash_Cfg *)dev->crypto->cfg;
+    base = dev->crypto->base;
+    st = (const whal_Stm32wba_HmacSha256_State *)dev->state;
+
+    /* Message done */
+    whal_Reg_Update(base, HASH_STR_REG, HASH_STR_DCAL_Msk,
+                    HASH_STR_DCAL_Msk);
+
+    err = WaitForReady(base, cfg->timeout);
+    if (err)
+        return err;
+
+    /* Outer key */
+    whal_Reg_Update(base, HASH_STR_REG, HASH_STR_NBLW_Msk, 0);
+    WriteData(base, (const uint8_t *)st->key, st->keySz);
+
+    whal_Reg_Update(base, HASH_STR_REG, HASH_STR_DCAL_Msk,
+                    HASH_STR_DCAL_Msk);
+
+    err = WaitForReady(base, cfg->timeout);
+    if (err)
+        return err;
+
+    ReadDigest(base, (uint8_t *)digest, digestSz);
+    return WHAL_SUCCESS;
+}
+
+const whal_HmacSha256Driver whal_Stm32wba_Hash_HmacSha256Driver = {
+    .Oneshot = whal_Stm32wba_HmacSha256_Oneshot,
+    .Start = whal_Stm32wba_HmacSha256_Start,
+    .Process = whal_Stm32wba_HmacSha256_Process,
+    .Finalize = whal_Stm32wba_HmacSha256_Finalize,
+};

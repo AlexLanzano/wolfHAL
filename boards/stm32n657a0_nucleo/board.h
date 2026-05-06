@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <wolfHAL/wolfHAL.h>
+#include <wolfHAL/crypto/stm32n6_cryp.h>
+#include <wolfHAL/crypto/stm32n6_hash.h>
 
 extern whal_Clock g_whalClock;
 extern whal_Gpio g_whalGpio;
@@ -13,7 +15,19 @@ extern whal_Spi g_whalSpi;
 extern whal_Rng g_whalRng;
 extern whal_I2c g_whalI2c;
 extern whal_Crypto g_whalCrypto;
+extern whal_AesEcb g_whalAesEcb;
+extern whal_AesCbc g_whalAesCbc;
+extern whal_AesCtr g_whalAesCtr;
+extern whal_AesGcm g_whalAesGcm;
+extern whal_AesGmac g_whalAesGmac;
+extern whal_AesCcm g_whalAesCcm;
 extern whal_Crypto g_whalHash;
+extern whal_Sha1 g_whalSha1;
+extern whal_Sha224 g_whalSha224;
+extern whal_Sha256 g_whalSha256;
+extern whal_HmacSha1 g_whalHmacSha1;
+extern whal_HmacSha224 g_whalHmacSha224;
+extern whal_HmacSha256 g_whalHmacSha256;
 extern whal_Irq g_whalIrq;
 extern whal_Watchdog g_whalWatchdog;
 extern whal_Eth g_whalEth;
