@@ -17,7 +17,8 @@ CFLAGS += -Wall -Werror $(INCLUDE) -g3 -Os -ffunction-sections -fdata-sections \
           -DWHAL_CFG_STM32H5_SPI_DIRECT_API_MAPPING \
           -DWHAL_CFG_STM32H5_RNG_DIRECT_API_MAPPING \
           -DWHAL_CFG_STM32H5_ETH_DIRECT_API_MAPPING \
-          -DWHAL_CFG_LAN8742A_ETH_PHY_DIRECT_API_MAPPING
+          -DWHAL_CFG_LAN8742A_ETH_PHY_DIRECT_API_MAPPING \
+          -DWHAL_CFG_SYSTICK_TIMER_DIRECT_API_MAPPING
 LDFLAGS = --omagic -static --gc-sections
 
 LINKER_SCRIPT ?= $(_BOARD_DIR)/linker.ld
@@ -27,7 +28,6 @@ INCLUDE += -I$(_BOARD_DIR) -I$(WHAL_DIR)/boards/peripheral
 BOARD_SOURCE = $(_BOARD_DIR)/ivt.c
 BOARD_SOURCE += $(_BOARD_DIR)/board.c
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*.c)
-BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/timer.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/flash.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/crypto.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/block.c)

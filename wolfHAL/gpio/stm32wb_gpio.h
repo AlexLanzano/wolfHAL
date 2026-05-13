@@ -103,8 +103,8 @@ typedef uint32_t whal_Stm32wb_Gpio_PinCfg;
  * Contains clock control references and an array of pin configurations.
  */
 typedef struct {
-    whal_Stm32wb_Gpio_PinCfg *pinCfg; /* Array of pin configurations */
-    size_t pinCount;                  /* Number of pins to configure */
+    const whal_Stm32wb_Gpio_PinCfg *pinCfg; /* Array of pin configurations */
+    size_t pinCount;                        /* Number of pins to configure */
 } whal_Stm32wb_Gpio_Cfg;
 
 #if !defined(WHAL_CFG_STM32WB_GPIO_DIRECT_API_MAPPING) && \

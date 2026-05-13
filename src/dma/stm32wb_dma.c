@@ -1,4 +1,7 @@
 #include <stdint.h>
+#ifdef WHAL_CFG_STM32WB_DMA_SINGLE_INSTANCE
+#include "board.h"  /* provides whal_Stm32wb_Dma_Dev singleton */
+#endif
 #include <wolfHAL/dma/dma.h>
 #include <wolfHAL/dma/stm32wb_dma.h>
 #include <wolfHAL/error.h>
@@ -98,6 +101,12 @@
 
 whal_Error whal_Stm32wb_Dma_Init(whal_Dma *dmaDev)
 {
+#ifdef WHAL_CFG_STM32WB_DMA_SINGLE_INSTANCE
+    whal_Stm32wb_Dma_Cfg *cfg =
+        (whal_Stm32wb_Dma_Cfg *)whal_Stm32wb_Dma_Dev.cfg;
+    size_t base = whal_Stm32wb_Dma_Dev.base;
+    (void)dmaDev;
+#else
     whal_Stm32wb_Dma_Cfg *cfg;
     size_t base;
 
@@ -107,6 +116,7 @@ whal_Error whal_Stm32wb_Dma_Init(whal_Dma *dmaDev)
 
     cfg = (whal_Stm32wb_Dma_Cfg *)dmaDev->cfg;
     base = dmaDev->base;
+#endif
 
     /* Clear all interrupt flags for all channels */
     {
@@ -122,6 +132,12 @@ whal_Error whal_Stm32wb_Dma_Init(whal_Dma *dmaDev)
 
 whal_Error whal_Stm32wb_Dma_Deinit(whal_Dma *dmaDev)
 {
+#ifdef WHAL_CFG_STM32WB_DMA_SINGLE_INSTANCE
+    whal_Stm32wb_Dma_Cfg *cfg =
+        (whal_Stm32wb_Dma_Cfg *)whal_Stm32wb_Dma_Dev.cfg;
+    size_t base = whal_Stm32wb_Dma_Dev.base;
+    (void)dmaDev;
+#else
     whal_Stm32wb_Dma_Cfg *cfg;
     size_t base;
 
@@ -131,6 +147,7 @@ whal_Error whal_Stm32wb_Dma_Deinit(whal_Dma *dmaDev)
 
     cfg = (whal_Stm32wb_Dma_Cfg *)dmaDev->cfg;
     base = dmaDev->base;
+#endif
 
     /* Disable all channels and clear all interrupt flags */
     for (size_t i = 1; i <= cfg->numChannels; ++i) {
@@ -153,9 +170,7 @@ whal_Error whal_Stm32wb_Dma_Deinit(whal_Dma *dmaDev)
 whal_Error whal_Stm32wb_Dma_Configure(whal_Dma *dmaDev, size_t ch,
                                              const void *chCfg)
 {
-    whal_Stm32wb_Dma_Cfg *cfg;
     const whal_Stm32wb_Dma_ChCfg *dmaChCfg;
-    size_t base;
     size_t hw_ch;
     size_t ccr;
     uint32_t periphAddr;
@@ -164,14 +179,27 @@ whal_Error whal_Stm32wb_Dma_Configure(whal_Dma *dmaDev, size_t ch,
     size_t memInc;
     size_t periphSize;
     size_t memSize;
+#ifdef WHAL_CFG_STM32WB_DMA_SINGLE_INSTANCE
+    whal_Stm32wb_Dma_Cfg *cfg =
+        (whal_Stm32wb_Dma_Cfg *)whal_Stm32wb_Dma_Dev.cfg;
+    size_t base = whal_Stm32wb_Dma_Dev.base;
+    (void)dmaDev;
+
+    if (!chCfg) {
+        return WHAL_EINVAL;
+    }
+#else
+    whal_Stm32wb_Dma_Cfg *cfg;
+    size_t base;
 
     if (!dmaDev || !dmaDev->cfg || !chCfg) {
         return WHAL_EINVAL;
     }
 
     cfg = (whal_Stm32wb_Dma_Cfg *)dmaDev->cfg;
-    dmaChCfg = (const whal_Stm32wb_Dma_ChCfg *)chCfg;
     base = dmaDev->base;
+#endif
+    dmaChCfg = (const whal_Stm32wb_Dma_ChCfg *)chCfg;
 
     if (ch >= cfg->numChannels) {
         return WHAL_EINVAL;
@@ -272,9 +300,15 @@ whal_Error whal_Stm32wb_Dma_Configure(whal_Dma *dmaDev, size_t ch,
 
 whal_Error whal_Stm32wb_Dma_Start(whal_Dma *dmaDev, size_t ch)
 {
+    size_t hw_ch;
+#ifdef WHAL_CFG_STM32WB_DMA_SINGLE_INSTANCE
+    whal_Stm32wb_Dma_Cfg *cfg =
+        (whal_Stm32wb_Dma_Cfg *)whal_Stm32wb_Dma_Dev.cfg;
+    size_t base = whal_Stm32wb_Dma_Dev.base;
+    (void)dmaDev;
+#else
     whal_Stm32wb_Dma_Cfg *cfg;
     size_t base;
-    size_t hw_ch;
 
     if (!dmaDev || !dmaDev->cfg) {
         return WHAL_EINVAL;
@@ -282,6 +316,7 @@ whal_Error whal_Stm32wb_Dma_Start(whal_Dma *dmaDev, size_t ch)
 
     cfg = (whal_Stm32wb_Dma_Cfg *)dmaDev->cfg;
     base = dmaDev->base;
+#endif
 
     if (ch >= cfg->numChannels) {
         return WHAL_EINVAL;
@@ -302,9 +337,15 @@ whal_Error whal_Stm32wb_Dma_Start(whal_Dma *dmaDev, size_t ch)
 
 whal_Error whal_Stm32wb_Dma_Stop(whal_Dma *dmaDev, size_t ch)
 {
+    size_t hw_ch;
+#ifdef WHAL_CFG_STM32WB_DMA_SINGLE_INSTANCE
+    whal_Stm32wb_Dma_Cfg *cfg =
+        (whal_Stm32wb_Dma_Cfg *)whal_Stm32wb_Dma_Dev.cfg;
+    size_t base = whal_Stm32wb_Dma_Dev.base;
+    (void)dmaDev;
+#else
     whal_Stm32wb_Dma_Cfg *cfg;
     size_t base;
-    size_t hw_ch;
 
     if (!dmaDev || !dmaDev->cfg) {
         return WHAL_EINVAL;
@@ -312,6 +353,7 @@ whal_Error whal_Stm32wb_Dma_Stop(whal_Dma *dmaDev, size_t ch)
 
     cfg = (whal_Stm32wb_Dma_Cfg *)dmaDev->cfg;
     base = dmaDev->base;
+#endif
 
     if (ch >= cfg->numChannels) {
         return WHAL_EINVAL;
@@ -333,14 +375,20 @@ whal_Error whal_Stm32wb_Dma_Stop(whal_Dma *dmaDev, size_t ch)
 void whal_Stm32wb_Dma_IRQHandler(whal_Dma *dmaDev, size_t ch,
                                  whal_Stm32wb_Dma_Callback cb, void *ctx)
 {
-    size_t base;
     size_t hw_ch;
     size_t isr;
+#ifdef WHAL_CFG_STM32WB_DMA_SINGLE_INSTANCE
+    size_t base = whal_Stm32wb_Dma_Dev.base;
+    (void)dmaDev;
+#else
+    size_t base;
 
     if (!dmaDev)
         return;
 
     base = dmaDev->base;
+#endif
+
     hw_ch = ch + 1;
 
     isr = whal_Reg_Read(base, DMA_ISR_REG);

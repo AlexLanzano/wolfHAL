@@ -24,12 +24,6 @@ whal_Timeout g_whalTimeout = {
     .GetTick = Board_GetTick,
 };
 
-/* IRQ */
-whal_Irq g_whalIrq = {
-    .base = WHAL_CORTEX_M33_NVIC_BASE,
-    .driver = WHAL_CORTEX_M33_NVIC_DRIVER,
-};
-
 /* Clock: PLL1 from HSE32, targeting 100 MHz
  *   HSE32 = 32 MHz
  *   PLL1M = 1 (div 2) -> ref_ck = 16 MHz
@@ -59,62 +53,6 @@ static const whal_Stm32wba_Rcc_PeriphClk g_periphClks[] = {
 };
 #define PERIPH_CLK_COUNT (sizeof(g_periphClks) / sizeof(g_periphClks[0]))
 
-/* GPIO */
-whal_Gpio g_whalGpio = {
-    .base = WHAL_STM32WBA55_GPIO_BASE,
-    .driver = WHAL_STM32WBA55_GPIO_DRIVER,
-
-    .cfg = &(whal_Stm32wba_Gpio_Cfg) {
-        .pinCfg = (whal_Stm32wba_Gpio_PinCfg[PIN_COUNT]) {
-            /* LED: PA9 (LD2, Green), output, push-pull, low speed, pull-up */
-            [LED_PIN] = WHAL_STM32WBA_GPIO_PIN(
-                WHAL_STM32WBA_GPIO_PORT_A, 9, WHAL_STM32WBA_GPIO_MODE_OUT,
-                WHAL_STM32WBA_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32WBA_GPIO_SPEED_LOW,
-                WHAL_STM32WBA_GPIO_PULL_UP, 0),
-            /* USART1 TX: PB12, AF7 */
-            [UART_TX_PIN] = WHAL_STM32WBA_GPIO_PIN(
-                WHAL_STM32WBA_GPIO_PORT_B, 12, WHAL_STM32WBA_GPIO_MODE_ALTFN,
-                WHAL_STM32WBA_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32WBA_GPIO_SPEED_FAST,
-                WHAL_STM32WBA_GPIO_PULL_UP, 7),
-            /* USART1 RX: PA8, AF7 */
-            [UART_RX_PIN] = WHAL_STM32WBA_GPIO_PIN(
-                WHAL_STM32WBA_GPIO_PORT_A, 8, WHAL_STM32WBA_GPIO_MODE_ALTFN,
-                WHAL_STM32WBA_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32WBA_GPIO_SPEED_FAST,
-                WHAL_STM32WBA_GPIO_PULL_UP, 7),
-            /* SPI1 SCK: PB4, AF5 */
-            [SPI_SCK_PIN] = WHAL_STM32WBA_GPIO_PIN(
-                WHAL_STM32WBA_GPIO_PORT_B, 4, WHAL_STM32WBA_GPIO_MODE_ALTFN,
-                WHAL_STM32WBA_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32WBA_GPIO_SPEED_FAST,
-                WHAL_STM32WBA_GPIO_PULL_NONE, 5),
-            /* SPI1 MISO: PB3, AF5 */
-            [SPI_MISO_PIN] = WHAL_STM32WBA_GPIO_PIN(
-                WHAL_STM32WBA_GPIO_PORT_B, 3, WHAL_STM32WBA_GPIO_MODE_ALTFN,
-                WHAL_STM32WBA_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32WBA_GPIO_SPEED_FAST,
-                WHAL_STM32WBA_GPIO_PULL_NONE, 5),
-            /* SPI1 MOSI: PA15, AF5 */
-            [SPI_MOSI_PIN] = WHAL_STM32WBA_GPIO_PIN(
-                WHAL_STM32WBA_GPIO_PORT_A, 15, WHAL_STM32WBA_GPIO_MODE_ALTFN,
-                WHAL_STM32WBA_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32WBA_GPIO_SPEED_FAST,
-                WHAL_STM32WBA_GPIO_PULL_NONE, 5),
-            /* SPI CS: PA12, output, push-pull */
-            [SPI_CS_PIN] = WHAL_STM32WBA_GPIO_PIN(
-                WHAL_STM32WBA_GPIO_PORT_A, 12, WHAL_STM32WBA_GPIO_MODE_OUT,
-                WHAL_STM32WBA_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32WBA_GPIO_SPEED_FAST,
-                WHAL_STM32WBA_GPIO_PULL_UP, 0),
-            /* I2C1 SCL: PB2, AF4, open-drain */
-            [I2C_SCL_PIN] = WHAL_STM32WBA_GPIO_PIN(
-                WHAL_STM32WBA_GPIO_PORT_B, 2, WHAL_STM32WBA_GPIO_MODE_ALTFN,
-                WHAL_STM32WBA_GPIO_OUTTYPE_OPENDRAIN, WHAL_STM32WBA_GPIO_SPEED_FAST,
-                WHAL_STM32WBA_GPIO_PULL_UP, 4),
-            /* I2C1 SDA: PB1, AF4, open-drain */
-            [I2C_SDA_PIN] = WHAL_STM32WBA_GPIO_PIN(
-                WHAL_STM32WBA_GPIO_PORT_B, 1, WHAL_STM32WBA_GPIO_MODE_ALTFN,
-                WHAL_STM32WBA_GPIO_OUTTYPE_OPENDRAIN, WHAL_STM32WBA_GPIO_SPEED_FAST,
-                WHAL_STM32WBA_GPIO_PULL_UP, 4),
-        },
-        .pinCount = PIN_COUNT,
-    },
-};
 
 /* I2C */
 whal_I2c g_whalI2c = {
@@ -135,18 +73,6 @@ whal_Spi g_whalSpi = {
     .cfg = &(whal_Stm32wba_Spi_Cfg) {
         .pclk = 100000000,
         .timeout = &g_whalTimeout,
-    },
-};
-
-/* Timer (SysTick at 100 MHz) */
-whal_Timer g_whalTimer = {
-    .base = WHAL_CORTEX_M33_SYSTICK_BASE,
-    .driver = WHAL_CORTEX_M33_SYSTICK_DRIVER,
-
-    .cfg = &(whal_SysTick_Cfg) {
-        .cyclesPerTick = 100000000 / 1000,
-        .clkSrc = WHAL_SYSTICK_CLKSRC_SYSCLK,
-        .tickInt = WHAL_SYSTICK_TICKINT_ENABLED,
     },
 };
 
@@ -450,7 +376,7 @@ whal_Error Board_Init(void)
             return err;
     }
 
-    err = whal_Irq_Init(&g_whalIrq);
+    err = whal_Irq_Init(WHAL_SINGLETON);
     if (err)
         return err;
 
@@ -463,15 +389,15 @@ whal_Error Board_Init(void)
         return err;
 
     /* Enable NVIC interrupts for GPDMA1 channel 0 (IRQ 29) and channel 1 (IRQ 30) */
-    err = whal_Irq_Enable(&g_whalIrq, 29, NULL);
+    err = whal_Irq_Enable(WHAL_SINGLETON, 29, NULL);
     if (err)
         return err;
-    err = whal_Irq_Enable(&g_whalIrq, 30, NULL);
+    err = whal_Irq_Enable(WHAL_SINGLETON, 30, NULL);
     if (err)
         return err;
 #endif
 
-    err = whal_Gpio_Init(&g_whalGpio);
+    err = whal_Gpio_Init(WHAL_SINGLETON);
     if (err)
         return err;
 
@@ -499,11 +425,11 @@ whal_Error Board_Init(void)
     if (err)
         return err;
 
-    err = whal_Timer_Init(&g_whalTimer);
+    err = whal_Timer_Init(WHAL_SINGLETON);
     if (err)
         return err;
 
-    err = whal_Timer_Start(&g_whalTimer);
+    err = whal_Timer_Start(WHAL_SINGLETON);
     if (err)
         return err;
 
@@ -522,11 +448,11 @@ whal_Error Board_Deinit(void)
     if (err)
         return err;
 
-    err = whal_Timer_Stop(&g_whalTimer);
+    err = whal_Timer_Stop(WHAL_SINGLETON);
     if (err)
         return err;
 
-    err = whal_Timer_Deinit(&g_whalTimer);
+    err = whal_Timer_Deinit(WHAL_SINGLETON);
     if (err)
         return err;
 
@@ -554,13 +480,13 @@ whal_Error Board_Deinit(void)
     if (err)
         return err;
 
-    err = whal_Gpio_Deinit(&g_whalGpio);
+    err = whal_Gpio_Deinit(WHAL_SINGLETON);
     if (err)
         return err;
 
 #ifdef BOARD_DMA
-    whal_Irq_Disable(&g_whalIrq, 29);
-    whal_Irq_Disable(&g_whalIrq, 30);
+    whal_Irq_Disable(WHAL_SINGLETON, 29);
+    whal_Irq_Disable(WHAL_SINGLETON, 30);
 
     err = whal_Dma_Deinit(&g_whalDma1);
     if (err)
@@ -570,7 +496,7 @@ whal_Error Board_Deinit(void)
         return err;
 #endif
 
-    err = whal_Irq_Deinit(&g_whalIrq);
+    err = whal_Irq_Deinit(WHAL_SINGLETON);
     if (err)
         return err;
 

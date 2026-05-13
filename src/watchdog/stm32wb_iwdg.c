@@ -1,3 +1,4 @@
+#include "board.h"  /* provides whal_Stm32wb_Iwdg_Dev singleton */
 #include <wolfHAL/watchdog/stm32wb_iwdg.h>
 #include <wolfHAL/watchdog/watchdog.h>
 #include <wolfHAL/error.h>
@@ -46,16 +47,11 @@
 
 whal_Error whal_Stm32wb_Iwdg_Init(whal_Watchdog *wdgDev)
 {
-    size_t base;
-    whal_Stm32wb_Iwdg_Cfg *cfg;
+    const whal_Stm32wb_Iwdg_Cfg *cfg =
+        (const whal_Stm32wb_Iwdg_Cfg *)whal_Stm32wb_Iwdg_Dev.cfg;
+    size_t base = whal_Stm32wb_Iwdg_Dev.base;
     whal_Error err;
-
-    if (!wdgDev || !wdgDev->cfg) {
-        return WHAL_EINVAL;
-    }
-
-    base = wdgDev->base;
-    cfg = wdgDev->cfg;
+    (void)wdgDev;
 
     if (cfg->prescaler > 6 || cfg->reload > 0xFFF) {
         return WHAL_EINVAL;
@@ -88,20 +84,14 @@ whal_Error whal_Stm32wb_Iwdg_Init(whal_Watchdog *wdgDev)
 
 whal_Error whal_Stm32wb_Iwdg_Deinit(whal_Watchdog *wdgDev)
 {
-    if (!wdgDev) {
-        return WHAL_EINVAL;
-    }
-
+    (void)wdgDev;
     return WHAL_SUCCESS;
 }
 
 whal_Error whal_Stm32wb_Iwdg_Refresh(whal_Watchdog *wdgDev)
 {
-    if (!wdgDev) {
-        return WHAL_EINVAL;
-    }
-
-    whal_Reg_Write(wdgDev->base, IWDG_KR_REG, IWDG_KEY_RELOAD);
+    (void)wdgDev;
+    whal_Reg_Write(whal_Stm32wb_Iwdg_Dev.base, IWDG_KR_REG, IWDG_KEY_RELOAD);
 
     return WHAL_SUCCESS;
 }

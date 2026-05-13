@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include "board.h"  /* provides whal_Stm32wb_Gpio_Dev singleton (possibly via platform alias macro) */
 #include <wolfHAL/error.h>
 #include <wolfHAL/gpio/gpio.h>
 #include <wolfHAL/gpio/stm32wb_gpio.h>
@@ -56,8 +57,7 @@
 /*
  * Initialize a single GPIO pin with the specified configuration.
  */
-static inline whal_Error whal_Stm32wb_Gpio_InitPin(whal_Gpio *gpioDev,
-                                                    whal_Stm32wb_Gpio_PinCfg cfg)
+static inline whal_Error whal_Stm32wb_Gpio_InitPin(whal_Stm32wb_Gpio_PinCfg cfg)
 {
     uint8_t pin = WHAL_STM32WB_GPIO_GET_PIN(cfg);
     size_t portBase;
@@ -67,7 +67,7 @@ static inline whal_Error whal_Stm32wb_Gpio_InitPin(whal_Gpio *gpioDev,
     if (pin > 15)
         return WHAL_EINVAL;
 
-    portBase = gpioDev->base +
+    portBase = whal_Stm32wb_Gpio_Dev.base +
                (WHAL_STM32WB_GPIO_GET_PORT(cfg) * GPIO_PORT_SIZE);
     pos2 = pin << 1;
     mask2 = WHAL_BITMASK(2) << pos2;
@@ -99,20 +99,15 @@ static inline whal_Error whal_Stm32wb_Gpio_InitPin(whal_Gpio *gpioDev,
 
 whal_Error whal_Stm32wb_Gpio_Init(whal_Gpio *gpioDev)
 {
+    const whal_Stm32wb_Gpio_Cfg *cfg =
+        (const whal_Stm32wb_Gpio_Cfg *)whal_Stm32wb_Gpio_Dev.cfg;
+    const whal_Stm32wb_Gpio_PinCfg *pinCfg = cfg->pinCfg;
     whal_Error err;
-    whal_Stm32wb_Gpio_Cfg *cfg;
-    whal_Stm32wb_Gpio_PinCfg *pinCfg;
-
-    if (!gpioDev || !gpioDev->cfg) {
-        return WHAL_EINVAL;
-    }
-
-    cfg = (whal_Stm32wb_Gpio_Cfg *)gpioDev->cfg;
-    pinCfg = cfg->pinCfg;
+    (void)gpioDev;
 
     /* Initialize each pin in the configuration array */
     for (size_t pin = 0; pin < cfg->pinCount; ++pin) {
-        err = whal_Stm32wb_Gpio_InitPin(gpioDev, pinCfg[pin]);
+        err = whal_Stm32wb_Gpio_InitPin(pinCfg[pin]);
         if (err) {
             return err;
         }
@@ -123,10 +118,7 @@ whal_Error whal_Stm32wb_Gpio_Init(whal_Gpio *gpioDev)
 
 whal_Error whal_Stm32wb_Gpio_Deinit(whal_Gpio *gpioDev)
 {
-    if (!gpioDev) {
-        return WHAL_EINVAL;
-    }
-
+    (void)gpioDev;
     return WHAL_SUCCESS;
 }
 
@@ -139,16 +131,17 @@ whal_Error whal_Stm32wb_Gpio_Deinit(whal_Gpio *gpioDev)
 static whal_Error whal_Stm32wb_Gpio_SetOrGet(whal_Gpio *gpioDev, size_t idx,
                                              size_t *value, uint8_t set)
 {
-    whal_Stm32wb_Gpio_Cfg *cfg;
+    const whal_Stm32wb_Gpio_Cfg *cfg =
+        (const whal_Stm32wb_Gpio_Cfg *)whal_Stm32wb_Gpio_Dev.cfg;
     whal_Stm32wb_Gpio_PinCfg pinCfg;
     uint8_t port, pin;
     size_t portBase, mask;
+    (void)gpioDev;
 
-    if (!gpioDev || !gpioDev->cfg || !value) {
+    if (!value) {
         return WHAL_EINVAL;
     }
 
-    cfg = (whal_Stm32wb_Gpio_Cfg *)gpioDev->cfg;
     pinCfg = cfg->pinCfg[idx];
     port = WHAL_STM32WB_GPIO_GET_PORT(pinCfg);
     pin = WHAL_STM32WB_GPIO_GET_PIN(pinCfg);
@@ -157,7 +150,7 @@ static whal_Error whal_Stm32wb_Gpio_SetOrGet(whal_Gpio *gpioDev, size_t idx,
         return WHAL_EINVAL;
     }
 
-    portBase = gpioDev->base + (port * GPIO_PORT_SIZE);
+    portBase = whal_Stm32wb_Gpio_Dev.base + (port * GPIO_PORT_SIZE);
     mask = 1UL << pin;
 
     if (set) {

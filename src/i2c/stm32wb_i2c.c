@@ -1,4 +1,10 @@
 #include <stdint.h>
+#if defined(WHAL_CFG_STM32WB_I2C_SINGLE_INSTANCE) || \
+    defined(WHAL_CFG_STM32F0_I2C_SINGLE_INSTANCE) || \
+    defined(WHAL_CFG_STM32F3_I2C_SINGLE_INSTANCE) || \
+    defined(WHAL_CFG_STM32N6_I2C_SINGLE_INSTANCE)
+#include "board.h"  /* provides whal_Stm32wb_I2c_Dev singleton (possibly via platform alias macro) */
+#endif
 #include <wolfHAL/i2c/stm32wb_i2c.h>
 #include <wolfHAL/i2c/i2c.h>
 #include <wolfHAL/error.h>
@@ -371,6 +377,13 @@ static whal_Error Stm32wb_I2c_TransferMsg(size_t base, whal_I2c_Msg *msg,
 
 whal_Error whal_Stm32wb_I2c_Init(whal_I2c *i2cDev)
 {
+#if defined(WHAL_CFG_STM32WB_I2C_SINGLE_INSTANCE) || \
+    defined(WHAL_CFG_STM32F0_I2C_SINGLE_INSTANCE) || \
+    defined(WHAL_CFG_STM32F3_I2C_SINGLE_INSTANCE) || \
+    defined(WHAL_CFG_STM32N6_I2C_SINGLE_INSTANCE)
+    size_t base = whal_Stm32wb_I2c_Dev.base;
+    (void)i2cDev;
+#else
     size_t base;
 
     if (!i2cDev || !i2cDev->cfg) {
@@ -378,6 +391,7 @@ whal_Error whal_Stm32wb_I2c_Init(whal_I2c *i2cDev)
     }
 
     base = i2cDev->base;
+#endif
 
     /* Disable PE before configuring */
     whal_Reg_Update(base, I2C_CR1_REG, I2C_CR1_PE_Msk,
@@ -398,6 +412,13 @@ whal_Error whal_Stm32wb_I2c_Init(whal_I2c *i2cDev)
 
 whal_Error whal_Stm32wb_I2c_Deinit(whal_I2c *i2cDev)
 {
+#if defined(WHAL_CFG_STM32WB_I2C_SINGLE_INSTANCE) || \
+    defined(WHAL_CFG_STM32F0_I2C_SINGLE_INSTANCE) || \
+    defined(WHAL_CFG_STM32F3_I2C_SINGLE_INSTANCE) || \
+    defined(WHAL_CFG_STM32N6_I2C_SINGLE_INSTANCE)
+    size_t base = whal_Stm32wb_I2c_Dev.base;
+    (void)i2cDev;
+#else
     size_t base;
 
     if (!i2cDev || !i2cDev->cfg) {
@@ -405,6 +426,7 @@ whal_Error whal_Stm32wb_I2c_Deinit(whal_I2c *i2cDev)
     }
 
     base = i2cDev->base;
+#endif
 
     /* Disable peripheral */
     whal_Reg_Update(base, I2C_CR1_REG, I2C_CR1_PE_Msk,
@@ -415,20 +437,39 @@ whal_Error whal_Stm32wb_I2c_Deinit(whal_I2c *i2cDev)
 
 whal_Error whal_Stm32wb_I2c_StartCom(whal_I2c *i2cDev, whal_I2c_ComCfg *comCfg)
 {
+    uint32_t cr2 = 0;
+#if defined(WHAL_CFG_STM32WB_I2C_SINGLE_INSTANCE) || \
+    defined(WHAL_CFG_STM32F0_I2C_SINGLE_INSTANCE) || \
+    defined(WHAL_CFG_STM32F3_I2C_SINGLE_INSTANCE) || \
+    defined(WHAL_CFG_STM32N6_I2C_SINGLE_INSTANCE)
+    whal_Stm32wb_I2c_Cfg *cfg =
+        (whal_Stm32wb_I2c_Cfg *)whal_Stm32wb_I2c_Dev.cfg;
+    size_t base = whal_Stm32wb_I2c_Dev.base;
+    (void)i2cDev;
+
+    if (!comCfg) {
+        return WHAL_EINVAL;
+    }
+#else
     size_t base;
     whal_Stm32wb_I2c_Cfg *cfg;
-    uint32_t cr2 = 0;
 
     if (!i2cDev || !i2cDev->cfg || !comCfg) {
         return WHAL_EINVAL;
     }
+#endif
 
     if ((comCfg->addrSz != 7 && comCfg->addrSz != 10) || comCfg->freq == 0) {
         return WHAL_EINVAL;
     }
 
+#if !defined(WHAL_CFG_STM32WB_I2C_SINGLE_INSTANCE) && \
+    !defined(WHAL_CFG_STM32F0_I2C_SINGLE_INSTANCE) && \
+    !defined(WHAL_CFG_STM32F3_I2C_SINGLE_INSTANCE) && \
+    !defined(WHAL_CFG_STM32N6_I2C_SINGLE_INSTANCE)
     base = i2cDev->base;
     cfg = (whal_Stm32wb_I2c_Cfg *)i2cDev->cfg;
+#endif
 
     /* Disable PE to configure timing */
     whal_Reg_Update(base, I2C_CR1_REG, I2C_CR1_PE_Msk,
@@ -460,6 +501,13 @@ whal_Error whal_Stm32wb_I2c_StartCom(whal_I2c *i2cDev, whal_I2c_ComCfg *comCfg)
 
 whal_Error whal_Stm32wb_I2c_EndCom(whal_I2c *i2cDev)
 {
+#if defined(WHAL_CFG_STM32WB_I2C_SINGLE_INSTANCE) || \
+    defined(WHAL_CFG_STM32F0_I2C_SINGLE_INSTANCE) || \
+    defined(WHAL_CFG_STM32F3_I2C_SINGLE_INSTANCE) || \
+    defined(WHAL_CFG_STM32N6_I2C_SINGLE_INSTANCE)
+    size_t base = whal_Stm32wb_I2c_Dev.base;
+    (void)i2cDev;
+#else
     size_t base;
 
     if (!i2cDev || !i2cDev->cfg) {
@@ -467,6 +515,7 @@ whal_Error whal_Stm32wb_I2c_EndCom(whal_I2c *i2cDev)
     }
 
     base = i2cDev->base;
+#endif
 
     /* Clear target address and addressing mode */
     whal_Reg_Update(base, I2C_CR2_REG,
@@ -478,9 +527,22 @@ whal_Error whal_Stm32wb_I2c_EndCom(whal_I2c *i2cDev)
 whal_Error whal_Stm32wb_I2c_Transfer(whal_I2c *i2cDev, whal_I2c_Msg *msgs,
                                      size_t numMsgs)
 {
+    whal_Error err;
+#if defined(WHAL_CFG_STM32WB_I2C_SINGLE_INSTANCE) || \
+    defined(WHAL_CFG_STM32F0_I2C_SINGLE_INSTANCE) || \
+    defined(WHAL_CFG_STM32F3_I2C_SINGLE_INSTANCE) || \
+    defined(WHAL_CFG_STM32N6_I2C_SINGLE_INSTANCE)
+    whal_Stm32wb_I2c_Cfg *cfg =
+        (whal_Stm32wb_I2c_Cfg *)whal_Stm32wb_I2c_Dev.cfg;
+    size_t base = whal_Stm32wb_I2c_Dev.base;
+    (void)i2cDev;
+
+    if (!msgs || numMsgs == 0) {
+        return WHAL_EINVAL;
+    }
+#else
     size_t base;
     whal_Stm32wb_I2c_Cfg *cfg;
-    whal_Error err;
 
     if (!i2cDev || !i2cDev->cfg || !msgs || numMsgs == 0) {
         return WHAL_EINVAL;
@@ -488,6 +550,7 @@ whal_Error whal_Stm32wb_I2c_Transfer(whal_I2c *i2cDev, whal_I2c_Msg *msgs,
 
     base = i2cDev->base;
     cfg = (whal_Stm32wb_I2c_Cfg *)i2cDev->cfg;
+#endif
 
     for (size_t i = 0; i < numMsgs; i++) {
         /*

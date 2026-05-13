@@ -2,26 +2,54 @@
 #define WHAL_STM32H5_RCC_H
 
 #include <stdint.h>
-#include <wolfHAL/clock/clock.h>
 #include <stddef.h>
+#include <wolfHAL/clock/clock.h>
+#include <wolfHAL/error.h>
+#include <wolfHAL/regmap.h>
+#include <wolfHAL/bitops.h>
 
 /*
  * @file stm32h5_rcc.h
  * @brief STM32H5 RCC (Reset and Clock Control) driver.
  *
  * Boards bring up the clock tree imperatively from Board_Init.
- *
- * Clock sources:
- *   HSI   = 64 MHz internal RC (with HSIDIV)
- *   CSI   = 4 MHz low-power internal
- *   HSE   = external crystal/oscillator
- *   HSI48 = 48 MHz (for RNG/USB)
- *   PLL1  = source/m * (n+1) / (p+1) (SYSCLK)
  */
 
-/*
- * @brief System clock source selection (RCC_CFGR1.SW).
- */
+#define WHAL_STM32H5_RCC_CR_REG          0x000
+#define WHAL_STM32H5_RCC_CR_HSIDIV_Pos   3
+#define WHAL_STM32H5_RCC_CR_HSIDIV_Msk   (WHAL_BITMASK(2) << WHAL_STM32H5_RCC_CR_HSIDIV_Pos)
+#define WHAL_STM32H5_RCC_CR_PLL1ON_Msk   (1UL << 24)
+#define WHAL_STM32H5_RCC_CR_PLL1RDY_Msk  (1UL << 25)
+#define WHAL_STM32H5_RCC_CR_PLL1RDY_Pos  25
+
+#define WHAL_STM32H5_RCC_CFGR1_REG       0x01C
+#define WHAL_STM32H5_RCC_CFGR1_SW_Pos    0
+#define WHAL_STM32H5_RCC_CFGR1_SW_Msk    (WHAL_BITMASK(2) << WHAL_STM32H5_RCC_CFGR1_SW_Pos)
+#define WHAL_STM32H5_RCC_CFGR1_SWS_Pos   3
+#define WHAL_STM32H5_RCC_CFGR1_SWS_Msk   (WHAL_BITMASK(2) << WHAL_STM32H5_RCC_CFGR1_SWS_Pos)
+
+#define WHAL_STM32H5_RCC_PLL1CFGR_REG          0x028
+#define WHAL_STM32H5_RCC_PLL1CFGR_PLL1SRC_Pos  0
+#define WHAL_STM32H5_RCC_PLL1CFGR_PLL1SRC_Msk  (WHAL_BITMASK(2) << WHAL_STM32H5_RCC_PLL1CFGR_PLL1SRC_Pos)
+#define WHAL_STM32H5_RCC_PLL1CFGR_PLL1M_Pos    8
+#define WHAL_STM32H5_RCC_PLL1CFGR_PLL1M_Msk    (WHAL_BITMASK(6) << WHAL_STM32H5_RCC_PLL1CFGR_PLL1M_Pos)
+#define WHAL_STM32H5_RCC_PLL1CFGR_PLL1PEN_Pos  16
+#define WHAL_STM32H5_RCC_PLL1CFGR_PLL1PEN_Msk  (1UL << WHAL_STM32H5_RCC_PLL1CFGR_PLL1PEN_Pos)
+#define WHAL_STM32H5_RCC_PLL1CFGR_PLL1QEN_Pos  17
+#define WHAL_STM32H5_RCC_PLL1CFGR_PLL1QEN_Msk  (1UL << WHAL_STM32H5_RCC_PLL1CFGR_PLL1QEN_Pos)
+#define WHAL_STM32H5_RCC_PLL1CFGR_PLL1REN_Pos  18
+#define WHAL_STM32H5_RCC_PLL1CFGR_PLL1REN_Msk  (1UL << WHAL_STM32H5_RCC_PLL1CFGR_PLL1REN_Pos)
+
+#define WHAL_STM32H5_RCC_PLL1DIVR_REG          0x034
+#define WHAL_STM32H5_RCC_PLL1DIVR_PLL1N_Pos    0
+#define WHAL_STM32H5_RCC_PLL1DIVR_PLL1N_Msk    (WHAL_BITMASK(9) << WHAL_STM32H5_RCC_PLL1DIVR_PLL1N_Pos)
+#define WHAL_STM32H5_RCC_PLL1DIVR_PLL1P_Pos    9
+#define WHAL_STM32H5_RCC_PLL1DIVR_PLL1P_Msk    (WHAL_BITMASK(7) << WHAL_STM32H5_RCC_PLL1DIVR_PLL1P_Pos)
+#define WHAL_STM32H5_RCC_PLL1DIVR_PLL1Q_Pos    16
+#define WHAL_STM32H5_RCC_PLL1DIVR_PLL1Q_Msk    (WHAL_BITMASK(7) << WHAL_STM32H5_RCC_PLL1DIVR_PLL1Q_Pos)
+#define WHAL_STM32H5_RCC_PLL1DIVR_PLL1R_Pos    24
+#define WHAL_STM32H5_RCC_PLL1DIVR_PLL1R_Msk    (WHAL_BITMASK(7) << WHAL_STM32H5_RCC_PLL1DIVR_PLL1R_Pos)
+
 typedef enum {
     WHAL_STM32H5_RCC_SYSCLK_SRC_HSI,
     WHAL_STM32H5_RCC_SYSCLK_SRC_CSI,
@@ -29,9 +57,6 @@ typedef enum {
     WHAL_STM32H5_RCC_SYSCLK_SRC_PLL1,
 } whal_Stm32h5_Rcc_SysClockSrc;
 
-/*
- * @brief PLL input clock source selection.
- */
 typedef enum {
     WHAL_STM32H5_RCC_PLLCLK_SRC_NONE,
     WHAL_STM32H5_RCC_PLLCLK_SRC_HSI,
@@ -39,12 +64,6 @@ typedef enum {
     WHAL_STM32H5_RCC_PLLCLK_SRC_HSE,
 } whal_Stm32h5_Rcc_PllClockSrc;
 
-/*
- * @brief PLL1 configuration parameters.
- *   m: 1-63 (input / m must be 1-16 MHz)
- *   n: 3-511 (VCO = input * (n+1))
- *   p, q, r: 0-127 (output / (value+1))
- */
 typedef struct {
     whal_Stm32h5_Rcc_PllClockSrc clkSrc;
     uint16_t n;
@@ -54,18 +73,12 @@ typedef struct {
     uint8_t r;
 } whal_Stm32h5_Rcc_PllCfg;
 
-/*
- * @brief Peripheral clock descriptor.
- */
 typedef struct {
     size_t regOffset;
     size_t enableMask;
     size_t enablePos;
 } whal_Stm32h5_Rcc_PeriphClk;
 
-/*
- * @brief Cfg for EnableOsc/DisableOsc — on bit + ready bit.
- */
 typedef struct {
     size_t onReg;
     size_t onMsk;
@@ -87,48 +100,128 @@ typedef struct {
     .onReg  = 0x000, .onMsk  = (1UL << 16),                  \
     .rdyReg = 0x000, .rdyMsk = (1UL << 17), .rdyPos = 17
 
-/*
- * @brief Enable an oscillator (HSI/CSI/HSI48/HSE). Blocks until ready.
- */
-whal_Error whal_Stm32h5_Rcc_EnableOsc(whal_Clock *clkDev,
-                                     const whal_Stm32h5_Rcc_OscCfg *cfg);
-/*
- * @brief Disable an oscillator.
- */
-whal_Error whal_Stm32h5_Rcc_DisableOsc(whal_Clock *clkDev,
-                                      const whal_Stm32h5_Rcc_OscCfg *cfg);
+static inline whal_Error whal_Stm32h5_Rcc_EnableOsc(
+    const whal_Clock *clkDev, const whal_Stm32h5_Rcc_OscCfg *cfg)
+{
+    size_t rdy;
 
-/*
- * @brief Configure and enable PLL1. Caller must have the PLL source
- *        oscillator already enabled. Blocks until PLL1 is ready.
- */
-whal_Error whal_Stm32h5_Rcc_EnablePll1(whal_Clock *clkDev,
-                                      const whal_Stm32h5_Rcc_PllCfg *cfg);
-/*
- * @brief Disable PLL1.
- */
-whal_Error whal_Stm32h5_Rcc_DisablePll1(whal_Clock *clkDev);
+    whal_Reg_Update(clkDev->base, cfg->onReg, cfg->onMsk, cfg->onMsk);
+    do {
+        whal_Reg_Get(clkDev->base, cfg->rdyReg, cfg->rdyMsk,
+                     cfg->rdyPos, &rdy);
+    } while (!rdy);
+    return WHAL_SUCCESS;
+}
 
-/*
- * @brief Switch SYSCLK to the given source. Blocks until SWS confirms.
- */
-whal_Error whal_Stm32h5_Rcc_SetSysClock(whal_Clock *clkDev,
-                                       whal_Stm32h5_Rcc_SysClockSrc src);
+static inline whal_Error whal_Stm32h5_Rcc_DisableOsc(
+    const whal_Clock *clkDev, const whal_Stm32h5_Rcc_OscCfg *cfg)
+{
+    whal_Reg_Update(clkDev->base, cfg->onReg, cfg->onMsk, 0);
+    return WHAL_SUCCESS;
+}
 
-/*
- * @brief Set the HSI divider (0=div1, 1=div2, 2=div4, 3=div8).
- */
-whal_Error whal_Stm32h5_Rcc_SetHsiDiv(whal_Clock *clkDev, uint8_t div);
+static inline whal_Error whal_Stm32h5_Rcc_EnablePll1(
+    const whal_Clock *clkDev, const whal_Stm32h5_Rcc_PllCfg *cfg)
+{
+    size_t rdy;
 
-/*
- * @brief Enable a peripheral clock.
- */
-whal_Error whal_Stm32h5_Rcc_EnablePeriphClk(whal_Clock *clkDev,
-                                           const whal_Stm32h5_Rcc_PeriphClk *clk);
-/*
- * @brief Disable a peripheral clock.
- */
-whal_Error whal_Stm32h5_Rcc_DisablePeriphClk(whal_Clock *clkDev,
-                                            const whal_Stm32h5_Rcc_PeriphClk *clk);
+    whal_Reg_Update(clkDev->base, WHAL_STM32H5_RCC_CR_REG,
+                    WHAL_STM32H5_RCC_CR_PLL1ON_Msk, 0);
+    do {
+        whal_Reg_Get(clkDev->base, WHAL_STM32H5_RCC_CR_REG,
+                     WHAL_STM32H5_RCC_CR_PLL1RDY_Msk,
+                     WHAL_STM32H5_RCC_CR_PLL1RDY_Pos, &rdy);
+    } while (rdy);
+
+    whal_Reg_Update(clkDev->base, WHAL_STM32H5_RCC_PLL1CFGR_REG,
+                    WHAL_STM32H5_RCC_PLL1CFGR_PLL1SRC_Msk |
+                    WHAL_STM32H5_RCC_PLL1CFGR_PLL1M_Msk |
+                    WHAL_STM32H5_RCC_PLL1CFGR_PLL1PEN_Msk |
+                    WHAL_STM32H5_RCC_PLL1CFGR_PLL1QEN_Msk |
+                    WHAL_STM32H5_RCC_PLL1CFGR_PLL1REN_Msk,
+                    whal_SetBits(WHAL_STM32H5_RCC_PLL1CFGR_PLL1SRC_Msk,
+                                 WHAL_STM32H5_RCC_PLL1CFGR_PLL1SRC_Pos, cfg->clkSrc) |
+                    whal_SetBits(WHAL_STM32H5_RCC_PLL1CFGR_PLL1M_Msk,
+                                 WHAL_STM32H5_RCC_PLL1CFGR_PLL1M_Pos,   cfg->m) |
+                    whal_SetBits(WHAL_STM32H5_RCC_PLL1CFGR_PLL1PEN_Msk,
+                                 WHAL_STM32H5_RCC_PLL1CFGR_PLL1PEN_Pos, 1) |
+                    whal_SetBits(WHAL_STM32H5_RCC_PLL1CFGR_PLL1QEN_Msk,
+                                 WHAL_STM32H5_RCC_PLL1CFGR_PLL1QEN_Pos, 1) |
+                    whal_SetBits(WHAL_STM32H5_RCC_PLL1CFGR_PLL1REN_Msk,
+                                 WHAL_STM32H5_RCC_PLL1CFGR_PLL1REN_Pos, 1));
+    whal_Reg_Update(clkDev->base, WHAL_STM32H5_RCC_PLL1DIVR_REG,
+                    WHAL_STM32H5_RCC_PLL1DIVR_PLL1N_Msk |
+                    WHAL_STM32H5_RCC_PLL1DIVR_PLL1P_Msk |
+                    WHAL_STM32H5_RCC_PLL1DIVR_PLL1Q_Msk |
+                    WHAL_STM32H5_RCC_PLL1DIVR_PLL1R_Msk,
+                    whal_SetBits(WHAL_STM32H5_RCC_PLL1DIVR_PLL1N_Msk,
+                                 WHAL_STM32H5_RCC_PLL1DIVR_PLL1N_Pos, cfg->n) |
+                    whal_SetBits(WHAL_STM32H5_RCC_PLL1DIVR_PLL1P_Msk,
+                                 WHAL_STM32H5_RCC_PLL1DIVR_PLL1P_Pos, cfg->p) |
+                    whal_SetBits(WHAL_STM32H5_RCC_PLL1DIVR_PLL1Q_Msk,
+                                 WHAL_STM32H5_RCC_PLL1DIVR_PLL1Q_Pos, cfg->q) |
+                    whal_SetBits(WHAL_STM32H5_RCC_PLL1DIVR_PLL1R_Msk,
+                                 WHAL_STM32H5_RCC_PLL1DIVR_PLL1R_Pos, cfg->r));
+
+    whal_Reg_Update(clkDev->base, WHAL_STM32H5_RCC_CR_REG,
+                    WHAL_STM32H5_RCC_CR_PLL1ON_Msk,
+                    WHAL_STM32H5_RCC_CR_PLL1ON_Msk);
+    do {
+        whal_Reg_Get(clkDev->base, WHAL_STM32H5_RCC_CR_REG,
+                     WHAL_STM32H5_RCC_CR_PLL1RDY_Msk,
+                     WHAL_STM32H5_RCC_CR_PLL1RDY_Pos, &rdy);
+    } while (!rdy);
+    return WHAL_SUCCESS;
+}
+
+static inline whal_Error whal_Stm32h5_Rcc_DisablePll1(const whal_Clock *clkDev)
+{
+    whal_Reg_Update(clkDev->base, WHAL_STM32H5_RCC_CR_REG,
+                    WHAL_STM32H5_RCC_CR_PLL1ON_Msk, 0);
+    return WHAL_SUCCESS;
+}
+
+static inline whal_Error whal_Stm32h5_Rcc_SetSysClock(
+    const whal_Clock *clkDev, whal_Stm32h5_Rcc_SysClockSrc src)
+{
+    size_t sws;
+
+    whal_Reg_Update(clkDev->base, WHAL_STM32H5_RCC_CFGR1_REG,
+                    WHAL_STM32H5_RCC_CFGR1_SW_Msk,
+                    whal_SetBits(WHAL_STM32H5_RCC_CFGR1_SW_Msk,
+                                 WHAL_STM32H5_RCC_CFGR1_SW_Pos, src));
+    do {
+        whal_Reg_Get(clkDev->base, WHAL_STM32H5_RCC_CFGR1_REG,
+                     WHAL_STM32H5_RCC_CFGR1_SWS_Msk,
+                     WHAL_STM32H5_RCC_CFGR1_SWS_Pos, &sws);
+    } while (sws != (size_t)src);
+    return WHAL_SUCCESS;
+}
+
+static inline whal_Error whal_Stm32h5_Rcc_SetHsiDiv(
+    const whal_Clock *clkDev, uint8_t div)
+{
+    whal_Reg_Update(clkDev->base, WHAL_STM32H5_RCC_CR_REG,
+                    WHAL_STM32H5_RCC_CR_HSIDIV_Msk,
+                    whal_SetBits(WHAL_STM32H5_RCC_CR_HSIDIV_Msk,
+                                 WHAL_STM32H5_RCC_CR_HSIDIV_Pos, div));
+    return WHAL_SUCCESS;
+}
+
+static inline whal_Error whal_Stm32h5_Rcc_EnablePeriphClk(
+    const whal_Clock *clkDev, const whal_Stm32h5_Rcc_PeriphClk *clk)
+{
+    whal_Reg_Update(clkDev->base, clk->regOffset, clk->enableMask,
+                    whal_SetBits(clk->enableMask, clk->enablePos, 1));
+    return WHAL_SUCCESS;
+}
+
+static inline whal_Error whal_Stm32h5_Rcc_DisablePeriphClk(
+    const whal_Clock *clkDev, const whal_Stm32h5_Rcc_PeriphClk *clk)
+{
+    whal_Reg_Update(clkDev->base, clk->regOffset, clk->enableMask,
+                    whal_SetBits(clk->enableMask, clk->enablePos, 0));
+    return WHAL_SUCCESS;
+}
 
 #endif /* WHAL_STM32H5_RCC_H */

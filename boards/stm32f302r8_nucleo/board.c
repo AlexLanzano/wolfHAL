@@ -45,73 +45,6 @@ static const whal_Stm32f3_Rcc_PeriphClk g_periphClks[] = {
 };
 #define PERIPH_CLK_COUNT (sizeof(g_periphClks) / sizeof(g_periphClks[0]))
 
-/* GPIO */
-whal_Gpio g_whalGpio = {
-    .base = WHAL_STM32F302_GPIO_BASE,
-
-    .cfg = &(whal_Stm32f3_Gpio_Cfg) {
-        .pinCfg = (whal_Stm32f3_Gpio_PinCfg[PIN_COUNT]) {
-            /* LD2 Green LED on PB13 (per UM1724 Figure 14, NUCLEO-F302R8) */
-            [LED_PIN] = WHAL_STM32F3_GPIO_PIN(
-                WHAL_STM32F3_GPIO_PORT_B, 13, WHAL_STM32F3_GPIO_MODE_OUT,
-                WHAL_STM32F3_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32F3_GPIO_SPEED_LOW,
-                WHAL_STM32F3_GPIO_PULL_NONE, 0),
-            /* USART2 TX on PA2, AF7 */
-            [UART_TX_PIN] = WHAL_STM32F3_GPIO_PIN(
-                WHAL_STM32F3_GPIO_PORT_A, 2, WHAL_STM32F3_GPIO_MODE_ALTFN,
-                WHAL_STM32F3_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32F3_GPIO_SPEED_FAST,
-                WHAL_STM32F3_GPIO_PULL_UP, 7),
-            /* USART2 RX on PA3, AF7 */
-            [UART_RX_PIN] = WHAL_STM32F3_GPIO_PIN(
-                WHAL_STM32F3_GPIO_PORT_A, 3, WHAL_STM32F3_GPIO_MODE_ALTFN,
-                WHAL_STM32F3_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32F3_GPIO_SPEED_FAST,
-                WHAL_STM32F3_GPIO_PULL_UP, 7),
-            /* SPI3 SCK on PB3, AF6 */
-            [SPI_SCK_PIN] = WHAL_STM32F3_GPIO_PIN(
-                WHAL_STM32F3_GPIO_PORT_B, 3, WHAL_STM32F3_GPIO_MODE_ALTFN,
-                WHAL_STM32F3_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32F3_GPIO_SPEED_FAST,
-                WHAL_STM32F3_GPIO_PULL_NONE, 6),
-            /* SPI3 MISO on PB4, AF6 */
-            [SPI_MISO_PIN] = WHAL_STM32F3_GPIO_PIN(
-                WHAL_STM32F3_GPIO_PORT_B, 4, WHAL_STM32F3_GPIO_MODE_ALTFN,
-                WHAL_STM32F3_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32F3_GPIO_SPEED_FAST,
-                WHAL_STM32F3_GPIO_PULL_NONE, 6),
-            /* SPI3 MOSI on PB5, AF6 */
-            [SPI_MOSI_PIN] = WHAL_STM32F3_GPIO_PIN(
-                WHAL_STM32F3_GPIO_PORT_B, 5, WHAL_STM32F3_GPIO_MODE_ALTFN,
-                WHAL_STM32F3_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32F3_GPIO_SPEED_FAST,
-                WHAL_STM32F3_GPIO_PULL_NONE, 6),
-            /* SPI CS on PB12, output, push-pull */
-            [SPI_CS_PIN] = WHAL_STM32F3_GPIO_PIN(
-                WHAL_STM32F3_GPIO_PORT_B, 12, WHAL_STM32F3_GPIO_MODE_OUT,
-                WHAL_STM32F3_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32F3_GPIO_SPEED_FAST,
-                WHAL_STM32F3_GPIO_PULL_UP, 0),
-            /* I2C1 SCL on PB8, AF4, open-drain */
-            [I2C_SCL_PIN] = WHAL_STM32F3_GPIO_PIN(
-                WHAL_STM32F3_GPIO_PORT_B, 8, WHAL_STM32F3_GPIO_MODE_ALTFN,
-                WHAL_STM32F3_GPIO_OUTTYPE_OPENDRAIN, WHAL_STM32F3_GPIO_SPEED_FAST,
-                WHAL_STM32F3_GPIO_PULL_UP, 4),
-            /* I2C1 SDA on PB9, AF4, open-drain */
-            [I2C_SDA_PIN] = WHAL_STM32F3_GPIO_PIN(
-                WHAL_STM32F3_GPIO_PORT_B, 9, WHAL_STM32F3_GPIO_MODE_ALTFN,
-                WHAL_STM32F3_GPIO_OUTTYPE_OPENDRAIN, WHAL_STM32F3_GPIO_SPEED_FAST,
-                WHAL_STM32F3_GPIO_PULL_UP, 4),
-        },
-        .pinCount = PIN_COUNT,
-    },
-};
-
-/* Timer — SysTick at 1 ms */
-whal_Timer g_whalTimer = {
-    .base = WHAL_CORTEX_M4_SYSTICK_BASE,
-    .driver = WHAL_CORTEX_M4_SYSTICK_DRIVER,
-
-    .cfg = &(whal_SysTick_Cfg) {
-        .cyclesPerTick = 48000000 / 1000,
-        .clkSrc = WHAL_SYSTICK_CLKSRC_SYSCLK,
-        .tickInt = WHAL_SYSTICK_TICKINT_ENABLED,
-    },
-};
 
 /* UART — USART2 at 115200 baud */
 whal_Uart g_whalUart = {
@@ -220,7 +153,7 @@ whal_Error Board_Init(void)
             return err;
     }
 
-    err = whal_Gpio_Init(&g_whalGpio);
+    err = whal_Gpio_Init(WHAL_SINGLETON);
     if (err)
         return err;
 
@@ -236,11 +169,11 @@ whal_Error Board_Init(void)
     if (err)
         return err;
 
-    err = whal_Timer_Init(&g_whalTimer);
+    err = whal_Timer_Init(WHAL_SINGLETON);
     if (err)
         return err;
 
-    err = whal_Timer_Start(&g_whalTimer);
+    err = whal_Timer_Start(WHAL_SINGLETON);
     if (err)
         return err;
 
@@ -259,11 +192,11 @@ whal_Error Board_Deinit(void)
     if (err)
         return err;
 
-    err = whal_Timer_Stop(&g_whalTimer);
+    err = whal_Timer_Stop(WHAL_SINGLETON);
     if (err)
         return err;
 
-    err = whal_Timer_Deinit(&g_whalTimer);
+    err = whal_Timer_Deinit(WHAL_SINGLETON);
     if (err)
         return err;
 
@@ -279,7 +212,7 @@ whal_Error Board_Deinit(void)
     if (err)
         return err;
 
-    err = whal_Gpio_Deinit(&g_whalGpio);
+    err = whal_Gpio_Deinit(WHAL_SINGLETON);
     if (err)
         return err;
 

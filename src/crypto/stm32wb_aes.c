@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include "board.h"  /* provides whal_Stm32wb_Aes*_Dev singletons */
 #include <wolfHAL/crypto/stm32wb_aes.h>
 #include <wolfHAL/crypto/crypto.h>
 #include <wolfHAL/error.h>
@@ -222,16 +223,14 @@ static void DisableAes(whal_Crypto *cryptoDev)
 
 whal_Error whal_Stm32wb_Aes_Init(whal_Crypto *dev)
 {
-    if (!dev)
-        return WHAL_EINVAL;
+    (void)dev;
     return WHAL_SUCCESS;
 }
 
 whal_Error whal_Stm32wb_Aes_Deinit(whal_Crypto *dev)
 {
-    if (!dev)
-        return WHAL_EINVAL;
-    DisableAes(dev);
+    (void)dev;
+    DisableAes((whal_Crypto *)&whal_Stm32wb_Aes_Dev);
     return WHAL_SUCCESS;
 }
 
@@ -247,17 +246,16 @@ whal_Error whal_Stm32wb_AesEcb_Oneshot(whal_AesEcb *dev, whal_Crypto_Dir dir,
                               const void *key, size_t keySz,
                               const void *in, void *out, size_t sz)
 {
-    whal_Crypto *crypto;
-    size_t base;
+    whal_Crypto *crypto = whal_Stm32wb_AesEcb_Dev.crypto;
+    size_t base = crypto->base;
     size_t mode;
     size_t keySizeBit;
     whal_Error err;
 
-    if (!dev || !dev->crypto || !dev->crypto->cfg || !key)
-        return WHAL_EINVAL;
+    (void)dev;
 
-    crypto = dev->crypto;
-    base = crypto->base;
+    if (!key)
+        return WHAL_EINVAL;
 
     if (keySz != 16 && keySz != 32)
         return WHAL_ENOTSUP;
@@ -291,16 +289,15 @@ whal_Error whal_Stm32wb_AesEcb_Oneshot(whal_AesEcb *dev, whal_Crypto_Dir dir,
 whal_Error whal_Stm32wb_AesEcb_Start(whal_AesEcb *dev, whal_Crypto_Dir dir,
                             const void *key, size_t keySz)
 {
-    whal_Crypto *crypto;
-    size_t base;
+    whal_Crypto *crypto = whal_Stm32wb_AesEcb_Dev.crypto;
+    size_t base = crypto->base;
     size_t mode;
     size_t keySizeBit;
 
-    if (!dev || !dev->crypto || !dev->crypto->cfg || !key)
-        return WHAL_EINVAL;
+    (void)dev;
 
-    crypto = dev->crypto;
-    base = crypto->base;
+    if (!key)
+        return WHAL_EINVAL;
 
     if (keySz != 16 && keySz != 32)
         return WHAL_ENOTSUP;
@@ -332,7 +329,8 @@ whal_Error whal_Stm32wb_AesEcb_Start(whal_AesEcb *dev, whal_Crypto_Dir dir,
 whal_Error whal_Stm32wb_AesEcb_Process(whal_AesEcb *dev,
                               const void *in, void *out, size_t sz)
 {
-    return ProcessBlockCipher(dev->crypto, in, out, sz);
+    (void)dev;
+    return ProcessBlockCipher(whal_Stm32wb_AesEcb_Dev.crypto, in, out, sz);
 }
 
 const whal_AesEcbDriver whal_Stm32wb_Aes_EcbDriver = {
@@ -349,17 +347,16 @@ whal_Error whal_Stm32wb_AesCbc_Oneshot(whal_AesCbc *dev, whal_Crypto_Dir dir,
                               const void *iv,
                               const void *in, void *out, size_t sz)
 {
-    whal_Crypto *crypto;
-    size_t base;
+    whal_Crypto *crypto = whal_Stm32wb_AesCbc_Dev.crypto;
+    size_t base = crypto->base;
     size_t mode;
     size_t keySizeBit;
     whal_Error err;
 
-    if (!dev || !dev->crypto || !dev->crypto->cfg || !key || !iv)
-        return WHAL_EINVAL;
+    (void)dev;
 
-    crypto = dev->crypto;
-    base = crypto->base;
+    if (!key || !iv)
+        return WHAL_EINVAL;
 
     if (keySz != 16 && keySz != 32)
         return WHAL_ENOTSUP;
@@ -395,16 +392,15 @@ whal_Error whal_Stm32wb_AesCbc_Start(whal_AesCbc *dev, whal_Crypto_Dir dir,
                             const void *key, size_t keySz,
                             const void *iv)
 {
-    whal_Crypto *crypto;
-    size_t base;
+    whal_Crypto *crypto = whal_Stm32wb_AesCbc_Dev.crypto;
+    size_t base = crypto->base;
     size_t mode;
     size_t keySizeBit;
 
-    if (!dev || !dev->crypto || !dev->crypto->cfg || !key || !iv)
-        return WHAL_EINVAL;
+    (void)dev;
 
-    crypto = dev->crypto;
-    base = crypto->base;
+    if (!key || !iv)
+        return WHAL_EINVAL;
 
     if (keySz != 16 && keySz != 32)
         return WHAL_ENOTSUP;
@@ -437,7 +433,8 @@ whal_Error whal_Stm32wb_AesCbc_Start(whal_AesCbc *dev, whal_Crypto_Dir dir,
 whal_Error whal_Stm32wb_AesCbc_Process(whal_AesCbc *dev,
                               const void *in, void *out, size_t sz)
 {
-    return ProcessBlockCipher(dev->crypto, in, out, sz);
+    (void)dev;
+    return ProcessBlockCipher(whal_Stm32wb_AesCbc_Dev.crypto, in, out, sz);
 }
 
 const whal_AesCbcDriver whal_Stm32wb_Aes_CbcDriver = {
@@ -454,16 +451,15 @@ whal_Error whal_Stm32wb_AesCtr_Oneshot(whal_AesCtr *dev, whal_Crypto_Dir dir,
                               const void *iv,
                               const void *in, void *out, size_t sz)
 {
-    whal_Crypto *crypto;
-    size_t base;
+    whal_Crypto *crypto = whal_Stm32wb_AesCtr_Dev.crypto;
+    size_t base = crypto->base;
     size_t keySizeBit;
     whal_Error err;
 
-    if (!dev || !dev->crypto || !dev->crypto->cfg || !key || !iv)
-        return WHAL_EINVAL;
+    (void)dev;
 
-    crypto = dev->crypto;
-    base = crypto->base;
+    if (!key || !iv)
+        return WHAL_EINVAL;
 
     if (keySz != 16 && keySz != 32)
         return WHAL_ENOTSUP;
@@ -498,15 +494,14 @@ whal_Error whal_Stm32wb_AesCtr_Start(whal_AesCtr *dev, whal_Crypto_Dir dir,
                             const void *key, size_t keySz,
                             const void *iv)
 {
-    whal_Crypto *crypto;
-    size_t base;
+    whal_Crypto *crypto = whal_Stm32wb_AesCtr_Dev.crypto;
+    size_t base = crypto->base;
     size_t keySizeBit;
 
-    if (!dev || !dev->crypto || !dev->crypto->cfg || !key || !iv)
-        return WHAL_EINVAL;
+    (void)dev;
 
-    crypto = dev->crypto;
-    base = crypto->base;
+    if (!key || !iv)
+        return WHAL_EINVAL;
 
     if (keySz != 16 && keySz != 32)
         return WHAL_ENOTSUP;
@@ -538,7 +533,8 @@ whal_Error whal_Stm32wb_AesCtr_Start(whal_AesCtr *dev, whal_Crypto_Dir dir,
 whal_Error whal_Stm32wb_AesCtr_Process(whal_AesCtr *dev,
                               const void *in, void *out, size_t sz)
 {
-    return ProcessBlockCipher(dev->crypto, in, out, sz);
+    (void)dev;
+    return ProcessBlockCipher(whal_Stm32wb_AesCtr_Dev.crypto, in, out, sz);
 }
 
 const whal_AesCtrDriver whal_Stm32wb_Aes_CtrDriver = {
@@ -557,9 +553,10 @@ whal_Error whal_Stm32wb_AesGcm_Oneshot(whal_AesGcm *dev, whal_Crypto_Dir dir,
                               const void *in, void *out, size_t sz,
                               void *tag, size_t tagSz)
 {
-    whal_Crypto *crypto;
-    const whal_Stm32wb_Aes_Cfg *cfg;
-    size_t base;
+    whal_Crypto *crypto = whal_Stm32wb_AesGcm_Dev.crypto;
+    const whal_Stm32wb_Aes_Cfg *cfg =
+        (const whal_Stm32wb_Aes_Cfg *)crypto->cfg;
+    size_t base = crypto->base;
     const uint8_t *ivBytes = (const uint8_t *)iv;
     const uint8_t *aadBytes = (const uint8_t *)aad;
     size_t keySizeBit;
@@ -568,12 +565,10 @@ whal_Error whal_Stm32wb_AesGcm_Oneshot(whal_AesGcm *dev, whal_Crypto_Dir dir,
     uint8_t tagBuf[16];
     whal_Error err;
 
-    if (!dev || !dev->crypto || !dev->crypto->cfg || !key || !iv)
-        return WHAL_EINVAL;
+    (void)dev;
 
-    crypto = dev->crypto;
-    cfg = (const whal_Stm32wb_Aes_Cfg *)crypto->cfg;
-    base = crypto->base;
+    if (!key || !iv)
+        return WHAL_EINVAL;
 
     if (keySz != 16 && keySz != 32)
         return WHAL_ENOTSUP;
@@ -739,9 +734,10 @@ whal_Error whal_Stm32wb_AesGcm_Start(whal_AesGcm *dev, whal_Crypto_Dir dir,
                             const void *iv, size_t ivSz,
                             const void *aad, size_t aadSz)
 {
-    whal_Crypto *crypto;
-    const whal_Stm32wb_Aes_Cfg *cfg;
-    size_t base;
+    whal_Crypto *crypto = whal_Stm32wb_AesGcm_Dev.crypto;
+    const whal_Stm32wb_Aes_Cfg *cfg =
+        (const whal_Stm32wb_Aes_Cfg *)crypto->cfg;
+    size_t base = crypto->base;
     const uint8_t *ivBytes = (const uint8_t *)iv;
     const uint8_t *aadBytes = (const uint8_t *)aad;
     size_t keySizeBit;
@@ -749,12 +745,10 @@ whal_Error whal_Stm32wb_AesGcm_Start(whal_AesGcm *dev, whal_Crypto_Dir dir,
     size_t i;
     whal_Error err;
 
-    if (!dev || !dev->crypto || !dev->crypto->cfg || !dev->state || !key || !iv)
-        return WHAL_EINVAL;
+    (void)dev;
 
-    crypto = dev->crypto;
-    cfg = (const whal_Stm32wb_Aes_Cfg *)crypto->cfg;
-    base = crypto->base;
+    if (!key || !iv)
+        return WHAL_EINVAL;
 
     if (keySz != 16 && keySz != 32)
         return WHAL_ENOTSUP;
@@ -843,7 +837,8 @@ whal_Error whal_Stm32wb_AesGcm_Start(whal_AesGcm *dev, whal_Crypto_Dir dir,
         whal_Reg_Update(base, AES_CR_REG, AES_CR_EN_Msk, AES_CR_EN_Msk);
 
     {
-        whal_Stm32wb_AesGcm_State *st = (whal_Stm32wb_AesGcm_State *)dev->state;
+        whal_Stm32wb_AesGcm_State *st =
+            (whal_Stm32wb_AesGcm_State *)whal_Stm32wb_AesGcm_Dev.state;
         st->aadSz = aadSz;
         st->dataSz = 0;
     }
@@ -858,21 +853,17 @@ cleanup:
 whal_Error whal_Stm32wb_AesGcm_Process(whal_AesGcm *dev,
                               const void *in, void *out, size_t sz)
 {
-    whal_Crypto *crypto;
-    const whal_Stm32wb_Aes_Cfg *cfg;
-    size_t base;
-    whal_Stm32wb_AesGcm_State *st;
+    whal_Crypto *crypto = whal_Stm32wb_AesGcm_Dev.crypto;
+    const whal_Stm32wb_Aes_Cfg *cfg =
+        (const whal_Stm32wb_Aes_Cfg *)crypto->cfg;
+    size_t base = crypto->base;
+    whal_Stm32wb_AesGcm_State *st =
+        (whal_Stm32wb_AesGcm_State *)whal_Stm32wb_AesGcm_Dev.state;
     size_t mode;
     size_t i;
     whal_Error err;
 
-    if (!dev || !dev->crypto || !dev->crypto->cfg || !dev->state)
-        return WHAL_EINVAL;
-
-    crypto = dev->crypto;
-    cfg = (const whal_Stm32wb_Aes_Cfg *)crypto->cfg;
-    base = crypto->base;
-    st = (whal_Stm32wb_AesGcm_State *)dev->state;
+    (void)dev;
 
     if (sz == 0)
         return WHAL_SUCCESS;
@@ -927,21 +918,17 @@ whal_Error whal_Stm32wb_AesGcm_Process(whal_AesGcm *dev,
 whal_Error whal_Stm32wb_AesGcm_Finalize(whal_AesGcm *dev,
                                void *tag, size_t tagSz)
 {
-    whal_Crypto *crypto;
-    const whal_Stm32wb_Aes_Cfg *cfg;
-    size_t base;
-    whal_Stm32wb_AesGcm_State *st;
+    whal_Crypto *crypto = whal_Stm32wb_AesGcm_Dev.crypto;
+    const whal_Stm32wb_Aes_Cfg *cfg =
+        (const whal_Stm32wb_Aes_Cfg *)crypto->cfg;
+    size_t base = crypto->base;
+    whal_Stm32wb_AesGcm_State *st =
+        (whal_Stm32wb_AesGcm_State *)whal_Stm32wb_AesGcm_Dev.state;
     uint8_t tagBuf[16];
     size_t i;
     whal_Error err;
 
-    if (!dev || !dev->crypto || !dev->crypto->cfg || !dev->state)
-        return WHAL_EINVAL;
-
-    crypto = dev->crypto;
-    cfg = (const whal_Stm32wb_Aes_Cfg *)crypto->cfg;
-    base = crypto->base;
-    st = (whal_Stm32wb_AesGcm_State *)dev->state;
+    (void)dev;
 
     if (!tag || tagSz == 0 || tagSz > 16)
         return WHAL_EINVAL;
@@ -993,9 +980,10 @@ whal_Error whal_Stm32wb_AesGmac_Oneshot(whal_AesGmac *dev,
                                const void *aad, size_t aadSz,
                                void *tag, size_t tagSz)
 {
-    whal_Crypto *crypto;
-    const whal_Stm32wb_Aes_Cfg *cfg;
-    size_t base;
+    whal_Crypto *crypto = whal_Stm32wb_AesGmac_Dev.crypto;
+    const whal_Stm32wb_Aes_Cfg *cfg =
+        (const whal_Stm32wb_Aes_Cfg *)crypto->cfg;
+    size_t base = crypto->base;
     const uint8_t *ivBytes = (const uint8_t *)iv;
     const uint8_t *aadBytes = (const uint8_t *)aad;
     size_t keySizeBit;
@@ -1003,12 +991,10 @@ whal_Error whal_Stm32wb_AesGmac_Oneshot(whal_AesGmac *dev,
     uint8_t tagBuf[16];
     whal_Error err;
 
-    if (!dev || !dev->crypto || !dev->crypto->cfg || !key || !iv)
-        return WHAL_EINVAL;
+    (void)dev;
 
-    crypto = dev->crypto;
-    cfg = (const whal_Stm32wb_Aes_Cfg *)crypto->cfg;
-    base = crypto->base;
+    if (!key || !iv)
+        return WHAL_EINVAL;
 
     if (keySz != 16 && keySz != 32)
         return WHAL_ENOTSUP;
@@ -1130,9 +1116,10 @@ whal_Error whal_Stm32wb_AesCcm_Oneshot(whal_AesCcm *dev, whal_Crypto_Dir dir,
                               const void *in, void *out, size_t sz,
                               void *tag, size_t tagSz)
 {
-    whal_Crypto *crypto;
-    const whal_Stm32wb_Aes_Cfg *cfg;
-    size_t base;
+    whal_Crypto *crypto = whal_Stm32wb_AesCcm_Dev.crypto;
+    const whal_Stm32wb_Aes_Cfg *cfg =
+        (const whal_Stm32wb_Aes_Cfg *)crypto->cfg;
+    size_t base = crypto->base;
     const uint8_t *nonceBytes = (const uint8_t *)nonce;
     const uint8_t *aadBytes = (const uint8_t *)aad;
     size_t keySizeBit;
@@ -1142,12 +1129,10 @@ whal_Error whal_Stm32wb_AesCcm_Oneshot(whal_AesCcm *dev, whal_Crypto_Dir dir,
     uint8_t tagBuf[16];
     whal_Error err;
 
-    if (!dev || !dev->crypto || !dev->crypto->cfg || !key || !nonce)
-        return WHAL_EINVAL;
+    (void)dev;
 
-    crypto = dev->crypto;
-    cfg = (const whal_Stm32wb_Aes_Cfg *)crypto->cfg;
-    base = crypto->base;
+    if (!key || !nonce)
+        return WHAL_EINVAL;
 
     if (keySz != 16 && keySz != 32)
         return WHAL_ENOTSUP;
@@ -1344,9 +1329,10 @@ whal_Error whal_Stm32wb_AesCcm_Start(whal_AesCcm *dev, whal_Crypto_Dir dir,
                             const void *aad, size_t aadSz,
                             size_t tagSz, size_t sz)
 {
-    whal_Crypto *crypto;
-    const whal_Stm32wb_Aes_Cfg *cfg;
-    size_t base;
+    whal_Crypto *crypto = whal_Stm32wb_AesCcm_Dev.crypto;
+    const whal_Stm32wb_Aes_Cfg *cfg =
+        (const whal_Stm32wb_Aes_Cfg *)crypto->cfg;
+    size_t base = crypto->base;
     const uint8_t *nonceBytes = (const uint8_t *)nonce;
     const uint8_t *aadBytes = (const uint8_t *)aad;
     size_t keySizeBit;
@@ -1355,12 +1341,10 @@ whal_Error whal_Stm32wb_AesCcm_Start(whal_AesCcm *dev, whal_Crypto_Dir dir,
     uint8_t b0[16];
     whal_Error err;
 
-    if (!dev || !dev->crypto || !dev->crypto->cfg || !dev->state || !key || !nonce)
-        return WHAL_EINVAL;
+    (void)dev;
 
-    crypto = dev->crypto;
-    cfg = (const whal_Stm32wb_Aes_Cfg *)crypto->cfg;
-    base = crypto->base;
+    if (!key || !nonce)
+        return WHAL_EINVAL;
 
     if (keySz != 16 && keySz != 32)
         return WHAL_ENOTSUP;
@@ -1482,7 +1466,8 @@ whal_Error whal_Stm32wb_AesCcm_Start(whal_AesCcm *dev, whal_Crypto_Dir dir,
         whal_Reg_Update(base, AES_CR_REG, AES_CR_EN_Msk, AES_CR_EN_Msk);
 
     {
-        whal_Stm32wb_AesCcm_State *st = (whal_Stm32wb_AesCcm_State *)dev->state;
+        whal_Stm32wb_AesCcm_State *st =
+            (whal_Stm32wb_AesCcm_State *)whal_Stm32wb_AesCcm_Dev.state;
         st->aadSz = aadSz;
         st->dataSz = 0;
     }
@@ -1497,21 +1482,17 @@ cleanup:
 whal_Error whal_Stm32wb_AesCcm_Process(whal_AesCcm *dev,
                               const void *in, void *out, size_t sz)
 {
-    whal_Crypto *crypto;
-    const whal_Stm32wb_Aes_Cfg *cfg;
-    size_t base;
-    whal_Stm32wb_AesCcm_State *st;
+    whal_Crypto *crypto = whal_Stm32wb_AesCcm_Dev.crypto;
+    const whal_Stm32wb_Aes_Cfg *cfg =
+        (const whal_Stm32wb_Aes_Cfg *)crypto->cfg;
+    size_t base = crypto->base;
+    whal_Stm32wb_AesCcm_State *st =
+        (whal_Stm32wb_AesCcm_State *)whal_Stm32wb_AesCcm_Dev.state;
     size_t mode;
     size_t i;
     whal_Error err;
 
-    if (!dev || !dev->crypto || !dev->crypto->cfg || !dev->state)
-        return WHAL_EINVAL;
-
-    crypto = dev->crypto;
-    cfg = (const whal_Stm32wb_Aes_Cfg *)crypto->cfg;
-    base = crypto->base;
-    st = (whal_Stm32wb_AesCcm_State *)dev->state;
+    (void)dev;
 
     if (sz == 0)
         return WHAL_SUCCESS;
@@ -1566,21 +1547,17 @@ whal_Error whal_Stm32wb_AesCcm_Process(whal_AesCcm *dev,
 whal_Error whal_Stm32wb_AesCcm_Finalize(whal_AesCcm *dev,
                                void *tag, size_t tagSz)
 {
-    whal_Crypto *crypto;
-    const whal_Stm32wb_Aes_Cfg *cfg;
-    size_t base;
-    whal_Stm32wb_AesCcm_State *st;
+    whal_Crypto *crypto = whal_Stm32wb_AesCcm_Dev.crypto;
+    const whal_Stm32wb_Aes_Cfg *cfg =
+        (const whal_Stm32wb_Aes_Cfg *)crypto->cfg;
+    size_t base = crypto->base;
+    whal_Stm32wb_AesCcm_State *st =
+        (whal_Stm32wb_AesCcm_State *)whal_Stm32wb_AesCcm_Dev.state;
     uint8_t tagBuf[16];
     size_t i;
     whal_Error err;
 
-    if (!dev || !dev->crypto || !dev->crypto->cfg || !dev->state)
-        return WHAL_EINVAL;
-
-    crypto = dev->crypto;
-    cfg = (const whal_Stm32wb_Aes_Cfg *)crypto->cfg;
-    base = crypto->base;
-    st = (whal_Stm32wb_AesCcm_State *)dev->state;
+    (void)dev;
 
     if (!tag || tagSz < 4 || tagSz > 16 || (tagSz & 1) != 0)
         return WHAL_EINVAL;

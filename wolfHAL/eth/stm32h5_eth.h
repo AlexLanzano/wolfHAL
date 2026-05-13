@@ -41,9 +41,6 @@ typedef struct whal_Stm32h5_Eth_Cfg {
     size_t rxDescCount;                   /* Number of RX descriptors */
     size_t rxBufSize;                     /* Size of each RX buffer in bytes */
     whal_Timeout *timeout;
-    /* Runtime state (set by driver, not by user) */
-    size_t txHead;                        /* Next TX descriptor to use */
-    size_t rxHead;                        /* Next RX descriptor to check */
 } whal_Stm32h5_Eth_Cfg;
 
 #ifndef WHAL_CFG_STM32H5_ETH_DIRECT_API_MAPPING

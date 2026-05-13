@@ -50,109 +50,7 @@ static const whal_Stm32h5_Rcc_PeriphClk g_ethClocks[] = {
 };
 #define ETH_CLOCK_COUNT (sizeof(g_ethClocks) / sizeof(g_ethClocks[0]))
 
-/* GPIO */
-whal_Gpio g_whalGpio = {
-    .base = WHAL_STM32H563_GPIO_BASE,
-    /* .driver: direct API mapping */
-
-    .cfg = &(whal_Stm32h5_Gpio_Cfg) {
-        .pinCfg = (whal_Stm32h5_Gpio_PinCfg[PIN_COUNT]) {
-            /* LD1 Green LED on PB0 */
-            [LED_PIN] = WHAL_STM32H5_GPIO_PIN(
-                WHAL_STM32H5_GPIO_PORT_B, 0, WHAL_STM32H5_GPIO_MODE_OUT,
-                WHAL_STM32H5_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32H5_GPIO_SPEED_LOW,
-                WHAL_STM32H5_GPIO_PULL_NONE, 0),
-            /* USART3 TX on PD8, AF7 (ST-Link VCP) */
-            [UART_TX_PIN] = WHAL_STM32H5_GPIO_PIN(
-                WHAL_STM32H5_GPIO_PORT_D, 8, WHAL_STM32H5_GPIO_MODE_ALTFN,
-                WHAL_STM32H5_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32H5_GPIO_SPEED_FAST,
-                WHAL_STM32H5_GPIO_PULL_UP, 7),
-            /* USART3 RX on PD9, AF7 (ST-Link VCP) */
-            [UART_RX_PIN] = WHAL_STM32H5_GPIO_PIN(
-                WHAL_STM32H5_GPIO_PORT_D, 9, WHAL_STM32H5_GPIO_MODE_ALTFN,
-                WHAL_STM32H5_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32H5_GPIO_SPEED_FAST,
-                WHAL_STM32H5_GPIO_PULL_UP, 7),
-            /* SPI1 SCK on PA5 */
-            [SPI_SCK_PIN] = WHAL_STM32H5_GPIO_PIN(
-                WHAL_STM32H5_GPIO_PORT_A, 5, WHAL_STM32H5_GPIO_MODE_ALTFN,
-                WHAL_STM32H5_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32H5_GPIO_SPEED_FAST,
-                WHAL_STM32H5_GPIO_PULL_NONE, 5),
-            /* SPI1 MISO on PG9 */
-            [SPI_MISO_PIN] = WHAL_STM32H5_GPIO_PIN(
-                WHAL_STM32H5_GPIO_PORT_G, 9, WHAL_STM32H5_GPIO_MODE_ALTFN,
-                WHAL_STM32H5_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32H5_GPIO_SPEED_FAST,
-                WHAL_STM32H5_GPIO_PULL_NONE, 5),
-            /* SPI1 MOSI on PB5 */
-            [SPI_MOSI_PIN] = WHAL_STM32H5_GPIO_PIN(
-                WHAL_STM32H5_GPIO_PORT_B, 5, WHAL_STM32H5_GPIO_MODE_ALTFN,
-                WHAL_STM32H5_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32H5_GPIO_SPEED_FAST,
-                WHAL_STM32H5_GPIO_PULL_NONE, 5),
-            /* SPI CS on PD14 */
-            [SPI_CS_PIN] = WHAL_STM32H5_GPIO_PIN(
-                WHAL_STM32H5_GPIO_PORT_D, 14, WHAL_STM32H5_GPIO_MODE_OUT,
-                WHAL_STM32H5_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32H5_GPIO_SPEED_FAST,
-                WHAL_STM32H5_GPIO_PULL_UP, 0),
-            /* RMII REF_CLK on PA1 */
-            [ETH_RMII_REF_CLK_PIN] = WHAL_STM32H5_GPIO_PIN(
-                WHAL_STM32H5_GPIO_PORT_A, 1, WHAL_STM32H5_GPIO_MODE_ALTFN,
-                WHAL_STM32H5_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32H5_GPIO_SPEED_HIGH,
-                WHAL_STM32H5_GPIO_PULL_NONE, 11),
-            /* RMII MDIO on PA2 */
-            [ETH_RMII_MDIO_PIN] = WHAL_STM32H5_GPIO_PIN(
-                WHAL_STM32H5_GPIO_PORT_A, 2, WHAL_STM32H5_GPIO_MODE_ALTFN,
-                WHAL_STM32H5_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32H5_GPIO_SPEED_HIGH,
-                WHAL_STM32H5_GPIO_PULL_NONE, 11),
-            /* RMII MDC on PC1 */
-            [ETH_RMII_MDC_PIN] = WHAL_STM32H5_GPIO_PIN(
-                WHAL_STM32H5_GPIO_PORT_C, 1, WHAL_STM32H5_GPIO_MODE_ALTFN,
-                WHAL_STM32H5_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32H5_GPIO_SPEED_HIGH,
-                WHAL_STM32H5_GPIO_PULL_NONE, 11),
-            /* RMII CRS_DV on PA7 */
-            [ETH_RMII_CRS_DV_PIN] = WHAL_STM32H5_GPIO_PIN(
-                WHAL_STM32H5_GPIO_PORT_A, 7, WHAL_STM32H5_GPIO_MODE_ALTFN,
-                WHAL_STM32H5_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32H5_GPIO_SPEED_HIGH,
-                WHAL_STM32H5_GPIO_PULL_NONE, 11),
-            /* RMII RXD0 on PC4 */
-            [ETH_RMII_RXD0_PIN] = WHAL_STM32H5_GPIO_PIN(
-                WHAL_STM32H5_GPIO_PORT_C, 4, WHAL_STM32H5_GPIO_MODE_ALTFN,
-                WHAL_STM32H5_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32H5_GPIO_SPEED_HIGH,
-                WHAL_STM32H5_GPIO_PULL_NONE, 11),
-            /* RMII RXD1 on PC5 */
-            [ETH_RMII_RXD1_PIN] = WHAL_STM32H5_GPIO_PIN(
-                WHAL_STM32H5_GPIO_PORT_C, 5, WHAL_STM32H5_GPIO_MODE_ALTFN,
-                WHAL_STM32H5_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32H5_GPIO_SPEED_HIGH,
-                WHAL_STM32H5_GPIO_PULL_NONE, 11),
-            /* RMII TX_EN on PG11 */
-            [ETH_RMII_TX_EN_PIN] = WHAL_STM32H5_GPIO_PIN(
-                WHAL_STM32H5_GPIO_PORT_G, 11, WHAL_STM32H5_GPIO_MODE_ALTFN,
-                WHAL_STM32H5_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32H5_GPIO_SPEED_HIGH,
-                WHAL_STM32H5_GPIO_PULL_NONE, 11),
-            /* RMII TXD0 on PG13 */
-            [ETH_RMII_TXD0_PIN] = WHAL_STM32H5_GPIO_PIN(
-                WHAL_STM32H5_GPIO_PORT_G, 13, WHAL_STM32H5_GPIO_MODE_ALTFN,
-                WHAL_STM32H5_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32H5_GPIO_SPEED_HIGH,
-                WHAL_STM32H5_GPIO_PULL_NONE, 11),
-            /* RMII TXD1 on PB15 */
-            [ETH_RMII_TXD1_PIN] = WHAL_STM32H5_GPIO_PIN(
-                WHAL_STM32H5_GPIO_PORT_B, 15, WHAL_STM32H5_GPIO_MODE_ALTFN,
-                WHAL_STM32H5_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32H5_GPIO_SPEED_HIGH,
-                WHAL_STM32H5_GPIO_PULL_NONE, 11),
-        },
-        .pinCount = PIN_COUNT,
-    },
-};
-
-/* Timer */
-whal_Timer g_whalTimer = {
-    .base = WHAL_CORTEX_M33_SYSTICK_BASE,
-    .driver = WHAL_CORTEX_M33_SYSTICK_DRIVER,
-
-    .cfg = &(whal_SysTick_Cfg) {
-        .cyclesPerTick = 168000000 / 1000, /* 168 MHz / 1 kHz = 1 ms tick */
-        .clkSrc = WHAL_SYSTICK_CLKSRC_SYSCLK,
-        .tickInt = WHAL_SYSTICK_TICKINT_ENABLED,
-    },
-};
+/* GPIO, RNG, ETH, EthPhy singletons live in board.h as `static const`. */
 
 /* UART */
 whal_Uart g_whalUart = {
@@ -176,17 +74,6 @@ whal_Spi g_whalSpi = {
     },
 };
 
-/* RNG */
-whal_Rng g_whalRng = {
-    .base = WHAL_STM32H563_RNG_BASE,
-    /* .driver: direct API mapping */
-
-    .cfg = &(whal_Stm32h5_Rng_Cfg) {
-        .timeout = &g_whalTimeout,
-    },
-};
-
-
 /* Flash */
 whal_Flash g_whalFlash = {
     .base = WHAL_STM32H563_FLASH_BASE,
@@ -199,49 +86,16 @@ whal_Flash g_whalFlash = {
     },
 };
 
-/* Ethernet */
-#define ETH_TX_DESC_COUNT 4
-#define ETH_RX_DESC_COUNT 4
-#define ETH_TX_BUF_SIZE   1536
-#define ETH_RX_BUF_SIZE   1536
-
-static whal_Stm32h5_Eth_TxDesc ethTxDescs[ETH_TX_DESC_COUNT]
+/* Ethernet descriptor rings + buffer pool (referenced by the ETH singleton
+ * cfg in board.h). */
+whal_Stm32h5_Eth_TxDesc ethTxDescs[BOARD_ETH_TX_DESC_COUNT]
     __attribute__((aligned(16)));
-static whal_Stm32h5_Eth_RxDesc ethRxDescs[ETH_RX_DESC_COUNT]
+whal_Stm32h5_Eth_RxDesc ethRxDescs[BOARD_ETH_RX_DESC_COUNT]
     __attribute__((aligned(16)));
-static uint8_t ethTxBufs[ETH_TX_DESC_COUNT * ETH_TX_BUF_SIZE]
+uint8_t ethTxBufs[BOARD_ETH_TX_DESC_COUNT * BOARD_ETH_TX_BUF_SIZE]
     __attribute__((aligned(4)));
-static uint8_t ethRxBufs[ETH_RX_DESC_COUNT * ETH_RX_BUF_SIZE]
+uint8_t ethRxBufs[BOARD_ETH_RX_DESC_COUNT * BOARD_ETH_RX_BUF_SIZE]
     __attribute__((aligned(4)));
-
-whal_Eth g_whalEth = {
-    .base = WHAL_STM32H563_ETH_BASE,
-    /* .driver: direct API mapping */
-
-    .macAddr = {0x00, 0x80, 0xE1, 0x00, 0x00, 0x01},
-    .cfg = &(whal_Stm32h5_Eth_Cfg) {
-        .txDescs = ethTxDescs,
-        .txBufs = ethTxBufs,
-        .txDescCount = ETH_TX_DESC_COUNT,
-        .txBufSize = ETH_TX_BUF_SIZE,
-        .rxDescs = ethRxDescs,
-        .rxBufs = ethRxBufs,
-        .rxDescCount = ETH_RX_DESC_COUNT,
-        .rxBufSize = ETH_RX_BUF_SIZE,
-        .timeout = &g_whalTimeout,
-    },
-};
-
-/* Ethernet PHY (LAN8742A) */
-whal_EthPhy g_whalEthPhy = {
-    .eth = &g_whalEth,
-    .addr = BOARD_ETH_PHY_ADDR,
-    /* .driver: direct API mapping */
-
-    .cfg = &(whal_Lan8742a_Cfg) {
-        .timeout = &g_whalTimeout,
-    },
-};
 
 void Board_WaitMs(size_t ms)
 {
@@ -314,7 +168,7 @@ whal_Error Board_Init(void)
     if (err)
         return err;
 
-    err = whal_Gpio_Init(&g_whalGpio);
+    err = whal_Gpio_Init(WHAL_SINGLETON);
     if (err)
         return err;
 
@@ -326,23 +180,23 @@ whal_Error Board_Init(void)
     if (err)
         return err;
 
-    err = whal_Rng_Init(&g_whalRng);
+    err = whal_Rng_Init(WHAL_SINGLETON);
     if (err)
         return err;
 
-    err = whal_Eth_Init(&g_whalEth);
+    err = whal_Eth_Init(WHAL_SINGLETON);
     if (err)
         return err;
 
-    err = whal_EthPhy_Init(&g_whalEthPhy);
+    err = whal_EthPhy_Init(WHAL_SINGLETON);
     if (err)
         return err;
 
-    err = whal_Timer_Init(&g_whalTimer);
+    err = whal_Timer_Init(WHAL_SINGLETON);
     if (err)
         return err;
 
-    err = whal_Timer_Start(&g_whalTimer);
+    err = whal_Timer_Start(WHAL_SINGLETON);
     if (err)
         return err;
 
@@ -361,23 +215,23 @@ whal_Error Board_Deinit(void)
     if (err)
         return err;
 
-    err = whal_Timer_Stop(&g_whalTimer);
+    err = whal_Timer_Stop(WHAL_SINGLETON);
     if (err)
         return err;
 
-    err = whal_Timer_Deinit(&g_whalTimer);
+    err = whal_Timer_Deinit(WHAL_SINGLETON);
     if (err)
         return err;
 
-    err = whal_EthPhy_Deinit(&g_whalEthPhy);
+    err = whal_EthPhy_Deinit(WHAL_SINGLETON);
     if (err)
         return err;
 
-    err = whal_Eth_Deinit(&g_whalEth);
+    err = whal_Eth_Deinit(WHAL_SINGLETON);
     if (err)
         return err;
 
-    err = whal_Rng_Deinit(&g_whalRng);
+    err = whal_Rng_Deinit(WHAL_SINGLETON);
     if (err)
         return err;
 
@@ -389,7 +243,7 @@ whal_Error Board_Deinit(void)
     if (err)
         return err;
 
-    err = whal_Gpio_Deinit(&g_whalGpio);
+    err = whal_Gpio_Deinit(WHAL_SINGLETON);
     if (err)
         return err;
 

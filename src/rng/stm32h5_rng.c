@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include "board.h"  /* provides whal_Stm32h5_Rng_Dev singleton */
 #include <wolfHAL/rng/stm32h5_rng.h>
 #include <wolfHAL/rng/rng.h>
 #include <wolfHAL/error.h>
@@ -63,15 +64,11 @@
 
 whal_Error whal_Stm32h5_Rng_Init(whal_Rng *rngDev)
 {
-    whal_Stm32h5_Rng_Cfg *cfg;
-    size_t base;
+    const whal_Stm32h5_Rng_Cfg *cfg =
+        (const whal_Stm32h5_Rng_Cfg *)whal_Stm32h5_Rng_Dev.cfg;
+    size_t base = whal_Stm32h5_Rng_Dev.base;
     whal_Error err;
-
-    if (!rngDev || !rngDev->cfg)
-        return WHAL_EINVAL;
-
-    cfg = (whal_Stm32h5_Rng_Cfg *)rngDev->cfg;
-    base = rngDev->base;
+    (void)rngDev;
 
     /*
      * Apply NIST-certified configuration via CONDRST sequence:
@@ -99,11 +96,9 @@ whal_Error whal_Stm32h5_Rng_Init(whal_Rng *rngDev)
 
 whal_Error whal_Stm32h5_Rng_Deinit(whal_Rng *rngDev)
 {
-    if (!rngDev || !rngDev->cfg)
-        return WHAL_EINVAL;
-
+    (void)rngDev;
     /* Disable the RNG peripheral */
-    whal_Reg_Update(rngDev->base, RNG_CR_REG, RNG_CR_RNGEN_Msk,
+    whal_Reg_Update(whal_Stm32h5_Rng_Dev.base, RNG_CR_REG, RNG_CR_RNGEN_Msk,
                     whal_SetBits(RNG_CR_RNGEN_Msk, RNG_CR_RNGEN_Pos, 0));
 
     return WHAL_SUCCESS;
@@ -114,16 +109,15 @@ whal_Error whal_Stm32h5_Rng_Generate(whal_Rng *rngDev, void *rngData,
 {
     uint8_t *rngBuf = (uint8_t *)rngData;
     whal_Error err = WHAL_SUCCESS;
-    whal_Stm32h5_Rng_Cfg *cfg;
-    size_t base;
+    const whal_Stm32h5_Rng_Cfg *cfg =
+        (const whal_Stm32h5_Rng_Cfg *)whal_Stm32h5_Rng_Dev.cfg;
+    size_t base = whal_Stm32h5_Rng_Dev.base;
     size_t sr;
     size_t offset = 0;
+    (void)rngDev;
 
-    if (!rngDev || !rngDev->cfg || !rngData)
+    if (!rngData)
         return WHAL_EINVAL;
-
-    cfg = (whal_Stm32h5_Rng_Cfg *)rngDev->cfg;
-    base = rngDev->base;
 #ifdef WHAL_CFG_NO_TIMEOUT
     (void)(cfg);
 #endif

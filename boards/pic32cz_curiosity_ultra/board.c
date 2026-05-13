@@ -28,35 +28,6 @@ static const whal_Pic32cz_Clock_PeriphClk g_periphClks[] = {
 };
 #define PERIPH_CLK_COUNT (sizeof(g_periphClks) / sizeof(g_periphClks[0]))
 
-/* GPIO */
-whal_Gpio g_whalGpio = {
-    .base = WHAL_PIC32CZ_GPIO_BASE,
-    /* .driver: direct API mapping */
-
-    .cfg = &(whal_Pic32cz_Gpio_Cfg) {
-        .pinCfgCount = 3,
-        .pinCfg = (whal_Pic32cz_Gpio_PinCfg[]) {
-            { /* LED */
-                .port = 1,
-                .pin = 21,
-                .dir = WHAL_PIC32CZ_DIR_OUTPUT,
-                .out = 0,
-            },
-            { /* UART TX */
-                .port = 2,
-                .pin = 21,
-                .pmuxEn = 1,
-                .pmux = WHAL_PIC32CZ_PMUX_SERCOM_ALT,
-            },
-            { /* UART RX */
-                .port = 2,
-                .pin = 22,
-                .pmuxEn = 1,
-                .pmux = WHAL_PIC32CZ_PMUX_SERCOM_ALT,
-            },
-        },
-    },
-};
 
 /* UART */
 whal_Uart g_whalUart = {
@@ -67,18 +38,6 @@ whal_Uart g_whalUart = {
         .baud = WHAL_PIC32CZ_UART_BAUD(115200, 300000000),
         .txPad = WHAL_PIC32CZ_UART_TXPO_PAD0,
         .rxPad = WHAL_PIC32CZ_UART_RXPO_PAD1,
-    },
-};
-
-/* Timer */
-whal_Timer g_whalTimer = {
-    .base = WHAL_CORTEX_M7_SYSTICK_BASE,
-    .driver = WHAL_CORTEX_M7_SYSTICK_DRIVER,
-
-    .cfg = &(whal_SysTick_Cfg) {
-        .cyclesPerTick = 300000000 / 1000,
-        .clkSrc = WHAL_SYSTICK_CLKSRC_SYSCLK,
-        .tickInt = WHAL_SYSTICK_TICKINT_ENABLED,
     },
 };
 
@@ -169,7 +128,7 @@ whal_Error Board_Init(void)
             return err;
     }
 
-    err = whal_Gpio_Init(&g_whalGpio);
+    err = whal_Gpio_Init(WHAL_SINGLETON);
     if (err) {
         return err;
     }
@@ -184,12 +143,12 @@ whal_Error Board_Init(void)
         return err;
     }
 
-    err = whal_Timer_Init(&g_whalTimer);
+    err = whal_Timer_Init(WHAL_SINGLETON);
     if (err) {
         return err;
     }
 
-    err = whal_Timer_Start(&g_whalTimer);
+    err = whal_Timer_Start(WHAL_SINGLETON);
     if (err) {
         return err;
     }
@@ -211,12 +170,12 @@ whal_Error Board_Deinit(void)
         return err;
     }
 
-    err = whal_Timer_Stop(&g_whalTimer);
+    err = whal_Timer_Stop(WHAL_SINGLETON);
     if (err) {
         return err;
     }
 
-    err = whal_Timer_Deinit(&g_whalTimer);
+    err = whal_Timer_Deinit(WHAL_SINGLETON);
     if (err) {
         return err;
     }
@@ -231,7 +190,7 @@ whal_Error Board_Deinit(void)
         return err;
     }
 
-    err = whal_Gpio_Deinit(&g_whalGpio);
+    err = whal_Gpio_Deinit(WHAL_SINGLETON);
     if (err) {
         return err;
     }

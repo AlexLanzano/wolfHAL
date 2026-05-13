@@ -34,7 +34,9 @@ CFLAGS += -Wall -Werror $(INCLUDE) -g3 -Os -ffunction-sections -fdata-sections \
           -DWHAL_CFG_STM32N6_HASH_SHA256_DIRECT_API_MAPPING \
           -DWHAL_CFG_STM32N6_HASH_HMAC_SHA1_DIRECT_API_MAPPING \
           -DWHAL_CFG_STM32N6_HASH_HMAC_SHA224_DIRECT_API_MAPPING \
-          -DWHAL_CFG_STM32N6_HASH_HMAC_SHA256_DIRECT_API_MAPPING
+          -DWHAL_CFG_STM32N6_HASH_HMAC_SHA256_DIRECT_API_MAPPING \
+          -DWHAL_CFG_SYSTICK_TIMER_DIRECT_API_MAPPING \
+          -DWHAL_CFG_NVIC_IRQ_DIRECT_API_MAPPING
 LDFLAGS = --omagic -static --gc-sections
 
 LINKER_SCRIPT ?= $(_BOARD_DIR)/linker.ld
@@ -44,13 +46,11 @@ INCLUDE += -I$(_BOARD_DIR) -I$(WHAL_DIR)/boards/peripheral
 BOARD_SOURCE = $(_BOARD_DIR)/ivt.c
 BOARD_SOURCE += $(_BOARD_DIR)/board.c
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*.c)
-BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/timer.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/sensor.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/watchdog.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/crypto.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/flash.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/block.c)
-BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/irq.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/irq/cortex_m4_nvic.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/stm32n6_*.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/lan8742a_*.c)

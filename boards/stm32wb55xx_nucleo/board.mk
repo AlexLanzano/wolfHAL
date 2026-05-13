@@ -11,8 +11,8 @@ CFLAGS += -Wall -Werror $(INCLUDE) -g3 -Os -ffunction-sections -fdata-sections \
           -ffreestanding -nostdlib -mcpu=cortex-m4 \
           -DPLATFORM_STM32WB -MMD -MP \
           $(if $(DMA),-DBOARD_DMA) \
-          $(if $(filter iwdg,$(WATCHDOG)),-DBOARD_WATCHDOG_IWDG) \
-          $(if $(filter wwdg,$(WATCHDOG)),-DBOARD_WATCHDOG_WWDG) \
+          $(if $(filter iwdg,$(WATCHDOG)),-DBOARD_WATCHDOG_IWDG -DWHAL_CFG_STM32WB_IWDG_DIRECT_API_MAPPING) \
+          $(if $(filter wwdg,$(WATCHDOG)),-DBOARD_WATCHDOG_WWDG -DWHAL_CFG_STM32WB_WWDG_DIRECT_API_MAPPING) \
           $(if $(DMA),-DWHAL_CFG_STM32WB_UART_DMA_DIRECT_API_MAPPING,-DWHAL_CFG_STM32WB_UART_DIRECT_API_MAPPING) \
           -DWHAL_CFG_STM32WB_GPIO_DIRECT_API_MAPPING \
           -DWHAL_CFG_STM32WB_SPI_DIRECT_API_MAPPING \
@@ -26,7 +26,9 @@ CFLAGS += -Wall -Werror $(INCLUDE) -g3 -Os -ffunction-sections -fdata-sections \
           -DWHAL_CFG_STM32WB_AES_CTR_DIRECT_API_MAPPING \
           -DWHAL_CFG_STM32WB_AES_GCM_DIRECT_API_MAPPING \
           -DWHAL_CFG_STM32WB_AES_GMAC_DIRECT_API_MAPPING \
-          -DWHAL_CFG_STM32WB_AES_CCM_DIRECT_API_MAPPING
+          -DWHAL_CFG_STM32WB_AES_CCM_DIRECT_API_MAPPING \
+          -DWHAL_CFG_SYSTICK_TIMER_DIRECT_API_MAPPING \
+          -DWHAL_CFG_NVIC_IRQ_DIRECT_API_MAPPING
 LDFLAGS = --omagic -static --gc-sections
 
 LINKER_SCRIPT ?= $(_BOARD_DIR)/linker.ld
@@ -36,12 +38,9 @@ INCLUDE += -I$(_BOARD_DIR) -I$(WHAL_DIR)/boards/peripheral
 BOARD_SOURCE = $(_BOARD_DIR)/ivt.c
 BOARD_SOURCE += $(_BOARD_DIR)/board.c
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*.c)
-BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/timer.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/flash.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/sensor.c)
-BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/watchdog.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/block.c)
-BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/irq.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/irq/cortex_m4_nvic.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/stm32wb_*.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/systick.c)

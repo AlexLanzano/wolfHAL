@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include "board.h"  /* provides whal_Stm32wb_Rng_Dev singleton */
 #include <wolfHAL/rng/stm32wb_rng.h>
 #include <wolfHAL/rng/rng.h>
 #include <wolfHAL/error.h>
@@ -49,19 +50,13 @@
 
 whal_Error whal_Stm32wb_Rng_Init(whal_Rng *rngDev)
 {
-    if (!rngDev || !rngDev->cfg) {
-        return WHAL_EINVAL;
-    }
-
+    (void)rngDev;
     return WHAL_SUCCESS;
 }
 
 whal_Error whal_Stm32wb_Rng_Deinit(whal_Rng *rngDev)
 {
-    if (!rngDev || !rngDev->cfg) {
-        return WHAL_EINVAL;
-    }
-
+    (void)rngDev;
     return WHAL_SUCCESS;
 }
 
@@ -69,17 +64,16 @@ whal_Error whal_Stm32wb_Rng_Generate(whal_Rng *rngDev, void *rngData, size_t rng
 {
     uint8_t *rngBuf = (uint8_t *)rngData;
     whal_Error err = WHAL_SUCCESS;
-    whal_Stm32wb_Rng_Cfg *cfg;
-    size_t base;
+    const whal_Stm32wb_Rng_Cfg *cfg =
+        (const whal_Stm32wb_Rng_Cfg *)whal_Stm32wb_Rng_Dev.cfg;
+    size_t base = whal_Stm32wb_Rng_Dev.base;
     size_t sr;
     size_t offset = 0;
+    (void)rngDev;
 
-    if (!rngDev || !rngDev->cfg || !rngData) {
+    if (!rngData) {
         return WHAL_EINVAL;
     }
-
-    cfg = (whal_Stm32wb_Rng_Cfg *)rngDev->cfg;
-    base = rngDev->base;
 #ifdef WHAL_CFG_NO_TIMEOUT
     (void)(cfg);
 #endif

@@ -9,6 +9,12 @@
 #include <wolfHAL/error.h>
 #include <wolfHAL/regmap.h>
 
+/* Handle sentinel for singleton-internal drivers: the driver references its
+ * singleton (e.g., `whal_Stm32h5_Eth_Dev`) directly and ignores the handle
+ * argument. Pass WHAL_SINGLETON to make that intent explicit at the call
+ * site. */
+#define WHAL_SINGLETON  ((void *)0)
+
 #include <wolfHAL/clock/clock.h>
 #include <wolfHAL/gpio/gpio.h>
 #include <wolfHAL/uart/uart.h>

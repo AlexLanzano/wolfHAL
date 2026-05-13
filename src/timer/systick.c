@@ -1,3 +1,4 @@
+#include "board.h"  /* provides whal_SysTick_Dev singleton */
 #include <wolfHAL/error.h>
 #include <wolfHAL/regmap.h>
 #include <wolfHAL/bitops.h>
@@ -31,16 +32,10 @@
 
 whal_Error whal_SysTick_Init(whal_Timer *timerDev)
 {
-    whal_SysTick_Cfg *cfg;
-    size_t base;
-
-    if (!timerDev || !timerDev->cfg) {
-        return WHAL_EINVAL;
-    }
-
-    base = timerDev->base;
-
-    cfg = (whal_SysTick_Cfg *)timerDev->cfg;
+    const whal_SysTick_Cfg *cfg =
+        (const whal_SysTick_Cfg *)whal_SysTick_Dev.cfg;
+    size_t base = whal_SysTick_Dev.base;
+    (void)timerDev;
 
     whal_Reg_Update(base, SYSTICK_CSR_REG,
                           SYSTICK_CSR_CLKSOURCE_Msk | SYSTICK_CSR_TICKINT_Msk,
@@ -56,22 +51,14 @@ whal_Error whal_SysTick_Init(whal_Timer *timerDev)
 
 whal_Error whal_SysTick_Deinit(whal_Timer *timerDev)
 {
-    if (!timerDev) {
-        return WHAL_EINVAL;
-    }
-
+    (void)timerDev;
     return WHAL_SUCCESS;
 }
 
 whal_Error whal_SysTick_Start(whal_Timer *timerDev)
 {
-    size_t base;
-
-    if (!timerDev || !timerDev->cfg) {
-        return WHAL_EINVAL;
-    }
-
-    base = timerDev->base;
+    size_t base = whal_SysTick_Dev.base;
+    (void)timerDev;
 
     whal_Reg_Update(base, SYSTICK_CSR_REG, SYSTICK_CSR_ENABLE_Msk,
                     whal_SetBits(SYSTICK_CSR_ENABLE_Msk, SYSTICK_CSR_ENABLE_Pos, 1));
@@ -81,13 +68,8 @@ whal_Error whal_SysTick_Start(whal_Timer *timerDev)
 
 whal_Error whal_SysTick_Stop(whal_Timer *timerDev)
 {
-    size_t base;
-
-    if (!timerDev || !timerDev->cfg) {
-        return WHAL_EINVAL;
-    }
-
-    base = timerDev->base;
+    size_t base = whal_SysTick_Dev.base;
+    (void)timerDev;
 
     whal_Reg_Update(base, SYSTICK_CSR_REG, SYSTICK_CSR_ENABLE_Msk,
                     whal_SetBits(SYSTICK_CSR_ENABLE_Msk, SYSTICK_CSR_ENABLE_Pos, 0));
@@ -97,10 +79,7 @@ whal_Error whal_SysTick_Stop(whal_Timer *timerDev)
 
 whal_Error whal_SysTick_Reset(whal_Timer *timerDev)
 {
-    if (!timerDev) {
-        return WHAL_EINVAL;
-    }
-
+    (void)timerDev;
     return WHAL_SUCCESS;
 }
 

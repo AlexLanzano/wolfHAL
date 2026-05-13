@@ -15,7 +15,8 @@ CFLAGS += -Wall -Werror $(INCLUDE) -g3 -Os -ffunction-sections -fdata-sections \
           -DWHAL_CFG_STM32F0_UART_DIRECT_API_MAPPING \
           -DWHAL_CFG_STM32F0_SPI_DIRECT_API_MAPPING \
           -DWHAL_CFG_STM32F0_I2C_DIRECT_API_MAPPING \
-          $(if $(filter iwdg,$(WATCHDOG)),-DBOARD_WATCHDOG_IWDG)
+          $(if $(filter iwdg,$(WATCHDOG)),-DBOARD_WATCHDOG_IWDG) \
+          -DWHAL_CFG_SYSTICK_TIMER_DIRECT_API_MAPPING
 LDFLAGS = -mcpu=cortex-m0 -mthumb -ffreestanding -nostartfiles \
           -Wl,--omagic -Wl,--gc-sections -static
 
@@ -26,7 +27,6 @@ INCLUDE += -I$(_BOARD_DIR) -I$(WHAL_DIR)/boards/peripheral
 BOARD_SOURCE = $(_BOARD_DIR)/ivt.c
 BOARD_SOURCE += $(_BOARD_DIR)/board.c
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*.c)
-BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/timer.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/flash.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/rng.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/crypto.c)

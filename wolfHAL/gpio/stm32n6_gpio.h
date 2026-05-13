@@ -15,6 +15,8 @@
 typedef whal_Stm32wb_Gpio_Cfg    whal_Stm32n6_Gpio_Cfg;
 typedef whal_Stm32wb_Gpio_PinCfg whal_Stm32n6_Gpio_PinCfg;
 
+#define whal_Stm32n6_Gpio_Dev whal_Stm32wb_Gpio_Dev
+
 #ifndef WHAL_CFG_STM32N6_GPIO_DIRECT_API_MAPPING
 #define whal_Stm32n6_Gpio_Driver whal_Stm32wb_Gpio_Driver
 #define whal_Stm32n6_Gpio_Init   whal_Stm32wb_Gpio_Init
