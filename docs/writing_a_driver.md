@@ -66,9 +66,11 @@ For a peripheral driver implementing device type `foo` for chip `mychip`:
 For a board-level driver implementing device type `foo` on platform `myplatform`:
 
 - `wolfHAL/foo/myplatform_foo.h` — types, enums, descriptor macros, and
-  chip-specific helper declarations (no driver extern, no `_DRIVER` macro)
-- `src/foo/myplatform_foo.c` — chip-specific helper implementations (no
-  vtable, no `DIRECT_API_MAPPING` block)
+  chip-specific helper declarations or definitions (no driver extern, no
+  `_DRIVER` macro). Clock drivers in particular are header-only — every
+  `whal_<Chip>_<Subsys>_*` helper is defined as a `static inline` directly
+  in the header. Other board-level drivers (power, supply) may still keep
+  their definitions in `src/foo/myplatform_foo.c`.
 
 ### Driver Vtable
 
@@ -135,6 +137,57 @@ static whal_Error whal_Myplatform_Foo_Init(whal_Foo *fooDev)
     /* ... */
 }
 ```
+
+#### Single-instance drivers
+
+For peripherals that a board only ever uses one instance of, the driver
+does not need to take the device handle at all. The convention is
+**single-instance**: the driver source `#include`s `board.h` and reads
+its `.base` and `.cfg` directly from a `static const whal_<Type>`
+singleton that the board declares there. The function signature still
+takes the generic handle so it can sit behind the generic vtable, but
+the body ignores it:
+
+```c
+#include "board.h"  /* provides whal_Myplatform_Foo_Dev singleton */
+
+whal_Error whal_Myplatform_Foo_Init(whal_Foo *fooDev)
+{
+    const whal_Myplatform_Foo_Cfg *cfg =
+        (const whal_Myplatform_Foo_Cfg *)whal_Myplatform_Foo_Dev.cfg;
+    size_t base = whal_Myplatform_Foo_Dev.base;
+    (void)fooDev;
+    /* ... */
+}
+```
+
+Boards call the entry points with `WHAL_SINGLETON` (defined as
+`((void *)0)` in `wolfHAL/wolfHAL.h`) — the sentinel just makes the
+intent explicit at the call site. Singletons declared with `static const`
+in `board.h` are duplicated into every translation unit that includes the
+header, but only the driver TU reads the storage; `--gc-sections` drops
+the rest.
+
+There are two flavors:
+
+- **Unconditional single-instance.** Used for peripherals where every
+  supported chip exposes a single instance, so the SI path is the only
+  path. The driver source `#include`s `board.h` at the top, drops the
+  handle null-check, and accesses the singleton directly. No `#if`
+  fences inside the driver body.
+- **Conditional single-instance.** Used on driver types where the chip
+  generally has more than one instance (UART, SPI, I2C, DMA, etc.), so
+  boards must opt in per peripheral with
+  `-DWHAL_CFG_<PLAT>_<DRV>_SINGLE_INSTANCE`. The driver body is
+  bifurcated with `#if defined(...SINGLE_INSTANCE...) / #else`: the SI
+  branch reads the singleton, the `#else` branch is the original
+  pointer-based path. See `src/uart/stm32wb_uart.c` for the canonical
+  shape.
+
+Single-instance is independent of direct API mapping (described below).
+A driver may be single-instance and vtable-dispatched, single-instance
+and directly mapped, or pointer-based and either. The two knobs do not
+imply each other.
 
 ### No Cross-Driver Calls
 
@@ -304,7 +357,7 @@ for the alias platform:
 typedef whal_Stm32wb_Gpio_Cfg    whal_Stm32h5_Gpio_Cfg;
 typedef whal_Stm32wb_Gpio_PinCfg whal_Stm32h5_Gpio_PinCfg;
 
-#ifndef WHAL_CFG_GPIO_API_MAPPING_STM32H5
+#ifndef WHAL_CFG_STM32H5_GPIO_DIRECT_API_MAPPING
 #define whal_Stm32h5_Gpio_Driver whal_Stm32wb_Gpio_Driver
 #define whal_Stm32h5_Gpio_Init   whal_Stm32wb_Gpio_Init
 #define whal_Stm32h5_Gpio_Deinit whal_Stm32wb_Gpio_Deinit
@@ -322,6 +375,23 @@ typedef whal_Stm32wb_Gpio_PinCfg whal_Stm32h5_Gpio_PinCfg;
 Use `typedef` for types (gives proper type-checking and debugger visibility)
 and `#define` for the driver instance and functions (which are values, not
 types).
+
+For single-instance drivers, the alias header must also bridge the
+singleton name so the upstream driver body (which reads
+`whal_Stm32wb_<Drv>_Dev`) finds the storage declared under the alias
+platform's name in the consuming board's `board.h`. Add one more
+`#define`:
+
+```c
+#define whal_Stm32h5_Gpio_Dev whal_Stm32wb_Gpio_Dev
+```
+
+The board declares its singleton under `whal_<AliasPlat>_<Drv>_Dev` so
+that the rest of the board source talks about its own platform; the
+`#define` lets the upstream driver source keep reading from its
+canonical name. A small number of singletons are inherently
+platform-agnostic and keep neutral names everywhere
+(`whal_Nvic_Dev`, `whal_SysTick_Dev`, `whal_Lan8742a_Dev`).
 
 #### Source
 
@@ -443,9 +513,11 @@ naming convention.
 
 ### Reference implementation
 
-`wolfHAL/clock/stm32wb_rcc.h` and `src/clock/stm32wb_rcc.c` are the
-canonical reference. New chip clock drivers should be modeled on its
-shape. `wolfHAL/clock/pic32cz_clock.h` shows how the same convention
+Clock drivers are header-only — every `whal_<Chip>_<Subsys>_*` helper is
+defined as a `static inline` in the chip's clock header, and there is no
+matching `.c` file under `src/clock/`. `wolfHAL/clock/stm32wb_rcc.h` is
+the canonical reference shape; new chip clock drivers should be modeled
+on it. `wolfHAL/clock/pic32cz_clock.h` shows how the same convention
 covers a fundamentally different topology (oscillators + GCLK generators
 + peripheral channels).
 
@@ -1145,10 +1217,15 @@ hardware retains all necessary context internally.
 
 ### API Usage
 
+Applications reach each algorithm through its `BOARD_<ALGO>_DEV` macro
+(`BOARD_AES_GCM_DEV`, `BOARD_SHA256_DEV`, etc.). Boards point those at
+`WHAL_SINGLETON` for the common single-instance case or at a
+`&g_whalAesGcm` pointer if they have kept the device in `board.c`.
+
 One-shot:
 
 ```c
-whal_AesGcm_Oneshot(&g_whalAesGcm, WHAL_CRYPTO_ENCRYPT,
+whal_AesGcm_Oneshot(BOARD_AES_GCM_DEV, WHAL_CRYPTO_ENCRYPT,
                     key, 32, iv, 12, aad, aadSz,
                     pt, ct, ptSz, tag, 16);
 ```
@@ -1156,28 +1233,28 @@ whal_AesGcm_Oneshot(&g_whalAesGcm, WHAL_CRYPTO_ENCRYPT,
 Streaming (AEAD):
 
 ```c
-whal_AesGcm_Start(&g_whalAesGcm, WHAL_CRYPTO_ENCRYPT,
+whal_AesGcm_Start(BOARD_AES_GCM_DEV, WHAL_CRYPTO_ENCRYPT,
                   key, 32, iv, 12, aad, aadSz);
-whal_AesGcm_Process(&g_whalAesGcm, chunk1, out1, chunk1Sz);
-whal_AesGcm_Process(&g_whalAesGcm, chunk2, out2, chunk2Sz);
-whal_AesGcm_Finalize(&g_whalAesGcm, tag, 16);
+whal_AesGcm_Process(BOARD_AES_GCM_DEV, chunk1, out1, chunk1Sz);
+whal_AesGcm_Process(BOARD_AES_GCM_DEV, chunk2, out2, chunk2Sz);
+whal_AesGcm_Finalize(BOARD_AES_GCM_DEV, tag, 16);
 ```
 
 Streaming (hash):
 
 ```c
-whal_Sha256_Start(&g_whalSha256);
-whal_Sha256_Process(&g_whalSha256, chunk1, chunk1Sz);
-whal_Sha256_Process(&g_whalSha256, chunk2, chunk2Sz);
-whal_Sha256_Finalize(&g_whalSha256, digest, 32);
+whal_Sha256_Start(BOARD_SHA256_DEV);
+whal_Sha256_Process(BOARD_SHA256_DEV, chunk1, chunk1Sz);
+whal_Sha256_Process(BOARD_SHA256_DEV, chunk2, chunk2Sz);
+whal_Sha256_Finalize(BOARD_SHA256_DEV, digest, 32);
 ```
 
 Streaming (block cipher):
 
 ```c
-whal_AesCbc_Start(&g_whalAesCbc, WHAL_CRYPTO_ENCRYPT, key, 32, iv);
-whal_AesCbc_Process(&g_whalAesCbc, block1, out1, 16);
-whal_AesCbc_Process(&g_whalAesCbc, block2, out2, 16);
+whal_AesCbc_Start(BOARD_AES_CBC_DEV, WHAL_CRYPTO_ENCRYPT, key, 32, iv);
+whal_AesCbc_Process(BOARD_AES_CBC_DEV, block1, out1, 16);
+whal_AesCbc_Process(BOARD_AES_CBC_DEV, block2, out2, 16);
 ```
 
 ### Writing a Crypto Driver
@@ -1370,6 +1447,17 @@ whal_HmacSha256 g_whalHmacSha256 = {
 When direct API mapping is active for an algorithm, the `.driver` field is
 omitted from that per-algorithm device. When Init/Deinit mapping is active,
 the `.driver` field is omitted from the `whal_Crypto` device.
+
+Crypto drivers that are single-instance (most on-MCU AES/hash blocks
+qualify, since the chip exposes one of each) follow the pattern in the
+"Single-instance drivers" section above: the board declares the
+`whal_Crypto` and each per-algorithm device as `static const
+whal_<Plat>_<Algo>_Dev` in `board.h` rather than as `g_whal<X>` in
+`board.c`, the per-algorithm device's `.crypto` points at the cast
+address of the `whal_Crypto` singleton, and any streaming state is
+declared as a `static` immediately above the singleton that uses it.
+The board's `BOARD_<ALGO>_DEV` macro is then `WHAL_SINGLETON`. See
+`boards/stm32wb55xx_nucleo/board.h` for a worked example.
 
 ### Reference Implementations
 

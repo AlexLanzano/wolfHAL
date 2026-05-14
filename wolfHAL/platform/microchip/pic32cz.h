@@ -8,6 +8,11 @@
 #include <wolfHAL/flash/pic32cz_flash.h>
 #include <wolfHAL/platform/arm/cortex_m7.h>
 
+/*
+ * @file pic32cz.h
+ * @brief Convenience initializers for PIC32CZ device instances.
+ */
+
 #define WHAL_PIC32CZ_FLASH_BASE 0x44002000
 #define WHAL_PIC32CZ_FLASH_DRIVER &whal_Pic32cz_Flash_Driver
 

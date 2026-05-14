@@ -2,7 +2,11 @@
 #define WHAL_STM32L1_PWR_H
 
 #include <stdint.h>
+#include <stddef.h>
 #include <wolfHAL/power/power.h>
+#include <wolfHAL/error.h>
+#include <wolfHAL/regmap.h>
+#include <wolfHAL/bitops.h>
 #include <wolfHAL/timeout.h>
 
 /*
@@ -22,8 +26,15 @@
  *   Range 3 (1.2 V): SYSCLK <=  4 MHz, PLL disabled.
  */
 
+#define WHAL_STM32L1_PWR_CR_REG       0x00
+#define WHAL_STM32L1_PWR_CR_VOS_Pos   11
+#define WHAL_STM32L1_PWR_CR_VOS_Msk   (WHAL_BITMASK(2) << WHAL_STM32L1_PWR_CR_VOS_Pos)
+#define WHAL_STM32L1_PWR_CSR_REG      0x04
+#define WHAL_STM32L1_PWR_CSR_VOSF_Pos 4
+#define WHAL_STM32L1_PWR_CSR_VOSF_Msk (1UL << WHAL_STM32L1_PWR_CSR_VOSF_Pos)
+
 /*
- * @brief Internal voltage regulator output ranges (PWR_CR.VOS).
+ * @brief Internal regulator voltage scaling range (PWR_CR.VOS).
  */
 typedef enum {
     WHAL_STM32L1_PWR_VOS_RANGE_1 = 1,
@@ -32,21 +43,37 @@ typedef enum {
 } whal_Stm32l1_Pwr_VosRange;
 
 /*
- * @brief Set the voltage regulator output range. Polls PWR_CSR.VOSF
- *        until voltage scaling completes. The PWR APB1 clock must already
- *        be enabled (via whal_Stm32l1_Rcc_EnablePeriphClk with
- *        WHAL_STM32L152_PWR_CLOCK) before calling.
+ * @brief Switch the regulator to a new VOS range.
+ *
+ * Waits for any in-progress VOS transition to finish (PWR_CSR.VOSF == 0),
+ * writes the new range to PWR_CR.VOS, then waits for VOSF == 0 again. Must
+ * be called before raising the system clock past the current range's limit.
  *
  * @param powerDev Power device instance.
- * @param range    Desired VOS range (RANGE_1, RANGE_2, or RANGE_3).
- * @param timeout  Optional timeout for the VOSF poll loop.
+ * @param range    Target VOS range.
+ * @param timeout  Timeout instance (NULL for unbounded wait).
  *
- * @retval WHAL_SUCCESS  Voltage scaling settled at the requested range.
- * @retval WHAL_EINVAL   Null powerDev.
- * @retval WHAL_ETIMEOUT VOSF did not clear within the configured timeout.
+ * @retval WHAL_SUCCESS  Range switched and regulator settled.
+ * @retval WHAL_ETIMEOUT VOSF didn't clear within the timeout.
  */
-whal_Error whal_Stm32l1_Pwr_SetVosRange(whal_Power *powerDev,
-                                       whal_Stm32l1_Pwr_VosRange range,
-                                       whal_Timeout *timeout);
+static inline whal_Error whal_Stm32l1_Pwr_SetVosRange(
+    const whal_Power *powerDev, whal_Stm32l1_Pwr_VosRange range,
+    whal_Timeout *timeout)
+{
+    whal_Error err;
+
+    err = whal_Reg_ReadPoll(powerDev->base, WHAL_STM32L1_PWR_CSR_REG,
+                            WHAL_STM32L1_PWR_CSR_VOSF_Msk, 0, timeout);
+    if (err)
+        return err;
+
+    whal_Reg_Update(powerDev->base, WHAL_STM32L1_PWR_CR_REG,
+                    WHAL_STM32L1_PWR_CR_VOS_Msk,
+                    whal_SetBits(WHAL_STM32L1_PWR_CR_VOS_Msk,
+                                 WHAL_STM32L1_PWR_CR_VOS_Pos, range));
+
+    return whal_Reg_ReadPoll(powerDev->base, WHAL_STM32L1_PWR_CSR_REG,
+                             WHAL_STM32L1_PWR_CSR_VOSF_Msk, 0, timeout);
+}
 
 #endif /* WHAL_STM32L1_PWR_H */

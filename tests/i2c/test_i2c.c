@@ -12,8 +12,8 @@ static void Test_I2c_Api(void)
     WHAL_ASSERT_EQ(whal_I2c_StartCom(NULL, &comCfg), WHAL_EINVAL);
     WHAL_ASSERT_EQ(whal_I2c_EndCom(NULL), WHAL_EINVAL);
     WHAL_ASSERT_EQ(whal_I2c_Transfer(NULL, &msg, 1), WHAL_EINVAL);
-    WHAL_ASSERT_EQ(whal_I2c_StartCom(&g_whalI2c, NULL), WHAL_EINVAL);
-    WHAL_ASSERT_EQ(whal_I2c_Transfer(&g_whalI2c, NULL, 1), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_I2c_StartCom(BOARD_I2C_DEV, NULL), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_I2c_Transfer(BOARD_I2C_DEV, NULL, 1), WHAL_EINVAL);
 }
 
 void whal_Test_I2c(void)

@@ -1,10 +1,21 @@
 #include <stdint.h>
+#include "board.h"  /* provides whal_Stm32wba_Flash_Dev singleton */
 #include <wolfHAL/regmap.h>
 #include <wolfHAL/flash/stm32wba_flash.h>
 #include <wolfHAL/flash/flash.h>
 #include <wolfHAL/error.h>
 #include <wolfHAL/bitops.h>
 #include <wolfHAL/timeout.h>
+
+#ifdef WHAL_CFG_STM32WBA_FLASH_DIRECT_API_MAPPING
+#define whal_Stm32wba_Flash_Init   whal_Flash_Init
+#define whal_Stm32wba_Flash_Deinit whal_Flash_Deinit
+#define whal_Stm32wba_Flash_Lock   whal_Flash_Lock
+#define whal_Stm32wba_Flash_Unlock whal_Flash_Unlock
+#define whal_Stm32wba_Flash_Read   whal_Flash_Read
+#define whal_Stm32wba_Flash_Write  whal_Flash_Write
+#define whal_Stm32wba_Flash_Erase  whal_Flash_Erase
+#endif /* WHAL_CFG_STM32WBA_FLASH_DIRECT_API_MAPPING */
 
 /*
  * STM32WBA Flash Register Definitions (RM0493)
@@ -86,13 +97,12 @@ whal_Error whal_Stm32wba_Flash_Deinit(whal_Flash *flashDev)
 
 whal_Error whal_Stm32wba_Flash_Lock(whal_Flash *flashDev, size_t addr, size_t len)
 {
+    size_t base = whal_Stm32wba_Flash_Dev.base;
+    (void)flashDev;
     (void)addr;
     (void)len;
 
-    if (!flashDev)
-        return WHAL_EINVAL;
-
-    whal_Reg_Update(flashDev->base, FLASH_NSCR1_REG, FLASH_NSCR1_LOCK_Msk,
+    whal_Reg_Update(base, FLASH_NSCR1_REG, FLASH_NSCR1_LOCK_Msk,
                     whal_SetBits(FLASH_NSCR1_LOCK_Msk, FLASH_NSCR1_LOCK_Pos, 1));
 
     return WHAL_SUCCESS;
@@ -100,16 +110,15 @@ whal_Error whal_Stm32wba_Flash_Lock(whal_Flash *flashDev, size_t addr, size_t le
 
 whal_Error whal_Stm32wba_Flash_Unlock(whal_Flash *flashDev, size_t addr, size_t len)
 {
+    size_t base = whal_Stm32wba_Flash_Dev.base;
+    (void)flashDev;
     (void)addr;
     (void)len;
 
-    if (!flashDev)
-        return WHAL_EINVAL;
-
     /* Only write the unlock sequence if LOCK bit is set */
-    if (whal_Reg_Read(flashDev->base, FLASH_NSCR1_REG) & FLASH_NSCR1_LOCK_Msk) {
-        whal_Reg_Write(flashDev->base, FLASH_NSKEYR_REG, FLASH_KEY1);
-        whal_Reg_Write(flashDev->base, FLASH_NSKEYR_REG, FLASH_KEY2);
+    if (whal_Reg_Read(base, FLASH_NSCR1_REG) & FLASH_NSCR1_LOCK_Msk) {
+        whal_Reg_Write(base, FLASH_NSKEYR_REG, FLASH_KEY1);
+        whal_Reg_Write(base, FLASH_NSKEYR_REG, FLASH_KEY2);
     }
 
     return WHAL_SUCCESS;
@@ -117,13 +126,13 @@ whal_Error whal_Stm32wba_Flash_Unlock(whal_Flash *flashDev, size_t addr, size_t 
 
 whal_Error whal_Stm32wba_Flash_Read(whal_Flash *flashDev, size_t addr, void *data, size_t dataSz)
 {
+    const whal_Stm32wba_Flash_Cfg *cfg =
+        (const whal_Stm32wba_Flash_Cfg *)whal_Stm32wba_Flash_Dev.cfg;
     uint8_t *dataBuf = (uint8_t *)data;
-    whal_Stm32wba_Flash_Cfg *cfg;
+    (void)flashDev;
 
-    if (!flashDev || !flashDev->cfg || !data)
+    if (!data)
         return WHAL_EINVAL;
-
-    cfg = flashDev->cfg;
 
     if (addr < cfg->startAddr || addr + dataSz > cfg->startAddr + cfg->size)
         return WHAL_EINVAL;
@@ -154,16 +163,15 @@ static whal_Error CheckAndClearErrors(size_t base)
 whal_Error whal_Stm32wba_Flash_Write(whal_Flash *flashDev, size_t addr,
                                      const void *data, size_t dataSz)
 {
+    const whal_Stm32wba_Flash_Cfg *cfg =
+        (const whal_Stm32wba_Flash_Cfg *)whal_Stm32wba_Flash_Dev.cfg;
+    size_t base = whal_Stm32wba_Flash_Dev.base;
     const uint8_t *dataBuf = (const uint8_t *)data;
-    whal_Stm32wba_Flash_Cfg *cfg;
-    size_t base;
     whal_Error err;
+    (void)flashDev;
 
-    if (!flashDev || !flashDev->cfg || !data)
+    if (!data)
         return WHAL_EINVAL;
-
-    cfg = flashDev->cfg;
-    base = flashDev->base;
 
     /* Address and size must be 16-byte aligned (128-bit flash-word) */
     if ((addr & 0xF) || (dataSz & 0xF))
@@ -210,16 +218,12 @@ cleanup:
 
 whal_Error whal_Stm32wba_Flash_Erase(whal_Flash *flashDev, size_t addr, size_t dataSz)
 {
-    whal_Stm32wba_Flash_Cfg *cfg;
-    size_t base;
+    const whal_Stm32wba_Flash_Cfg *cfg =
+        (const whal_Stm32wba_Flash_Cfg *)whal_Stm32wba_Flash_Dev.cfg;
+    size_t base = whal_Stm32wba_Flash_Dev.base;
     whal_Error err;
     size_t offset, startPage, endPage;
-
-    if (!flashDev || !flashDev->cfg)
-        return WHAL_EINVAL;
-
-    cfg = flashDev->cfg;
-    base = flashDev->base;
+    (void)flashDev;
 
     if (dataSz == 0)
         return WHAL_SUCCESS;
@@ -263,13 +267,14 @@ cleanup:
 
 whal_Error whal_Stm32wba_Flash_Ext_SetLatency(whal_Flash *flashDev, uint8_t latency)
 {
-    if (!flashDev)
-        return WHAL_EINVAL;
+    size_t base = whal_Stm32wba_Flash_Dev.base;
+    (void)flashDev;
 
-    whal_Reg_Update(flashDev->base, FLASH_ACR_REG, FLASH_ACR_LATENCY_Msk, latency);
+    whal_Reg_Update(base, FLASH_ACR_REG, FLASH_ACR_LATENCY_Msk, latency);
     return WHAL_SUCCESS;
 }
 
+#ifndef WHAL_CFG_STM32WBA_FLASH_DIRECT_API_MAPPING
 const whal_FlashDriver whal_Stm32wba_Flash_Driver = {
     .Init = whal_Stm32wba_Flash_Init,
     .Deinit = whal_Stm32wba_Flash_Deinit,
@@ -279,3 +284,4 @@ const whal_FlashDriver whal_Stm32wba_Flash_Driver = {
     .Write = whal_Stm32wba_Flash_Write,
     .Erase = whal_Stm32wba_Flash_Erase,
 };
+#endif /* !WHAL_CFG_STM32WBA_FLASH_DIRECT_API_MAPPING */

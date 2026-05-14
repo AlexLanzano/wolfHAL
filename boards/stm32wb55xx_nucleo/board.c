@@ -137,42 +137,6 @@ whal_Crypto g_whalCrypto = {
     },
 };
 
-whal_AesEcb g_whalAesEcb = {
-    .crypto = &g_whalCrypto,
-    /* .driver: direct API mapping */
-};
-
-whal_AesCbc g_whalAesCbc = {
-    .crypto = &g_whalCrypto,
-    /* .driver: direct API mapping */
-};
-
-whal_AesCtr g_whalAesCtr = {
-    .crypto = &g_whalCrypto,
-    /* .driver: direct API mapping */
-};
-
-static whal_Stm32wb_AesGcm_State g_aesGcmState;
-
-whal_AesGcm g_whalAesGcm = {
-    .crypto = &g_whalCrypto,
-    /* .driver: direct API mapping */
-    .state = &g_aesGcmState,
-};
-
-whal_AesGmac g_whalAesGmac = {
-    .crypto = &g_whalCrypto,
-    /* .driver: direct API mapping */
-};
-
-static whal_Stm32wb_AesCcm_State g_aesCcmState;
-
-whal_AesCcm g_whalAesCcm = {
-    .crypto = &g_whalCrypto,
-    /* .driver: direct API mapping */
-    .state = &g_aesCcmState,
-};
-
 void Board_WaitMs(size_t ms)
 {
     uint32_t startCount = g_tick;

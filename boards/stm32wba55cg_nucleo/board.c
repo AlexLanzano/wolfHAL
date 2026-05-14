@@ -134,74 +134,16 @@ whal_Uart g_whalUart = {
 };
 #endif
 
-/* Flash */
+/* Flash — dispatcher stub. The const cfg lives in board.h as
+ * whal_Stm32wba_Flash_Dev; this only carries .driver so whal_Flash_* can
+ * dispatch through the vtable. */
 whal_Flash g_whalFlash = {
-    .base = WHAL_STM32WBA55_FLASH_BASE,
     .driver = WHAL_STM32WBA55_FLASH_DRIVER,
-
-    .cfg = &(whal_Stm32wba_Flash_Cfg) {
-        .timeout = &g_whalTimeout,
-        .startAddr = 0x08000000,
-        .size = 0x100000, /* 1 MB */
-    },
 };
 
-/* RNG */
-whal_Rng g_whalRng = {
-    .base = WHAL_STM32WBA55_RNG_BASE,
-    .driver = WHAL_STM32WBA55_RNG_DRIVER,
+/* RNG, AES + mode, HASH + algorithm singletons live in board.h as `static const`. */
 
-    .cfg = &(whal_Stm32wba_Rng_Cfg) {
-        .timeout = &g_whalTimeout,
-    },
-};
-
-/* Crypto (AES hardware accelerator) */
-whal_Crypto g_whalCrypto = {
-    .base = WHAL_STM32WBA55_AES_BASE,
-
-    .cfg = &(whal_Stm32wba_Aes_Cfg) {
-        .timeout = &g_whalTimeout,
-    },
-};
-
-whal_AesEcb g_whalAesEcb = {
-    .crypto = &g_whalCrypto,
-    /* .driver: direct API mapping */
-};
-
-whal_AesCbc g_whalAesCbc = {
-    .crypto = &g_whalCrypto,
-    /* .driver: direct API mapping */
-};
-
-whal_AesCtr g_whalAesCtr = {
-    .crypto = &g_whalCrypto,
-    /* .driver: direct API mapping */
-};
-
-static whal_Stm32wba_AesGcm_State g_aesGcmState;
-
-whal_AesGcm g_whalAesGcm = {
-    .crypto = &g_whalCrypto,
-    /* .driver: direct API mapping */
-    .state = &g_aesGcmState,
-};
-
-whal_AesGmac g_whalAesGmac = {
-    .crypto = &g_whalCrypto,
-    /* .driver: direct API mapping */
-};
-
-static whal_Stm32wba_AesCcm_State g_aesCcmState;
-
-whal_AesCcm g_whalAesCcm = {
-    .crypto = &g_whalCrypto,
-    /* .driver: direct API mapping */
-    .state = &g_aesCcmState,
-};
-
-/* Hash (HASH hardware accelerator) */
+/* Hash (HASH hardware accelerator) — vtable dispatcher for whal_Crypto_Init/Deinit. */
 whal_Crypto g_whalHash = {
     .base = WHAL_STM32WBA55_HASH_BASE,
     .driver = &whal_Stm32wba_Hash_CryptoDriver,
@@ -209,45 +151,6 @@ whal_Crypto g_whalHash = {
     .cfg = &(whal_Stm32wba_Hash_Cfg) {
         .timeout = &g_whalTimeout,
     },
-};
-
-whal_Sha1 g_whalSha1 = {
-    .crypto = &g_whalHash,
-    /* .driver: direct API mapping */
-};
-
-whal_Sha224 g_whalSha224 = {
-    .crypto = &g_whalHash,
-    /* .driver: direct API mapping */
-};
-
-whal_Sha256 g_whalSha256 = {
-    .crypto = &g_whalHash,
-    /* .driver: direct API mapping */
-};
-
-static whal_Stm32wba_HmacSha1_State g_hmacSha1State;
-
-whal_HmacSha1 g_whalHmacSha1 = {
-    .crypto = &g_whalHash,
-    /* .driver: direct API mapping */
-    .state = &g_hmacSha1State,
-};
-
-static whal_Stm32wba_HmacSha224_State g_hmacSha224State;
-
-whal_HmacSha224 g_whalHmacSha224 = {
-    .crypto = &g_whalHash,
-    /* .driver: direct API mapping */
-    .state = &g_hmacSha224State,
-};
-
-static whal_Stm32wba_HmacSha256_State g_hmacSha256State;
-
-whal_HmacSha256 g_whalHmacSha256 = {
-    .crypto = &g_whalHash,
-    /* .driver: direct API mapping */
-    .state = &g_hmacSha256State,
 };
 
 #ifdef BOARD_WATCHDOG_IWDG
@@ -417,7 +320,7 @@ whal_Error Board_Init(void)
     if (err)
         return err;
 
-    err = whal_Rng_Init(&g_whalRng);
+    err = whal_Rng_Init(WHAL_SINGLETON);
     if (err)
         return err;
 
@@ -460,7 +363,7 @@ whal_Error Board_Deinit(void)
     if (err)
         return err;
 
-    err = whal_Rng_Deinit(&g_whalRng);
+    err = whal_Rng_Deinit(WHAL_SINGLETON);
     if (err)
         return err;
 

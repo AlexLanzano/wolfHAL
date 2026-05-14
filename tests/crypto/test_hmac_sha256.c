@@ -26,7 +26,7 @@ static void Test_HmacSha256_KnownAnswer(void)
 {
     uint8_t digest[32] = {0};
 
-    WHAL_ASSERT_EQ(whal_HmacSha256_Oneshot(&g_whalHmacSha256,
+    WHAL_ASSERT_EQ(whal_HmacSha256_Oneshot(BOARD_HMAC_SHA256_DEV,
                                            hmacKey, sizeof(hmacKey),
                                            hmacInput, sizeof(hmacInput),
                                            digest, sizeof(digest)),
@@ -65,17 +65,17 @@ static void Test_HmacSha256_Streaming(void)
     uint8_t digest[32] = {0};
     const size_t split = 50;
 
-    WHAL_ASSERT_EQ(whal_HmacSha256_Start(&g_whalHmacSha256,
+    WHAL_ASSERT_EQ(whal_HmacSha256_Start(BOARD_HMAC_SHA256_DEV,
                                          hmacKey, sizeof(hmacKey)),
                    WHAL_SUCCESS);
-    WHAL_ASSERT_EQ(whal_HmacSha256_Process(&g_whalHmacSha256,
+    WHAL_ASSERT_EQ(whal_HmacSha256_Process(BOARD_HMAC_SHA256_DEV,
                                            hmacStreamMsg, split),
                    WHAL_SUCCESS);
-    WHAL_ASSERT_EQ(whal_HmacSha256_Process(&g_whalHmacSha256,
+    WHAL_ASSERT_EQ(whal_HmacSha256_Process(BOARD_HMAC_SHA256_DEV,
                                            hmacStreamMsg + split,
                                            sizeof(hmacStreamMsg) - split),
                    WHAL_SUCCESS);
-    WHAL_ASSERT_EQ(whal_HmacSha256_Finalize(&g_whalHmacSha256,
+    WHAL_ASSERT_EQ(whal_HmacSha256_Finalize(BOARD_HMAC_SHA256_DEV,
                                             digest, sizeof(digest)),
                    WHAL_SUCCESS);
 

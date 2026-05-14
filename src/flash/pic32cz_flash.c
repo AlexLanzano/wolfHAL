@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include "board.h"  /* provides whal_Pic32cz_Flash_Dev singleton */
 #include <wolfHAL/flash/pic32cz_flash.h>
 #include <wolfHAL/flash/flash.h>
 #include <wolfHAL/error.h>
@@ -181,13 +182,8 @@ static whal_Error whal_Pic32cz_Flash_ExecCmd(size_t base, size_t cmd,
 
 whal_Error whal_Pic32cz_Flash_Init(whal_Flash *flashDev)
 {
-    size_t base;
-
-    if (!flashDev) {
-        return WHAL_EINVAL;
-    }
-
-    base = flashDev->base;
+    size_t base = whal_Pic32cz_Flash_Dev.base;
+    (void)flashDev;
 
     whal_Pic32cz_Flash_MutexUnlock(base);
     whal_Reg_Update(base, FCW_KEY_REG, 0xFFFFFFFF, 0);
@@ -203,13 +199,8 @@ whal_Error whal_Pic32cz_Flash_Init(whal_Flash *flashDev)
 
 whal_Error whal_Pic32cz_Flash_Deinit(whal_Flash *flashDev)
 {
-    size_t base;
-
-    if (!flashDev) {
-        return WHAL_EINVAL;
-    }
-
-    base = flashDev->base;
+    size_t base = whal_Pic32cz_Flash_Dev.base;
+    (void)flashDev;
 
     whal_Pic32cz_Flash_MutexUnlock(base);
     whal_Reg_Update(base, FCW_KEY_REG, 0xFFFFFFFF, 0);
@@ -230,24 +221,18 @@ whal_Error whal_Pic32cz_Flash_Lock(whal_Flash *flashDev, size_t addr, size_t len
      * Each FCW operation already requires the unlock key, providing
      * inherent per-operation protection.
      */
+    (void)flashDev;
     (void)addr;
     (void)len;
-
-    if (!flashDev) {
-        return WHAL_EINVAL;
-    }
 
     return WHAL_SUCCESS;
 }
 
 whal_Error whal_Pic32cz_Flash_Unlock(whal_Flash *flashDev, size_t addr, size_t len)
 {
+    (void)flashDev;
     (void)addr;
     (void)len;
-
-    if (!flashDev) {
-        return WHAL_EINVAL;
-    }
 
     return WHAL_SUCCESS;
 }
@@ -255,20 +240,18 @@ whal_Error whal_Pic32cz_Flash_Unlock(whal_Flash *flashDev, size_t addr, size_t l
 whal_Error whal_Pic32cz_Flash_Read(whal_Flash *flashDev, size_t addr, void *data,
                              size_t dataSz)
 {
+    const whal_Pic32cz_Flash_Cfg *cfg =
+        (const whal_Pic32cz_Flash_Cfg *)whal_Pic32cz_Flash_Dev.cfg;
+    size_t base = whal_Pic32cz_Flash_Dev.base;
     uint8_t *dataBuf = (uint8_t *)data;
-    size_t base;
-    whal_Pic32cz_Flash_Cfg *cfg;
     uint8_t *flashAddr = (uint8_t *)addr;
     whal_Error err;
     size_t i;
+    (void)flashDev;
 
-    if (!flashDev || !flashDev->cfg || !data) {
+    if (!data) {
         return WHAL_EINVAL;
     }
-
-    base = flashDev->base;
-    cfg = flashDev->cfg;
-
 
     err = whal_Pic32cz_Flash_MutexLock(base, cfg->timeout);
     if (err)
@@ -287,25 +270,24 @@ whal_Error whal_Pic32cz_Flash_Read(whal_Flash *flashDev, size_t addr, void *data
 whal_Error whal_Pic32cz_Flash_Write(whal_Flash *flashDev, size_t addr, const void *data,
                               size_t dataSz)
 {
+    const whal_Pic32cz_Flash_Cfg *cfg =
+        (const whal_Pic32cz_Flash_Cfg *)whal_Pic32cz_Flash_Dev.cfg;
+    size_t base = whal_Pic32cz_Flash_Dev.base;
     const uint8_t *dataBuf = (const uint8_t *)data;
-    size_t base;
-    whal_Pic32cz_Flash_Cfg *cfg;
     const uint32_t *src;
     whal_Error err;
     size_t offset = 0;
+    (void)flashDev;
 
-    if (!flashDev || !flashDev->cfg || !data) {
+    if (!data) {
         return WHAL_EINVAL;
     }
-
-    cfg = flashDev->cfg;
 
     /* Require double-word alignment */
     if ((addr & 0x7) || (dataSz & 0x7)) {
         return WHAL_EINVAL;
     }
 
-    base = flashDev->base;
     src = (const uint32_t *)dataBuf;
 
 
@@ -367,18 +349,13 @@ whal_Error whal_Pic32cz_Flash_Write(whal_Flash *flashDev, size_t addr, const voi
 
 whal_Error whal_Pic32cz_Flash_Erase(whal_Flash *flashDev, size_t addr, size_t dataSz)
 {
-    size_t base;
-    whal_Pic32cz_Flash_Cfg *cfg;
+    const whal_Pic32cz_Flash_Cfg *cfg =
+        (const whal_Pic32cz_Flash_Cfg *)whal_Pic32cz_Flash_Dev.cfg;
+    size_t base = whal_Pic32cz_Flash_Dev.base;
     whal_Error err;
     size_t pageAddr;
     size_t endAddr;
-
-    if (!flashDev || !flashDev->cfg) {
-        return WHAL_EINVAL;
-    }
-
-    cfg = flashDev->cfg;
-    base = flashDev->base;
+    (void)flashDev;
 
     /* Align down to page boundary */
     pageAddr = addr & ~(FCW_PAGE_SIZE - 1);

@@ -13,7 +13,7 @@
 static void Test_Flash_LockReadback(void)
 {
     /* After locking, the CR.LOCK bit should be set */
-    WHAL_ASSERT_EQ(whal_Flash_Lock(&g_whalFlash, 0, 0), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Flash_Lock(BOARD_FLASH_DEV, 0, 0), WHAL_SUCCESS);
 
     size_t val = 0;
     whal_Reg_Get(g_whalFlash.base, FLASH_CR_REG,

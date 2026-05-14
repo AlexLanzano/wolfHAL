@@ -31,10 +31,10 @@ static void Test_Eth_Api(void)
     WHAL_ASSERT_EQ(whal_Eth_Recv(NULL, buf, &len), WHAL_EINVAL);
     WHAL_ASSERT_EQ(whal_Eth_MdioRead(NULL, 0, 0, &val), WHAL_EINVAL);
     WHAL_ASSERT_EQ(whal_Eth_MdioWrite(NULL, 0, 0, 0), WHAL_EINVAL);
-    WHAL_ASSERT_EQ(whal_Eth_Send(&g_whalEth, NULL, 64), WHAL_EINVAL);
-    WHAL_ASSERT_EQ(whal_Eth_Recv(&g_whalEth, NULL, &len), WHAL_EINVAL);
-    WHAL_ASSERT_EQ(whal_Eth_Recv(&g_whalEth, buf, NULL), WHAL_EINVAL);
-    WHAL_ASSERT_EQ(whal_Eth_MdioRead(&g_whalEth, 0, 0, NULL), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Eth_Send(BOARD_ETH_DEV, NULL, 64), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Eth_Recv(BOARD_ETH_DEV, NULL, &len), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Eth_Recv(BOARD_ETH_DEV, buf, NULL), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Eth_MdioRead(BOARD_ETH_DEV, 0, 0, NULL), WHAL_EINVAL);
 
     WHAL_ASSERT_EQ(whal_EthPhy_Init(NULL), WHAL_EINVAL);
     WHAL_ASSERT_EQ(whal_EthPhy_Deinit(NULL), WHAL_EINVAL);
@@ -46,9 +46,9 @@ static void Test_Eth_MdioReadPhyId(void)
     uint16_t id1 = 0;
     uint16_t id2 = 0;
 
-    WHAL_ASSERT_EQ(whal_Eth_MdioRead(&g_whalEth, BOARD_ETH_PHY_ADDR,
+    WHAL_ASSERT_EQ(whal_Eth_MdioRead(BOARD_ETH_DEV, BOARD_ETH_PHY_ADDR,
                                       PHY_REG_PHYIDR1, &id1), WHAL_SUCCESS);
-    WHAL_ASSERT_EQ(whal_Eth_MdioRead(&g_whalEth, BOARD_ETH_PHY_ADDR,
+    WHAL_ASSERT_EQ(whal_Eth_MdioRead(BOARD_ETH_DEV, BOARD_ETH_PHY_ADDR,
                                       PHY_REG_PHYIDR2, &id2), WHAL_SUCCESS);
 
     /* PHY ID should not be 0x0000 or 0xFFFF (no PHY / bus error) */
@@ -69,7 +69,7 @@ static void Test_Eth_PhyGetLinkState(void)
     uint8_t speed = 0;
     uint8_t duplex = 0;
 
-    WHAL_ASSERT_EQ(whal_EthPhy_GetLinkState(&g_whalEthPhy, &up, &speed,
+    WHAL_ASSERT_EQ(whal_EthPhy_GetLinkState(BOARD_ETH_PHY_DEV, &up, &speed,
                                              &duplex), WHAL_SUCCESS);
 
     whal_Test_Printf("  link: %s, speed: %d, duplex: %s\n",

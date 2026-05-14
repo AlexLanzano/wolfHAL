@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include "board.h"  /* provides whal_Stm32n6_Cryp*_Dev singletons */
 #include <wolfHAL/crypto/stm32n6_cryp.h>
 #include <wolfHAL/crypto/crypto.h>
 #include <wolfHAL/error.h>
@@ -88,6 +89,10 @@
 #define CRYP_IV0RR_REG         0x44
 #define CRYP_IV1LR_REG         0x48
 #define CRYP_IV1RR_REG         0x4C
+
+/* Per-driver state surviving Start→Finalize. Singleton drivers so static. */
+static whal_Stm32n6_AesGcm_State g_aesGcmState;
+static whal_Stm32n6_AesCcm_State g_aesCcmState;
 
 static whal_Error WaitKeyValid(size_t base, whal_Timeout *timeout)
 {
@@ -239,13 +244,11 @@ static whal_Error PrepareDecryptionKey(size_t base, const uint8_t *key,
     return WaitCrypEnClear(base, timeout);
 }
 
-static whal_Error Process_BlockCipher(whal_Crypto *cryptoDev,
-                                      const uint8_t *in, uint8_t *out,
-                                      size_t sz)
+static whal_Error Process_BlockCipher(const uint8_t *in, uint8_t *out, size_t sz)
 {
     const whal_Stm32n6_Cryp_Cfg *cfg =
-        (const whal_Stm32n6_Cryp_Cfg *)cryptoDev->cfg;
-    size_t base = cryptoDev->base;
+        (const whal_Stm32n6_Cryp_Cfg *)whal_Stm32n6_Cryp_Dev.cfg;
+    size_t base = whal_Stm32n6_Cryp_Dev.base;
     whal_Error err;
     size_t i;
 
@@ -311,16 +314,14 @@ static whal_Error Process_BlockCipher(whal_Crypto *cryptoDev,
 
 whal_Error whal_Stm32n6_Cryp_Init(whal_Crypto *dev)
 {
-    if (!dev)
-        return WHAL_EINVAL;
+    (void)dev;
     return WHAL_SUCCESS;
 }
 
 whal_Error whal_Stm32n6_Cryp_Deinit(whal_Crypto *dev)
 {
-    if (!dev)
-        return WHAL_EINVAL;
-    Disable(dev->base);
+    (void)dev;
+    Disable(whal_Stm32n6_Cryp_Dev.base);
     return WHAL_SUCCESS;
 }
 
@@ -338,18 +339,15 @@ whal_Error whal_Stm32n6_CrypAesEcb_Oneshot(whal_AesEcb *dev,
                                            const void *in, void *out,
                                            size_t sz)
 {
-    whal_Crypto *crypto;
-    const whal_Stm32n6_Cryp_Cfg *cfg;
-    size_t base;
+    const whal_Stm32n6_Cryp_Cfg *cfg =
+        (const whal_Stm32n6_Cryp_Cfg *)whal_Stm32n6_Cryp_Dev.cfg;
+    size_t base = whal_Stm32n6_Cryp_Dev.base;
     uint32_t keySizeBits;
     whal_Error err;
+    (void)dev;
 
-    if (!dev || !dev->crypto || !dev->crypto->cfg || !key)
+    if (!key)
         return WHAL_EINVAL;
-
-    crypto = dev->crypto;
-    cfg = (const whal_Stm32n6_Cryp_Cfg *)crypto->cfg;
-    base = crypto->base;
 
     err = KeySizeBits(keySz, &keySizeBits);
     if (err)
@@ -374,7 +372,7 @@ whal_Error whal_Stm32n6_CrypAesEcb_Oneshot(whal_AesEcb *dev,
         Enable(base);
     }
 
-    err = Process_BlockCipher(crypto, in, out, sz);
+    err = Process_BlockCipher(in, out, sz);
     Disable(base);
     return err;
 }
@@ -383,18 +381,15 @@ whal_Error whal_Stm32n6_CrypAesEcb_Start(whal_AesEcb *dev,
                                          whal_Crypto_Dir dir,
                                          const void *key, size_t keySz)
 {
-    whal_Crypto *crypto;
-    const whal_Stm32n6_Cryp_Cfg *cfg;
-    size_t base;
+    const whal_Stm32n6_Cryp_Cfg *cfg =
+        (const whal_Stm32n6_Cryp_Cfg *)whal_Stm32n6_Cryp_Dev.cfg;
+    size_t base = whal_Stm32n6_Cryp_Dev.base;
     uint32_t keySizeBits;
     whal_Error err;
+    (void)dev;
 
-    if (!dev || !dev->crypto || !dev->crypto->cfg || !key)
+    if (!key)
         return WHAL_EINVAL;
-
-    crypto = dev->crypto;
-    cfg = (const whal_Stm32n6_Cryp_Cfg *)crypto->cfg;
-    base = crypto->base;
 
     err = KeySizeBits(keySz, &keySizeBits);
     if (err)
@@ -426,7 +421,8 @@ whal_Error whal_Stm32n6_CrypAesEcb_Process(whal_AesEcb *dev,
                                            const void *in, void *out,
                                            size_t sz)
 {
-    return Process_BlockCipher(dev->crypto, in, out, sz);
+    (void)dev;
+    return Process_BlockCipher(in, out, sz);
 }
 
 const whal_AesEcbDriver whal_Stm32n6_Cryp_EcbDriver = {
@@ -445,18 +441,15 @@ whal_Error whal_Stm32n6_CrypAesCbc_Oneshot(whal_AesCbc *dev,
                                            const void *in, void *out,
                                            size_t sz)
 {
-    whal_Crypto *crypto;
-    const whal_Stm32n6_Cryp_Cfg *cfg;
-    size_t base;
+    const whal_Stm32n6_Cryp_Cfg *cfg =
+        (const whal_Stm32n6_Cryp_Cfg *)whal_Stm32n6_Cryp_Dev.cfg;
+    size_t base = whal_Stm32n6_Cryp_Dev.base;
     uint32_t keySizeBits;
     whal_Error err;
+    (void)dev;
 
-    if (!dev || !dev->crypto || !dev->crypto->cfg || !key || !iv)
+    if (!key || !iv)
         return WHAL_EINVAL;
-
-    crypto = dev->crypto;
-    cfg = (const whal_Stm32n6_Cryp_Cfg *)crypto->cfg;
-    base = crypto->base;
 
     err = KeySizeBits(keySz, &keySizeBits);
     if (err)
@@ -483,7 +476,7 @@ whal_Error whal_Stm32n6_CrypAesCbc_Oneshot(whal_AesCbc *dev,
         Enable(base);
     }
 
-    err = Process_BlockCipher(crypto, in, out, sz);
+    err = Process_BlockCipher(in, out, sz);
     Disable(base);
     return err;
 }
@@ -493,18 +486,15 @@ whal_Error whal_Stm32n6_CrypAesCbc_Start(whal_AesCbc *dev,
                                          const void *key, size_t keySz,
                                          const void *iv)
 {
-    whal_Crypto *crypto;
-    const whal_Stm32n6_Cryp_Cfg *cfg;
-    size_t base;
+    const whal_Stm32n6_Cryp_Cfg *cfg =
+        (const whal_Stm32n6_Cryp_Cfg *)whal_Stm32n6_Cryp_Dev.cfg;
+    size_t base = whal_Stm32n6_Cryp_Dev.base;
     uint32_t keySizeBits;
     whal_Error err;
+    (void)dev;
 
-    if (!dev || !dev->crypto || !dev->crypto->cfg || !key || !iv)
+    if (!key || !iv)
         return WHAL_EINVAL;
-
-    crypto = dev->crypto;
-    cfg = (const whal_Stm32n6_Cryp_Cfg *)crypto->cfg;
-    base = crypto->base;
 
     err = KeySizeBits(keySz, &keySizeBits);
     if (err)
@@ -538,7 +528,8 @@ whal_Error whal_Stm32n6_CrypAesCbc_Process(whal_AesCbc *dev,
                                            const void *in, void *out,
                                            size_t sz)
 {
-    return Process_BlockCipher(dev->crypto, in, out, sz);
+    (void)dev;
+    return Process_BlockCipher(in, out, sz);
 }
 
 const whal_AesCbcDriver whal_Stm32n6_Cryp_CbcDriver = {
@@ -557,19 +548,16 @@ whal_Error whal_Stm32n6_CrypAesCtr_Oneshot(whal_AesCtr *dev,
                                            const void *in, void *out,
                                            size_t sz)
 {
-    whal_Crypto *crypto;
-    const whal_Stm32n6_Cryp_Cfg *cfg;
-    size_t base;
+    const whal_Stm32n6_Cryp_Cfg *cfg =
+        (const whal_Stm32n6_Cryp_Cfg *)whal_Stm32n6_Cryp_Dev.cfg;
+    size_t base = whal_Stm32n6_Cryp_Dev.base;
     uint32_t keySizeBits;
     uint32_t algoDir;
     whal_Error err;
+    (void)dev;
 
-    if (!dev || !dev->crypto || !dev->crypto->cfg || !key || !iv)
+    if (!key || !iv)
         return WHAL_EINVAL;
-
-    crypto = dev->crypto;
-    cfg = (const whal_Stm32n6_Cryp_Cfg *)crypto->cfg;
-    base = crypto->base;
 
     err = KeySizeBits(keySz, &keySizeBits);
     if (err)
@@ -587,7 +575,7 @@ whal_Error whal_Stm32n6_CrypAesCtr_Oneshot(whal_AesCtr *dev,
         return err;
     Enable(base);
 
-    err = Process_BlockCipher(crypto, in, out, sz);
+    err = Process_BlockCipher(in, out, sz);
     Disable(base);
     return err;
 }
@@ -597,19 +585,16 @@ whal_Error whal_Stm32n6_CrypAesCtr_Start(whal_AesCtr *dev,
                                          const void *key, size_t keySz,
                                          const void *iv)
 {
-    whal_Crypto *crypto;
-    const whal_Stm32n6_Cryp_Cfg *cfg;
-    size_t base;
+    const whal_Stm32n6_Cryp_Cfg *cfg =
+        (const whal_Stm32n6_Cryp_Cfg *)whal_Stm32n6_Cryp_Dev.cfg;
+    size_t base = whal_Stm32n6_Cryp_Dev.base;
     uint32_t keySizeBits;
     uint32_t algoDir;
     whal_Error err;
+    (void)dev;
 
-    if (!dev || !dev->crypto || !dev->crypto->cfg || !key || !iv)
+    if (!key || !iv)
         return WHAL_EINVAL;
-
-    crypto = dev->crypto;
-    cfg = (const whal_Stm32n6_Cryp_Cfg *)crypto->cfg;
-    base = crypto->base;
 
     err = KeySizeBits(keySz, &keySizeBits);
     if (err)
@@ -634,7 +619,8 @@ whal_Error whal_Stm32n6_CrypAesCtr_Process(whal_AesCtr *dev,
                                            const void *in, void *out,
                                            size_t sz)
 {
-    return Process_BlockCipher(dev->crypto, in, out, sz);
+    (void)dev;
+    return Process_BlockCipher(in, out, sz);
 }
 
 const whal_AesCtrDriver whal_Stm32n6_Cryp_CtrDriver = {
@@ -651,13 +637,13 @@ const whal_AesCtrDriver whal_Stm32n6_Cryp_CtrDriver = {
  * and key, then enable CRYP and wait for the hash subkey computation to
  * complete (CRYPEN auto-clears).
  */
-static whal_Error GcmInit(whal_Crypto *cryptoDev, const uint8_t *key,
-                          size_t keySz, uint32_t keySizeBits,
-                          uint32_t algoDir, const uint8_t *iv12)
+static whal_Error GcmInit(const uint8_t *key, size_t keySz,
+                          uint32_t keySizeBits, uint32_t algoDir,
+                          const uint8_t *iv12)
 {
     const whal_Stm32n6_Cryp_Cfg *cfg =
-        (const whal_Stm32n6_Cryp_Cfg *)cryptoDev->cfg;
-    size_t base = cryptoDev->base;
+        (const whal_Stm32n6_Cryp_Cfg *)whal_Stm32n6_Cryp_Dev.cfg;
+    size_t base = whal_Stm32n6_Cryp_Dev.base;
     whal_Error err;
 
     DisableAndFlush(base);
@@ -679,12 +665,11 @@ static whal_Error GcmInit(whal_Crypto *cryptoDev, const uint8_t *key,
  * Feed AAD blocks during the header phase. The peripheral consumes header
  * data without producing output; the last partial block must be zero-padded.
  */
-static whal_Error GcmHeaderPhase(whal_Crypto *cryptoDev, const uint8_t *aad,
-                                 size_t aadSz)
+static whal_Error GcmHeaderPhase(const uint8_t *aad, size_t aadSz)
 {
     const whal_Stm32n6_Cryp_Cfg *cfg =
-        (const whal_Stm32n6_Cryp_Cfg *)cryptoDev->cfg;
-    size_t base = cryptoDev->base;
+        (const whal_Stm32n6_Cryp_Cfg *)whal_Stm32n6_Cryp_Dev.cfg;
+    size_t base = whal_Stm32n6_Cryp_Dev.base;
     whal_Error err;
     size_t i;
 
@@ -728,9 +713,9 @@ whal_Error whal_Stm32n6_CrypAesGcm_Oneshot(whal_AesGcm *dev,
                                            size_t sz,
                                            void *tag, size_t tagSz)
 {
-    whal_Crypto *crypto;
-    const whal_Stm32n6_Cryp_Cfg *cfg;
-    size_t base;
+    const whal_Stm32n6_Cryp_Cfg *cfg =
+        (const whal_Stm32n6_Cryp_Cfg *)whal_Stm32n6_Cryp_Dev.cfg;
+    size_t base = whal_Stm32n6_Cryp_Dev.base;
     uint32_t keySizeBits;
     uint32_t algoDir;
     uint8_t tagBuf[16];
@@ -738,8 +723,9 @@ whal_Error whal_Stm32n6_CrypAesGcm_Oneshot(whal_AesGcm *dev,
     uint64_t payloadBits;
     whal_Error err;
     size_t i;
+    (void)dev;
 
-    if (!dev || !dev->crypto || !dev->crypto->cfg || !key || !iv)
+    if (!key || !iv)
         return WHAL_EINVAL;
     if (ivSz != 12)
         return WHAL_ENOTSUP;
@@ -750,10 +736,6 @@ whal_Error whal_Stm32n6_CrypAesGcm_Oneshot(whal_AesGcm *dev,
     if (!tag || tagSz == 0 || tagSz > 16)
         return WHAL_EINVAL;
 
-    crypto = dev->crypto;
-    cfg = (const whal_Stm32n6_Cryp_Cfg *)crypto->cfg;
-    base = crypto->base;
-
     err = KeySizeBits(keySz, &keySizeBits);
     if (err)
         return err;
@@ -762,13 +744,13 @@ whal_Error whal_Stm32n6_CrypAesGcm_Oneshot(whal_AesGcm *dev,
                                            : CRYP_ALGODIR_DECRYPT;
 
     /* Init phase */
-    err = GcmInit(crypto, (const uint8_t *)key, keySz,
+    err = GcmInit((const uint8_t *)key, keySz,
                   keySizeBits, algoDir, (const uint8_t *)iv);
     if (err)
         return err;
 
     /* Header phase */
-    err = GcmHeaderPhase(crypto, (const uint8_t *)aad, aadSz);
+    err = GcmHeaderPhase((const uint8_t *)aad, aadSz);
     if (err)
         return err;
 
@@ -855,22 +837,18 @@ whal_Error whal_Stm32n6_CrypAesGcm_Start(whal_AesGcm *dev,
                                          const void *iv, size_t ivSz,
                                          const void *aad, size_t aadSz)
 {
-    whal_Crypto *crypto;
-    size_t base;
+    size_t base = whal_Stm32n6_Cryp_Dev.base;
     uint32_t keySizeBits;
     uint32_t algoDir;
     whal_Error err;
+    (void)dev;
 
-    if (!dev || !dev->crypto || !dev->crypto->cfg || !dev->state || !key || !iv)
+    if (!key || !iv)
         return WHAL_EINVAL;
-
-    crypto = dev->crypto;
     if (ivSz != 12)
         return WHAL_ENOTSUP;
     if (aadSz > 0 && !aad)
         return WHAL_EINVAL;
-
-    base = crypto->base;
 
     err = KeySizeBits(keySz, &keySizeBits);
     if (err)
@@ -880,13 +858,13 @@ whal_Error whal_Stm32n6_CrypAesGcm_Start(whal_AesGcm *dev,
                                            : CRYP_ALGODIR_DECRYPT;
 
     /* Init phase */
-    err = GcmInit(crypto, (const uint8_t *)key, keySz,
+    err = GcmInit((const uint8_t *)key, keySz,
                   keySizeBits, algoDir, (const uint8_t *)iv);
     if (err)
         return err;
 
     /* Header phase */
-    err = GcmHeaderPhase(crypto, (const uint8_t *)aad, aadSz);
+    err = GcmHeaderPhase((const uint8_t *)aad, aadSz);
     if (err)
         return err;
 
@@ -898,11 +876,8 @@ whal_Error whal_Stm32n6_CrypAesGcm_Start(whal_AesGcm *dev,
                                  CRYP_GCM_CCMPH_PAYLOAD));
     Enable(base);
 
-    {
-        whal_Stm32n6_AesGcm_State *st = (whal_Stm32n6_AesGcm_State *)dev->state;
-        st->aadSz = aadSz;
-        st->dataSz = 0;
-    }
+    g_aesGcmState.aadSz = aadSz;
+    g_aesGcmState.dataSz = 0;
 
     return WHAL_SUCCESS;
 }
@@ -911,20 +886,12 @@ whal_Error whal_Stm32n6_CrypAesGcm_Process(whal_AesGcm *dev,
                                            const void *in, void *out,
                                            size_t sz)
 {
-    whal_Crypto *crypto;
-    const whal_Stm32n6_Cryp_Cfg *cfg;
-    size_t base;
-    whal_Stm32n6_AesGcm_State *st;
+    const whal_Stm32n6_Cryp_Cfg *cfg =
+        (const whal_Stm32n6_Cryp_Cfg *)whal_Stm32n6_Cryp_Dev.cfg;
+    size_t base = whal_Stm32n6_Cryp_Dev.base;
     size_t i;
     whal_Error err;
-
-    if (!dev || !dev->crypto || !dev->crypto->cfg || !dev->state)
-        return WHAL_EINVAL;
-
-    crypto = dev->crypto;
-    cfg = (const whal_Stm32n6_Cryp_Cfg *)crypto->cfg;
-    base = crypto->base;
-    st = (whal_Stm32n6_AesGcm_State *)dev->state;
+    (void)dev;
 
     if (sz == 0)
         return WHAL_SUCCESS;
@@ -962,7 +929,7 @@ whal_Error whal_Stm32n6_CrypAesGcm_Process(whal_AesGcm *dev,
         }
     }
 
-    st->dataSz += sz;
+    g_aesGcmState.dataSz += sz;
 
     return WHAL_SUCCESS;
 }
@@ -970,23 +937,15 @@ whal_Error whal_Stm32n6_CrypAesGcm_Process(whal_AesGcm *dev,
 whal_Error whal_Stm32n6_CrypAesGcm_Finalize(whal_AesGcm *dev,
                                             void *tag, size_t tagSz)
 {
-    whal_Crypto *crypto;
-    const whal_Stm32n6_Cryp_Cfg *cfg;
-    size_t base;
-    whal_Stm32n6_AesGcm_State *st;
+    const whal_Stm32n6_Cryp_Cfg *cfg =
+        (const whal_Stm32n6_Cryp_Cfg *)whal_Stm32n6_Cryp_Dev.cfg;
+    size_t base = whal_Stm32n6_Cryp_Dev.base;
     uint8_t tagBuf[16];
     uint64_t aadBits;
     uint64_t payloadBits;
     size_t i;
     whal_Error err;
-
-    if (!dev || !dev->crypto || !dev->crypto->cfg || !dev->state)
-        return WHAL_EINVAL;
-
-    crypto = dev->crypto;
-    cfg = (const whal_Stm32n6_Cryp_Cfg *)crypto->cfg;
-    base = crypto->base;
-    st = (whal_Stm32n6_AesGcm_State *)dev->state;
+    (void)dev;
 
     if (!tag || tagSz == 0 || tagSz > 16)
         return WHAL_EINVAL;
@@ -1000,8 +959,8 @@ whal_Error whal_Stm32n6_CrypAesGcm_Finalize(whal_AesGcm *dev,
                                  CRYP_GCM_CCMPH_FINAL));
     Enable(base);
 
-    aadBits = (uint64_t)st->aadSz * 8;
-    payloadBits = (uint64_t)st->dataSz * 8;
+    aadBits = (uint64_t)g_aesGcmState.aadSz * 8;
+    payloadBits = (uint64_t)g_aesGcmState.dataSz * 8;
     whal_Reg_Write(base, CRYP_DINR_REG, (uint32_t)(aadBits >> 32));
     whal_Reg_Write(base, CRYP_DINR_REG, (uint32_t)aadBits);
     whal_Reg_Write(base, CRYP_DINR_REG, (uint32_t)(payloadBits >> 32));
@@ -1037,16 +996,17 @@ whal_Error whal_Stm32n6_CrypAesGmac_Oneshot(whal_AesGmac *dev,
                                             const void *aad, size_t aadSz,
                                             void *tag, size_t tagSz)
 {
-    whal_Crypto *crypto;
-    const whal_Stm32n6_Cryp_Cfg *cfg;
-    size_t base;
+    const whal_Stm32n6_Cryp_Cfg *cfg =
+        (const whal_Stm32n6_Cryp_Cfg *)whal_Stm32n6_Cryp_Dev.cfg;
+    size_t base = whal_Stm32n6_Cryp_Dev.base;
     uint32_t keySizeBits;
     uint8_t tagBuf[16];
     uint64_t aadBits;
     whal_Error err;
     size_t i;
+    (void)dev;
 
-    if (!dev || !dev->crypto || !dev->crypto->cfg || !key || !iv)
+    if (!key || !iv)
         return WHAL_EINVAL;
     if (ivSz != 12)
         return WHAL_ENOTSUP;
@@ -1055,23 +1015,19 @@ whal_Error whal_Stm32n6_CrypAesGmac_Oneshot(whal_AesGmac *dev,
     if (!tag || tagSz == 0 || tagSz > 16)
         return WHAL_EINVAL;
 
-    crypto = dev->crypto;
-    cfg = (const whal_Stm32n6_Cryp_Cfg *)crypto->cfg;
-    base = crypto->base;
-
     err = KeySizeBits(keySz, &keySizeBits);
     if (err)
         return err;
 
     /* Init phase */
-    err = GcmInit(crypto, (const uint8_t *)key, keySz,
+    err = GcmInit((const uint8_t *)key, keySz,
                   keySizeBits, CRYP_ALGODIR_ENCRYPT,
                   (const uint8_t *)iv);
     if (err)
         return err;
 
     /* Header phase */
-    err = GcmHeaderPhase(crypto, (const uint8_t *)aad, aadSz);
+    err = GcmHeaderPhase((const uint8_t *)aad, aadSz);
     if (err)
         return err;
 
@@ -1142,9 +1098,9 @@ whal_Error whal_Stm32n6_CrypAesCcm_Oneshot(whal_AesCcm *dev,
                                            size_t sz,
                                            void *tag, size_t tagSz)
 {
-    whal_Crypto *crypto;
-    const whal_Stm32n6_Cryp_Cfg *cfg;
-    size_t base;
+    const whal_Stm32n6_Cryp_Cfg *cfg =
+        (const whal_Stm32n6_Cryp_Cfg *)whal_Stm32n6_Cryp_Dev.cfg;
+    size_t base = whal_Stm32n6_Cryp_Dev.base;
     uint32_t keySizeBits;
     uint32_t algoDir;
     uint8_t b0[16];
@@ -1154,8 +1110,9 @@ whal_Error whal_Stm32n6_CrypAesCcm_Oneshot(whal_AesCcm *dev,
     size_t q;
     size_t i;
     whal_Error err;
+    (void)dev;
 
-    if (!dev || !dev->crypto || !dev->crypto->cfg || !key || !nonce)
+    if (!key || !nonce)
         return WHAL_EINVAL;
     if (nonceSz < 7 || nonceSz > 13)
         return WHAL_EINVAL;
@@ -1167,10 +1124,6 @@ whal_Error whal_Stm32n6_CrypAesCcm_Oneshot(whal_AesCcm *dev,
         return WHAL_EINVAL;
     if (!tag)
         return WHAL_EINVAL;
-
-    crypto = dev->crypto;
-    cfg = (const whal_Stm32n6_Cryp_Cfg *)crypto->cfg;
-    base = crypto->base;
 
     err = KeySizeBits(keySz, &keySizeBits);
     if (err)
@@ -1326,10 +1279,9 @@ whal_Error whal_Stm32n6_CrypAesCcm_Start(whal_AesCcm *dev,
                                          const void *aad, size_t aadSz,
                                          size_t tagSz, size_t sz)
 {
-    whal_Crypto *crypto;
-    const whal_Stm32n6_Cryp_Cfg *cfg;
-    whal_Stm32n6_AesCcm_State *st;
-    size_t base;
+    const whal_Stm32n6_Cryp_Cfg *cfg =
+        (const whal_Stm32n6_Cryp_Cfg *)whal_Stm32n6_Cryp_Dev.cfg;
+    size_t base = whal_Stm32n6_Cryp_Dev.base;
     uint32_t keySizeBits;
     uint32_t algoDir;
     uint8_t b0[16];
@@ -1337,8 +1289,9 @@ whal_Error whal_Stm32n6_CrypAesCcm_Start(whal_AesCcm *dev,
     size_t q;
     size_t i;
     whal_Error err;
+    (void)dev;
 
-    if (!dev || !dev->crypto || !dev->crypto->cfg || !dev->state || !key || !nonce)
+    if (!key || !nonce)
         return WHAL_EINVAL;
     if (nonceSz < 7 || nonceSz > 13)
         return WHAL_EINVAL;
@@ -1346,11 +1299,6 @@ whal_Error whal_Stm32n6_CrypAesCcm_Start(whal_AesCcm *dev,
         return WHAL_EINVAL;
     if (aadSz > 0 && !aad)
         return WHAL_EINVAL;
-
-    crypto = dev->crypto;
-    cfg = (const whal_Stm32n6_Cryp_Cfg *)crypto->cfg;
-    st = (whal_Stm32n6_AesCcm_State *)dev->state;
-    base = crypto->base;
 
     err = KeySizeBits(keySz, &keySizeBits);
     if (err)
@@ -1364,13 +1312,13 @@ whal_Error whal_Stm32n6_CrypAesCcm_Start(whal_AesCcm *dev,
                sz, aadSz > 0, b0);
 
     for (i = 0; i < 16; i++)
-        st->ccmCtr0[i] = b0[i];
-    st->ccmCtr0[0] &= 0x07;
+        g_aesCcmState.ccmCtr0[i] = b0[i];
+    g_aesCcmState.ccmCtr0[0] &= 0x07;
     for (i = 16 - q; i < 16; i++)
-        st->ccmCtr0[i] = 0;
+        g_aesCcmState.ccmCtr0[i] = 0;
 
     for (i = 0; i < 16; i++)
-        ctr1[i] = st->ccmCtr0[i];
+        ctr1[i] = g_aesCcmState.ccmCtr0[i];
     ctr1[15] |= 0x01;
 
     /* Init phase */
@@ -1430,8 +1378,8 @@ whal_Error whal_Stm32n6_CrypAesCcm_Start(whal_AesCcm *dev,
                                  CRYP_GCM_CCMPH_PAYLOAD));
     Enable(base);
 
-    st->aadSz = aadSz;
-    st->dataSz = 0;
+    g_aesCcmState.aadSz = aadSz;
+    g_aesCcmState.dataSz = 0;
 
     return WHAL_SUCCESS;
 }
@@ -1440,21 +1388,13 @@ whal_Error whal_Stm32n6_CrypAesCcm_Process(whal_AesCcm *dev,
                                            const void *in, void *out,
                                            size_t sz)
 {
-    whal_Crypto *crypto;
-    const whal_Stm32n6_Cryp_Cfg *cfg;
-    size_t base;
-    whal_Stm32n6_AesCcm_State *st;
+    const whal_Stm32n6_Cryp_Cfg *cfg =
+        (const whal_Stm32n6_Cryp_Cfg *)whal_Stm32n6_Cryp_Dev.cfg;
+    size_t base = whal_Stm32n6_Cryp_Dev.base;
     uint32_t algoDir;
     size_t i;
     whal_Error err;
-
-    if (!dev || !dev->crypto || !dev->crypto->cfg || !dev->state)
-        return WHAL_EINVAL;
-
-    crypto = dev->crypto;
-    cfg = (const whal_Stm32n6_Cryp_Cfg *)crypto->cfg;
-    base = crypto->base;
-    st = (whal_Stm32n6_AesCcm_State *)dev->state;
+    (void)dev;
 
     if (sz == 0)
         return WHAL_SUCCESS;
@@ -1502,7 +1442,7 @@ whal_Error whal_Stm32n6_CrypAesCcm_Process(whal_AesCcm *dev,
         }
     }
 
-    st->dataSz += sz;
+    g_aesCcmState.dataSz += sz;
 
     return WHAL_SUCCESS;
 }
@@ -1510,22 +1450,16 @@ whal_Error whal_Stm32n6_CrypAesCcm_Process(whal_AesCcm *dev,
 whal_Error whal_Stm32n6_CrypAesCcm_Finalize(whal_AesCcm *dev,
                                             void *tag, size_t tagSz)
 {
-    whal_Crypto *crypto;
-    const whal_Stm32n6_Cryp_Cfg *cfg;
-    whal_Stm32n6_AesCcm_State *st;
-    size_t base;
+    const whal_Stm32n6_Cryp_Cfg *cfg =
+        (const whal_Stm32n6_Cryp_Cfg *)whal_Stm32n6_Cryp_Dev.cfg;
+    size_t base = whal_Stm32n6_Cryp_Dev.base;
     uint8_t tagBuf[16];
     size_t i;
     whal_Error err;
+    (void)dev;
 
-    if (!dev || !dev->crypto || !dev->crypto->cfg || !dev->state ||
-        !tag || tagSz < 4 || tagSz > 16 || (tagSz & 1) != 0)
+    if (!tag || tagSz < 4 || tagSz > 16 || (tagSz & 1) != 0)
         return WHAL_EINVAL;
-
-    crypto = dev->crypto;
-    cfg = (const whal_Stm32n6_Cryp_Cfg *)crypto->cfg;
-    st = (whal_Stm32n6_AesCcm_State *)dev->state;
-    base = crypto->base;
 
     /* Final phase */
     Disable(base);
@@ -1536,7 +1470,7 @@ whal_Error whal_Stm32n6_CrypAesCcm_Finalize(whal_AesCcm *dev,
                                  CRYP_GCM_CCMPH_FINAL));
     Enable(base);
 
-    WriteBlock(base, st->ccmCtr0);
+    WriteBlock(base, g_aesCcmState.ccmCtr0);
 
     err = WaitOutputReady(base, cfg->timeout);
     if (err) {

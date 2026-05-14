@@ -53,6 +53,9 @@
          WHAL_STM32WB_RCC_PLLCFGR_PLLQ_Msk   | WHAL_STM32WB_RCC_PLLCFGR_PLLREN_Msk | \
          WHAL_STM32WB_RCC_PLLCFGR_PLLR_Msk)
 
+/*
+ * @brief System clock source selection (RCC_CFGR.SW).
+ */
 typedef enum {
     WHAL_STM32WB_RCC_SYSCLK_SRC_MSI,
     WHAL_STM32WB_RCC_SYSCLK_SRC_HSI16,
@@ -60,6 +63,9 @@ typedef enum {
     WHAL_STM32WB_RCC_SYSCLK_SRC_PLL,
 } whal_Stm32wb_Rcc_SysClockSrc;
 
+/*
+ * @brief PLL input clock source (RCC_PLLCFGR.PLLSRC).
+ */
 typedef enum {
     WHAL_STM32WB_RCC_PLLCLK_SRC_NONE,
     WHAL_STM32WB_RCC_PLLCLK_SRC_MSI,
@@ -67,6 +73,9 @@ typedef enum {
     WHAL_STM32WB_RCC_PLLCLK_SRC_HSE,
 } whal_Stm32wb_Rcc_PllClockSrc;
 
+/*
+ * @brief MSI oscillator range selection (RCC_CR.MSIRANGE).
+ */
 typedef enum {
     WHAL_STM32WB_RCC_MSIRANGE_100kHz,
     WHAL_STM32WB_RCC_MSIRANGE_200kHz,
@@ -82,12 +91,18 @@ typedef enum {
     WHAL_STM32WB_RCC_MSIRANGE_48MHz,
 } whal_Stm32wb_Rcc_MsiRange;
 
+/*
+ * @brief Peripheral clock descriptor (RCC *ENR enable bit).
+ */
 typedef struct {
     size_t regOffset;
     size_t enableMask;
     size_t enablePos;
 } whal_Stm32wb_Rcc_PeriphClk;
 
+/*
+ * @brief Cfg for EnableOsc/DisableOsc — on bit + ready bit.
+ */
 typedef struct {
     size_t onReg;
     size_t onMsk;
@@ -112,6 +127,11 @@ typedef struct {
     .onReg  = 0x090, .onMsk  = (1UL <<  0),                  \
     .rdyReg = 0x090, .rdyMsk = (1UL <<  1), .rdyPos =  1
 
+/*
+ * @brief PLL configuration parameters.
+ *   VCO = (input / m) * n
+ *   PLLR = VCO / r (SYSCLK domain)
+ */
 typedef struct {
     whal_Stm32wb_Rcc_PllClockSrc clkSrc;
     uint8_t r;
@@ -121,6 +141,14 @@ typedef struct {
     uint8_t m;
 } whal_Stm32wb_Rcc_PllCfg;
 
+/*
+ * @brief Turn on an oscillator and wait for its ready bit.
+ *
+ * @param clkDev RCC device instance.
+ * @param cfg    Oscillator on/ready bit descriptor (e.g. WHAL_STM32WB_RCC_HSE_CFG).
+ *
+ * @retval WHAL_SUCCESS Always.
+ */
 static inline whal_Error whal_Stm32wb_Rcc_EnableOsc(
     const whal_Clock *clkDev, const whal_Stm32wb_Rcc_OscCfg *cfg)
 {
@@ -134,6 +162,14 @@ static inline whal_Error whal_Stm32wb_Rcc_EnableOsc(
     return WHAL_SUCCESS;
 }
 
+/*
+ * @brief Turn off an oscillator.
+ *
+ * @param clkDev RCC device instance.
+ * @param cfg    Oscillator on/ready bit descriptor.
+ *
+ * @retval WHAL_SUCCESS Always.
+ */
 static inline whal_Error whal_Stm32wb_Rcc_DisableOsc(
     const whal_Clock *clkDev, const whal_Stm32wb_Rcc_OscCfg *cfg)
 {
@@ -141,6 +177,16 @@ static inline whal_Error whal_Stm32wb_Rcc_DisableOsc(
     return WHAL_SUCCESS;
 }
 
+/*
+ * @brief Enable the MSI oscillator, wait for ready, and select its range.
+ *
+ * Sets MSION, polls MSIRDY, then writes MSIRANGE.
+ *
+ * @param clkDev RCC device instance.
+ * @param range  MSI range selection.
+ *
+ * @retval WHAL_SUCCESS Always.
+ */
 static inline whal_Error whal_Stm32wb_Rcc_EnableMsi(
     const whal_Clock *clkDev, whal_Stm32wb_Rcc_MsiRange range)
 {
@@ -161,6 +207,16 @@ static inline whal_Error whal_Stm32wb_Rcc_EnableMsi(
     return WHAL_SUCCESS;
 }
 
+/*
+ * @brief Configure and enable the PLL, waiting for lock.
+ *
+ * Programs PLLCFGR (source/M/N/P/Q/R + REN), sets PLLON, polls PLLRDY.
+ *
+ * @param clkDev RCC device instance.
+ * @param cfg    PLL configuration.
+ *
+ * @retval WHAL_SUCCESS Always.
+ */
 static inline whal_Error whal_Stm32wb_Rcc_EnablePll(
     const whal_Clock *clkDev, const whal_Stm32wb_Rcc_PllCfg *cfg)
 {
@@ -193,6 +249,13 @@ static inline whal_Error whal_Stm32wb_Rcc_EnablePll(
     return WHAL_SUCCESS;
 }
 
+/*
+ * @brief Turn the PLL off (clears RCC_CR.PLLON).
+ *
+ * @param clkDev RCC device instance.
+ *
+ * @retval WHAL_SUCCESS Always.
+ */
 static inline whal_Error whal_Stm32wb_Rcc_DisablePll(const whal_Clock *clkDev)
 {
     whal_Reg_Update(clkDev->base, WHAL_STM32WB_RCC_CR_REG,
@@ -200,6 +263,14 @@ static inline whal_Error whal_Stm32wb_Rcc_DisablePll(const whal_Clock *clkDev)
     return WHAL_SUCCESS;
 }
 
+/*
+ * @brief Switch SYSCLK to the requested source and wait for the switch.
+ *
+ * @param clkDev RCC device instance.
+ * @param src    System clock source.
+ *
+ * @retval WHAL_SUCCESS Always.
+ */
 static inline whal_Error whal_Stm32wb_Rcc_SetSysClock(
     const whal_Clock *clkDev, whal_Stm32wb_Rcc_SysClockSrc src)
 {
@@ -217,6 +288,14 @@ static inline whal_Error whal_Stm32wb_Rcc_SetSysClock(
     return WHAL_SUCCESS;
 }
 
+/*
+ * @brief Set the enable bit for a peripheral clock gate.
+ *
+ * @param clkDev RCC device instance.
+ * @param clk    Peripheral clock descriptor (RCC *ENR register + bit).
+ *
+ * @retval WHAL_SUCCESS Always.
+ */
 static inline whal_Error whal_Stm32wb_Rcc_EnablePeriphClk(
     const whal_Clock *clkDev, const whal_Stm32wb_Rcc_PeriphClk *clk)
 {
@@ -225,6 +304,14 @@ static inline whal_Error whal_Stm32wb_Rcc_EnablePeriphClk(
     return WHAL_SUCCESS;
 }
 
+/*
+ * @brief Clear the enable bit for a peripheral clock gate.
+ *
+ * @param clkDev RCC device instance.
+ * @param clk    Peripheral clock descriptor (RCC *ENR register + bit).
+ *
+ * @retval WHAL_SUCCESS Always.
+ */
 static inline whal_Error whal_Stm32wb_Rcc_DisablePeriphClk(
     const whal_Clock *clkDev, const whal_Stm32wb_Rcc_PeriphClk *clk)
 {

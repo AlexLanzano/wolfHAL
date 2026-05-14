@@ -23,9 +23,11 @@ function returns early and the test is marked as failed.
 ## Generic Tests
 
 Generic tests exercise the wolfHAL API using only the public interface. They
-rely on global peripheral instances and board constants from `board.h` (e.g.,
-`g_whalGpio`, `BOARD_LED_PIN`), so they run on any board that supports the
-device type without modification.
+reach peripherals through the `BOARD_<PERIPH>_DEV` macros and board
+constants from `board.h` (e.g., `BOARD_GPIO_DEV`, `BOARD_LED_PIN`), so they
+run on any board that supports the device type without modification — the
+board decides whether `BOARD_<PERIPH>_DEV` resolves to `WHAL_SINGLETON` or
+to a pointer such as `&g_whalUart`.
 
 Generic tests should verify the API contract — that functions return the
 expected error codes, that Set followed by Get produces the correct value, that
@@ -41,7 +43,7 @@ Create `tests/<device>/test_<device>.c`:
 
 static void Test_Foo_BasicOperation(void)
 {
-    WHAL_ASSERT_EQ(whal_Foo_Init(&g_whalFoo), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Foo_Init(BOARD_FOO_DEV), WHAL_SUCCESS);
 }
 
 void whal_Test_Foo(void)
@@ -79,7 +81,9 @@ Create `tests/<device>/test_<platform>_<device>.c`:
 static void Test_Foo_SomeRegister(void)
 {
     size_t val = 0;
-    whal_Reg_Get(g_whalFoo.base, REG_OFFSET, MASK, POS, &val);
+    /* Read the register block base from the platform's singleton in board.h.
+     * For vtable-dispatched drivers, use BOARD_FOO_DEV->base instead. */
+    whal_Reg_Get(whal_<Platform>_Foo_Dev.base, REG_OFFSET, MASK, POS, &val);
     WHAL_ASSERT_EQ(val, EXPECTED);
 }
 

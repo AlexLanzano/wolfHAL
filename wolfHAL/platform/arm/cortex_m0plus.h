@@ -3,6 +3,14 @@
 
 #include <wolfHAL/timer/systick.h>
 
+/*
+ * @file cortex_m0plus.h
+ * @brief ARM Cortex-M0+ core platform constants.
+ *
+ * Exposes the SysTick base address and driver pointer used by boards built
+ * on the Cortex-M0+ core. Pulled in by chip-specific platform headers.
+ */
+
 #define WHAL_CORTEX_M0PLUS_SYSTICK_BASE 0xE000E010
 #define WHAL_CORTEX_M0PLUS_SYSTICK_DRIVER &whal_SysTick_Driver
 

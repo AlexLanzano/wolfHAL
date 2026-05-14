@@ -8,11 +8,11 @@ void main(void)
         goto loop;
 
     while (1) {
-        whal_Gpio_Set(WHAL_SINGLETON, BOARD_LED_PIN, 1);
-        whal_Uart_Send(&g_whalUart, "Blink!\r\n", 8);
+        whal_Gpio_Set(BOARD_GPIO_DEV, BOARD_LED_PIN, 1);
+        whal_Uart_Send(BOARD_UART_DEV, "Blink!\r\n", 8);
         Board_WaitMs(1000);
-        whal_Gpio_Set(WHAL_SINGLETON, BOARD_LED_PIN, 0);
-        whal_Uart_Send(&g_whalUart, "Blink!\r\n", 8);
+        whal_Gpio_Set(BOARD_GPIO_DEV, BOARD_LED_PIN, 0);
+        whal_Uart_Send(BOARD_UART_DEV, "Blink!\r\n", 8);
         Board_WaitMs(1000);
     }
 

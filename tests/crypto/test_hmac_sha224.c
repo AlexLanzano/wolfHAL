@@ -26,7 +26,7 @@ static void Test_HmacSha224_KnownAnswer(void)
 {
     uint8_t digest[28] = {0};
 
-    WHAL_ASSERT_EQ(whal_HmacSha224_Oneshot(&g_whalHmacSha224,
+    WHAL_ASSERT_EQ(whal_HmacSha224_Oneshot(BOARD_HMAC_SHA224_DEV,
                                            hmacKey, sizeof(hmacKey),
                                            hmacInput, sizeof(hmacInput),
                                            digest, sizeof(digest)),
@@ -65,17 +65,17 @@ static void Test_HmacSha224_Streaming(void)
     uint8_t digest[28] = {0};
     const size_t split = 50;
 
-    WHAL_ASSERT_EQ(whal_HmacSha224_Start(&g_whalHmacSha224,
+    WHAL_ASSERT_EQ(whal_HmacSha224_Start(BOARD_HMAC_SHA224_DEV,
                                          hmacKey, sizeof(hmacKey)),
                    WHAL_SUCCESS);
-    WHAL_ASSERT_EQ(whal_HmacSha224_Process(&g_whalHmacSha224,
+    WHAL_ASSERT_EQ(whal_HmacSha224_Process(BOARD_HMAC_SHA224_DEV,
                                            hmacStreamMsg, split),
                    WHAL_SUCCESS);
-    WHAL_ASSERT_EQ(whal_HmacSha224_Process(&g_whalHmacSha224,
+    WHAL_ASSERT_EQ(whal_HmacSha224_Process(BOARD_HMAC_SHA224_DEV,
                                            hmacStreamMsg + split,
                                            sizeof(hmacStreamMsg) - split),
                    WHAL_SUCCESS);
-    WHAL_ASSERT_EQ(whal_HmacSha224_Finalize(&g_whalHmacSha224,
+    WHAL_ASSERT_EQ(whal_HmacSha224_Finalize(BOARD_HMAC_SHA224_DEV,
                                             digest, sizeof(digest)),
                    WHAL_SUCCESS);
 

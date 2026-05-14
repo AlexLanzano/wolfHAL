@@ -52,11 +52,7 @@ static const whal_Stm32l1_Rcc_PeriphClk g_periphClks[] = {
 };
 #define PERIPH_CLK_COUNT (sizeof(g_periphClks) / sizeof(g_periphClks[0]))
 
-/* PWR -- Range 1 (1.8 V) to allow SYSCLK up to 32 MHz. */
-whal_Power g_whalPower = {
-    .base = WHAL_STM32L152_PWR_BASE,
-};
-
+/* PWR singleton lives in board.h as `static const`. */
 
 /* UART -- USART2 at 115200 baud */
 whal_Uart g_whalUart = {
@@ -88,16 +84,11 @@ whal_I2c g_whalI2c = {
     },
 };
 
-/* Flash -- 512 KB */
+/* Flash -- 512 KB. Dispatcher stub; the const cfg lives in board.h as
+ * whal_Stm32l1_Flash_Dev. This only carries .driver so whal_Flash_* can
+ * dispatch through the vtable. */
 whal_Flash g_whalFlash = {
-    .base = WHAL_STM32L152_FLASH_BASE,
     .driver = WHAL_STM32L152_FLASH_DRIVER,
-
-    .cfg = &(whal_Stm32l1_Flash_Cfg) {
-        .startAddr = 0x08000000,
-        .size = 0x80000,
-        .timeout = &g_whalTimeout,
-    },
 };
 
 #ifdef BOARD_WATCHDOG_IWDG
@@ -145,7 +136,7 @@ whal_Error Board_Init(void)
     /* Switch regulator to range 1 (1.8 V) so the PLL can reach 32 MHz.
      * Reset default is range 2, which caps PLL VCO at 48 MHz and SYSCLK at
      * 16 MHz. */
-    err = whal_Stm32l1_Pwr_SetVosRange(&g_whalPower,
+    err = whal_Stm32l1_Pwr_SetVosRange(WHAL_SINGLETON,
                                        WHAL_STM32L1_PWR_VOS_RANGE_1,
                                        &g_whalTimeout);
     if (err)

@@ -44,13 +44,13 @@ static void Test_Eth_Loopback(void)
     };
     uint8_t rxFrame[1536];
     size_t rxLen = sizeof(rxFrame);
-    size_t base = g_whalEth.base;
-    whal_Stm32n6_Eth_Cfg *ethCfg = (whal_Stm32n6_Eth_Cfg *)g_whalEth.cfg;
+    size_t base = whal_Stm32n6_Eth_Dev.base;
+    whal_Stm32n6_Eth_Cfg *ethCfg = (whal_Stm32n6_Eth_Cfg *)whal_Stm32n6_Eth_Dev.cfg;
     whal_Error err;
     uint16_t bcr = 0;
 
     /* Verify the LAN8742A is alive and not in software power-down. */
-    err = whal_Eth_MdioRead(&g_whalEth, BOARD_ETH_PHY_ADDR, 0x00, &bcr);
+    err = whal_Eth_MdioRead(BOARD_ETH_DEV, BOARD_ETH_PHY_ADDR, 0x00, &bcr);
     whal_Test_Printf("  PHY BCR read: err=%d val=%d (pwd=%d)\n",
                      (int)err, (int)bcr, (int)((bcr >> 11) & 1));
 
@@ -72,15 +72,15 @@ static void Test_Eth_Loopback(void)
     DumpHex32("DMAC0TXDLAR",     (uint32_t)whal_Reg_Read(base, 0x1114));
     DumpHex32("DMAC0RXDLAR",     (uint32_t)whal_Reg_Read(base, 0x111C));
 
-    WHAL_ASSERT_EQ(whal_Stm32n6_Eth_Ext_EnableLoopback(&g_whalEth, 1),
+    WHAL_ASSERT_EQ(whal_Stm32n6_Eth_Ext_EnableLoopback(BOARD_ETH_DEV, 1),
                    WHAL_SUCCESS);
-    WHAL_ASSERT_EQ(whal_Eth_Start(&g_whalEth, WHAL_ETH_SPEED_100,
+    WHAL_ASSERT_EQ(whal_Eth_Start(BOARD_ETH_DEV, WHAL_ETH_SPEED_100,
                                   WHAL_ETH_DUPLEX_FULL), WHAL_SUCCESS);
 
     DumpHex32("MACCR after Start", (uint32_t)whal_Reg_Read(base,
                                                            DBG_MACCR_REG));
 
-    WHAL_ASSERT_EQ(whal_Eth_Send(&g_whalEth, txFrame, sizeof(txFrame)),
+    WHAL_ASSERT_EQ(whal_Eth_Send(BOARD_ETH_DEV, txFrame, sizeof(txFrame)),
                    WHAL_SUCCESS);
 
     /* Give the MAC a moment, then snapshot TX/RX descriptor state. */
@@ -95,7 +95,7 @@ static void Test_Eth_Loopback(void)
     /* Poll for the looped-back frame */
     uint32_t start = g_tick;
     do {
-        err = whal_Eth_Recv(&g_whalEth, rxFrame, &rxLen);
+        err = whal_Eth_Recv(BOARD_ETH_DEV, rxFrame, &rxLen);
     } while (err == WHAL_ENOTREADY && (g_tick - start) < 100);
 
     if (err != WHAL_SUCCESS) {
@@ -113,9 +113,9 @@ static void Test_Eth_Loopback(void)
     /* Verify payload matches (skip MAC header) */
     WHAL_ASSERT_MEM_EQ(rxFrame + 14, txFrame + 14, sizeof(txFrame) - 14);
 
-    WHAL_ASSERT_EQ(whal_Eth_Stop(&g_whalEth), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Eth_Stop(BOARD_ETH_DEV), WHAL_SUCCESS);
 
-    WHAL_ASSERT_EQ(whal_Stm32n6_Eth_Ext_EnableLoopback(&g_whalEth, 0),
+    WHAL_ASSERT_EQ(whal_Stm32n6_Eth_Ext_EnableLoopback(BOARD_ETH_DEV, 0),
                    WHAL_SUCCESS);
 }
 

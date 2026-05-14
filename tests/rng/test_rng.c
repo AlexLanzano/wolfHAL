@@ -10,7 +10,7 @@ static void Test_Rng_Api(void)
     WHAL_ASSERT_EQ(whal_Rng_Init(NULL), WHAL_EINVAL);
     WHAL_ASSERT_EQ(whal_Rng_Deinit(NULL), WHAL_EINVAL);
     WHAL_ASSERT_EQ(whal_Rng_Generate(NULL, buf, sizeof(buf)), WHAL_EINVAL);
-    WHAL_ASSERT_EQ(whal_Rng_Generate(&g_whalRng, NULL, 8), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Rng_Generate(BOARD_RNG_DEV, NULL, 8), WHAL_EINVAL);
 }
 
 static void Test_Rng_GenerateNonzero(void)
@@ -18,7 +18,7 @@ static void Test_Rng_GenerateNonzero(void)
     uint8_t buf[32] = {0};
     int allZero = 1;
 
-    WHAL_ASSERT_EQ(whal_Rng_Generate(&g_whalRng, buf, sizeof(buf)), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Rng_Generate(BOARD_RNG_DEV, buf, sizeof(buf)), WHAL_SUCCESS);
 
     for (size_t i = 0; i < sizeof(buf); i++) {
         if (buf[i] != 0) {
@@ -36,8 +36,8 @@ static void Test_Rng_GenerateUnique(void)
     uint8_t buf2[16] = {0};
     int same = 1;
 
-    WHAL_ASSERT_EQ(whal_Rng_Generate(&g_whalRng, buf1, sizeof(buf1)), WHAL_SUCCESS);
-    WHAL_ASSERT_EQ(whal_Rng_Generate(&g_whalRng, buf2, sizeof(buf2)), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Rng_Generate(BOARD_RNG_DEV, buf1, sizeof(buf1)), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Rng_Generate(BOARD_RNG_DEV, buf2, sizeof(buf2)), WHAL_SUCCESS);
 
     for (size_t i = 0; i < sizeof(buf1); i++) {
         if (buf1[i] != buf2[i]) {

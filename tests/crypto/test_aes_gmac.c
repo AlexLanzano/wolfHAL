@@ -48,14 +48,14 @@ static void Test_AesGmac_Basic(void)
     uint8_t tag1[16] = {0};
     uint8_t tag2[16] = {0};
 
-    WHAL_ASSERT_EQ(whal_AesGmac_Oneshot(&g_whalAesGmac,
+    WHAL_ASSERT_EQ(whal_AesGmac_Oneshot(BOARD_AES_GMAC_DEV,
                                          key, 32,
                                          nonce, sizeof(nonce),
                                          aad, sizeof(aad),
                                          tag1, sizeof(tag1)),
                    WHAL_SUCCESS);
 
-    WHAL_ASSERT_EQ(whal_AesGmac_Oneshot(&g_whalAesGmac,
+    WHAL_ASSERT_EQ(whal_AesGmac_Oneshot(BOARD_AES_GMAC_DEV,
                                          key, 32,
                                          nonce, sizeof(nonce),
                                          aad, sizeof(aad),
@@ -69,7 +69,7 @@ static void Test_AesGmac_KnownAnswer(void)
 {
     uint8_t tag[16] = {0};
 
-    WHAL_ASSERT_EQ(whal_AesGmac_Oneshot(&g_whalAesGmac,
+    WHAL_ASSERT_EQ(whal_AesGmac_Oneshot(BOARD_AES_GMAC_DEV,
                                          gmacKey, 32,
                                          gmacIv, sizeof(gmacIv),
                                          gmacAad, sizeof(gmacAad),

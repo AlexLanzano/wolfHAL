@@ -1,4 +1,7 @@
 #include <stdint.h>
+#ifdef WHAL_CFG_BMI270_SINGLE_INSTANCE
+#include "board.h"  /* provides whal_Bmi270_Dev singleton */
+#endif
 #include <wolfHAL/sensor/imu/bmi270_sensor.h>
 #include <wolfHAL/sensor/sensor.h>
 #include <wolfHAL/i2c/i2c.h>
@@ -45,11 +48,16 @@ whal_Error whal_Bmi270_Init(whal_Sensor *dev)
     whal_Error err;
     uint8_t val;
 
+#ifdef WHAL_CFG_BMI270_SINGLE_INSTANCE
+    cfg = (whal_Bmi270_Cfg *)whal_Bmi270_Dev.cfg;
+    (void)dev;
+#else
     if (!dev || !dev->cfg) {
         return WHAL_EINVAL;
     }
 
     cfg = (whal_Bmi270_Cfg *)dev->cfg;
+#endif
 
     if (!cfg->i2c || !cfg->comCfg || !cfg->configData ||
         cfg->configDataSz == 0 || !cfg->DelayMs) {
@@ -162,11 +170,16 @@ whal_Error whal_Bmi270_Deinit(whal_Sensor *dev)
     whal_Error err;
     uint8_t val = BMI270_CMD_SOFT_RESET;
 
+#ifdef WHAL_CFG_BMI270_SINGLE_INSTANCE
+    cfg = (whal_Bmi270_Cfg *)whal_Bmi270_Dev.cfg;
+    (void)dev;
+#else
     if (!dev || !dev->cfg) {
         return WHAL_EINVAL;
     }
 
     cfg = (whal_Bmi270_Cfg *)dev->cfg;
+#endif
 
     err = whal_I2c_StartCom(cfg->i2c, cfg->comCfg);
     if (err)
@@ -185,11 +198,20 @@ whal_Error whal_Bmi270_Read(whal_Sensor *dev, void *data)
     uint8_t raw[BMI270_DATA_LEN];
     whal_Error err;
 
+#ifdef WHAL_CFG_BMI270_SINGLE_INSTANCE
+    cfg = (whal_Bmi270_Cfg *)whal_Bmi270_Dev.cfg;
+    (void)dev;
+
+    if (!data) {
+        return WHAL_EINVAL;
+    }
+#else
     if (!dev || !dev->cfg || !data) {
         return WHAL_EINVAL;
     }
 
     cfg = (whal_Bmi270_Cfg *)dev->cfg;
+#endif
     out = (whal_Bmi270_Data *)data;
 
     err = whal_I2c_StartCom(cfg->i2c, cfg->comCfg);

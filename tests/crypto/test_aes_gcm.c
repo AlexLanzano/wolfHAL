@@ -109,7 +109,7 @@ static void Test_AesGcm_Basic(void)
     uint8_t encTag[16] = {0};
     uint8_t decTag[16] = {0};
 
-    WHAL_ASSERT_EQ(whal_AesGcm_Oneshot(&g_whalAesGcm, WHAL_CRYPTO_ENCRYPT,
+    WHAL_ASSERT_EQ(whal_AesGcm_Oneshot(BOARD_AES_GCM_DEV, WHAL_CRYPTO_ENCRYPT,
                                         key, 32,
                                         nonce, sizeof(nonce),
                                         aad, sizeof(aad),
@@ -117,7 +117,7 @@ static void Test_AesGcm_Basic(void)
                                         encTag, sizeof(encTag)),
                    WHAL_SUCCESS);
 
-    WHAL_ASSERT_EQ(whal_AesGcm_Oneshot(&g_whalAesGcm, WHAL_CRYPTO_DECRYPT,
+    WHAL_ASSERT_EQ(whal_AesGcm_Oneshot(BOARD_AES_GCM_DEV, WHAL_CRYPTO_DECRYPT,
                                         key, 32,
                                         nonce, sizeof(nonce),
                                         aad, sizeof(aad),
@@ -134,7 +134,7 @@ static void Test_AesGcm_KnownAnswer(void)
     uint8_t ct[64] = {0};
     uint8_t tag[16] = {0};
 
-    WHAL_ASSERT_EQ(whal_AesGcm_Oneshot(&g_whalAesGcm, WHAL_CRYPTO_ENCRYPT,
+    WHAL_ASSERT_EQ(whal_AesGcm_Oneshot(BOARD_AES_GCM_DEV, WHAL_CRYPTO_ENCRYPT,
                                         gcmKey, 32,
                                         gcmIv, sizeof(gcmIv),
                                         NULL, 0,
@@ -151,7 +151,7 @@ static void Test_AesGcm_KnownAnswer_PartialBlocks(void)
     uint8_t ct[sizeof(gcm16Pt)] = {0};
     uint8_t tag[16] = {0};
 
-    WHAL_ASSERT_EQ(whal_AesGcm_Oneshot(&g_whalAesGcm, WHAL_CRYPTO_ENCRYPT,
+    WHAL_ASSERT_EQ(whal_AesGcm_Oneshot(BOARD_AES_GCM_DEV, WHAL_CRYPTO_ENCRYPT,
                                         gcmKey, 32,
                                         gcmIv, sizeof(gcmIv),
                                         gcm16Aad, sizeof(gcm16Aad),
@@ -214,22 +214,22 @@ static void Test_AesGcm_Streaming(void)
     uint8_t tag[16] = {0};
     const size_t split = 32;
 
-    WHAL_ASSERT_EQ(whal_AesGcm_Start(&g_whalAesGcm, WHAL_CRYPTO_ENCRYPT,
+    WHAL_ASSERT_EQ(whal_AesGcm_Start(BOARD_AES_GCM_DEV, WHAL_CRYPTO_ENCRYPT,
                                       gcmKey, 32,
                                       gcmIv, sizeof(gcmIv),
                                       gcmStreamAad, sizeof(gcmStreamAad)),
                    WHAL_SUCCESS);
 
-    WHAL_ASSERT_EQ(whal_AesGcm_Process(&g_whalAesGcm,
+    WHAL_ASSERT_EQ(whal_AesGcm_Process(BOARD_AES_GCM_DEV,
                                         gcmStreamPt, ct, split),
                    WHAL_SUCCESS);
 
-    WHAL_ASSERT_EQ(whal_AesGcm_Process(&g_whalAesGcm,
+    WHAL_ASSERT_EQ(whal_AesGcm_Process(BOARD_AES_GCM_DEV,
                                         gcmStreamPt + split, ct + split,
                                         sizeof(gcmStreamPt) - split),
                    WHAL_SUCCESS);
 
-    WHAL_ASSERT_EQ(whal_AesGcm_Finalize(&g_whalAesGcm, tag, sizeof(tag)),
+    WHAL_ASSERT_EQ(whal_AesGcm_Finalize(BOARD_AES_GCM_DEV, tag, sizeof(tag)),
                    WHAL_SUCCESS);
 
     WHAL_ASSERT_MEM_EQ(ct, gcmStreamCt, sizeof(gcmStreamCt));
@@ -242,22 +242,22 @@ static void Test_AesGcm_Streaming_NoAad(void)
     uint8_t tag[16] = {0};
     const size_t split = 32;
 
-    WHAL_ASSERT_EQ(whal_AesGcm_Start(&g_whalAesGcm, WHAL_CRYPTO_ENCRYPT,
+    WHAL_ASSERT_EQ(whal_AesGcm_Start(BOARD_AES_GCM_DEV, WHAL_CRYPTO_ENCRYPT,
                                       gcmKey, 32,
                                       gcmIv, sizeof(gcmIv),
                                       NULL, 0),
                    WHAL_SUCCESS);
 
-    WHAL_ASSERT_EQ(whal_AesGcm_Process(&g_whalAesGcm,
+    WHAL_ASSERT_EQ(whal_AesGcm_Process(BOARD_AES_GCM_DEV,
                                         gcmStreamPt, ct, split),
                    WHAL_SUCCESS);
 
-    WHAL_ASSERT_EQ(whal_AesGcm_Process(&g_whalAesGcm,
+    WHAL_ASSERT_EQ(whal_AesGcm_Process(BOARD_AES_GCM_DEV,
                                         gcmStreamPt + split, ct + split,
                                         sizeof(gcmStreamPt) - split),
                    WHAL_SUCCESS);
 
-    WHAL_ASSERT_EQ(whal_AesGcm_Finalize(&g_whalAesGcm, tag, sizeof(tag)),
+    WHAL_ASSERT_EQ(whal_AesGcm_Finalize(BOARD_AES_GCM_DEV, tag, sizeof(tag)),
                    WHAL_SUCCESS);
 
     WHAL_ASSERT_MEM_EQ(ct, gcmStreamCt, sizeof(gcmStreamCt));
@@ -268,13 +268,13 @@ static void Test_AesGcm_Streaming_NoPayload(void)
 {
     uint8_t tag[16] = {0};
 
-    WHAL_ASSERT_EQ(whal_AesGcm_Start(&g_whalAesGcm, WHAL_CRYPTO_ENCRYPT,
+    WHAL_ASSERT_EQ(whal_AesGcm_Start(BOARD_AES_GCM_DEV, WHAL_CRYPTO_ENCRYPT,
                                       gcmKey, 32,
                                       gcmIv, sizeof(gcmIv),
                                       gcmStreamAad, sizeof(gcmStreamAad)),
                    WHAL_SUCCESS);
 
-    WHAL_ASSERT_EQ(whal_AesGcm_Finalize(&g_whalAesGcm, tag, sizeof(tag)),
+    WHAL_ASSERT_EQ(whal_AesGcm_Finalize(BOARD_AES_GCM_DEV, tag, sizeof(tag)),
                    WHAL_SUCCESS);
 
     WHAL_ASSERT_MEM_EQ(tag, gcmStreamNoPtTag, sizeof(gcmStreamNoPtTag));
@@ -285,25 +285,25 @@ static void Test_AesGcm_Streaming_ThreeCall(void)
     uint8_t ct[sizeof(gcmStreamPt)] = {0};
     uint8_t tag[16] = {0};
 
-    WHAL_ASSERT_EQ(whal_AesGcm_Start(&g_whalAesGcm, WHAL_CRYPTO_ENCRYPT,
+    WHAL_ASSERT_EQ(whal_AesGcm_Start(BOARD_AES_GCM_DEV, WHAL_CRYPTO_ENCRYPT,
                                       gcmKey, 32,
                                       gcmIv, sizeof(gcmIv),
                                       gcmStreamAad, sizeof(gcmStreamAad)),
                    WHAL_SUCCESS);
 
     /* 16 + 16 + 18: two full blocks then one block + 2 partial. */
-    WHAL_ASSERT_EQ(whal_AesGcm_Process(&g_whalAesGcm,
+    WHAL_ASSERT_EQ(whal_AesGcm_Process(BOARD_AES_GCM_DEV,
                                         gcmStreamPt, ct, 16),
                    WHAL_SUCCESS);
-    WHAL_ASSERT_EQ(whal_AesGcm_Process(&g_whalAesGcm,
+    WHAL_ASSERT_EQ(whal_AesGcm_Process(BOARD_AES_GCM_DEV,
                                         gcmStreamPt + 16, ct + 16, 16),
                    WHAL_SUCCESS);
-    WHAL_ASSERT_EQ(whal_AesGcm_Process(&g_whalAesGcm,
+    WHAL_ASSERT_EQ(whal_AesGcm_Process(BOARD_AES_GCM_DEV,
                                         gcmStreamPt + 32, ct + 32,
                                         sizeof(gcmStreamPt) - 32),
                    WHAL_SUCCESS);
 
-    WHAL_ASSERT_EQ(whal_AesGcm_Finalize(&g_whalAesGcm, tag, sizeof(tag)),
+    WHAL_ASSERT_EQ(whal_AesGcm_Finalize(BOARD_AES_GCM_DEV, tag, sizeof(tag)),
                    WHAL_SUCCESS);
 
     WHAL_ASSERT_MEM_EQ(ct, gcmStreamCt, sizeof(gcmStreamCt));

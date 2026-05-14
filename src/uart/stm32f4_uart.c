@@ -1,4 +1,8 @@
 #include <stdint.h>
+#if defined(WHAL_CFG_STM32F4_UART_SINGLE_INSTANCE) || \
+    defined(WHAL_CFG_STM32L1_UART_SINGLE_INSTANCE)
+#include "board.h"  /* provides whal_Stm32f4_Uart_Dev singleton (possibly via platform alias macro) */
+#endif
 #include <wolfHAL/uart/stm32f4_uart.h>
 #include <wolfHAL/uart/uart.h>
 #include <wolfHAL/error.h>
@@ -57,15 +61,23 @@
 
 whal_Error whal_Stm32f4_Uart_Init(whal_Uart *uartDev)
 {
+    uint32_t brr;
+#if defined(WHAL_CFG_STM32F4_UART_SINGLE_INSTANCE) || \
+    defined(WHAL_CFG_STM32L1_UART_SINGLE_INSTANCE)
+    const whal_Stm32f4_Uart_Cfg *cfg =
+        (const whal_Stm32f4_Uart_Cfg *)whal_Stm32f4_Uart_Dev.cfg;
+    size_t base = whal_Stm32f4_Uart_Dev.base;
+    (void)uartDev;
+#else
     whal_Stm32f4_Uart_Cfg *cfg;
     size_t base;
-    uint32_t brr;
 
     if (!uartDev || !uartDev->cfg)
         return WHAL_EINVAL;
 
     base = uartDev->base;
     cfg = (whal_Stm32f4_Uart_Cfg *)uartDev->cfg;
+#endif
 
     brr = cfg->brr;
 
@@ -86,12 +98,18 @@ whal_Error whal_Stm32f4_Uart_Init(whal_Uart *uartDev)
 
 whal_Error whal_Stm32f4_Uart_Deinit(whal_Uart *uartDev)
 {
+#if defined(WHAL_CFG_STM32F4_UART_SINGLE_INSTANCE) || \
+    defined(WHAL_CFG_STM32L1_UART_SINGLE_INSTANCE)
+    size_t base = whal_Stm32f4_Uart_Dev.base;
+    (void)uartDev;
+#else
     size_t base;
 
     if (!uartDev)
         return WHAL_EINVAL;
 
     base = uartDev->base;
+#endif
 
     /* Disable USART, transmitter, and receiver */
     whal_Reg_Update(base, UART_CR1_REG,
@@ -110,15 +128,26 @@ whal_Error whal_Stm32f4_Uart_Deinit(whal_Uart *uartDev)
 
 whal_Error whal_Stm32f4_Uart_Send(whal_Uart *uartDev, const void *data, size_t dataSz)
 {
+    const uint8_t *buf = data;
+#if defined(WHAL_CFG_STM32F4_UART_SINGLE_INSTANCE) || \
+    defined(WHAL_CFG_STM32L1_UART_SINGLE_INSTANCE)
+    const whal_Stm32f4_Uart_Cfg *cfg =
+        (const whal_Stm32f4_Uart_Cfg *)whal_Stm32f4_Uart_Dev.cfg;
+    size_t base = whal_Stm32f4_Uart_Dev.base;
+    (void)uartDev;
+
+    if (!data)
+        return WHAL_EINVAL;
+#else
     size_t base;
     whal_Stm32f4_Uart_Cfg *cfg;
-    const uint8_t *buf = data;
 
     if (!uartDev || !uartDev->cfg || !data)
         return WHAL_EINVAL;
 
     base = uartDev->base;
     cfg = (whal_Stm32f4_Uart_Cfg *)uartDev->cfg;
+#endif
 
     for (size_t i = 0; i < dataSz; ++i) {
         whal_Error err;
@@ -138,16 +167,27 @@ whal_Error whal_Stm32f4_Uart_Send(whal_Uart *uartDev, const void *data, size_t d
 
 whal_Error whal_Stm32f4_Uart_Recv(whal_Uart *uartDev, void *data, size_t dataSz)
 {
+    uint8_t *buf = data;
+    size_t d;
+#if defined(WHAL_CFG_STM32F4_UART_SINGLE_INSTANCE) || \
+    defined(WHAL_CFG_STM32L1_UART_SINGLE_INSTANCE)
+    const whal_Stm32f4_Uart_Cfg *cfg =
+        (const whal_Stm32f4_Uart_Cfg *)whal_Stm32f4_Uart_Dev.cfg;
+    size_t base = whal_Stm32f4_Uart_Dev.base;
+    (void)uartDev;
+
+    if (!data)
+        return WHAL_EINVAL;
+#else
     size_t base;
     whal_Stm32f4_Uart_Cfg *cfg;
-    uint8_t *buf = data;
 
     if (!uartDev || !uartDev->cfg || !data)
         return WHAL_EINVAL;
 
     base = uartDev->base;
     cfg = (whal_Stm32f4_Uart_Cfg *)uartDev->cfg;
-    size_t d;
+#endif
 
     for (size_t i = 0; i < dataSz; ++i) {
         /* Wait for receive data register not empty */

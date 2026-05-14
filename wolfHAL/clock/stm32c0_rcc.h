@@ -2,8 +2,11 @@
 #define WHAL_STM32C0_RCC_H
 
 #include <stdint.h>
-#include <wolfHAL/clock/clock.h>
 #include <stddef.h>
+#include <wolfHAL/clock/clock.h>
+#include <wolfHAL/error.h>
+#include <wolfHAL/regmap.h>
+#include <wolfHAL/bitops.h>
 
 /*
  * @file stm32c0_rcc.h
@@ -14,6 +17,22 @@
  * clock is HSI48 (48 MHz) with a configurable divider (HSIDIV) producing
  * HSISYS.
  */
+
+/* Clock Control Register */
+#define WHAL_STM32C0_RCC_CR_REG        0x000
+#define WHAL_STM32C0_RCC_CR_HSION_Pos  8
+#define WHAL_STM32C0_RCC_CR_HSION_Msk  (1UL << WHAL_STM32C0_RCC_CR_HSION_Pos)
+#define WHAL_STM32C0_RCC_CR_HSIRDY_Pos 10
+#define WHAL_STM32C0_RCC_CR_HSIRDY_Msk (1UL << WHAL_STM32C0_RCC_CR_HSIRDY_Pos)
+#define WHAL_STM32C0_RCC_CR_HSIDIV_Pos 11
+#define WHAL_STM32C0_RCC_CR_HSIDIV_Msk (WHAL_BITMASK(3) << WHAL_STM32C0_RCC_CR_HSIDIV_Pos)
+
+/* Clock Configuration Register */
+#define WHAL_STM32C0_RCC_CFGR_REG     0x008
+#define WHAL_STM32C0_RCC_CFGR_SW_Pos  0
+#define WHAL_STM32C0_RCC_CFGR_SW_Msk  (WHAL_BITMASK(3) << WHAL_STM32C0_RCC_CFGR_SW_Pos)
+#define WHAL_STM32C0_RCC_CFGR_SWS_Pos 3
+#define WHAL_STM32C0_RCC_CFGR_SWS_Msk (WHAL_BITMASK(3) << WHAL_STM32C0_RCC_CFGR_SWS_Pos)
 
 /*
  * @brief HSI divider selection (RCC_CR.HSIDIV).
@@ -49,27 +68,93 @@ typedef struct {
 } whal_Stm32c0_Rcc_PeriphClk;
 
 /*
- * @brief Enable HSI, set the HSIDIV divider, and wait for ready.
+ * @brief Enable HSI16/HSI48, wait for it to be ready, then set HSIDIV.
+ *
+ * Sets RCC_CR.HSION, polls RCC_CR.HSIRDY, then writes HSIDIV. Leaves HSISYS
+ * = 48 MHz / 2^hsidiv.
+ *
+ * @param clkDev RCC device instance.
+ * @param hsidiv HSI divider selection.
+ *
+ * @retval WHAL_SUCCESS Always.
  */
-whal_Error whal_Stm32c0_Rcc_EnableHsi(whal_Clock *clkDev,
-                                     whal_Stm32c0_Rcc_HsiDiv hsidiv);
+static inline whal_Error whal_Stm32c0_Rcc_EnableHsi(
+    const whal_Clock *clkDev, whal_Stm32c0_Rcc_HsiDiv hsidiv)
+{
+    size_t rdy;
+
+    whal_Reg_Update(clkDev->base, WHAL_STM32C0_RCC_CR_REG,
+                    WHAL_STM32C0_RCC_CR_HSION_Msk,
+                    WHAL_STM32C0_RCC_CR_HSION_Msk);
+    do {
+        whal_Reg_Get(clkDev->base, WHAL_STM32C0_RCC_CR_REG,
+                     WHAL_STM32C0_RCC_CR_HSIRDY_Msk,
+                     WHAL_STM32C0_RCC_CR_HSIRDY_Pos, &rdy);
+    } while (!rdy);
+    whal_Reg_Update(clkDev->base, WHAL_STM32C0_RCC_CR_REG,
+                    WHAL_STM32C0_RCC_CR_HSIDIV_Msk,
+                    whal_SetBits(WHAL_STM32C0_RCC_CR_HSIDIV_Msk,
+                                 WHAL_STM32C0_RCC_CR_HSIDIV_Pos, hsidiv));
+    return WHAL_SUCCESS;
+}
 
 /*
- * @brief Switch SYSCLK to the given source. Blocks until RCC_CFGR.SWS
- *        reflects the new source.
+ * @brief Switch SYSCLK to the requested source and wait for the switch.
+ *
+ * Writes RCC_CFGR.SW and polls RCC_CFGR.SWS until it reports the new source.
+ *
+ * @param clkDev RCC device instance.
+ * @param src    System clock source.
+ *
+ * @retval WHAL_SUCCESS Always.
  */
-whal_Error whal_Stm32c0_Rcc_SetSysClock(whal_Clock *clkDev,
-                                       whal_Stm32c0_Rcc_SysClockSrc src);
+static inline whal_Error whal_Stm32c0_Rcc_SetSysClock(
+    const whal_Clock *clkDev, whal_Stm32c0_Rcc_SysClockSrc src)
+{
+    size_t sws;
+
+    whal_Reg_Update(clkDev->base, WHAL_STM32C0_RCC_CFGR_REG,
+                    WHAL_STM32C0_RCC_CFGR_SW_Msk,
+                    whal_SetBits(WHAL_STM32C0_RCC_CFGR_SW_Msk,
+                                 WHAL_STM32C0_RCC_CFGR_SW_Pos, src));
+    do {
+        whal_Reg_Get(clkDev->base, WHAL_STM32C0_RCC_CFGR_REG,
+                     WHAL_STM32C0_RCC_CFGR_SWS_Msk,
+                     WHAL_STM32C0_RCC_CFGR_SWS_Pos, &sws);
+    } while (sws != (size_t)src);
+    return WHAL_SUCCESS;
+}
 
 /*
- * @brief Enable a peripheral clock.
+ * @brief Set the enable bit for a peripheral clock gate.
+ *
+ * @param clkDev RCC device instance.
+ * @param clk    Peripheral clock descriptor (RCC *ENR register + bit).
+ *
+ * @retval WHAL_SUCCESS Always.
  */
-whal_Error whal_Stm32c0_Rcc_EnablePeriphClk(whal_Clock *clkDev,
-                                           const whal_Stm32c0_Rcc_PeriphClk *clk);
+static inline whal_Error whal_Stm32c0_Rcc_EnablePeriphClk(
+    const whal_Clock *clkDev, const whal_Stm32c0_Rcc_PeriphClk *clk)
+{
+    whal_Reg_Update(clkDev->base, clk->regOffset, clk->enableMask,
+                    whal_SetBits(clk->enableMask, clk->enablePos, 1));
+    return WHAL_SUCCESS;
+}
+
 /*
- * @brief Disable a peripheral clock.
+ * @brief Clear the enable bit for a peripheral clock gate.
+ *
+ * @param clkDev RCC device instance.
+ * @param clk    Peripheral clock descriptor (RCC *ENR register + bit).
+ *
+ * @retval WHAL_SUCCESS Always.
  */
-whal_Error whal_Stm32c0_Rcc_DisablePeriphClk(whal_Clock *clkDev,
-                                            const whal_Stm32c0_Rcc_PeriphClk *clk);
+static inline whal_Error whal_Stm32c0_Rcc_DisablePeriphClk(
+    const whal_Clock *clkDev, const whal_Stm32c0_Rcc_PeriphClk *clk)
+{
+    whal_Reg_Update(clkDev->base, clk->regOffset, clk->enableMask,
+                    whal_SetBits(clk->enableMask, clk->enablePos, 0));
+    return WHAL_SUCCESS;
+}
 
 #endif /* WHAL_STM32C0_RCC_H */

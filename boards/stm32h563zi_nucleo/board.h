@@ -48,6 +48,17 @@ enum {
 #define BOARD_ETH_PHY_ID1  0x0007
 #define BOARD_ETH_PHY_ID2  0xC131
 
+/* BOARD_*_DEV: how this board reaches each peripheral. WHAL_SINGLETON for
+ * single-instance drivers; &g_whal<X> for pointer-based drivers. */
+#define BOARD_GPIO_DEV     WHAL_SINGLETON
+#define BOARD_UART_DEV     (&g_whalUart)
+#define BOARD_SPI_DEV      (&g_whalSpi)
+#define BOARD_FLASH_DEV    (&g_whalFlash)
+#define BOARD_RNG_DEV      WHAL_SINGLETON
+#define BOARD_ETH_DEV      WHAL_SINGLETON
+#define BOARD_ETH_PHY_DEV  WHAL_SINGLETON
+#define BOARD_CLOCK_DEV    (&g_whalClock)
+
 /* GPIO singleton — referenced by stm32wb_gpio.c directly. */
 static const whal_Gpio whal_Stm32h5_Gpio_Dev = {
     .base = WHAL_STM32H563_GPIO_BASE,
@@ -126,6 +137,20 @@ static const whal_Gpio whal_Stm32h5_Gpio_Dev = {
 static const whal_Rng whal_Stm32h5_Rng_Dev = {
     .base = WHAL_STM32H563_RNG_BASE,
     .cfg  = (void *)&(const whal_Stm32h5_Rng_Cfg){
+        .timeout = &g_whalTimeout,
+    },
+};
+
+/* Flash singleton — referenced by stm32h5_flash.c directly. Const cfg lives
+ * here; the dispatcher stub g_whalFlash in board.c carries only .driver so
+ * whal_Flash_* can be vtable-dispatched alongside other flash drivers (e.g.
+ * SPI NOR W25Q64). */
+static const whal_Flash whal_Stm32h5_Flash_Dev = {
+    .base = WHAL_STM32H563_FLASH_BASE,
+
+    .cfg = (void *)&(const whal_Stm32h5_Flash_Cfg){
+        .startAddr = 0x08000000,
+        .size = 0x200000, /* 2 MB */
         .timeout = &g_whalTimeout,
     },
 };

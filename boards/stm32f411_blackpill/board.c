@@ -24,8 +24,9 @@ whal_Timeout g_whalTimeout = {
     .GetTick = Board_GetTick,
 };
 
-/* STM32F411CE sector layout (512 KB) */
-static const whal_Stm32f4_Flash_Sector g_flashSectors[] = {
+/* STM32F411CE sector layout (512 KB). Referenced by the flash singleton's
+ * cfg in board.h, so this must be globally visible (not static). */
+const whal_Stm32f4_Flash_Sector g_flashSectors[FLASH_SECTOR_COUNT] = {
     { .addr = 0x08000000, .size = 0x04000 },  /* Sector 0: 16 KB */
     { .addr = 0x08004000, .size = 0x04000 },  /* Sector 1: 16 KB */
     { .addr = 0x08008000, .size = 0x04000 },  /* Sector 2: 16 KB */
@@ -35,7 +36,6 @@ static const whal_Stm32f4_Flash_Sector g_flashSectors[] = {
     { .addr = 0x08040000, .size = 0x20000 },  /* Sector 6: 128 KB */
     { .addr = 0x08060000, .size = 0x20000 },  /* Sector 7: 128 KB */
 };
-#define FLASH_SECTOR_COUNT (sizeof(g_flashSectors) / sizeof(g_flashSectors[0]))
 
 /* Clock */
 whal_Clock g_whalClock = {
@@ -73,18 +73,11 @@ whal_Spi g_whalSpi = {
     },
 };
 
-/* Flash */
+/* Flash — dispatcher stub. The const cfg lives in board.h as
+ * whal_Stm32f4_Flash_Dev; this only carries .driver so whal_Flash_* can
+ * dispatch through the vtable. */
 whal_Flash g_whalFlash = {
-    .base = WHAL_STM32F411_FLASH_BASE,
     .driver = WHAL_STM32F411_FLASH_DRIVER,
-
-    .cfg = &(whal_Stm32f4_Flash_Cfg) {
-        .startAddr = 0x08000000,
-        .size = 0x80000, /* 512 KB */
-        .sectors = g_flashSectors,
-        .sectorCount = FLASH_SECTOR_COUNT,
-        .timeout = &g_whalTimeout,
-    },
 };
 
 void Board_WaitMs(size_t ms)

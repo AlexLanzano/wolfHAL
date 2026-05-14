@@ -14,21 +14,21 @@ static void Test_Clock_EnableDisable(void)
     whal_Reg_Get(g_whalClock.base, 0x4C, (1 << 0), 0, &origVal);
 
     /* Enable and verify */
-    WHAL_ASSERT_EQ(whal_Stm32wb_Rcc_EnablePeriphClk(&g_whalClock, &testClk), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Stm32wb_Rcc_EnablePeriphClk(BOARD_CLOCK_DEV, &testClk), WHAL_SUCCESS);
 
     size_t val = 0;
     whal_Reg_Get(g_whalClock.base, 0x4C, (1 << 0), 0, &val);
     WHAL_ASSERT_EQ(val, 1);
 
     /* Disable and verify */
-    WHAL_ASSERT_EQ(whal_Stm32wb_Rcc_DisablePeriphClk(&g_whalClock, &testClk), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Stm32wb_Rcc_DisablePeriphClk(BOARD_CLOCK_DEV, &testClk), WHAL_SUCCESS);
 
     whal_Reg_Get(g_whalClock.base, 0x4C, (1 << 0), 0, &val);
     WHAL_ASSERT_EQ(val, 0);
 
     /* Restore original state */
     if (origVal)
-        whal_Stm32wb_Rcc_EnablePeriphClk(&g_whalClock, &testClk);
+        whal_Stm32wb_Rcc_EnablePeriphClk(BOARD_CLOCK_DEV, &testClk);
 }
 
 void whal_Test_Clock_Platform(void)

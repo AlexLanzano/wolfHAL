@@ -32,10 +32,13 @@ Each board directory contains:
 - **`board.mk`** - Build configuration: toolchain, CPU flags, platform
   drivers, and linker script. Included by application Makefiles via
   `include $(BOARD_DIR)/board.mk`.
-- **`board.h`** - Board-level declarations: global peripheral instances,
-  pin definitions, and `Board_Init()`/`Board_Deinit()` prototypes.
-- **`board.c`** - Peripheral instantiation and `Board_Init()` implementation
-  (power, clock, GPIO, UART, flash, timer).
+- **`board.h`** - Board-level declarations: `extern` globals for vtable-dispatched
+  peripherals, `static const` singletons for single-instance drivers,
+  `BOARD_<PERIPH>_DEV` macros that resolve to `WHAL_SINGLETON` or
+  `&g_whal<X>` depending on how each peripheral is wired, pin definitions,
+  and `Board_Init()`/`Board_Deinit()` prototypes.
+- **`board.c`** - Peripheral instantiation for vtable-dispatched drivers and
+  `Board_Init()` implementation (power, clock, GPIO, UART, flash, timer).
 - **`linker.ld`** - Linker script defining memory regions (flash, RAM).
 - Any additional board-specific source files (e.g. interrupt vector table,
   architecture-specific startup code).

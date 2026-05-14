@@ -4,6 +4,14 @@
 #include <wolfHAL/timer/systick.h>
 #include <wolfHAL/irq/cortex_m4_nvic.h>
 
+/*
+ * @file cortex_m33.h
+ * @brief ARM Cortex-M33 core platform constants.
+ *
+ * Exposes SysTick and NVIC base addresses and driver pointers for boards
+ * built on the Cortex-M33 core. Pulled in by chip-specific platform headers.
+ */
+
 #define WHAL_CORTEX_M33_SYSTICK_BASE 0xE000E010
 #define WHAL_CORTEX_M33_SYSTICK_DRIVER &whal_SysTick_Driver
 

@@ -7,27 +7,13 @@
 #include <wolfHAL/platform/st/stm32wba55cg.h>
 #include <wolfHAL/crypto/stm32wba_aes.h>
 #include <wolfHAL/crypto/stm32wba_hash.h>
+#include <wolfHAL/rng/stm32wba_rng.h>
 
 extern whal_Clock g_whalClock;
 extern whal_Uart g_whalUart;
 extern whal_Spi g_whalSpi;
 extern whal_Flash g_whalFlash;
-extern whal_Rng g_whalRng;
 extern whal_I2c g_whalI2c;
-extern whal_Crypto g_whalCrypto;
-extern whal_AesEcb g_whalAesEcb;
-extern whal_AesCbc g_whalAesCbc;
-extern whal_AesCtr g_whalAesCtr;
-extern whal_AesGcm g_whalAesGcm;
-extern whal_AesGmac g_whalAesGmac;
-extern whal_AesCcm g_whalAesCcm;
-extern whal_Crypto g_whalHash;
-extern whal_Sha1 g_whalSha1;
-extern whal_Sha224 g_whalSha224;
-extern whal_Sha256 g_whalSha256;
-extern whal_HmacSha1 g_whalHmacSha1;
-extern whal_HmacSha224 g_whalHmacSha224;
-extern whal_HmacSha256 g_whalHmacSha256;
 extern whal_Watchdog g_whalWatchdog;
 #ifdef BOARD_DMA
 extern whal_Dma g_whalDma1;
@@ -55,6 +41,137 @@ enum {
 #define BOARD_FLASH_SIZE          0x100000  /* 1 MB */
 #define BOARD_FLASH_TEST_ADDR     0x080FE000
 #define BOARD_FLASH_SECTOR_SZ     0x2000    /* 8 KB */
+
+/* IWDG/WWDG singletons — referenced by stm32wb_iwdg.c/stm32wb_wwdg.c directly. */
+static const whal_Watchdog whal_Stm32wba_Iwdg_Dev = {
+    .base = WHAL_STM32WBA55_IWDG_BASE,
+    .cfg  = (void *)&(const whal_Stm32wba_Iwdg_Cfg){
+        .prescaler = WHAL_STM32WBA_IWDG_PR_32,
+        .reload = 100,
+        .timeout = &g_whalTimeout,
+    },
+};
+
+static const whal_Watchdog whal_Stm32wba_Wwdg_Dev = {
+    .base = WHAL_STM32WBA55_WWDG_BASE,
+    .cfg  = (void *)&(const whal_Stm32wba_Wwdg_Cfg){
+        .prescaler = WHAL_STM32WBA_WWDG_TB_128,
+        .window = 0x7F,
+        .counter = 0x7F,
+    },
+};
+
+/* AES + mode singletons — referenced by stm32wb_aes.c directly. */
+static const whal_Crypto whal_Stm32wba_Aes_Dev = {
+    .base = WHAL_STM32WBA55_AES_BASE,
+    .cfg  = (void *)&(const whal_Stm32wba_Aes_Cfg){
+        .timeout = &g_whalTimeout,
+    },
+};
+
+static const whal_AesEcb whal_Stm32wba_AesEcb_Dev = {
+    .crypto = (whal_Crypto *)&whal_Stm32wba_Aes_Dev,
+};
+
+static const whal_AesCbc whal_Stm32wba_AesCbc_Dev = {
+    .crypto = (whal_Crypto *)&whal_Stm32wba_Aes_Dev,
+};
+
+static const whal_AesCtr whal_Stm32wba_AesCtr_Dev = {
+    .crypto = (whal_Crypto *)&whal_Stm32wba_Aes_Dev,
+};
+
+static whal_Stm32wba_AesGcm_State g_wbaAesGcmDevState;
+static const whal_AesGcm whal_Stm32wba_AesGcm_Dev = {
+    .crypto = (whal_Crypto *)&whal_Stm32wba_Aes_Dev,
+    .state  = &g_wbaAesGcmDevState,
+};
+
+static const whal_AesGmac whal_Stm32wba_AesGmac_Dev = {
+    .crypto = (whal_Crypto *)&whal_Stm32wba_Aes_Dev,
+};
+
+static whal_Stm32wba_AesCcm_State g_wbaAesCcmDevState;
+static const whal_AesCcm whal_Stm32wba_AesCcm_Dev = {
+    .crypto = (whal_Crypto *)&whal_Stm32wba_Aes_Dev,
+    .state  = &g_wbaAesCcmDevState,
+};
+
+/* RNG singleton — referenced by stm32wba_rng.c directly. */
+static const whal_Rng whal_Stm32wba_Rng_Dev = {
+    .base = WHAL_STM32WBA55_RNG_BASE,
+    .cfg  = (void *)&(const whal_Stm32wba_Rng_Cfg){
+        .timeout = &g_whalTimeout,
+    },
+};
+
+/* Flash singleton — referenced by stm32wba_flash.c directly. Const cfg lives
+ * here; the dispatcher stub g_whalFlash in board.c carries only .driver so
+ * whal_Flash_* can be vtable-dispatched alongside other flash drivers (e.g.
+ * SPI NOR W25Q64). */
+static const whal_Flash whal_Stm32wba_Flash_Dev = {
+    .base = WHAL_STM32WBA55_FLASH_BASE,
+
+    .cfg = (void *)&(const whal_Stm32wba_Flash_Cfg){
+        .timeout = &g_whalTimeout,
+        .startAddr = 0x08000000,
+        .size = 0x100000, /* 1 MB */
+    },
+};
+
+/* HASH + algorithm singletons — referenced by stm32wba_hash.c directly. */
+static const whal_Crypto whal_Stm32wba_Hash_Dev = {
+    .base = WHAL_STM32WBA55_HASH_BASE,
+    .cfg  = (void *)&(const whal_Stm32wba_Hash_Cfg){
+        .timeout = &g_whalTimeout,
+    },
+};
+
+static const whal_Sha1 whal_Stm32wba_Sha1_Dev = {
+    .crypto = (whal_Crypto *)&whal_Stm32wba_Hash_Dev,
+};
+
+static const whal_Sha224 whal_Stm32wba_Sha224_Dev = {
+    .crypto = (whal_Crypto *)&whal_Stm32wba_Hash_Dev,
+};
+
+static const whal_Sha256 whal_Stm32wba_Sha256_Dev = {
+    .crypto = (whal_Crypto *)&whal_Stm32wba_Hash_Dev,
+};
+
+static const whal_HmacSha1 whal_Stm32wba_HmacSha1_Dev = {
+    .crypto = (whal_Crypto *)&whal_Stm32wba_Hash_Dev,
+};
+
+static const whal_HmacSha224 whal_Stm32wba_HmacSha224_Dev = {
+    .crypto = (whal_Crypto *)&whal_Stm32wba_Hash_Dev,
+};
+
+static const whal_HmacSha256 whal_Stm32wba_HmacSha256_Dev = {
+    .crypto = (whal_Crypto *)&whal_Stm32wba_Hash_Dev,
+};
+
+/* BOARD_*_DEV: how this board reaches each peripheral. */
+#define BOARD_GPIO_DEV         WHAL_SINGLETON
+#define BOARD_UART_DEV         (&g_whalUart)
+#define BOARD_SPI_DEV          (&g_whalSpi)
+#define BOARD_I2C_DEV          (&g_whalI2c)
+#define BOARD_FLASH_DEV        (&g_whalFlash)
+#define BOARD_CLOCK_DEV        (&g_whalClock)
+#define BOARD_WATCHDOG_DEV     (&g_whalWatchdog)
+#define BOARD_RNG_DEV          WHAL_SINGLETON
+#define BOARD_AES_ECB_DEV      WHAL_SINGLETON
+#define BOARD_AES_CBC_DEV      WHAL_SINGLETON
+#define BOARD_AES_CTR_DEV      WHAL_SINGLETON
+#define BOARD_AES_GCM_DEV      WHAL_SINGLETON
+#define BOARD_AES_GMAC_DEV     WHAL_SINGLETON
+#define BOARD_AES_CCM_DEV      WHAL_SINGLETON
+#define BOARD_SHA1_DEV         WHAL_SINGLETON
+#define BOARD_SHA224_DEV       WHAL_SINGLETON
+#define BOARD_SHA256_DEV       WHAL_SINGLETON
+#define BOARD_HMAC_SHA1_DEV    WHAL_SINGLETON
+#define BOARD_HMAC_SHA224_DEV  WHAL_SINGLETON
+#define BOARD_HMAC_SHA256_DEV  WHAL_SINGLETON
 
 static const whal_Gpio whal_Stm32wba_Gpio_Dev = {
     .base = WHAL_STM32WBA55_GPIO_BASE,

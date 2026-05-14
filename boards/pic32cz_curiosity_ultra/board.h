@@ -5,16 +5,43 @@
 #include <stddef.h>
 #include <wolfHAL/wolfHAL.h>
 #include <wolfHAL/platform/microchip/pic32cz.h>
+#include <wolfHAL/power/pic32cz_supc.h>
 
 extern whal_Clock g_whalClock;
 extern whal_Uart g_whalUart;
 extern whal_Flash g_whalFlash;
+extern whal_Timeout g_whalTimeout;
 
 extern volatile uint32_t g_tick;
 
 #define BOARD_LED_PIN         0
 #define BOARD_FLASH_TEST_ADDR 0x0C000000
 #define BOARD_FLASH_SECTOR_SZ 0x1000
+
+/* BOARD_*_DEV: how this board reaches each peripheral. */
+#define BOARD_GPIO_DEV     WHAL_SINGLETON
+#define BOARD_UART_DEV     (&g_whalUart)
+#define BOARD_FLASH_DEV    (&g_whalFlash)
+#define BOARD_CLOCK_DEV    (&g_whalClock)
+
+/* SUPC singleton — referenced by pic32cz_supc.c directly. */
+static const whal_Power whal_Pic32cz_Supc_Dev = {
+    .base = WHAL_PIC32CZ_SUPC_BASE,
+};
+
+/* Flash singleton — referenced by pic32cz_flash.c directly. Const cfg lives
+ * here; the dispatcher stub g_whalFlash in board.c carries only .driver so
+ * whal_Flash_* can be vtable-dispatched alongside other flash drivers (e.g.
+ * SPI NOR W25Q64). */
+static const whal_Flash whal_Pic32cz_Flash_Dev = {
+    .base = WHAL_PIC32CZ_FLASH_BASE,
+
+    .cfg = (void *)&(const whal_Pic32cz_Flash_Cfg){
+        .startAddr = 0x0C000000,
+        .size = 0x00800000, /* 8 MB max */
+        .timeout = &g_whalTimeout,
+    },
+};
 
 static const whal_Gpio whal_Pic32cz_Gpio_Dev = {
     .base = WHAL_PIC32CZ_GPIO_BASE,

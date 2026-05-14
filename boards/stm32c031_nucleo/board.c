@@ -67,16 +67,11 @@ whal_Spi g_whalSpi = {
     },
 };
 
-/* Flash */
+/* Flash — dispatcher stub. The const cfg lives in board.h as
+ * whal_Stm32c0_Flash_Dev; this only carries .driver so whal_Flash_* can
+ * dispatch through the vtable. */
 whal_Flash g_whalFlash = {
-    .base = WHAL_STM32C031_FLASH_BASE,
     .driver = WHAL_STM32C031_FLASH_DRIVER,
-
-    .cfg = &(whal_Stm32c0_Flash_Cfg) {
-        .startAddr = 0x08000000,
-        .size = 0x8000, /* 32 KB */
-        .timeout = &g_whalTimeout,
-    },
 };
 
 void Board_WaitMs(size_t ms)

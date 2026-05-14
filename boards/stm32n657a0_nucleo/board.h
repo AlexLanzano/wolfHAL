@@ -8,25 +8,14 @@
 #include <wolfHAL/eth_phy/lan8742a_eth_phy.h>
 #include <wolfHAL/crypto/stm32n6_cryp.h>
 #include <wolfHAL/crypto/stm32n6_hash.h>
+#include <wolfHAL/rng/stm32n6_rng.h>
 
 extern whal_Clock g_whalClock;
 extern whal_Uart g_whalUart;
 extern whal_Spi g_whalSpi;
 extern whal_I2c g_whalI2c;
 extern whal_Crypto g_whalCrypto;
-extern whal_AesEcb g_whalAesEcb;
-extern whal_AesCbc g_whalAesCbc;
-extern whal_AesCtr g_whalAesCtr;
-extern whal_AesGcm g_whalAesGcm;
-extern whal_AesGmac g_whalAesGmac;
-extern whal_AesCcm g_whalAesCcm;
 extern whal_Crypto g_whalHash;
-extern whal_Sha1 g_whalSha1;
-extern whal_Sha224 g_whalSha224;
-extern whal_Sha256 g_whalSha256;
-extern whal_HmacSha1 g_whalHmacSha1;
-extern whal_HmacSha224 g_whalHmacSha224;
-extern whal_HmacSha256 g_whalHmacSha256;
 extern whal_Watchdog g_whalWatchdog;
 #ifdef BOARD_DMA
 extern whal_Dma g_whalDma1;
@@ -63,6 +52,49 @@ enum {
 #define BOARD_ETH_PHY_ADDR 0
 #define BOARD_ETH_PHY_ID1  0x0007
 #define BOARD_ETH_PHY_ID2  0xC131
+
+/* BOARD_*_DEV: how this board reaches each peripheral. */
+#define BOARD_GPIO_DEV         WHAL_SINGLETON
+#define BOARD_UART_DEV         (&g_whalUart)
+#define BOARD_SPI_DEV          (&g_whalSpi)
+#define BOARD_I2C_DEV          (&g_whalI2c)
+#define BOARD_CLOCK_DEV        (&g_whalClock)
+#define BOARD_WATCHDOG_DEV     (&g_whalWatchdog)
+#define BOARD_RNG_DEV          WHAL_SINGLETON
+#define BOARD_ETH_DEV          WHAL_SINGLETON
+#define BOARD_ETH_PHY_DEV      WHAL_SINGLETON
+#define BOARD_AES_ECB_DEV      WHAL_SINGLETON
+#define BOARD_AES_CBC_DEV      WHAL_SINGLETON
+#define BOARD_AES_CTR_DEV      WHAL_SINGLETON
+#define BOARD_AES_GCM_DEV      WHAL_SINGLETON
+#define BOARD_AES_GMAC_DEV     WHAL_SINGLETON
+#define BOARD_AES_CCM_DEV      WHAL_SINGLETON
+#define BOARD_SHA1_DEV         WHAL_SINGLETON
+#define BOARD_SHA224_DEV       WHAL_SINGLETON
+#define BOARD_SHA256_DEV       WHAL_SINGLETON
+#define BOARD_HMAC_SHA1_DEV    WHAL_SINGLETON
+#define BOARD_HMAC_SHA224_DEV  WHAL_SINGLETON
+#define BOARD_HMAC_SHA256_DEV  WHAL_SINGLETON
+
+/* IWDG/WWDG singletons — referenced by stm32wb_iwdg.c/stm32wb_wwdg.c
+ * via stm32n6_iwdg.c/stm32n6_wwdg.c aliases. */
+static const whal_Watchdog whal_Stm32n6_Iwdg_Dev = {
+    .base = WHAL_STM32N657_IWDG_BASE,
+    .cfg  = (void *)&(const whal_Stm32n6_Iwdg_Cfg){
+        .prescaler = WHAL_STM32N6_IWDG_PR_32,
+        .reload = 100,
+        .timeout = &g_whalTimeout,
+    },
+};
+
+static const whal_Watchdog whal_Stm32n6_Wwdg_Dev = {
+    .base = WHAL_STM32N657_WWDG_BASE,
+    .cfg  = (void *)&(const whal_Stm32n6_Wwdg_Cfg){
+        .prescaler = WHAL_STM32N6_WWDG_TB_128,
+        .window = 0x7F,
+        .counter = 0x7F,
+    },
+};
 
 static const whal_Gpio whal_Stm32n6_Gpio_Dev = {
     .base = WHAL_STM32N657_GPIO_BASE,
@@ -164,12 +196,76 @@ static const whal_Gpio whal_Stm32n6_Gpio_Dev = {
     },
 };
 
-/* RNG singleton — referenced by stm32n6_rng.c directly. */
-static const whal_Rng whal_Stm32h5_Rng_Dev = {
+/* RNG singleton — referenced by stm32wba_rng.c (via stm32n6_rng.c alias). */
+static const whal_Rng whal_Stm32n6_Rng_Dev = {
     .base = WHAL_STM32N657_RNG_BASE,
     .cfg  = (void *)&(const whal_Stm32n6_Rng_Cfg){
         .timeout = &g_whalTimeout,
     },
+};
+
+/* CRYP + mode singletons — referenced by stm32n6_cryp.c directly. */
+static const whal_Crypto whal_Stm32n6_Cryp_Dev = {
+    .base = WHAL_STM32N657_CRYP_BASE,
+    .cfg  = (void *)&(const whal_Stm32n6_Cryp_Cfg){
+        .timeout = &g_whalTimeout,
+    },
+};
+
+static const whal_AesEcb whal_Stm32n6_CrypEcb_Dev = {
+    .crypto = (whal_Crypto *)&whal_Stm32n6_Cryp_Dev,
+};
+
+static const whal_AesCbc whal_Stm32n6_CrypCbc_Dev = {
+    .crypto = (whal_Crypto *)&whal_Stm32n6_Cryp_Dev,
+};
+
+static const whal_AesCtr whal_Stm32n6_CrypCtr_Dev = {
+    .crypto = (whal_Crypto *)&whal_Stm32n6_Cryp_Dev,
+};
+
+static const whal_AesGcm whal_Stm32n6_CrypGcm_Dev = {
+    .crypto = (whal_Crypto *)&whal_Stm32n6_Cryp_Dev,
+};
+
+static const whal_AesGmac whal_Stm32n6_CrypGmac_Dev = {
+    .crypto = (whal_Crypto *)&whal_Stm32n6_Cryp_Dev,
+};
+
+static const whal_AesCcm whal_Stm32n6_CrypCcm_Dev = {
+    .crypto = (whal_Crypto *)&whal_Stm32n6_Cryp_Dev,
+};
+
+/* HASH + algorithm singletons — referenced by stm32wba_hash.c (via stm32n6_hash.c alias). */
+static const whal_Crypto whal_Stm32n6_Hash_Dev = {
+    .base = WHAL_STM32N657_HASH_BASE,
+    .cfg  = (void *)&(const whal_Stm32n6_Hash_Cfg){
+        .timeout = &g_whalTimeout,
+    },
+};
+
+static const whal_Sha1 whal_Stm32n6_Sha1_Dev = {
+    .crypto = (whal_Crypto *)&whal_Stm32n6_Hash_Dev,
+};
+
+static const whal_Sha224 whal_Stm32n6_Sha224_Dev = {
+    .crypto = (whal_Crypto *)&whal_Stm32n6_Hash_Dev,
+};
+
+static const whal_Sha256 whal_Stm32n6_Sha256_Dev = {
+    .crypto = (whal_Crypto *)&whal_Stm32n6_Hash_Dev,
+};
+
+static const whal_HmacSha1 whal_Stm32n6_HmacSha1_Dev = {
+    .crypto = (whal_Crypto *)&whal_Stm32n6_Hash_Dev,
+};
+
+static const whal_HmacSha224 whal_Stm32n6_HmacSha224_Dev = {
+    .crypto = (whal_Crypto *)&whal_Stm32n6_Hash_Dev,
+};
+
+static const whal_HmacSha256 whal_Stm32n6_HmacSha256_Dev = {
+    .crypto = (whal_Crypto *)&whal_Stm32n6_Hash_Dev,
 };
 
 /* ETH descriptor rings + buffer pool. Live in board.c with the .axisram1
@@ -186,7 +282,7 @@ extern uint8_t ethTxBufs[BOARD_ETH_TX_DESC_COUNT * BOARD_ETH_TX_BUF_SIZE];
 extern uint8_t ethRxBufs[BOARD_ETH_RX_DESC_COUNT * BOARD_ETH_RX_BUF_SIZE];
 
 /* ETH singleton — referenced by stm32n6_eth.c directly. */
-static const whal_Eth whal_Stm32h5_Eth_Dev = {
+static const whal_Eth whal_Stm32n6_Eth_Dev = {
     .base    = WHAL_STM32N657_ETH_BASE,
     .macAddr = {0x00, 0x80, 0xE1, 0x00, 0x00, 0x01},
     .cfg     = (void *)&(const whal_Stm32n6_Eth_Cfg){

@@ -11,12 +11,6 @@ extern whal_Uart g_whalUart;
 extern whal_Spi g_whalSpi;
 extern whal_Flash g_whalFlash;
 extern whal_Crypto g_whalCrypto;
-extern whal_AesEcb g_whalAesEcb;
-extern whal_AesCbc g_whalAesCbc;
-extern whal_AesCtr g_whalAesCtr;
-extern whal_AesGcm g_whalAesGcm;
-extern whal_AesGmac g_whalAesGmac;
-extern whal_AesCcm g_whalAesCcm;
 extern whal_I2c g_whalI2c;
 
 extern whal_Timeout g_whalTimeout;
@@ -41,6 +35,23 @@ enum {
 #define BOARD_FLASH_TEST_ADDR     0x0807F000
 #define BOARD_FLASH_SECTOR_SZ     0x1000
 
+/* BOARD_*_DEV: how this board reaches each peripheral. WHAL_SINGLETON for
+ * single-instance drivers (driver ignores the pointer); &g_whal<X> for
+ * drivers still using vtable dispatch / pointer-based path. */
+#define BOARD_GPIO_DEV       WHAL_SINGLETON
+#define BOARD_UART_DEV       (&g_whalUart)
+#define BOARD_SPI_DEV        (&g_whalSpi)
+#define BOARD_I2C_DEV        (&g_whalI2c)
+#define BOARD_FLASH_DEV      (&g_whalFlash)
+#define BOARD_CLOCK_DEV      (&g_whalClock)
+#define BOARD_WATCHDOG_DEV   WHAL_SINGLETON
+#define BOARD_RNG_DEV        WHAL_SINGLETON
+#define BOARD_AES_ECB_DEV    WHAL_SINGLETON
+#define BOARD_AES_CBC_DEV    WHAL_SINGLETON
+#define BOARD_AES_CTR_DEV    WHAL_SINGLETON
+#define BOARD_AES_GCM_DEV    WHAL_SINGLETON
+#define BOARD_AES_GMAC_DEV   WHAL_SINGLETON
+#define BOARD_AES_CCM_DEV    WHAL_SINGLETON
 
 /* GPIO singleton — referenced by stm32wb_gpio.c directly. */
 static const whal_Gpio whal_Stm32wb_Gpio_Dev = {

@@ -14,6 +14,8 @@
 
 typedef whal_Stm32wb_Wwdg_Cfg whal_Stm32n6_Wwdg_Cfg;
 
+#define whal_Stm32n6_Wwdg_Dev whal_Stm32wb_Wwdg_Dev
+
 #ifndef WHAL_CFG_STM32N6_WWDG_DIRECT_API_MAPPING
 #define whal_Stm32n6_Wwdg_Driver  whal_Stm32wb_Wwdg_Driver
 #define whal_Stm32n6_Wwdg_Init    whal_Stm32wb_Wwdg_Init

@@ -176,10 +176,10 @@ void whal_Test_Puts(const char *s)
     if (len == 0)
         return;
 
-    whal_Uart_Send(&g_whalUart, s, len);
+    whal_Uart_Send(BOARD_UART_DEV, s, len);
 
     if (s[len - 1] == '\n')
-        whal_Uart_Send(&g_whalUart, "\r", 1);
+        whal_Uart_Send(BOARD_UART_DEV, "\r", 1);
 }
 
 void main(void)
@@ -191,7 +191,7 @@ void main(void)
     if (Board_Init() != WHAL_SUCCESS)
         while (1);
 
-    whal_Gpio_Set(&g_whalGpio, BOARD_LED_PIN, 1);
+    whal_Gpio_Set(BOARD_GPIO_DEV, BOARD_LED_PIN, 1);
 
     whal_Test_Printf("wolfHAL HW Test Suite\n");
     whal_Test_Printf("=====================\n");
@@ -357,14 +357,14 @@ void main(void)
     WHAL_TEST_SUMMARY();
 
     if (g_whalTestFailed == 0) {
-        whal_Gpio_Set(&g_whalGpio, BOARD_LED_PIN, 1);
+        whal_Gpio_Set(BOARD_GPIO_DEV, BOARD_LED_PIN, 1);
         while (1);
     }
 
     while (1) {
-        whal_Gpio_Set(&g_whalGpio, BOARD_LED_PIN, 1);
+        whal_Gpio_Set(BOARD_GPIO_DEV, BOARD_LED_PIN, 1);
         Board_WaitMs(100);
-        whal_Gpio_Set(&g_whalGpio, BOARD_LED_PIN, 0);
+        whal_Gpio_Set(BOARD_GPIO_DEV, BOARD_LED_PIN, 0);
         Board_WaitMs(100);
     }
 }

@@ -33,7 +33,7 @@ static void Test_Clock_EnableDisable(void)
     size_t val = 0;
 
     /* Enable and verify */
-    WHAL_ASSERT_EQ(whal_Pic32cz_Clock_EnablePeriphClk(&g_whalClock, &testClk), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Pic32cz_Clock_EnablePeriphClk(BOARD_CLOCK_DEV, &testClk), WHAL_SUCCESS);
 
     whal_Reg_Get(g_whalClock.base, GCLK_PCHCTRL_OFFSET(25),
                  GCLK_PCHCTRL_CHEN_Msk, GCLK_PCHCTRL_CHEN_Pos, &val);
@@ -44,7 +44,7 @@ static void Test_Clock_EnableDisable(void)
     WHAL_ASSERT_EQ(val, 1);
 
     /* Disable and verify */
-    WHAL_ASSERT_EQ(whal_Pic32cz_Clock_DisablePeriphClk(&g_whalClock, &testClk), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Pic32cz_Clock_DisablePeriphClk(BOARD_CLOCK_DEV, &testClk), WHAL_SUCCESS);
 
     whal_Reg_Get(g_whalClock.base, GCLK_PCHCTRL_OFFSET(25),
                  GCLK_PCHCTRL_CHEN_Msk, GCLK_PCHCTRL_CHEN_Pos, &val);
@@ -52,7 +52,7 @@ static void Test_Clock_EnableDisable(void)
 
     /* Restore original state */
     if (origChen)
-        whal_Pic32cz_Clock_EnablePeriphClk(&g_whalClock, &testClk);
+        whal_Pic32cz_Clock_EnablePeriphClk(BOARD_CLOCK_DEV, &testClk);
 }
 
 void whal_Test_Clock_Platform(void)

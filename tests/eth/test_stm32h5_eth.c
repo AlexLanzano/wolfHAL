@@ -30,18 +30,18 @@ static void Test_Eth_Loopback(void)
     size_t rxLen = sizeof(rxFrame);
     whal_Error err;
 
-    WHAL_ASSERT_EQ(whal_Stm32h5_Eth_Ext_EnableLoopback(&g_whalEth, 1),
+    WHAL_ASSERT_EQ(whal_Stm32h5_Eth_Ext_EnableLoopback(BOARD_ETH_DEV, 1),
                    WHAL_SUCCESS);
 
-    WHAL_ASSERT_EQ(whal_Eth_Start(&g_whalEth, WHAL_ETH_SPEED_100,
+    WHAL_ASSERT_EQ(whal_Eth_Start(BOARD_ETH_DEV, WHAL_ETH_SPEED_100,
                                   WHAL_ETH_DUPLEX_FULL), WHAL_SUCCESS);
-    WHAL_ASSERT_EQ(whal_Eth_Send(&g_whalEth, txFrame, sizeof(txFrame)),
+    WHAL_ASSERT_EQ(whal_Eth_Send(BOARD_ETH_DEV, txFrame, sizeof(txFrame)),
                    WHAL_SUCCESS);
 
     /* Poll for the looped-back frame */
     uint32_t start = g_tick;
     do {
-        err = whal_Eth_Recv(&g_whalEth, rxFrame, &rxLen);
+        err = whal_Eth_Recv(BOARD_ETH_DEV, rxFrame, &rxLen);
     } while (err == WHAL_ENOTREADY && (g_tick - start) < 100);
 
     WHAL_ASSERT_EQ(err, WHAL_SUCCESS);
@@ -49,9 +49,9 @@ static void Test_Eth_Loopback(void)
     /* Verify payload matches (skip MAC header) */
     WHAL_ASSERT_MEM_EQ(rxFrame + 14, txFrame + 14, sizeof(txFrame) - 14);
 
-    WHAL_ASSERT_EQ(whal_Eth_Stop(&g_whalEth), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Eth_Stop(BOARD_ETH_DEV), WHAL_SUCCESS);
 
-    WHAL_ASSERT_EQ(whal_Stm32h5_Eth_Ext_EnableLoopback(&g_whalEth, 0),
+    WHAL_ASSERT_EQ(whal_Stm32h5_Eth_Ext_EnableLoopback(BOARD_ETH_DEV, 0),
                    WHAL_SUCCESS);
 }
 

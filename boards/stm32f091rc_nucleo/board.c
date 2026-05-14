@@ -73,16 +73,11 @@ whal_I2c g_whalI2c = {
     },
 };
 
-/* Flash — 256 KB */
+/* Flash — 256 KB. Dispatcher stub; the const cfg lives in board.h as
+ * whal_Stm32f0_Flash_Dev. This only carries .driver so whal_Flash_* can
+ * dispatch through the vtable. */
 whal_Flash g_whalFlash = {
-    .base = WHAL_STM32F091_FLASH_BASE,
     .driver = WHAL_STM32F091_FLASH_DRIVER,
-
-    .cfg = &(whal_Stm32f0_Flash_Cfg) {
-        .startAddr = 0x08000000,
-        .size = 0x40000,
-        .timeout = &g_whalTimeout,
-    },
 };
 
 #ifdef BOARD_WATCHDOG_IWDG

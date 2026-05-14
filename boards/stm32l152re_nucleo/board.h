@@ -5,6 +5,7 @@
 #include <stddef.h>
 #include <wolfHAL/wolfHAL.h>
 #include <wolfHAL/platform/st/stm32l152re.h>
+#include <wolfHAL/power/stm32l1_pwr.h>
 
 extern whal_Clock g_whalClock;
 extern whal_Uart g_whalUart;
@@ -35,6 +36,56 @@ enum {
 #define BOARD_FLASH_SIZE       0x80000
 #define BOARD_FLASH_TEST_ADDR  0x0807FF00
 #define BOARD_FLASH_SECTOR_SZ  0x100
+
+/* BOARD_*_DEV: how this board reaches each peripheral. */
+#define BOARD_GPIO_DEV       WHAL_SINGLETON
+#define BOARD_UART_DEV       (&g_whalUart)
+#define BOARD_SPI_DEV        (&g_whalSpi)
+#define BOARD_I2C_DEV        (&g_whalI2c)
+#define BOARD_FLASH_DEV      (&g_whalFlash)
+#define BOARD_CLOCK_DEV      (&g_whalClock)
+#define BOARD_WATCHDOG_DEV   (&g_whalWatchdog)
+
+/* PWR singleton — referenced by stm32l1_pwr.c directly. */
+static const whal_Power whal_Stm32l1_Pwr_Dev = {
+    .base = WHAL_STM32L152_PWR_BASE,
+};
+
+/* WWDG singleton — referenced by stm32wb_wwdg.c via stm32l1_wwdg.c alias
+ * (which #includes stm32f0_wwdg.c). Declared unconditionally because the
+ * compiled .c always references it. */
+static const whal_Watchdog whal_Stm32l1_Wwdg_Dev = {
+    .base = WHAL_STM32L152_WWDG_BASE,
+    .cfg  = (void *)&(const whal_Stm32l1_Wwdg_Cfg){
+        .prescaler = 3,
+        .window = 0x7F,
+        .counter = 0x7F,
+    },
+};
+
+/* IWDG singleton — referenced by stm32wb_iwdg.c via stm32l1_iwdg.c alias. */
+static const whal_Watchdog whal_Stm32l1_Iwdg_Dev = {
+    .base = WHAL_STM32L152_IWDG_BASE,
+    .cfg  = (void *)&(const whal_Stm32l1_Iwdg_Cfg){
+        .prescaler = WHAL_STM32L1_IWDG_PR_64,
+        .reload = 500,
+        .timeout = &g_whalTimeout,
+    },
+};
+
+/* Flash singleton — referenced by stm32l1_flash.c directly. Const cfg lives
+ * here; the dispatcher stub g_whalFlash in board.c carries only .driver so
+ * whal_Flash_* can be vtable-dispatched alongside other flash drivers (e.g.
+ * SPI NOR W25Q64). */
+static const whal_Flash whal_Stm32l1_Flash_Dev = {
+    .base = WHAL_STM32L152_FLASH_BASE,
+
+    .cfg = (void *)&(const whal_Stm32l1_Flash_Cfg){
+        .startAddr = 0x08000000,
+        .size = 0x80000,
+        .timeout = &g_whalTimeout,
+    },
+};
 
 static const whal_Gpio whal_Stm32l1_Gpio_Dev = {
     .base = WHAL_STM32L152_GPIO_BASE,

@@ -1,4 +1,8 @@
 #include <stdint.h>
+#if defined(WHAL_CFG_STM32F4_SPI_SINGLE_INSTANCE) || \
+    defined(WHAL_CFG_STM32L1_SPI_SINGLE_INSTANCE)
+#include "board.h"  /* provides whal_Stm32f4_Spi_Dev singleton (possibly via platform alias macro) */
+#endif
 #include <wolfHAL/spi/stm32f4_spi.h>
 #include <wolfHAL/spi/spi.h>
 #include <wolfHAL/error.h>
@@ -87,12 +91,18 @@ static uint32_t whal_Stm32f4_Spi_CalcBr(size_t pclk, uint32_t targetBaud)
 
 whal_Error whal_Stm32f4_Spi_Init(whal_Spi *spiDev)
 {
+#if defined(WHAL_CFG_STM32F4_SPI_SINGLE_INSTANCE) || \
+    defined(WHAL_CFG_STM32L1_SPI_SINGLE_INSTANCE)
+    size_t base = whal_Stm32f4_Spi_Dev.base;
+    (void)spiDev;
+#else
     size_t base;
 
     if (!spiDev || !spiDev->cfg)
         return WHAL_EINVAL;
 
     base = spiDev->base;
+#endif
 
     /* Master mode with software slave management */
     whal_Reg_Update(base, SPI_CR1_REG,
@@ -106,12 +116,18 @@ whal_Error whal_Stm32f4_Spi_Init(whal_Spi *spiDev)
 
 whal_Error whal_Stm32f4_Spi_Deinit(whal_Spi *spiDev)
 {
+#if defined(WHAL_CFG_STM32F4_SPI_SINGLE_INSTANCE) || \
+    defined(WHAL_CFG_STM32L1_SPI_SINGLE_INSTANCE)
+    size_t base = whal_Stm32f4_Spi_Dev.base;
+    (void)spiDev;
+#else
     size_t base;
 
     if (!spiDev || !spiDev->cfg)
         return WHAL_EINVAL;
 
     base = spiDev->base;
+#endif
 
     /* Disable SPI */
     whal_Reg_Update(base, SPI_CR1_REG, SPI_CR1_SPE_Msk,
@@ -122,12 +138,23 @@ whal_Error whal_Stm32f4_Spi_Deinit(whal_Spi *spiDev)
 
 whal_Error whal_Stm32f4_Spi_StartCom(whal_Spi *spiDev, whal_Spi_ComCfg *comCfg)
 {
+    uint32_t cpol, cpha, br;
+#if defined(WHAL_CFG_STM32F4_SPI_SINGLE_INSTANCE) || \
+    defined(WHAL_CFG_STM32L1_SPI_SINGLE_INSTANCE)
+    whal_Stm32f4_Spi_Cfg *cfg =
+        (whal_Stm32f4_Spi_Cfg *)whal_Stm32f4_Spi_Dev.cfg;
+    size_t base = whal_Stm32f4_Spi_Dev.base;
+    (void)spiDev;
+
+    if (!comCfg)
+        return WHAL_EINVAL;
+#else
     size_t base;
     whal_Stm32f4_Spi_Cfg *cfg;
-    uint32_t cpol, cpha, br;
 
     if (!spiDev || !spiDev->cfg || !comCfg)
         return WHAL_EINVAL;
+#endif
 
     /* Only 8-bit frames supported */
     if (comCfg->wordSz != 8)
@@ -136,8 +163,11 @@ whal_Error whal_Stm32f4_Spi_StartCom(whal_Spi *spiDev, whal_Spi_ComCfg *comCfg)
     if (comCfg->mode > 3 || comCfg->dataLines != 1 || comCfg->freq == 0)
         return WHAL_EINVAL;
 
+#if !defined(WHAL_CFG_STM32F4_SPI_SINGLE_INSTANCE) && \
+    !defined(WHAL_CFG_STM32L1_SPI_SINGLE_INSTANCE)
     base = spiDev->base;
     cfg = (whal_Stm32f4_Spi_Cfg *)spiDev->cfg;
+#endif
 
     br = whal_Stm32f4_Spi_CalcBr(cfg->pclk, comCfg->freq);
 
@@ -164,12 +194,18 @@ whal_Error whal_Stm32f4_Spi_StartCom(whal_Spi *spiDev, whal_Spi_ComCfg *comCfg)
 
 whal_Error whal_Stm32f4_Spi_EndCom(whal_Spi *spiDev)
 {
+#if defined(WHAL_CFG_STM32F4_SPI_SINGLE_INSTANCE) || \
+    defined(WHAL_CFG_STM32L1_SPI_SINGLE_INSTANCE)
+    size_t base = whal_Stm32f4_Spi_Dev.base;
+    (void)spiDev;
+#else
     size_t base;
 
     if (!spiDev || !spiDev->cfg)
         return WHAL_EINVAL;
 
     base = spiDev->base;
+#endif
 
     /* Disable SPE */
     whal_Reg_Update(base, SPI_CR1_REG, SPI_CR1_SPE_Msk,
@@ -184,17 +220,28 @@ whal_Error whal_Stm32f4_Spi_SendRecv(whal_Spi *spiDev,
 {
     const uint8_t *txBuf = (const uint8_t *)tx;
     uint8_t *rxBuf = (uint8_t *)rx;
-    size_t base;
-    whal_Stm32f4_Spi_Cfg *cfg;
     size_t totalLen;
     whal_Error err;
     uint8_t txByte;
+#if defined(WHAL_CFG_STM32F4_SPI_SINGLE_INSTANCE) || \
+    defined(WHAL_CFG_STM32L1_SPI_SINGLE_INSTANCE)
+    whal_Stm32f4_Spi_Cfg *cfg =
+        (whal_Stm32f4_Spi_Cfg *)whal_Stm32f4_Spi_Dev.cfg;
+    size_t base = whal_Stm32f4_Spi_Dev.base;
+    (void)spiDev;
+
+    if ((!tx && txLen) || (!rx && rxLen))
+        return WHAL_EINVAL;
+#else
+    size_t base;
+    whal_Stm32f4_Spi_Cfg *cfg;
 
     if (!spiDev || !spiDev->cfg || (!tx && txLen) || (!rx && rxLen))
         return WHAL_EINVAL;
 
     base = spiDev->base;
     cfg = (whal_Stm32f4_Spi_Cfg *)spiDev->cfg;
+#endif
     totalLen = txLen > rxLen ? txLen : rxLen;
 
     for (size_t i = 0; i < totalLen; i++) {

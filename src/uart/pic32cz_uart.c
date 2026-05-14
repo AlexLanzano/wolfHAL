@@ -1,4 +1,7 @@
 #include <stdint.h>
+#ifdef WHAL_CFG_PIC32CZ_UART_SINGLE_INSTANCE
+#include "board.h"  /* provides whal_Pic32cz_Uart_Dev singleton */
+#endif
 #include <wolfHAL/uart/pic32cz_uart.h>
 #include <wolfHAL/uart/uart.h>
 #include <wolfHAL/error.h>
@@ -171,6 +174,12 @@
 whal_Error whal_Pic32cz_Uart_Init(whal_Uart *uartDev)
 {
     whal_Error err;
+#ifdef WHAL_CFG_PIC32CZ_UART_SINGLE_INSTANCE
+    whal_Pic32cz_Uart_Cfg *cfg =
+        (whal_Pic32cz_Uart_Cfg *)whal_Pic32cz_Uart_Dev.cfg;
+    size_t base = whal_Pic32cz_Uart_Dev.base;
+    (void)uartDev;
+#else
     whal_Pic32cz_Uart_Cfg *cfg;
     size_t base;
 
@@ -180,6 +189,7 @@ whal_Error whal_Pic32cz_Uart_Init(whal_Uart *uartDev)
 
     base = uartDev->base;
     cfg = (whal_Pic32cz_Uart_Cfg *)uartDev->cfg;
+#endif
 
     /* Configure CTRLA: internal clock, async mode, LSB first, 16x sampling */
     whal_Reg_Update(base, USART_CTRLA_REG,
@@ -247,6 +257,12 @@ whal_Error whal_Pic32cz_Uart_Init(whal_Uart *uartDev)
 whal_Error whal_Pic32cz_Uart_Deinit(whal_Uart *uartDev)
 {
     whal_Error err;
+#ifdef WHAL_CFG_PIC32CZ_UART_SINGLE_INSTANCE
+    whal_Pic32cz_Uart_Cfg *cfg =
+        (whal_Pic32cz_Uart_Cfg *)whal_Pic32cz_Uart_Dev.cfg;
+    size_t base = whal_Pic32cz_Uart_Dev.base;
+    (void)uartDev;
+#else
     size_t base;
     whal_Pic32cz_Uart_Cfg *cfg;
 
@@ -256,6 +272,7 @@ whal_Error whal_Pic32cz_Uart_Deinit(whal_Uart *uartDev)
 
     base = uartDev->base;
     cfg = (whal_Pic32cz_Uart_Cfg *)uartDev->cfg;
+#endif
 
     /* Disable SERCOM USART */
     whal_Reg_Update(base, USART_CTRLA_REG,
@@ -285,10 +302,20 @@ whal_Error whal_Pic32cz_Uart_Deinit(whal_Uart *uartDev)
 
 whal_Error whal_Pic32cz_Uart_Send(whal_Uart *uartDev, const void *data, size_t dataSz)
 {
-    size_t base;
-    whal_Pic32cz_Uart_Cfg *cfg;
     const uint8_t *buf = data;
     whal_Error err;
+#ifdef WHAL_CFG_PIC32CZ_UART_SINGLE_INSTANCE
+    whal_Pic32cz_Uart_Cfg *cfg =
+        (whal_Pic32cz_Uart_Cfg *)whal_Pic32cz_Uart_Dev.cfg;
+    size_t base = whal_Pic32cz_Uart_Dev.base;
+    (void)uartDev;
+
+    if (!data) {
+        return WHAL_EINVAL;
+    }
+#else
+    size_t base;
+    whal_Pic32cz_Uart_Cfg *cfg;
 
     if (!uartDev || !uartDev->cfg || !data) {
         return WHAL_EINVAL;
@@ -296,6 +323,7 @@ whal_Error whal_Pic32cz_Uart_Send(whal_Uart *uartDev, const void *data, size_t d
 
     base = uartDev->base;
     cfg = (whal_Pic32cz_Uart_Cfg *)uartDev->cfg;
+#endif
 
     for (size_t i = 0; i < dataSz; ++i) {
         /* Wait for data register to be empty */
@@ -328,9 +356,19 @@ whal_Error whal_Pic32cz_Uart_Send(whal_Uart *uartDev, const void *data, size_t d
 
 whal_Error whal_Pic32cz_Uart_Recv(whal_Uart *uartDev, void *data, size_t dataSz)
 {
+    uint8_t *buf = data;
+#ifdef WHAL_CFG_PIC32CZ_UART_SINGLE_INSTANCE
+    whal_Pic32cz_Uart_Cfg *cfg =
+        (whal_Pic32cz_Uart_Cfg *)whal_Pic32cz_Uart_Dev.cfg;
+    size_t base = whal_Pic32cz_Uart_Dev.base;
+    (void)uartDev;
+
+    if (!data) {
+        return WHAL_EINVAL;
+    }
+#else
     size_t base;
     whal_Pic32cz_Uart_Cfg *cfg;
-    uint8_t *buf = data;
 
     if (!uartDev || !uartDev->cfg || !data) {
         return WHAL_EINVAL;
@@ -338,6 +376,7 @@ whal_Error whal_Pic32cz_Uart_Recv(whal_Uart *uartDev, void *data, size_t dataSz)
 
     base = uartDev->base;
     cfg = (whal_Pic32cz_Uart_Cfg *)uartDev->cfg;
+#endif
 
     for (size_t i = 0; i < dataSz; ++i) {
         size_t rxData;

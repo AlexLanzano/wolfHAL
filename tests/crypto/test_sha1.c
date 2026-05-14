@@ -16,7 +16,7 @@ static void Test_Sha1_KnownAnswer(void)
 {
     uint8_t digest[20] = {0};
 
-    WHAL_ASSERT_EQ(whal_Sha1_Oneshot(&g_whalSha1,
+    WHAL_ASSERT_EQ(whal_Sha1_Oneshot(BOARD_SHA1_DEV,
                                      hashInput, sizeof(hashInput),
                                      digest, sizeof(digest)),
                    WHAL_SUCCESS);
@@ -53,14 +53,14 @@ static void Test_Sha1_Streaming(void)
     uint8_t digest[20] = {0};
     const size_t split = 50;
 
-    WHAL_ASSERT_EQ(whal_Sha1_Start(&g_whalSha1), WHAL_SUCCESS);
-    WHAL_ASSERT_EQ(whal_Sha1_Process(&g_whalSha1, streamMsg, split),
+    WHAL_ASSERT_EQ(whal_Sha1_Start(BOARD_SHA1_DEV), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Sha1_Process(BOARD_SHA1_DEV, streamMsg, split),
                    WHAL_SUCCESS);
-    WHAL_ASSERT_EQ(whal_Sha1_Process(&g_whalSha1,
+    WHAL_ASSERT_EQ(whal_Sha1_Process(BOARD_SHA1_DEV,
                                      streamMsg + split,
                                      sizeof(streamMsg) - split),
                    WHAL_SUCCESS);
-    WHAL_ASSERT_EQ(whal_Sha1_Finalize(&g_whalSha1, digest, sizeof(digest)),
+    WHAL_ASSERT_EQ(whal_Sha1_Finalize(BOARD_SHA1_DEV, digest, sizeof(digest)),
                    WHAL_SUCCESS);
 
     WHAL_ASSERT_MEM_EQ(digest, sha1StreamDigest, sizeof(sha1StreamDigest));

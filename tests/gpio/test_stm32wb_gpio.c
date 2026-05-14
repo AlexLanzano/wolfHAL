@@ -6,7 +6,7 @@
 
 /*
  * GPIO register offsets. Port and pin are derived from the LED entry in
- * g_whalGpio.cfg->pinCfg[BOARD_LED_PIN]. Port stride is 0x400 on all
+ * whal_Stm32wb_Gpio_Dev.cfg->pinCfg[BOARD_LED_PIN]. Port stride is 0x400 on all
  * supported STM32 families.
  */
 #define GPIOx_MODE_REG    0x00
@@ -15,14 +15,14 @@
 
 static inline size_t Board_LedPortBase(void)
 {
-    whal_Stm32wb_Gpio_Cfg *cfg = (whal_Stm32wb_Gpio_Cfg *)g_whalGpio.cfg;
+    const whal_Stm32wb_Gpio_Cfg *cfg = (const whal_Stm32wb_Gpio_Cfg *)whal_Stm32wb_Gpio_Dev.cfg;
     whal_Stm32wb_Gpio_PinCfg led = cfg->pinCfg[BOARD_LED_PIN];
-    return g_whalGpio.base + WHAL_STM32WB_GPIO_GET_PORT(led) * GPIOx_STRIDE;
+    return whal_Stm32wb_Gpio_Dev.base + WHAL_STM32WB_GPIO_GET_PORT(led) * GPIOx_STRIDE;
 }
 
 static inline size_t Board_LedPinNum(void)
 {
-    whal_Stm32wb_Gpio_Cfg *cfg = (whal_Stm32wb_Gpio_Cfg *)g_whalGpio.cfg;
+    const whal_Stm32wb_Gpio_Cfg *cfg = (const whal_Stm32wb_Gpio_Cfg *)whal_Stm32wb_Gpio_Dev.cfg;
     whal_Stm32wb_Gpio_PinCfg led = cfg->pinCfg[BOARD_LED_PIN];
     return WHAL_STM32WB_GPIO_GET_PIN(led);
 }
@@ -45,8 +45,8 @@ static void Test_Gpio_PinCfgRoundTrip(void)
 
 static void Test_Gpio_NoDuplicatePins(void)
 {
-    whal_Stm32wb_Gpio_Cfg *cfg = (whal_Stm32wb_Gpio_Cfg *)g_whalGpio.cfg;
-    whal_Stm32wb_Gpio_PinCfg *pins = cfg->pinCfg;
+    const whal_Stm32wb_Gpio_Cfg *cfg = (const whal_Stm32wb_Gpio_Cfg *)whal_Stm32wb_Gpio_Dev.cfg;
+    const whal_Stm32wb_Gpio_PinCfg *pins = cfg->pinCfg;
 
     for (size_t i = 0; i < cfg->pinCount; i++) {
         for (size_t j = i + 1; j < cfg->pinCount; j++) {
@@ -72,7 +72,7 @@ static void Test_Gpio_ModeRegister(void)
 
 static void Test_Gpio_SetHighReg(void)
 {
-    WHAL_ASSERT_EQ(whal_Gpio_Set(&g_whalGpio, BOARD_LED_PIN, 1), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Gpio_Set(BOARD_GPIO_DEV, BOARD_LED_PIN, 1), WHAL_SUCCESS);
 
     size_t pinNum = Board_LedPinNum();
     size_t val = 0;
@@ -83,7 +83,7 @@ static void Test_Gpio_SetHighReg(void)
 
 static void Test_Gpio_SetLowReg(void)
 {
-    WHAL_ASSERT_EQ(whal_Gpio_Set(&g_whalGpio, BOARD_LED_PIN, 0), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Gpio_Set(BOARD_GPIO_DEV, BOARD_LED_PIN, 0), WHAL_SUCCESS);
 
     size_t pinNum = Board_LedPinNum();
     size_t val = 0;

@@ -17,7 +17,7 @@ static void Test_Sha256_KnownAnswer(void)
 {
     uint8_t digest[32] = {0};
 
-    WHAL_ASSERT_EQ(whal_Sha256_Oneshot(&g_whalSha256,
+    WHAL_ASSERT_EQ(whal_Sha256_Oneshot(BOARD_SHA256_DEV,
                                        hashInput, sizeof(hashInput),
                                        digest, sizeof(digest)),
                    WHAL_SUCCESS);
@@ -55,14 +55,14 @@ static void Test_Sha256_Streaming(void)
     uint8_t digest[32] = {0};
     const size_t split = 50;
 
-    WHAL_ASSERT_EQ(whal_Sha256_Start(&g_whalSha256), WHAL_SUCCESS);
-    WHAL_ASSERT_EQ(whal_Sha256_Process(&g_whalSha256, streamMsg, split),
+    WHAL_ASSERT_EQ(whal_Sha256_Start(BOARD_SHA256_DEV), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Sha256_Process(BOARD_SHA256_DEV, streamMsg, split),
                    WHAL_SUCCESS);
-    WHAL_ASSERT_EQ(whal_Sha256_Process(&g_whalSha256,
+    WHAL_ASSERT_EQ(whal_Sha256_Process(BOARD_SHA256_DEV,
                                        streamMsg + split,
                                        sizeof(streamMsg) - split),
                    WHAL_SUCCESS);
-    WHAL_ASSERT_EQ(whal_Sha256_Finalize(&g_whalSha256,
+    WHAL_ASSERT_EQ(whal_Sha256_Finalize(BOARD_SHA256_DEV,
                                         digest, sizeof(digest)),
                    WHAL_SUCCESS);
 

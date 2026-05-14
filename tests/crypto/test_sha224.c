@@ -17,7 +17,7 @@ static void Test_Sha224_KnownAnswer(void)
 {
     uint8_t digest[28] = {0};
 
-    WHAL_ASSERT_EQ(whal_Sha224_Oneshot(&g_whalSha224,
+    WHAL_ASSERT_EQ(whal_Sha224_Oneshot(BOARD_SHA224_DEV,
                                        hashInput, sizeof(hashInput),
                                        digest, sizeof(digest)),
                    WHAL_SUCCESS);
@@ -55,14 +55,14 @@ static void Test_Sha224_Streaming(void)
     uint8_t digest[28] = {0};
     const size_t split = 50;
 
-    WHAL_ASSERT_EQ(whal_Sha224_Start(&g_whalSha224), WHAL_SUCCESS);
-    WHAL_ASSERT_EQ(whal_Sha224_Process(&g_whalSha224, streamMsg, split),
+    WHAL_ASSERT_EQ(whal_Sha224_Start(BOARD_SHA224_DEV), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Sha224_Process(BOARD_SHA224_DEV, streamMsg, split),
                    WHAL_SUCCESS);
-    WHAL_ASSERT_EQ(whal_Sha224_Process(&g_whalSha224,
+    WHAL_ASSERT_EQ(whal_Sha224_Process(BOARD_SHA224_DEV,
                                        streamMsg + split,
                                        sizeof(streamMsg) - split),
                    WHAL_SUCCESS);
-    WHAL_ASSERT_EQ(whal_Sha224_Finalize(&g_whalSha224,
+    WHAL_ASSERT_EQ(whal_Sha224_Finalize(BOARD_SHA224_DEV,
                                         digest, sizeof(digest)),
                    WHAL_SUCCESS);
 

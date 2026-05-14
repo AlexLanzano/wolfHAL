@@ -25,7 +25,7 @@ static void Test_HmacSha1_KnownAnswer(void)
 {
     uint8_t digest[20] = {0};
 
-    WHAL_ASSERT_EQ(whal_HmacSha1_Oneshot(&g_whalHmacSha1,
+    WHAL_ASSERT_EQ(whal_HmacSha1_Oneshot(BOARD_HMAC_SHA1_DEV,
                                          hmacKey, sizeof(hmacKey),
                                          hmacInput, sizeof(hmacInput),
                                          digest, sizeof(digest)),
@@ -63,17 +63,17 @@ static void Test_HmacSha1_Streaming(void)
     uint8_t digest[20] = {0};
     const size_t split = 50;
 
-    WHAL_ASSERT_EQ(whal_HmacSha1_Start(&g_whalHmacSha1,
+    WHAL_ASSERT_EQ(whal_HmacSha1_Start(BOARD_HMAC_SHA1_DEV,
                                        hmacKey, sizeof(hmacKey)),
                    WHAL_SUCCESS);
-    WHAL_ASSERT_EQ(whal_HmacSha1_Process(&g_whalHmacSha1,
+    WHAL_ASSERT_EQ(whal_HmacSha1_Process(BOARD_HMAC_SHA1_DEV,
                                          hmacStreamMsg, split),
                    WHAL_SUCCESS);
-    WHAL_ASSERT_EQ(whal_HmacSha1_Process(&g_whalHmacSha1,
+    WHAL_ASSERT_EQ(whal_HmacSha1_Process(BOARD_HMAC_SHA1_DEV,
                                          hmacStreamMsg + split,
                                          sizeof(hmacStreamMsg) - split),
                    WHAL_SUCCESS);
-    WHAL_ASSERT_EQ(whal_HmacSha1_Finalize(&g_whalHmacSha1,
+    WHAL_ASSERT_EQ(whal_HmacSha1_Finalize(BOARD_HMAC_SHA1_DEV,
                                           digest, sizeof(digest)),
                    WHAL_SUCCESS);
 

@@ -2,7 +2,8 @@
 
 wolfHAL is a lightweight, OS-agnostic, compiler-agnostic hardware abstraction
 layer for embedded targets written in C. It provides a uniform driver model
-based on vtable dispatch.
+with vtable dispatch by default and an opt-in single-instance fast path for
+size-constrained builds.
 
 ## Repository layout
 

@@ -18,6 +18,14 @@ typedef whal_Stm32wba_HmacSha1_State   whal_Stm32n6_HmacSha1_State;
 typedef whal_Stm32wba_HmacSha224_State  whal_Stm32n6_HmacSha224_State;
 typedef whal_Stm32wba_HmacSha256_State  whal_Stm32n6_HmacSha256_State;
 
+#define whal_Stm32n6_Hash_Dev       whal_Stm32wba_Hash_Dev
+#define whal_Stm32n6_Sha1_Dev       whal_Stm32wba_Sha1_Dev
+#define whal_Stm32n6_Sha224_Dev     whal_Stm32wba_Sha224_Dev
+#define whal_Stm32n6_Sha256_Dev     whal_Stm32wba_Sha256_Dev
+#define whal_Stm32n6_HmacSha1_Dev   whal_Stm32wba_HmacSha1_Dev
+#define whal_Stm32n6_HmacSha224_Dev whal_Stm32wba_HmacSha224_Dev
+#define whal_Stm32n6_HmacSha256_Dev whal_Stm32wba_HmacSha256_Dev
+
 #define whal_Stm32n6_Hash_CryptoDriver    whal_Stm32wba_Hash_CryptoDriver
 
 #define whal_Stm32n6_Hash_Sha1Driver      whal_Stm32wba_Hash_Sha1Driver

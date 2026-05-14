@@ -17,6 +17,14 @@ typedef whal_Stm32wb_Aes_Cfg whal_Stm32wba_Aes_Cfg;
 typedef whal_Stm32wb_AesGcm_State whal_Stm32wba_AesGcm_State;
 typedef whal_Stm32wb_AesCcm_State whal_Stm32wba_AesCcm_State;
 
+#define whal_Stm32wba_Aes_Dev     whal_Stm32wb_Aes_Dev
+#define whal_Stm32wba_AesEcb_Dev  whal_Stm32wb_AesEcb_Dev
+#define whal_Stm32wba_AesCbc_Dev  whal_Stm32wb_AesCbc_Dev
+#define whal_Stm32wba_AesCtr_Dev  whal_Stm32wb_AesCtr_Dev
+#define whal_Stm32wba_AesGcm_Dev  whal_Stm32wb_AesGcm_Dev
+#define whal_Stm32wba_AesGmac_Dev whal_Stm32wb_AesGmac_Dev
+#define whal_Stm32wba_AesCcm_Dev  whal_Stm32wb_AesCcm_Dev
+
 #define whal_Stm32wba_Aes_CryptoDriver whal_Stm32wb_Aes_CryptoDriver
 
 #define whal_Stm32wba_Aes_EcbDriver  whal_Stm32wb_Aes_EcbDriver

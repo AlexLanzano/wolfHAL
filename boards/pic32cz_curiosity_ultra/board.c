@@ -6,10 +6,22 @@
 #include <wolfHAL/platform/microchip/pic32cz.h>
 #include "peripheral.h"
 
-/* Power */
-static whal_Power g_whalPower = {
-    .base = WHAL_PIC32CZ_SUPC_BASE,
+/* SysTick timing (must precede g_whalTimeout below) */
+volatile uint32_t g_tick = 0;
+volatile uint8_t g_waiting = 0;
+volatile uint8_t g_tickOverflow = 0;
+
+uint32_t Board_GetTick(void)
+{
+    return g_tick;
+}
+
+whal_Timeout g_whalTimeout = {
+    .timeoutTicks = 1000,
+    .GetTick = Board_GetTick,
 };
+
+/* SUPC singleton lives in board.h as `static const`. */
 
 /* Clock */
 whal_Clock g_whalClock = {
@@ -41,16 +53,12 @@ whal_Uart g_whalUart = {
     },
 };
 
-/* Flash */
+/* Flash — dispatcher stub. The const cfg lives in board.h as
+ * whal_Pic32cz_Flash_Dev; this only carries .driver so whal_Flash_* can
+ * dispatch through the vtable. */
 whal_Flash g_whalFlash = {
-    .base = WHAL_PIC32CZ_FLASH_BASE,
     .driver = WHAL_PIC32CZ_FLASH_DRIVER,
 };
-
-/* SysTick timing */
-volatile uint32_t g_tick = 0;
-volatile uint8_t g_waiting = 0;
-volatile uint8_t g_tickOverflow = 0;
 
 void SysTick_Handler()
 {
@@ -85,7 +93,7 @@ whal_Error Board_Init(void)
     whal_Error err;
 
     /* Enable PLL power supply before clock init */
-    err = whal_Pic32cz_Supc_EnableSupply(&g_whalPower,
+    err = whal_Pic32cz_Supc_EnableSupply(WHAL_SINGLETON,
             &(whal_Pic32cz_Supc_Supply){WHAL_PIC32CZ_SUPC_PLL});
     if (err) {
         return err;

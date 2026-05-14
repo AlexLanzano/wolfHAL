@@ -51,12 +51,12 @@ static void Test_AesCtr_Basic(void)
     uint8_t ct[32] = {0};
     uint8_t pt[32] = {0};
 
-    WHAL_ASSERT_EQ(whal_AesCtr_Oneshot(&g_whalAesCtr, WHAL_CRYPTO_ENCRYPT,
+    WHAL_ASSERT_EQ(whal_AesCtr_Oneshot(BOARD_AES_CTR_DEV, WHAL_CRYPTO_ENCRYPT,
                                         key, 32, iv, plaintext, ct,
                                         sizeof(plaintext)),
                    WHAL_SUCCESS);
 
-    WHAL_ASSERT_EQ(whal_AesCtr_Oneshot(&g_whalAesCtr, WHAL_CRYPTO_DECRYPT,
+    WHAL_ASSERT_EQ(whal_AesCtr_Oneshot(BOARD_AES_CTR_DEV, WHAL_CRYPTO_DECRYPT,
                                         key, 32, iv, ct, pt, sizeof(ct)),
                    WHAL_SUCCESS);
 
@@ -67,7 +67,7 @@ static void Test_AesCtr_KnownAnswer(void)
 {
     uint8_t ct[16] = {0};
 
-    WHAL_ASSERT_EQ(whal_AesCtr_Oneshot(&g_whalAesCtr, WHAL_CRYPTO_ENCRYPT,
+    WHAL_ASSERT_EQ(whal_AesCtr_Oneshot(BOARD_AES_CTR_DEV, WHAL_CRYPTO_ENCRYPT,
                                         nistKey, 32, nistCtrIv, nistPt, ct,
                                         sizeof(nistPt)),
                    WHAL_SUCCESS);

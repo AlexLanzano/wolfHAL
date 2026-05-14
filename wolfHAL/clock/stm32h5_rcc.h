@@ -50,6 +50,9 @@
 #define WHAL_STM32H5_RCC_PLL1DIVR_PLL1R_Pos    24
 #define WHAL_STM32H5_RCC_PLL1DIVR_PLL1R_Msk    (WHAL_BITMASK(7) << WHAL_STM32H5_RCC_PLL1DIVR_PLL1R_Pos)
 
+/*
+ * @brief System clock source selection (RCC_CFGR1.SW).
+ */
 typedef enum {
     WHAL_STM32H5_RCC_SYSCLK_SRC_HSI,
     WHAL_STM32H5_RCC_SYSCLK_SRC_CSI,
@@ -57,6 +60,9 @@ typedef enum {
     WHAL_STM32H5_RCC_SYSCLK_SRC_PLL1,
 } whal_Stm32h5_Rcc_SysClockSrc;
 
+/*
+ * @brief PLL input clock source (RCC_PLL1CFGR.PLL1SRC).
+ */
 typedef enum {
     WHAL_STM32H5_RCC_PLLCLK_SRC_NONE,
     WHAL_STM32H5_RCC_PLLCLK_SRC_HSI,
@@ -64,6 +70,13 @@ typedef enum {
     WHAL_STM32H5_RCC_PLLCLK_SRC_HSE,
 } whal_Stm32h5_Rcc_PllClockSrc;
 
+/*
+ * @brief PLL1 configuration parameters.
+ *   VCO  = (input / m) * n
+ *   PLLP = VCO / p (SYSCLK domain)
+ *   PLLQ = VCO / q
+ *   PLLR = VCO / r
+ */
 typedef struct {
     whal_Stm32h5_Rcc_PllClockSrc clkSrc;
     uint16_t n;
@@ -73,12 +86,18 @@ typedef struct {
     uint8_t r;
 } whal_Stm32h5_Rcc_PllCfg;
 
+/*
+ * @brief Peripheral clock descriptor (RCC *ENR enable bit).
+ */
 typedef struct {
     size_t regOffset;
     size_t enableMask;
     size_t enablePos;
 } whal_Stm32h5_Rcc_PeriphClk;
 
+/*
+ * @brief Cfg for EnableOsc/DisableOsc — on bit + ready bit.
+ */
 typedef struct {
     size_t onReg;
     size_t onMsk;
@@ -100,6 +119,14 @@ typedef struct {
     .onReg  = 0x000, .onMsk  = (1UL << 16),                  \
     .rdyReg = 0x000, .rdyMsk = (1UL << 17), .rdyPos = 17
 
+/*
+ * @brief Turn on an oscillator and wait for its ready bit.
+ *
+ * @param clkDev RCC device instance.
+ * @param cfg    Oscillator on/ready bit descriptor (e.g. WHAL_STM32H5_RCC_HSE_CFG).
+ *
+ * @retval WHAL_SUCCESS Always.
+ */
 static inline whal_Error whal_Stm32h5_Rcc_EnableOsc(
     const whal_Clock *clkDev, const whal_Stm32h5_Rcc_OscCfg *cfg)
 {
@@ -113,6 +140,14 @@ static inline whal_Error whal_Stm32h5_Rcc_EnableOsc(
     return WHAL_SUCCESS;
 }
 
+/*
+ * @brief Turn off an oscillator.
+ *
+ * @param clkDev RCC device instance.
+ * @param cfg    Oscillator on/ready bit descriptor.
+ *
+ * @retval WHAL_SUCCESS Always.
+ */
 static inline whal_Error whal_Stm32h5_Rcc_DisableOsc(
     const whal_Clock *clkDev, const whal_Stm32h5_Rcc_OscCfg *cfg)
 {
@@ -120,6 +155,17 @@ static inline whal_Error whal_Stm32h5_Rcc_DisableOsc(
     return WHAL_SUCCESS;
 }
 
+/*
+ * @brief Configure and enable PLL1, waiting for lock.
+ *
+ * Turns PLL1 off, waits for !PLL1RDY, programs PLL1CFGR (SRC/M, output
+ * enables) and PLL1DIVR (N/P/Q/R), then sets PLL1ON and polls PLL1RDY.
+ *
+ * @param clkDev RCC device instance.
+ * @param cfg    PLL1 configuration.
+ *
+ * @retval WHAL_SUCCESS Always.
+ */
 static inline whal_Error whal_Stm32h5_Rcc_EnablePll1(
     const whal_Clock *clkDev, const whal_Stm32h5_Rcc_PllCfg *cfg)
 {
@@ -174,6 +220,13 @@ static inline whal_Error whal_Stm32h5_Rcc_EnablePll1(
     return WHAL_SUCCESS;
 }
 
+/*
+ * @brief Turn PLL1 off (clears RCC_CR.PLL1ON).
+ *
+ * @param clkDev RCC device instance.
+ *
+ * @retval WHAL_SUCCESS Always.
+ */
 static inline whal_Error whal_Stm32h5_Rcc_DisablePll1(const whal_Clock *clkDev)
 {
     whal_Reg_Update(clkDev->base, WHAL_STM32H5_RCC_CR_REG,
@@ -181,6 +234,14 @@ static inline whal_Error whal_Stm32h5_Rcc_DisablePll1(const whal_Clock *clkDev)
     return WHAL_SUCCESS;
 }
 
+/*
+ * @brief Switch SYSCLK to the requested source and wait for the switch.
+ *
+ * @param clkDev RCC device instance.
+ * @param src    System clock source.
+ *
+ * @retval WHAL_SUCCESS Always.
+ */
 static inline whal_Error whal_Stm32h5_Rcc_SetSysClock(
     const whal_Clock *clkDev, whal_Stm32h5_Rcc_SysClockSrc src)
 {
@@ -198,6 +259,16 @@ static inline whal_Error whal_Stm32h5_Rcc_SetSysClock(
     return WHAL_SUCCESS;
 }
 
+/*
+ * @brief Program the HSI divider (RCC_CR.HSIDIV).
+ *
+ * HSI = 64 MHz / 2^div. Encoded as 0..3 for /1, /2, /4, /8.
+ *
+ * @param clkDev RCC device instance.
+ * @param div    HSIDIV encoded value (0..3).
+ *
+ * @retval WHAL_SUCCESS Always.
+ */
 static inline whal_Error whal_Stm32h5_Rcc_SetHsiDiv(
     const whal_Clock *clkDev, uint8_t div)
 {
@@ -208,6 +279,14 @@ static inline whal_Error whal_Stm32h5_Rcc_SetHsiDiv(
     return WHAL_SUCCESS;
 }
 
+/*
+ * @brief Set the enable bit for a peripheral clock gate.
+ *
+ * @param clkDev RCC device instance.
+ * @param clk    Peripheral clock descriptor (RCC *ENR register + bit).
+ *
+ * @retval WHAL_SUCCESS Always.
+ */
 static inline whal_Error whal_Stm32h5_Rcc_EnablePeriphClk(
     const whal_Clock *clkDev, const whal_Stm32h5_Rcc_PeriphClk *clk)
 {
@@ -216,6 +295,14 @@ static inline whal_Error whal_Stm32h5_Rcc_EnablePeriphClk(
     return WHAL_SUCCESS;
 }
 
+/*
+ * @brief Clear the enable bit for a peripheral clock gate.
+ *
+ * @param clkDev RCC device instance.
+ * @param clk    Peripheral clock descriptor (RCC *ENR register + bit).
+ *
+ * @retval WHAL_SUCCESS Always.
+ */
 static inline whal_Error whal_Stm32h5_Rcc_DisablePeriphClk(
     const whal_Clock *clkDev, const whal_Stm32h5_Rcc_PeriphClk *clk)
 {

@@ -78,7 +78,7 @@ static void run_flash_tests(const char *name)
 void whal_Test_Flash(void)
 {
     /* Test on-chip flash */
-    g_testFlashDev = &g_whalFlash;
+    g_testFlashDev = BOARD_FLASH_DEV;
     g_testFlashAddr = BOARD_FLASH_TEST_ADDR;
     g_testFlashSectorSz = BOARD_FLASH_SECTOR_SZ;
     run_flash_tests("on-chip");
