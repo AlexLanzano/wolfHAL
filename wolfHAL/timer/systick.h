@@ -34,6 +34,12 @@ typedef struct {
     whal_SysTick_TickInt tickInt;
 } whal_SysTick_Cfg;
 
+/*
+ * @brief Platform-owned SysTick device singleton. Defined in the driver TU
+ * from the WHAL_CFG_SYSTICK_DEV initializer in board.h.
+ */
+extern const whal_Timer whal_SysTick_Dev;
+
 #ifndef WHAL_CFG_SYSTICK_TIMER_DIRECT_API_MAPPING
 /*
  * @brief Driver instance for the Cortex-M SysTick timer.

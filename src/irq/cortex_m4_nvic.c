@@ -1,7 +1,9 @@
-#include "board.h"  /* provides whal_Nvic_Dev singleton */
+#include "board.h"  /* provides WHAL_CFG_NVIC_DEV initializer */
 #include <wolfHAL/irq/cortex_m4_nvic.h>
 #include <wolfHAL/error.h>
-#include <wolfHAL/regmap.h>
+#include <wolfHAL/reg.h>
+
+const whal_Irq whal_Nvic_Dev = WHAL_CFG_NVIC_DEV;
 
 /*
  * ARM Cortex-M4 NVIC register offsets (relative to 0xE000E100).

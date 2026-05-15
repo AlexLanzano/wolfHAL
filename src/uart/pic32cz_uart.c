@@ -5,7 +5,7 @@
 #include <wolfHAL/uart/pic32cz_uart.h>
 #include <wolfHAL/uart/uart.h>
 #include <wolfHAL/error.h>
-#include <wolfHAL/regmap.h>
+#include <wolfHAL/reg.h>
 #include <wolfHAL/bitops.h>
 
 /* SERCOM USART Register Offsets */

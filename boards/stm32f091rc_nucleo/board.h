@@ -6,11 +6,9 @@
 #include <wolfHAL/wolfHAL.h>
 #include <wolfHAL/platform/st/stm32f091xx.h>
 
-extern whal_Clock g_whalClock;
 extern whal_Uart g_whalUart;
 extern whal_Spi g_whalSpi;
 extern whal_I2c g_whalI2c;
-extern whal_Flash g_whalFlash;
 extern whal_Watchdog g_whalWatchdog;
 
 extern whal_Timeout g_whalTimeout;
@@ -37,115 +35,111 @@ enum {
 #define BOARD_FLASH_SECTOR_SZ  0x800
 
 /* BOARD_*_DEV: how this board reaches each peripheral. */
-#define BOARD_GPIO_DEV       WHAL_SINGLETON
+#define BOARD_GPIO_DEV       WHAL_INTERNAL_DEV
 #define BOARD_UART_DEV       (&g_whalUart)
 #define BOARD_SPI_DEV        (&g_whalSpi)
 #define BOARD_I2C_DEV        (&g_whalI2c)
-#define BOARD_FLASH_DEV      (&g_whalFlash)
-#define BOARD_CLOCK_DEV      (&g_whalClock)
+#define BOARD_FLASH_DEV      ((whal_Flash *)&whal_Stm32f0_Flash_Dev)
 #define BOARD_WATCHDOG_DEV   (&g_whalWatchdog)
 
-/* WWDG singleton — referenced by stm32f0_wwdg.c directly. Declared
- * unconditionally because the compiled .c always references it. */
-static const whal_Watchdog whal_Stm32f0_Wwdg_Dev = {
-    .base = WHAL_STM32F091_WWDG_BASE,
-    .cfg  = (void *)&(const whal_Stm32f0_Wwdg_Cfg){
-        .prescaler = 3,
-        .window = 0x7F,
-        .counter = 0x7F,
-    },
-};
+/* WWDG dev initializer — singleton defined in stm32f0_wwdg.c.
+ * Compiled unconditionally because the .c always references it. */
+#define WHAL_CFG_STM32F0_WWDG_DEV { \
+    .base = WHAL_STM32F091_WWDG_BASE, \
+    .cfg  = (void *)&(const whal_Stm32f0_Wwdg_Cfg){ \
+        .prescaler = 3, \
+        .window    = 0x7F, \
+        .counter   = 0x7F, \
+    }, \
+}
 
-/* IWDG singleton — referenced by stm32wb_iwdg.c via stm32f0_iwdg.c alias. */
-static const whal_Watchdog whal_Stm32f0_Iwdg_Dev = {
-    .base = WHAL_STM32F091_IWDG_BASE,
-    .cfg  = (void *)&(const whal_Stm32f0_Iwdg_Cfg){
-        .prescaler = WHAL_STM32F0_IWDG_PR_64,
-        .reload = 500,
-        .timeout = &g_whalTimeout,
-    },
-};
+/* IWDG dev initializer — singleton defined in stm32wb_iwdg.c
+ * (the stm32f0_iwdg.c source is an include alias). */
+#define WHAL_CFG_STM32WB_IWDG_DEV { \
+    .base = WHAL_STM32F091_IWDG_BASE, \
+    .cfg  = (void *)&(const whal_Stm32f0_Iwdg_Cfg){ \
+        .prescaler = WHAL_STM32F0_IWDG_PR_64, \
+        .reload    = 500, \
+        .timeout   = &g_whalTimeout, \
+    }, \
+}
 
-/* Flash singleton — referenced by stm32f0_flash.c directly. Const cfg lives
- * here; the dispatcher stub g_whalFlash in board.c carries only .driver so
- * whal_Flash_* can be vtable-dispatched alongside other flash drivers (e.g.
- * SPI NOR W25Q64). */
-static const whal_Flash whal_Stm32f0_Flash_Dev = {
-    .base = WHAL_STM32F091_FLASH_BASE,
+/* Flash dev initializer — singleton defined in stm32f0_flash.c. */
+#define WHAL_CFG_STM32F0_FLASH_DEV { \
+    .driver = WHAL_STM32F091_FLASH_DRIVER, \
+    .base   = WHAL_STM32F091_FLASH_BASE, \
+    .cfg    = (void *)&(const whal_Stm32f0_Flash_Cfg){ \
+        .startAddr = 0x08000000, \
+        .size      = 0x40000, \
+        .timeout   = &g_whalTimeout, \
+    }, \
+}
 
-    .cfg = (void *)&(const whal_Stm32f0_Flash_Cfg){
-        .startAddr = 0x08000000,
-        .size = 0x40000,
-        .timeout = &g_whalTimeout,
-    },
-};
+/* GPIO dev initializer — singleton defined in driver TU. */
+#define WHAL_CFG_STM32WB_GPIO_DEV { \
+    .base = WHAL_STM32F091_GPIO_BASE, \
+    .cfg = (void *)&(const whal_Stm32f0_Gpio_Cfg){ \
+        .pinCfg = (const whal_Stm32f0_Gpio_PinCfg[PIN_COUNT]){ \
+            /* LD2 Green LED on PA5 */ \
+            [LED_PIN] = WHAL_STM32F0_GPIO_PIN( \
+                WHAL_STM32F0_GPIO_PORT_A, 5, WHAL_STM32F0_GPIO_MODE_OUT, \
+                WHAL_STM32F0_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32F0_GPIO_SPEED_LOW, \
+                WHAL_STM32F0_GPIO_PULL_NONE, 0), \
+            /* USART2 TX on PA2, AF1 */ \
+            [UART_TX_PIN] = WHAL_STM32F0_GPIO_PIN( \
+                WHAL_STM32F0_GPIO_PORT_A, 2, WHAL_STM32F0_GPIO_MODE_ALTFN, \
+                WHAL_STM32F0_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32F0_GPIO_SPEED_FAST, \
+                WHAL_STM32F0_GPIO_PULL_UP, 1), \
+            /* USART2 RX on PA3, AF1 */ \
+            [UART_RX_PIN] = WHAL_STM32F0_GPIO_PIN( \
+                WHAL_STM32F0_GPIO_PORT_A, 3, WHAL_STM32F0_GPIO_MODE_ALTFN, \
+                WHAL_STM32F0_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32F0_GPIO_SPEED_FAST, \
+                WHAL_STM32F0_GPIO_PULL_UP, 1), \
+            /* SPI1 SCK on PB3, AF0 */ \
+            [SPI_SCK_PIN] = WHAL_STM32F0_GPIO_PIN( \
+                WHAL_STM32F0_GPIO_PORT_B, 3, WHAL_STM32F0_GPIO_MODE_ALTFN, \
+                WHAL_STM32F0_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32F0_GPIO_SPEED_FAST, \
+                WHAL_STM32F0_GPIO_PULL_NONE, 0), \
+            /* SPI1 MISO on PB4, AF0 */ \
+            [SPI_MISO_PIN] = WHAL_STM32F0_GPIO_PIN( \
+                WHAL_STM32F0_GPIO_PORT_B, 4, WHAL_STM32F0_GPIO_MODE_ALTFN, \
+                WHAL_STM32F0_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32F0_GPIO_SPEED_FAST, \
+                WHAL_STM32F0_GPIO_PULL_NONE, 0), \
+            /* SPI1 MOSI on PB5, AF0 */ \
+            [SPI_MOSI_PIN] = WHAL_STM32F0_GPIO_PIN( \
+                WHAL_STM32F0_GPIO_PORT_B, 5, WHAL_STM32F0_GPIO_MODE_ALTFN, \
+                WHAL_STM32F0_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32F0_GPIO_SPEED_FAST, \
+                WHAL_STM32F0_GPIO_PULL_NONE, 0), \
+            /* SPI CS on PB6, output, push-pull */ \
+            [SPI_CS_PIN] = WHAL_STM32F0_GPIO_PIN( \
+                WHAL_STM32F0_GPIO_PORT_B, 6, WHAL_STM32F0_GPIO_MODE_OUT, \
+                WHAL_STM32F0_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32F0_GPIO_SPEED_FAST, \
+                WHAL_STM32F0_GPIO_PULL_UP, 0), \
+            /* I2C1 SCL on PB8, AF1, open-drain */ \
+            [I2C_SCL_PIN] = WHAL_STM32F0_GPIO_PIN( \
+                WHAL_STM32F0_GPIO_PORT_B, 8, WHAL_STM32F0_GPIO_MODE_ALTFN, \
+                WHAL_STM32F0_GPIO_OUTTYPE_OPENDRAIN, WHAL_STM32F0_GPIO_SPEED_FAST, \
+                WHAL_STM32F0_GPIO_PULL_UP, 1), \
+            /* I2C1 SDA on PB9, AF1, open-drain */ \
+            [I2C_SDA_PIN] = WHAL_STM32F0_GPIO_PIN( \
+                WHAL_STM32F0_GPIO_PORT_B, 9, WHAL_STM32F0_GPIO_MODE_ALTFN, \
+                WHAL_STM32F0_GPIO_OUTTYPE_OPENDRAIN, WHAL_STM32F0_GPIO_SPEED_FAST, \
+                WHAL_STM32F0_GPIO_PULL_UP, 1), \
+        }, \
+        .pinCount = PIN_COUNT, \
+    }, \
+}
 
-static const whal_Gpio whal_Stm32f0_Gpio_Dev = {
-    .base = WHAL_STM32F091_GPIO_BASE,
-
-    .cfg = (void *)&(const whal_Stm32f0_Gpio_Cfg){
-        .pinCfg = (const whal_Stm32f0_Gpio_PinCfg[PIN_COUNT]){
-            /* LD2 Green LED on PA5 */
-            [LED_PIN] = WHAL_STM32F0_GPIO_PIN(
-                WHAL_STM32F0_GPIO_PORT_A, 5, WHAL_STM32F0_GPIO_MODE_OUT,
-                WHAL_STM32F0_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32F0_GPIO_SPEED_LOW,
-                WHAL_STM32F0_GPIO_PULL_NONE, 0),
-            /* USART2 TX on PA2, AF1 */
-            [UART_TX_PIN] = WHAL_STM32F0_GPIO_PIN(
-                WHAL_STM32F0_GPIO_PORT_A, 2, WHAL_STM32F0_GPIO_MODE_ALTFN,
-                WHAL_STM32F0_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32F0_GPIO_SPEED_FAST,
-                WHAL_STM32F0_GPIO_PULL_UP, 1),
-            /* USART2 RX on PA3, AF1 */
-            [UART_RX_PIN] = WHAL_STM32F0_GPIO_PIN(
-                WHAL_STM32F0_GPIO_PORT_A, 3, WHAL_STM32F0_GPIO_MODE_ALTFN,
-                WHAL_STM32F0_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32F0_GPIO_SPEED_FAST,
-                WHAL_STM32F0_GPIO_PULL_UP, 1),
-            /* SPI1 SCK on PB3, AF0 */
-            [SPI_SCK_PIN] = WHAL_STM32F0_GPIO_PIN(
-                WHAL_STM32F0_GPIO_PORT_B, 3, WHAL_STM32F0_GPIO_MODE_ALTFN,
-                WHAL_STM32F0_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32F0_GPIO_SPEED_FAST,
-                WHAL_STM32F0_GPIO_PULL_NONE, 0),
-            /* SPI1 MISO on PB4, AF0 */
-            [SPI_MISO_PIN] = WHAL_STM32F0_GPIO_PIN(
-                WHAL_STM32F0_GPIO_PORT_B, 4, WHAL_STM32F0_GPIO_MODE_ALTFN,
-                WHAL_STM32F0_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32F0_GPIO_SPEED_FAST,
-                WHAL_STM32F0_GPIO_PULL_NONE, 0),
-            /* SPI1 MOSI on PB5, AF0 */
-            [SPI_MOSI_PIN] = WHAL_STM32F0_GPIO_PIN(
-                WHAL_STM32F0_GPIO_PORT_B, 5, WHAL_STM32F0_GPIO_MODE_ALTFN,
-                WHAL_STM32F0_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32F0_GPIO_SPEED_FAST,
-                WHAL_STM32F0_GPIO_PULL_NONE, 0),
-            /* SPI CS on PB6, output, push-pull */
-            [SPI_CS_PIN] = WHAL_STM32F0_GPIO_PIN(
-                WHAL_STM32F0_GPIO_PORT_B, 6, WHAL_STM32F0_GPIO_MODE_OUT,
-                WHAL_STM32F0_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32F0_GPIO_SPEED_FAST,
-                WHAL_STM32F0_GPIO_PULL_UP, 0),
-            /* I2C1 SCL on PB8, AF1, open-drain */
-            [I2C_SCL_PIN] = WHAL_STM32F0_GPIO_PIN(
-                WHAL_STM32F0_GPIO_PORT_B, 8, WHAL_STM32F0_GPIO_MODE_ALTFN,
-                WHAL_STM32F0_GPIO_OUTTYPE_OPENDRAIN, WHAL_STM32F0_GPIO_SPEED_FAST,
-                WHAL_STM32F0_GPIO_PULL_UP, 1),
-            /* I2C1 SDA on PB9, AF1, open-drain */
-            [I2C_SDA_PIN] = WHAL_STM32F0_GPIO_PIN(
-                WHAL_STM32F0_GPIO_PORT_B, 9, WHAL_STM32F0_GPIO_MODE_ALTFN,
-                WHAL_STM32F0_GPIO_OUTTYPE_OPENDRAIN, WHAL_STM32F0_GPIO_SPEED_FAST,
-                WHAL_STM32F0_GPIO_PULL_UP, 1),
-        },
-        .pinCount = PIN_COUNT,
-    },
-};
-
-/* SysTick singleton — referenced by systick.c directly. */
-static const whal_Timer whal_SysTick_Dev = {
-    .base = WHAL_CORTEX_M0_SYSTICK_BASE,
-    /* .driver: direct API mapping */
-
-    .cfg = (void *)&(const whal_SysTick_Cfg){
-        .cyclesPerTick = 48000000 / 1000,
-        .clkSrc = WHAL_SYSTICK_CLKSRC_SYSCLK,
-        .tickInt = WHAL_SYSTICK_TICKINT_ENABLED,
-    },
-};
+/* SysTick dev initializer — singleton defined in systick.c. */
+#define WHAL_CFG_SYSTICK_DEV { \
+    .base = WHAL_CORTEX_M0_SYSTICK_BASE, \
+    /* .driver: direct API mapping */ \
+    .cfg  = (void *)&(const whal_SysTick_Cfg){ \
+        .cyclesPerTick = 48000000 / 1000, \
+        .clkSrc  = WHAL_SYSTICK_CLKSRC_SYSCLK, \
+        .tickInt = WHAL_SYSTICK_TICKINT_ENABLED, \
+    }, \
+}
 
 whal_Error Board_Init(void);
 whal_Error Board_Deinit(void);

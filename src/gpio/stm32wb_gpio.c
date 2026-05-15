@@ -1,10 +1,12 @@
 #include <stdint.h>
-#include "board.h"  /* provides whal_Stm32wb_Gpio_Dev singleton (possibly via platform alias macro) */
+#include "board.h"  /* provides WHAL_CFG_STM32WB_GPIO_DEV initializer */
 #include <wolfHAL/error.h>
 #include <wolfHAL/gpio/gpio.h>
 #include <wolfHAL/gpio/stm32wb_gpio.h>
-#include <wolfHAL/regmap.h>
+#include <wolfHAL/reg.h>
 #include <wolfHAL/bitops.h>
+
+const whal_Gpio whal_Stm32wb_Gpio_Dev = WHAL_CFG_STM32WB_GPIO_DEV;
 
 /*
  * STM32WB GPIO Register Definitions

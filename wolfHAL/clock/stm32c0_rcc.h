@@ -3,9 +3,8 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#include <wolfHAL/clock/clock.h>
 #include <wolfHAL/error.h>
-#include <wolfHAL/regmap.h>
+#include <wolfHAL/reg.h>
 #include <wolfHAL/bitops.h>
 
 /*
@@ -15,8 +14,11 @@
  * Boards bring up the clock tree imperatively from Board_Init by calling
  * the helpers below. The STM32C0 has no PLL — the primary high-speed
  * clock is HSI48 (48 MHz) with a configurable divider (HSIDIV) producing
- * HSISYS.
+ * HSISYS. The RCC peripheral lives at a fixed address — clock is a
+ * board-level driver with no device struct, no generic API, no vtable.
  */
+
+#define WHAL_STM32C0_RCC_BASE          0x40021000
 
 /* Clock Control Register */
 #define WHAL_STM32C0_RCC_CR_REG        0x000
@@ -73,25 +75,24 @@ typedef struct {
  * Sets RCC_CR.HSION, polls RCC_CR.HSIRDY, then writes HSIDIV. Leaves HSISYS
  * = 48 MHz / 2^hsidiv.
  *
- * @param clkDev RCC device instance.
  * @param hsidiv HSI divider selection.
  *
  * @retval WHAL_SUCCESS Always.
  */
 static inline whal_Error whal_Stm32c0_Rcc_EnableHsi(
-    const whal_Clock *clkDev, whal_Stm32c0_Rcc_HsiDiv hsidiv)
+    whal_Stm32c0_Rcc_HsiDiv hsidiv)
 {
     size_t rdy;
 
-    whal_Reg_Update(clkDev->base, WHAL_STM32C0_RCC_CR_REG,
+    whal_Reg_Update(WHAL_STM32C0_RCC_BASE, WHAL_STM32C0_RCC_CR_REG,
                     WHAL_STM32C0_RCC_CR_HSION_Msk,
                     WHAL_STM32C0_RCC_CR_HSION_Msk);
     do {
-        whal_Reg_Get(clkDev->base, WHAL_STM32C0_RCC_CR_REG,
+        whal_Reg_Get(WHAL_STM32C0_RCC_BASE, WHAL_STM32C0_RCC_CR_REG,
                      WHAL_STM32C0_RCC_CR_HSIRDY_Msk,
                      WHAL_STM32C0_RCC_CR_HSIRDY_Pos, &rdy);
     } while (!rdy);
-    whal_Reg_Update(clkDev->base, WHAL_STM32C0_RCC_CR_REG,
+    whal_Reg_Update(WHAL_STM32C0_RCC_BASE, WHAL_STM32C0_RCC_CR_REG,
                     WHAL_STM32C0_RCC_CR_HSIDIV_Msk,
                     whal_SetBits(WHAL_STM32C0_RCC_CR_HSIDIV_Msk,
                                  WHAL_STM32C0_RCC_CR_HSIDIV_Pos, hsidiv));
@@ -103,22 +104,21 @@ static inline whal_Error whal_Stm32c0_Rcc_EnableHsi(
  *
  * Writes RCC_CFGR.SW and polls RCC_CFGR.SWS until it reports the new source.
  *
- * @param clkDev RCC device instance.
  * @param src    System clock source.
  *
  * @retval WHAL_SUCCESS Always.
  */
 static inline whal_Error whal_Stm32c0_Rcc_SetSysClock(
-    const whal_Clock *clkDev, whal_Stm32c0_Rcc_SysClockSrc src)
+    whal_Stm32c0_Rcc_SysClockSrc src)
 {
     size_t sws;
 
-    whal_Reg_Update(clkDev->base, WHAL_STM32C0_RCC_CFGR_REG,
+    whal_Reg_Update(WHAL_STM32C0_RCC_BASE, WHAL_STM32C0_RCC_CFGR_REG,
                     WHAL_STM32C0_RCC_CFGR_SW_Msk,
                     whal_SetBits(WHAL_STM32C0_RCC_CFGR_SW_Msk,
                                  WHAL_STM32C0_RCC_CFGR_SW_Pos, src));
     do {
-        whal_Reg_Get(clkDev->base, WHAL_STM32C0_RCC_CFGR_REG,
+        whal_Reg_Get(WHAL_STM32C0_RCC_BASE, WHAL_STM32C0_RCC_CFGR_REG,
                      WHAL_STM32C0_RCC_CFGR_SWS_Msk,
                      WHAL_STM32C0_RCC_CFGR_SWS_Pos, &sws);
     } while (sws != (size_t)src);
@@ -128,15 +128,14 @@ static inline whal_Error whal_Stm32c0_Rcc_SetSysClock(
 /*
  * @brief Set the enable bit for a peripheral clock gate.
  *
- * @param clkDev RCC device instance.
  * @param clk    Peripheral clock descriptor (RCC *ENR register + bit).
  *
  * @retval WHAL_SUCCESS Always.
  */
 static inline whal_Error whal_Stm32c0_Rcc_EnablePeriphClk(
-    const whal_Clock *clkDev, const whal_Stm32c0_Rcc_PeriphClk *clk)
+    const whal_Stm32c0_Rcc_PeriphClk *clk)
 {
-    whal_Reg_Update(clkDev->base, clk->regOffset, clk->enableMask,
+    whal_Reg_Update(WHAL_STM32C0_RCC_BASE, clk->regOffset, clk->enableMask,
                     whal_SetBits(clk->enableMask, clk->enablePos, 1));
     return WHAL_SUCCESS;
 }
@@ -144,15 +143,14 @@ static inline whal_Error whal_Stm32c0_Rcc_EnablePeriphClk(
 /*
  * @brief Clear the enable bit for a peripheral clock gate.
  *
- * @param clkDev RCC device instance.
  * @param clk    Peripheral clock descriptor (RCC *ENR register + bit).
  *
  * @retval WHAL_SUCCESS Always.
  */
 static inline whal_Error whal_Stm32c0_Rcc_DisablePeriphClk(
-    const whal_Clock *clkDev, const whal_Stm32c0_Rcc_PeriphClk *clk)
+    const whal_Stm32c0_Rcc_PeriphClk *clk)
 {
-    whal_Reg_Update(clkDev->base, clk->regOffset, clk->enableMask,
+    whal_Reg_Update(WHAL_STM32C0_RCC_BASE, clk->regOffset, clk->enableMask,
                     whal_SetBits(clk->enableMask, clk->enablePos, 0));
     return WHAL_SUCCESS;
 }

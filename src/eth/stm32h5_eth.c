@@ -1,14 +1,16 @@
 #include <stdint.h>
-#include "board.h"  /* provides whal_Stm32h5_Eth_Dev singleton */
+#include "board.h"  /* provides WHAL_CFG_STM32H5_ETH_DEV initializer */
 #include <wolfHAL/eth/stm32h5_eth.h>
 #include <wolfHAL/eth/eth.h>
 #include <wolfHAL/error.h>
-#include <wolfHAL/regmap.h>
+#include <wolfHAL/reg.h>
 #include <wolfHAL/bitops.h>
 
-/* Driver-internal runtime state. The cfg lives as a same-TU static const via
- * board.h's whal_Stm32h5_Eth_Dev, so cfg field accesses fold without LTO;
- * the mutable ring-tracking state stays here, separate from the cfg. */
+const whal_Eth whal_Stm32h5_Eth_Dev = WHAL_CFG_STM32H5_ETH_DEV;
+
+/* Driver-internal runtime state. The const cfg lives in the singleton above
+ * (initialized from board.h), so cfg field accesses fold without LTO; the
+ * mutable ring-tracking state stays here, separate from the cfg. */
 static struct {
     size_t txHead;
     size_t rxHead;

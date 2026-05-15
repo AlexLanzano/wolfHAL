@@ -1,26 +1,26 @@
 _BOARD_DIR := $(patsubst %/,%,$(dir $(lastword $(MAKEFILE_LIST))))
 
 PLATFORM = stm32l1
-TESTS ?= clock gpio timer flash uart spi i2c
+TESTS ?= gpio timer flash uart spi i2c
 
 GCC = $(GCC_PATH)arm-none-eabi-gcc
 LD = $(GCC_PATH)arm-none-eabi-gcc
 OBJCOPY = $(GCC_PATH)arm-none-eabi-objcopy
 
 CFLAGS += -Wall -Werror $(INCLUDE) -g3 -Os -ffunction-sections -fdata-sections \
-          -ffreestanding -nostdlib \
-          -mcpu=cortex-m3 -mthumb \
-          -DPLATFORM_STM32L1 -MMD -MP \
-          -DWHAL_CFG_STM32L1_GPIO_DIRECT_API_MAPPING \
-          -DWHAL_CFG_STM32L1_RCC_DIRECT_API_MAPPING \
-          -DWHAL_CFG_STM32L1_UART_DIRECT_API_MAPPING \
-          -DWHAL_CFG_STM32L1_SPI_DIRECT_API_MAPPING \
-          -DWHAL_CFG_STM32L1_I2C_DIRECT_API_MAPPING \
-          $(if $(filter iwdg,$(WATCHDOG)),-DBOARD_WATCHDOG_IWDG) \
-          $(if $(filter wwdg,$(WATCHDOG)),-DBOARD_WATCHDOG_WWDG) \
-          -DWHAL_CFG_SYSTICK_TIMER_DIRECT_API_MAPPING
+ -ffreestanding -nostdlib \
+ -mcpu=cortex-m3 -mthumb \
+ -DPLATFORM_STM32L1 -MMD -MP \
+ -DWHAL_CFG_STM32L1_GPIO_DIRECT_API_MAPPING \
+ -DWHAL_CFG_STM32L1_RCC_DIRECT_API_MAPPING \
+ -DWHAL_CFG_STM32L1_UART_DIRECT_API_MAPPING \
+ -DWHAL_CFG_STM32L1_SPI_DIRECT_API_MAPPING \
+ -DWHAL_CFG_STM32L1_I2C_DIRECT_API_MAPPING \
+ $(if $(filter iwdg,$(WATCHDOG)),-DBOARD_WATCHDOG_IWDG) \
+ $(if $(filter wwdg,$(WATCHDOG)),-DBOARD_WATCHDOG_WWDG) \
+ -DWHAL_CFG_SYSTICK_TIMER_DIRECT_API_MAPPING
 LDFLAGS = -mcpu=cortex-m3 -mthumb \
-          -ffreestanding -nostartfiles -Wl,--omagic -Wl,--gc-sections -static
+ -ffreestanding -nostartfiles -Wl,--omagic -Wl,--gc-sections -static
 
 LINKER_SCRIPT ?= $(_BOARD_DIR)/linker.ld
 
@@ -50,4 +50,4 @@ OPENOCD_TARGET ?= target/stm32l1.cfg
 flash:
 	@test -n "$(IMAGE)" || { echo "IMAGE=<path/to/image> required" >&2; exit 1; }
 	$(OPENOCD) -f $(OPENOCD_INTERFACE) -f $(OPENOCD_TARGET) \
-	    -c "program $(IMAGE) verify reset exit"
+	 -c "program $(IMAGE) verify reset exit"

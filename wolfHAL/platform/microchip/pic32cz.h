@@ -2,7 +2,6 @@
 #define WHAL_PIC32CZ_H
 
 #include <wolfHAL/clock/pic32cz_clock.h>
-#include <wolfHAL/power/pic32cz_supc.h>
 #include <wolfHAL/gpio/pic32cz_gpio.h>
 #include <wolfHAL/uart/pic32cz_uart.h>
 #include <wolfHAL/flash/pic32cz_flash.h>
@@ -15,10 +14,6 @@
 
 #define WHAL_PIC32CZ_FLASH_BASE 0x44002000
 #define WHAL_PIC32CZ_FLASH_DRIVER &whal_Pic32cz_Flash_Driver
-
-#define WHAL_PIC32CZ_SUPC_BASE 0x44020000
-
-#define WHAL_PIC32CZ_CLOCK_BASE 0x44040000
 
 #define WHAL_PIC32CZ_GPIO_BASE 0x44840000
 #define WHAL_PIC32CZ_GPIO_DRIVER &whal_Pic32cz_Gpio_Driver

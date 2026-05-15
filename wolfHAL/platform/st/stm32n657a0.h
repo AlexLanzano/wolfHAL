@@ -41,8 +41,6 @@
 
 /* --- Regmap and driver macros --- */
 
-#define WHAL_STM32N657_RCC_BASE 0x46028000
-
 #define WHAL_STM32N657_GPIO_BASE 0x46020000
 #define WHAL_STM32N657_GPIO_DRIVER &whal_Stm32n6_Gpio_Driver
 
@@ -68,8 +66,10 @@
 #define WHAL_STM32N657_RNG_DRIVER &whal_Stm32n6_Rng_Driver
 
 #define WHAL_STM32N657_CRYP_BASE 0x44020800
+#define WHAL_STM32N657_CRYP_DRIVER &whal_Stm32n6_Cryp_CryptoDriver
 
 #define WHAL_STM32N657_HASH_BASE 0x44020400
+#define WHAL_STM32N657_HASH_DRIVER &whal_Stm32n6_Hash_CryptoDriver
 
 #define WHAL_STM32N657_GPDMA1_BASE 0x40021000
 #define WHAL_STM32N657_GPDMA1_DRIVER &whal_Stm32n6_Gpdma_Driver

@@ -29,6 +29,11 @@ typedef struct whal_Stm32h5_Flash_Cfg {
  * @brief Driver instance for STM32H5 flash.
  */
 extern const whal_FlashDriver whal_Stm32h5_Flash_Driver;
+/*
+ * @brief Platform-owned device singleton. Defined in the driver TU
+ * from the WHAL_CFG_STM32H5_FLASH_DEV initializer in board.h.
+ */
+extern const whal_Flash whal_Stm32h5_Flash_Dev;
 
 /*
  * @brief Initialize the STM32H5 flash interface.

@@ -33,10 +33,11 @@ Each board directory contains:
   drivers, and linker script. Included by application Makefiles via
   `include $(BOARD_DIR)/board.mk`.
 - **`board.h`** - Board-level declarations: `extern` globals for vtable-dispatched
-  peripherals, `static const` singletons for single-instance drivers,
-  `BOARD_<PERIPH>_DEV` macros that resolve to `WHAL_SINGLETON` or
-  `&g_whal<X>` depending on how each peripheral is wired, pin definitions,
-  and `Board_Init()`/`Board_Deinit()` prototypes.
+  peripherals, `WHAL_CFG_<PLAT>_<X>_DEV` initializer macros consumed by each
+  driver TU to define its `whal_<Plat>_<X>_Dev` singleton, `BOARD_<PERIPH>_DEV`
+  macros that resolve to `WHAL_INTERNAL_DEV`, `&g_whal<X>`, or a cast pointer
+  at one of those singletons (depending on how each peripheral is wired), pin
+  definitions, and `Board_Init()`/`Board_Deinit()` prototypes.
 - **`board.c`** - Peripheral instantiation for vtable-dispatched drivers and
   `Board_Init()` implementation (power, clock, GPIO, UART, flash, timer).
 - **`linker.ld`** - Linker script defining memory regions (flash, RAM).
@@ -65,8 +66,9 @@ required to build the wolfHAL tests and sample applications for that board:
 - Board files: `board.c` and any additional board-specific source files
 - Platform / SoC drivers: e.g. `pic32cz_*.c`, `stm32wb_*.c`
 - Architecture support: `systick.c` and any related startup / vector code
-- Core wolfHAL modules and common sources: generic drivers such as
-  `gpio.c`, `clock.c`, `uart.c`, and other files under `src/*.c`
+- Core wolfHAL modules and common sources: generic dispatch sources such as
+  `gpio.c`, `uart.c`, and other files under `src/*.c` (clock and power are
+  board-level — header-only or chip-specific, with no generic dispatch source)
 
 In your own projects you may either reuse these defaults by including the
 board `board.mk` as-is, or define your own `BOARD_SOURCE` in your

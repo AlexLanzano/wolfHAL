@@ -41,7 +41,7 @@ Key points:
 - Call `Board_Init()` before using any peripherals
 - Use the `BOARD_<PERIPH>_DEV` macros (e.g., `BOARD_GPIO_DEV`,
   `BOARD_UART_DEV`) for the device handle. Each board defines these to
-  resolve to `WHAL_SINGLETON` for single-instance drivers or to
+  resolve to `WHAL_INTERNAL_DEV` for single-instance drivers or to
   `&g_whal<X>` for vtable-dispatched drivers, so the same application
   source works across boards that wire the peripheral differently.
 - Use board constants (e.g., `BOARD_LED_PIN`) for portability across boards

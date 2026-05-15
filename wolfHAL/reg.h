@@ -1,5 +1,5 @@
-#ifndef WHAL_REGMAP_H
-#define WHAL_REGMAP_H
+#ifndef WHAL_REG_H
+#define WHAL_REG_H
 
 #include <stddef.h>
 #include <wolfHAL/error.h>
@@ -7,7 +7,7 @@
 #include <wolfHAL/timeout.h>
 
 /*
- * @file regmap.h
+ * @file reg.h
  * @brief Helpers for accessing and manipulating memory-mapped registers.
  */
 
@@ -87,4 +87,4 @@ whal_Error whal_Reg_ReadPoll(size_t base, size_t offset,
                              size_t mask, size_t value,
                              whal_Timeout *timeout);
 
-#endif /* WHAL_REGMAP_H */
+#endif /* WHAL_REG_H */

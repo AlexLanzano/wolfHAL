@@ -43,6 +43,12 @@ typedef struct whal_Stm32h5_Eth_Cfg {
     whal_Timeout *timeout;
 } whal_Stm32h5_Eth_Cfg;
 
+/*
+ * @brief Platform-owned Ethernet device singleton. Defined in the driver TU
+ * from the WHAL_CFG_STM32H5_ETH_DEV initializer in board.h.
+ */
+extern const whal_Eth whal_Stm32h5_Eth_Dev;
+
 #ifndef WHAL_CFG_STM32H5_ETH_DIRECT_API_MAPPING
 /*
  * @brief Driver instance for STM32H5 Ethernet MAC.

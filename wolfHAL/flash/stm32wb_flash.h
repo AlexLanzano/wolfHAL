@@ -55,6 +55,14 @@ typedef enum whal_Stm32wb_Flash_Latency {
 extern const whal_FlashDriver whal_Stm32wb_Flash_Driver;
 
 /*
+ * @brief Platform-owned flash device singleton. Defined in the driver TU
+ * from the WHAL_CFG_STM32WB_FLASH_DEV initializer in board.h. Other TUs
+ * may take its address (e.g. via BOARD_FLASH_DEV) but should not mutate
+ * it.
+ */
+extern const whal_Flash whal_Stm32wb_Flash_Dev;
+
+/*
  * @brief Initialize the STM32 flash interface.
  *
  * @param flashDev Flash device instance to initialize.

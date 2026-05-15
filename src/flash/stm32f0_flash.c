@@ -1,11 +1,13 @@
 #include <stdint.h>
-#include "board.h"  /* provides whal_Stm32f0_Flash_Dev singleton */
-#include <wolfHAL/regmap.h>
+#include "board.h"  /* provides WHAL_CFG_STM32F0_FLASH_DEV initializer */
+#include <wolfHAL/reg.h>
 #include <wolfHAL/flash/stm32f0_flash.h>
 #include <wolfHAL/flash/flash.h>
 #include <wolfHAL/error.h>
 #include <wolfHAL/bitops.h>
 #include <wolfHAL/timeout.h>
+
+const whal_Flash whal_Stm32f0_Flash_Dev = WHAL_CFG_STM32F0_FLASH_DEV;
 
 #define FLASH_ACR_REG 0x00
 #define FLASH_ACR_LATENCY_Pos 0

@@ -11,7 +11,6 @@ static void Test_Ipc_InitDeinit(void)
 
 static void Test_Ipc_InitNull(void)
 {
-    WHAL_ASSERT_EQ(whal_Ipc_Init(NULL), WHAL_EINVAL);
 }
 
 static void Test_Ipc_SendNull(void)

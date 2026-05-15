@@ -1,11 +1,19 @@
 #include <stdint.h>
-#include "board.h"  /* provides whal_Stm32wba_Hash*_Dev singletons */
+#include "board.h"  /* provides WHAL_CFG_STM32WBA_HASH*_DEV initializers */
 #include <wolfHAL/crypto/stm32wba_hash.h>
 #include <wolfHAL/crypto/crypto.h>
 #include <wolfHAL/error.h>
-#include <wolfHAL/regmap.h>
+#include <wolfHAL/reg.h>
 #include <wolfHAL/bitops.h>
 #include <wolfHAL/endian.h>
+
+const whal_Crypto     whal_Stm32wba_Hash_Dev       = WHAL_CFG_STM32WBA_HASH_DEV;
+const whal_Sha1       whal_Stm32wba_Sha1_Dev       = WHAL_CFG_STM32WBA_HASH_SHA1_DEV;
+const whal_Sha224     whal_Stm32wba_Sha224_Dev     = WHAL_CFG_STM32WBA_HASH_SHA224_DEV;
+const whal_Sha256     whal_Stm32wba_Sha256_Dev     = WHAL_CFG_STM32WBA_HASH_SHA256_DEV;
+const whal_HmacSha1   whal_Stm32wba_HmacSha1_Dev   = WHAL_CFG_STM32WBA_HASH_HMAC_SHA1_DEV;
+const whal_HmacSha224 whal_Stm32wba_HmacSha224_Dev = WHAL_CFG_STM32WBA_HASH_HMAC_SHA224_DEV;
+const whal_HmacSha256 whal_Stm32wba_HmacSha256_Dev = WHAL_CFG_STM32WBA_HASH_HMAC_SHA256_DEV;
 
 /* Control Register */
 #define HASH_CR_REG           0x00

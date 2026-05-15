@@ -36,6 +36,12 @@ typedef struct {
     uint8_t counter;      /* 7-bit counter value (must be > 0x3F) */
 } whal_Stm32wb_Wwdg_Cfg;
 
+/*
+ * @brief Platform-owned WWDG device singleton. Defined in the driver TU
+ * from the WHAL_CFG_STM32WB_WWDG_DEV initializer in board.h.
+ */
+extern const whal_Watchdog whal_Stm32wb_Wwdg_Dev;
+
 #ifndef WHAL_CFG_STM32WB_WWDG_DIRECT_API_MAPPING
 /*
  * @brief Driver instance for STM32WB WWDG.

@@ -1,10 +1,12 @@
 #include <stdint.h>
-#include "board.h"  /* provides whal_Stm32wb_Rng_Dev singleton */
+#include "board.h"  /* provides WHAL_CFG_STM32WB_RNG_DEV initializer */
 #include <wolfHAL/rng/stm32wb_rng.h>
 #include <wolfHAL/rng/rng.h>
 #include <wolfHAL/error.h>
-#include <wolfHAL/regmap.h>
+#include <wolfHAL/reg.h>
 #include <wolfHAL/bitops.h>
+
+const whal_Rng whal_Stm32wb_Rng_Dev = WHAL_CFG_STM32WB_RNG_DEV;
 
 /*
  * STM32WB RNG Register Definitions

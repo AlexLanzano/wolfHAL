@@ -1,4 +1,4 @@
-#include <wolfHAL/regmap.h>
+#include <wolfHAL/reg.h>
 
 whal_Error whal_Reg_ReadPoll(size_t base, size_t offset,
                              size_t mask, size_t value,

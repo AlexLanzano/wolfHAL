@@ -97,16 +97,16 @@ whal_Gpio g_whalGpio = {
 
 When direct API mapping is active for a device type, the `.driver` field is
 omitted since calls go directly to the driver implementation. When the driver
-is wired as single-instance, the device lives in `board.h` as a `static const`
-singleton rather than a global in `board.c` — see the next section.
+is wired as single-instance, the device is defined in the driver's `.c` file
+from an initializer macro the board supplies — see the next section.
 
 #### Single-instance platform drivers
 
 Some platform drivers are wired as **single-instance**: rather than reading
 `.base` and `.cfg` from a handle the caller passes in, the driver reads
-directly from a named `static const` singleton declared in `board.h`. The
-device handle parameter becomes a formal-only argument — the board passes
-`WHAL_SINGLETON` (defined as `((void *)0)`) to make that intent explicit.
+directly from a named `whal_<Plat>_<X>_Dev` singleton. The device handle
+parameter becomes a formal-only argument — the board passes
+`WHAL_INTERNAL_DEV` (defined as `((void *)0)`) to make that intent explicit.
 
 There are two flavors:
 
@@ -119,21 +119,28 @@ There are two flavors:
   path; boards opt in per driver via the macro when they only use one
   instance.
 
-For an unconditional single-instance driver, the board provides a
-singleton in `board.h` (a `static const` so each translation unit gets its
-own copy that the linker can fold via `--gc-sections`):
+The driver header `extern`-declares the singleton; the driver `.c` defines
+it from a `WHAL_CFG_<PLAT>_<X>_DEV` initializer macro the board provides in
+`board.h`:
 
 ```c
-/* board.h */
-static const whal_Rng whal_Stm32wb_Rng_Dev = {
-    .base = WHAL_STM32WB55_RNG_BASE,
-    .cfg  = (void *)&(const whal_Stm32wb_Rng_Cfg){ .timeout = &g_whalTimeout },
-};
+/* wolfHAL/rng/stm32wb_rng.h */
+extern const whal_Rng whal_Stm32wb_Rng_Dev;
+
+/* src/rng/stm32wb_rng.c */
+#include "board.h"
+const whal_Rng whal_Stm32wb_Rng_Dev = WHAL_CFG_STM32WB_RNG_DEV;
+
+/* boards/<board>/board.h */
+#define WHAL_CFG_STM32WB_RNG_DEV { \
+    .base = WHAL_STM32WB55_RNG_BASE, \
+    .cfg  = (void *)&(const whal_Stm32wb_Rng_Cfg){ .timeout = &g_whalTimeout }, \
+}
 ```
 
 Aliased drivers (where one chip's driver re-exports another's) reuse the
-upstream singleton through a `#define` in the alias header — see
-`wolfHAL/watchdog/stm32n6_iwdg.h` for an example.
+upstream singleton's extern declaration through a `#define` in the alias
+header — see `wolfHAL/watchdog/stm32n6_iwdg.h` for an example.
 
 ### Peripheral drivers
 
@@ -160,20 +167,24 @@ driver) — the device pointer determines which implementation runs.
 ### Board-level drivers
 
 Board-level drivers (clock, power) only expose chip-specific helpers — no
-vtable, no generic `whal_<Type>_*` API. The device struct is just a base address:
+vtable, no generic `whal_<Type>_*` API, no device struct. The driver header
+owns the chip's `_BASE` macro at the top and the helpers take no device
+pointer:
 
 ```c
-whal_Clock g_whalClock = {
-    .base = WHAL_STM32WB55_RCC_BASE,
-};
+/* wolfHAL/clock/stm32wb_rcc.h (excerpt) */
+#define WHAL_STM32WB_RCC_BASE 0x58000000
+
+static inline whal_Error whal_Stm32wb_Rcc_EnableMsi(
+    whal_Stm32wb_Rcc_MsiRange range);
 ```
 
-There is no `.driver` or `.cfg` field to fill in. Boards bring up the clock
-tree imperatively in `Board_Init` by calling chip-specific helpers like
-`whal_Stm32wb_Rcc_EnableOsc()`, `EnablePll()`, `SetSysClock()`, etc., in the
-required order. Applications that need to trigger board-level behavior at
-runtime (e.g., enter low-power mode) call a board-provided wrapper such as
-`Board_Sleep()` rather than a generic `whal_X` function.
+Boards bring up the clock tree imperatively in `Board_Init` by calling these
+helpers in the required order — `whal_Stm32wb_Rcc_EnableOsc()`,
+`EnablePll()`, `SetSysClock()`, etc. Applications that need to trigger
+board-level behavior at runtime (e.g., enter low-power mode) call a
+board-provided wrapper such as `Board_Sleep()` rather than a generic
+`whal_X` function.
 
 ## Configuring Devices
 
@@ -182,24 +193,24 @@ it needs. For example, a GPIO driver takes a pin configuration table; the
 platform usually provides a `WHAL_<PLATFORM>_GPIO_PIN(...)` macro to populate
 each entry compactly:
 
-For GPIO (a single-instance driver — see above), the device lives in
-`board.h` as a `static const` singleton:
+For GPIO (a single-instance driver — see above), the singleton is defined
+in the driver `.c` from a `WHAL_CFG_<PLAT>_<X>_DEV` initializer in `board.h`:
 
 ```c
-static const whal_Gpio whal_Stm32wb_Gpio_Dev = {
-    .base = WHAL_STM32WB55_GPIO_BASE,
-    /* .driver: direct API mapping */
-
-    .cfg = (void *)&(const whal_Stm32wb_Gpio_Cfg){
-        .pinCfg = (const whal_Stm32wb_Gpio_PinCfg[PIN_COUNT]){
-            [LED_PIN] = WHAL_STM32WB_GPIO_PIN(
-                WHAL_STM32WB_GPIO_PORT_B, 5, WHAL_STM32WB_GPIO_MODE_OUT,
-                WHAL_STM32WB_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32WB_GPIO_SPEED_LOW,
-                WHAL_STM32WB_GPIO_PULL_UP, 0),
-        },
-        .pinCount = PIN_COUNT,
-    },
-};
+/* board.h */
+#define WHAL_CFG_STM32WB_GPIO_DEV { \
+    .base = WHAL_STM32WB55_GPIO_BASE, \
+    /* .driver: direct API mapping */ \
+    .cfg = (void *)&(const whal_Stm32wb_Gpio_Cfg){ \
+        .pinCfg = (const whal_Stm32wb_Gpio_PinCfg[PIN_COUNT]){ \
+            [LED_PIN] = WHAL_STM32WB_GPIO_PIN( \
+                WHAL_STM32WB_GPIO_PORT_B, 5, WHAL_STM32WB_GPIO_MODE_OUT, \
+                WHAL_STM32WB_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32WB_GPIO_SPEED_LOW, \
+                WHAL_STM32WB_GPIO_PULL_UP, 0), \
+        }, \
+        .pinCount = PIN_COUNT, \
+    }, \
+}
 ```
 
 A UART driver typically takes a pre-computed baud rate register value and a
@@ -258,20 +269,21 @@ whal_Error Board_Init(void)
 {
     whal_Error err;
 
-    /* Bring up clocks (chip-specific helpers, called in order) */
-    err = whal_Myplatform_Clock_EnableOsc(BOARD_CLOCK_DEV,
+    /* Bring up clocks (chip-specific helpers, called in order — no device
+     * pointer; each helper reads the chip's fixed clock-controller base
+     * address from its own header). */
+    err = whal_Myplatform_Clock_EnableOsc(
         &(whal_Myplatform_Clock_OscCfg){WHAL_MYPLATFORM_CLOCK_OSC0_CFG});
     if (err)
         return err;
-    err = whal_Myplatform_Clock_SetSysClock(BOARD_CLOCK_DEV,
+    err = whal_Myplatform_Clock_SetSysClock(
         WHAL_MYPLATFORM_CLOCK_SYSCLK_SRC_OSC0);
     if (err)
         return err;
 
     /* Enable peripheral clocks */
     for (size_t i = 0; i < PERIPH_CLK_COUNT; i++) {
-        err = whal_Myplatform_Clock_EnablePeriphClk(BOARD_CLOCK_DEV,
-                                                   &g_periphClks[i]);
+        err = whal_Myplatform_Clock_EnablePeriphClk(&g_periphClks[i]);
         if (err)
             return err;
     }
@@ -304,7 +316,7 @@ including platform-specific steps.
 
 After initialization, use the wolfHAL API to interact with peripherals.
 Reach each device through the `BOARD_<PERIPH>_DEV` macro that `board.h`
-provides — the board picks whether that resolves to `WHAL_SINGLETON` (for
+provides — the board picks whether that resolves to `WHAL_INTERNAL_DEV` (for
 single-instance drivers) or `&g_whal<X>` (for vtable-dispatched drivers),
 so the application source stays portable.
 
@@ -407,8 +419,9 @@ will be stripped from the final binary.
 
 Single-instance drivers (see above) are not vtable-dispatched in their
 single-instance form — the driver body reads its `.base` and `.cfg` straight
-out of the named singleton in `board.h`. The "custom vtable" knob does not
-apply; any unreferenced entry point is dropped by `--gc-sections`.
+out of the named singleton its `.c` defines from `WHAL_CFG_<PLAT>_<X>_DEV`
+in `board.h`. The "custom vtable" knob does not apply; any unreferenced
+entry point is dropped by `--gc-sections`.
 
 ### Calling Driver Functions Directly
 
@@ -430,24 +443,26 @@ mapping is also active for them:
 
 - **Single-instance + direct API mapping** (the common case for RNG,
   watchdog, NVIC, etc.). The chip-specific functions are renamed to the
-  generic API names, the driver body reads from the singleton in
-  `board.h`, and the board does not declare a `g_whal<X>` global at all.
-  Call sites pass `WHAL_SINGLETON`:
+  generic API names, and the driver body reads from the singleton (which
+  the driver `.c` defines from the `WHAL_CFG_<PLAT>_<X>_DEV` initializer
+  in `board.h`). Call sites pass `WHAL_INTERNAL_DEV`:
 
   ```c
-  whal_Stm32wb_Gpio_Set(WHAL_SINGLETON, BOARD_LED_PIN, 1);
+  whal_Stm32wb_Gpio_Set(WHAL_INTERNAL_DEV, BOARD_LED_PIN, 1);
   ```
 
 - **Single-instance without direct API mapping** (used when several
   drivers of the same type must coexist on one board — for example
   on-chip flash plus an external SPI-NOR flash). The chip's `_Dev`
-  singleton in `board.h` still holds the const cfg, but the board also
-  defines a minimal dispatcher stub `g_whal<X>` in `board.c` carrying
-  only `.driver`, so generic API calls can vtable-dispatch through it.
-  Call sites pass `&g_whal<X>`:
+  singleton (defined in the driver `.c` from the `WHAL_CFG_<PLAT>_<X>_DEV`
+  initializer) carries `.driver`, `.base`, and `.cfg`, so generic API
+  calls vtable-dispatch through it. Call sites pass the singleton's
+  address (cast away the const because the generic API takes a non-const
+  pointer):
 
   ```c
-  whal_Stm32wb_Flash_Read(&g_whalFlash, addr, buf, sz);
+  whal_Stm32wb_Flash_Read((whal_Flash *)&whal_Stm32wb_Flash_Dev,
+                          addr, buf, sz);
   ```
 
 The `BOARD_<PERIPH>_DEV` macros described above abstract this distinction

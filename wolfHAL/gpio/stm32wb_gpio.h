@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 #include <wolfHAL/gpio/gpio.h>
-#include <wolfHAL/regmap.h>
+#include <wolfHAL/reg.h>
 
 /*
  * @file stm32wb_gpio.h
@@ -106,6 +106,12 @@ typedef struct {
     const whal_Stm32wb_Gpio_PinCfg *pinCfg; /* Array of pin configurations */
     size_t pinCount;                        /* Number of pins to configure */
 } whal_Stm32wb_Gpio_Cfg;
+
+/*
+ * @brief Platform-owned GPIO device singleton. Defined in the driver TU
+ * from the WHAL_CFG_STM32WB_GPIO_DEV initializer in board.h.
+ */
+extern const whal_Gpio whal_Stm32wb_Gpio_Dev;
 
 #if !defined(WHAL_CFG_STM32WB_GPIO_DIRECT_API_MAPPING) && \
     !defined(WHAL_CFG_STM32F4_GPIO_DIRECT_API_MAPPING) && \

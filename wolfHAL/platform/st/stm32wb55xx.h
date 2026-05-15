@@ -33,8 +33,6 @@
 #define WHAL_STM32WB55_GPIO_BASE 0x48000000
 #define WHAL_STM32WB55_GPIO_DRIVER &whal_Stm32wb_Gpio_Driver
 
-#define WHAL_STM32WB55_RCC_BASE 0x58000000
-
 #define WHAL_STM32WB55_RNG_BASE 0x58001000
 #define WHAL_STM32WB55_RNG_DRIVER &whal_Stm32wb_Rng_Driver
 
@@ -71,7 +69,6 @@
     .dmamuxBase = 0x40020800,           \
     .dmamuxChOffset = 7,                \
     .numChannels = 5
-
 
 #define WHAL_STM32WB55_GPIOA_GATE  \
     .regOffset = 0x4C,              \
@@ -156,6 +153,5 @@
     .regOffset = 0x48,               \
     .enableMask = (1UL << 2),        \
     .enablePos = 2
-
 
 #endif /* WHAL_STM32WB55XX_H */

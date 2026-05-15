@@ -27,13 +27,6 @@ typedef struct {
     uint32_t pad[2];
 } wdg_test_state_t;
 
-static void Test_Watchdog_Api(void)
-{
-    WHAL_ASSERT_EQ(whal_Watchdog_Init(NULL), WHAL_EINVAL);
-    WHAL_ASSERT_EQ(whal_Watchdog_Deinit(NULL), WHAL_EINVAL);
-    WHAL_ASSERT_EQ(whal_Watchdog_Refresh(NULL), WHAL_EINVAL);
-}
-
 static void Test_Watchdog(void)
 {
     wdg_test_state_t state;
@@ -99,7 +92,6 @@ static void Test_Watchdog(void)
 void whal_Test_Watchdog(void)
 {
     WHAL_TEST_SUITE_START("watchdog");
-    WHAL_TEST(Test_Watchdog_Api);
     WHAL_TEST(Test_Watchdog);
     WHAL_TEST_SUITE_END();
 }

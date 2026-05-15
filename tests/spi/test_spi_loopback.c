@@ -76,11 +76,6 @@ static void Test_Spi_Api(void)
     uint8_t buf[4];
     whal_Spi_ComCfg cfg = { .freq = 1000000, .mode = 0, .wordSz = 8 };
 
-    WHAL_ASSERT_EQ(whal_Spi_Init(NULL), WHAL_EINVAL);
-    WHAL_ASSERT_EQ(whal_Spi_Deinit(NULL), WHAL_EINVAL);
-    WHAL_ASSERT_EQ(whal_Spi_StartCom(NULL, &cfg), WHAL_EINVAL);
-    WHAL_ASSERT_EQ(whal_Spi_EndCom(NULL), WHAL_EINVAL);
-    WHAL_ASSERT_EQ(whal_Spi_SendRecv(NULL, buf, 4, buf, 4), WHAL_EINVAL);
     WHAL_ASSERT_EQ(whal_Spi_StartCom(BOARD_SPI_DEV, NULL), WHAL_EINVAL);
 }
 

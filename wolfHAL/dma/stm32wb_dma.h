@@ -4,7 +4,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <wolfHAL/dma/dma.h>
-#include <wolfHAL/regmap.h>
+#include <wolfHAL/reg.h>
 
 /*
  * @file stm32wb_dma.h

@@ -36,6 +36,12 @@ typedef struct {
     whal_Timeout *timeout;
 } whal_Stm32wb_Iwdg_Cfg;
 
+/*
+ * @brief Platform-owned IWDG device singleton. Defined in the driver TU
+ * from the WHAL_CFG_STM32WB_IWDG_DEV initializer in board.h.
+ */
+extern const whal_Watchdog whal_Stm32wb_Iwdg_Dev;
+
 #ifndef WHAL_CFG_STM32WB_IWDG_DIRECT_API_MAPPING
 /*
  * @brief Driver instance for STM32WB IWDG.

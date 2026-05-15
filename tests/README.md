@@ -18,7 +18,7 @@ the `TESTS` variable to build a subset:
 
 ```
 make BOARD=stm32wb55xx_nucleo TESTS=gpio
-make BOARD=stm32wb55xx_nucleo TESTS="gpio clock"
+make BOARD=stm32wb55xx_nucleo TESTS="gpio uart"
 ```
 
 ### Test Structure
@@ -34,7 +34,8 @@ tests/
     test_gpio.c          # Generic API tests
     test_<platform>_gpio.c  # Platform-specific tests
   clock/
-    ...
+    test_<platform>_clock.c # Clock has no generic API — only platform tests
+  ...
 ```
 
 Each device directory contains:
@@ -42,6 +43,9 @@ Each device directory contains:
 - `test_<device>.c` — Generic tests that exercise the wolfHAL API.
 - `test_<platform>_<device>.c` — Platform-specific tests. These are
   automatically detected and compiled when building for the matching board.
+
+Clock is a board-level driver with no generic API, so the `clock/` directory
+contains only platform-specific tests.
 
 Board support (device instances, linker scripts, etc.) lives in the top-level
 `boards/` directory. See [boards/README.md](../boards/README.md) for details.

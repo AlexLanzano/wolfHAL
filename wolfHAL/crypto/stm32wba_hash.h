@@ -368,6 +368,20 @@ whal_Error whal_Stm32wba_HmacSha256_Process(whal_HmacSha256 *dev,
 whal_Error whal_Stm32wba_HmacSha256_Finalize(whal_HmacSha256 *dev,
                                               void *digest, size_t digestSz);
 
+/* ---- Singleton externs ---- */
+
+/*
+ * @brief Platform-owned HASH + algorithm singletons. Defined in the driver
+ * TU from the WHAL_CFG_STM32WBA_HASH*_DEV initializers in board.h.
+ */
+extern const whal_Crypto     whal_Stm32wba_Hash_Dev;
+extern const whal_Sha1       whal_Stm32wba_Sha1_Dev;
+extern const whal_Sha224     whal_Stm32wba_Sha224_Dev;
+extern const whal_Sha256     whal_Stm32wba_Sha256_Dev;
+extern const whal_HmacSha1   whal_Stm32wba_HmacSha1_Dev;
+extern const whal_HmacSha224 whal_Stm32wba_HmacSha224_Dev;
+extern const whal_HmacSha256 whal_Stm32wba_HmacSha256_Dev;
+
 /* ---- Vtable externs ---- */
 
 #ifndef WHAL_CFG_STM32WBA_HASH_INIT_DIRECT_API_MAPPING

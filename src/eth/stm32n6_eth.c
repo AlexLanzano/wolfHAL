@@ -1,10 +1,18 @@
 #include <stdint.h>
-#include "board.h"  /* provides whal_Stm32n6_Eth_Dev singleton */
+#include "board.h"  /* provides WHAL_CFG_STM32N6_ETH_DEV initializer */
 #include <wolfHAL/eth/stm32n6_eth.h>
 #include <wolfHAL/eth/eth.h>
 #include <wolfHAL/error.h>
-#include <wolfHAL/regmap.h>
+#include <wolfHAL/reg.h>
 #include <wolfHAL/bitops.h>
+
+const whal_Eth whal_Stm32n6_Eth_Dev = WHAL_CFG_STM32N6_ETH_DEV;
+
+/* Mutable ring-tracking state lives here, separate from the const cfg. */
+static struct {
+    size_t txHead;
+    size_t rxHead;
+} eth_state;
 
 /**
  * @file stm32n6_eth.c
@@ -154,8 +162,8 @@ static whal_Error MdioPoll(size_t base, whal_Timeout *timeout)
 
 whal_Error whal_Stm32n6_Eth_Init(whal_Eth *ethDev)
 {
-    whal_Stm32n6_Eth_Cfg *cfg =
-        (whal_Stm32n6_Eth_Cfg *)whal_Stm32n6_Eth_Dev.cfg;
+    const whal_Stm32n6_Eth_Cfg *cfg =
+        (const whal_Stm32n6_Eth_Cfg *)whal_Stm32n6_Eth_Dev.cfg;
     size_t base = whal_Stm32n6_Eth_Dev.base;
     whal_Error err;
     (void)ethDev;
@@ -247,8 +255,8 @@ whal_Error whal_Stm32n6_Eth_Init(whal_Eth *ethDev)
                    ((uint32_t)whal_Stm32n6_Eth_Dev.macAddr[4]));
 
     /* Reset ring tracking state */
-    cfg->txHead = 0;
-    cfg->rxHead = 0;
+    eth_state.txHead = 0;
+    eth_state.rxHead = 0;
 
     /* Ensure descriptor rings (Normal memory) are visible before any
      * subsequent peripheral kick from Start(). */
@@ -270,8 +278,8 @@ whal_Error whal_Stm32n6_Eth_Deinit(whal_Eth *ethDev)
 whal_Error whal_Stm32n6_Eth_Start(whal_Eth *ethDev, uint8_t speed,
                                   uint8_t duplex)
 {
-    whal_Stm32n6_Eth_Cfg *cfg =
-        (whal_Stm32n6_Eth_Cfg *)whal_Stm32n6_Eth_Dev.cfg;
+    const whal_Stm32n6_Eth_Cfg *cfg =
+        (const whal_Stm32n6_Eth_Cfg *)whal_Stm32n6_Eth_Dev.cfg;
     size_t base = whal_Stm32n6_Eth_Dev.base;
     (void)ethDev;
 
@@ -326,8 +334,8 @@ whal_Error whal_Stm32n6_Eth_Send(whal_Eth *ethDev, const void *frame,
                                  size_t len)
 {
     const uint8_t *frameBuf = (const uint8_t *)frame;
-    whal_Stm32n6_Eth_Cfg *cfg =
-        (whal_Stm32n6_Eth_Cfg *)whal_Stm32n6_Eth_Dev.cfg;
+    const whal_Stm32n6_Eth_Cfg *cfg =
+        (const whal_Stm32n6_Eth_Cfg *)whal_Stm32n6_Eth_Dev.cfg;
     size_t base = whal_Stm32n6_Eth_Dev.base;
     whal_Stm32n6_Eth_TxDesc *desc;
     size_t idx;
@@ -338,7 +346,7 @@ whal_Error whal_Stm32n6_Eth_Send(whal_Eth *ethDev, const void *frame,
 
     if (len > cfg->txBufSize)
         return WHAL_EINVAL;
-    idx = cfg->txHead;
+    idx = eth_state.txHead;
     desc = &cfg->txDescs[idx];
 
     /* Check if descriptor is available (OWN must be 0) */
@@ -357,7 +365,7 @@ whal_Error whal_Stm32n6_Eth_Send(whal_Eth *ethDev, const void *frame,
     desc->des[3] = TDES3_OWN | TDES3_FD | TDES3_LD | (len & 0x7FFF);
 
     /* Advance ring position */
-    cfg->txHead = (idx + 1) % cfg->txDescCount;
+    eth_state.txHead = (idx + 1) % cfg->txDescCount;
 
     /* Order descriptor writes (Normal memory) before the tail-pointer kick
      * (Device memory). The M55's write buffer can otherwise let the DMA
@@ -375,8 +383,8 @@ whal_Error whal_Stm32n6_Eth_Recv(whal_Eth *ethDev, void *frame,
                                  size_t *len)
 {
     uint8_t *frameBuf = (uint8_t *)frame;
-    whal_Stm32n6_Eth_Cfg *cfg =
-        (whal_Stm32n6_Eth_Cfg *)whal_Stm32n6_Eth_Dev.cfg;
+    const whal_Stm32n6_Eth_Cfg *cfg =
+        (const whal_Stm32n6_Eth_Cfg *)whal_Stm32n6_Eth_Dev.cfg;
     size_t base = whal_Stm32n6_Eth_Dev.base;
     whal_Stm32n6_Eth_RxDesc *desc;
     size_t idx;
@@ -387,7 +395,7 @@ whal_Error whal_Stm32n6_Eth_Recv(whal_Eth *ethDev, void *frame,
     if (!frame || !len)
         return WHAL_EINVAL;
 
-    idx = cfg->rxHead;
+    idx = eth_state.rxHead;
     desc = &cfg->rxDescs[idx];
 
     rdes3 = desc->des[3];
@@ -400,7 +408,7 @@ whal_Error whal_Stm32n6_Eth_Recv(whal_Eth *ethDev, void *frame,
     if (rdes3 & RDES3_ES) {
         desc->des[0] = (uintptr_t)(cfg->rxBufs + idx * cfg->rxBufSize);
         desc->des[3] = RDES3_OWN | RDES3_IOC | RDES3_BUF1V;
-        cfg->rxHead = (idx + 1) % cfg->rxDescCount;
+        eth_state.rxHead = (idx + 1) % cfg->rxDescCount;
         whal_Reg_Write(base, ETH_DMAC0RXDTPR_REG,
                        (uintptr_t)&cfg->rxDescs[cfg->rxDescCount]);
         return WHAL_EHARDWARE;
@@ -424,7 +432,7 @@ whal_Error whal_Stm32n6_Eth_Recv(whal_Eth *ethDev, void *frame,
     desc->des[3] = RDES3_OWN | RDES3_IOC | RDES3_BUF1V;
 
     /* Advance ring position */
-    cfg->rxHead = (idx + 1) % cfg->rxDescCount;
+    eth_state.rxHead = (idx + 1) % cfg->rxDescCount;
 
     /* Order the OWN=1 re-arm write before the tail-pointer kick. */
     __asm__ volatile ("dsb sy" ::: "memory");

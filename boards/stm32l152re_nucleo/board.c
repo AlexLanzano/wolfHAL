@@ -33,10 +33,6 @@ whal_Timeout g_whalTimeout = {
  * PLLVCO = HSI * PLLMUL = 16 MHz * 4 = 64 MHz
  * SYSCLK = PLLVCO / PLLDIV = 64 MHz / 2 = 32 MHz
  */
-whal_Clock g_whalClock = {
-    .base = WHAL_STM32L152_RCC_BASE,
-};
-
 static const whal_Stm32l1_Rcc_PeriphClk g_pwrClock = {WHAL_STM32L152_PWR_CLOCK};
 
 static const whal_Stm32l1_Rcc_PeriphClk g_periphClks[] = {
@@ -84,13 +80,6 @@ whal_I2c g_whalI2c = {
     },
 };
 
-/* Flash -- 512 KB. Dispatcher stub; the const cfg lives in board.h as
- * whal_Stm32l1_Flash_Dev. This only carries .driver so whal_Flash_* can
- * dispatch through the vtable. */
-whal_Flash g_whalFlash = {
-    .driver = WHAL_STM32L152_FLASH_DRIVER,
-};
-
 #ifdef BOARD_WATCHDOG_IWDG
 whal_Watchdog g_whalWatchdog = {
     .base = WHAL_STM32L152_IWDG_BASE,
@@ -129,15 +118,14 @@ whal_Error Board_Init(void)
     /* Enable PWR peripheral clock so the power driver can program VOS.
      * The RCC device only uses regmap.base for clock gating, so calling
      * Enable before Init is safe. */
-    err = whal_Stm32l1_Rcc_EnablePeriphClk(&g_whalClock, &g_pwrClock);
+    err = whal_Stm32l1_Rcc_EnablePeriphClk(&g_pwrClock);
     if (err)
         return err;
 
     /* Switch regulator to range 1 (1.8 V) so the PLL can reach 32 MHz.
      * Reset default is range 2, which caps PLL VCO at 48 MHz and SYSCLK at
      * 16 MHz. */
-    err = whal_Stm32l1_Pwr_SetVosRange(WHAL_SINGLETON,
-                                       WHAL_STM32L1_PWR_VOS_RANGE_1,
+    err = whal_Stm32l1_Pwr_SetVosRange(WHAL_STM32L1_PWR_VOS_RANGE_1,
                                        &g_whalTimeout);
     if (err)
         return err;
@@ -149,28 +137,28 @@ whal_Error Board_Init(void)
         return err;
 
     /* HSI 16 MHz -> PLL (HSI * 4 / 2 = 32 MHz) -> SYSCLK = PLL */
-    err = whal_Stm32l1_Rcc_EnableOsc(&g_whalClock,
+    err = whal_Stm32l1_Rcc_EnableOsc(
         &(whal_Stm32l1_Rcc_OscCfg){WHAL_STM32L1_RCC_HSI_CFG});
     if (err)
         return err;
-    err = whal_Stm32l1_Rcc_EnablePll(&g_whalClock, &(whal_Stm32l1_Rcc_PllCfg){
+    err = whal_Stm32l1_Rcc_EnablePll(&(whal_Stm32l1_Rcc_PllCfg){
         .clkSrc = WHAL_STM32L1_RCC_PLLSRC_HSI,
         .pllmul = WHAL_STM32L1_RCC_PLLMUL_4,
         .plldiv = WHAL_STM32L1_RCC_PLLDIV_2,
     });
     if (err)
         return err;
-    err = whal_Stm32l1_Rcc_SetSysClock(&g_whalClock, WHAL_STM32L1_RCC_SYSCLK_SRC_PLL);
+    err = whal_Stm32l1_Rcc_SetSysClock(WHAL_STM32L1_RCC_SYSCLK_SRC_PLL);
     if (err)
         return err;
 
     for (size_t i = 0; i < PERIPH_CLK_COUNT; i++) {
-        err = whal_Stm32l1_Rcc_EnablePeriphClk(&g_whalClock, &g_periphClks[i]);
+        err = whal_Stm32l1_Rcc_EnablePeriphClk(&g_periphClks[i]);
         if (err)
             return err;
     }
 
-    err = whal_Gpio_Init(WHAL_SINGLETON);
+    err = whal_Gpio_Init(WHAL_INTERNAL_DEV);
     if (err)
         return err;
 
@@ -186,11 +174,11 @@ whal_Error Board_Init(void)
     if (err)
         return err;
 
-    err = whal_Timer_Init(WHAL_SINGLETON);
+    err = whal_Timer_Init(WHAL_INTERNAL_DEV);
     if (err)
         return err;
 
-    err = whal_Timer_Start(WHAL_SINGLETON);
+    err = whal_Timer_Start(WHAL_INTERNAL_DEV);
     if (err)
         return err;
 
@@ -209,11 +197,11 @@ whal_Error Board_Deinit(void)
     if (err)
         return err;
 
-    err = whal_Timer_Stop(WHAL_SINGLETON);
+    err = whal_Timer_Stop(WHAL_INTERNAL_DEV);
     if (err)
         return err;
 
-    err = whal_Timer_Deinit(WHAL_SINGLETON);
+    err = whal_Timer_Deinit(WHAL_INTERNAL_DEV);
     if (err)
         return err;
 
@@ -229,26 +217,26 @@ whal_Error Board_Deinit(void)
     if (err)
         return err;
 
-    err = whal_Gpio_Deinit(WHAL_SINGLETON);
+    err = whal_Gpio_Deinit(WHAL_INTERNAL_DEV);
     if (err)
         return err;
 
     for (size_t i = PERIPH_CLK_COUNT; i-- > 0; ) {
-        err = whal_Stm32l1_Rcc_DisablePeriphClk(&g_whalClock, &g_periphClks[i]);
+        err = whal_Stm32l1_Rcc_DisablePeriphClk(&g_periphClks[i]);
         if (err)
             return err;
     }
 
     /* PWR is left in its current voltage range; no Deinit operation. */
 
-    err = whal_Stm32l1_Rcc_DisablePeriphClk(&g_whalClock, &g_pwrClock);
+    err = whal_Stm32l1_Rcc_DisablePeriphClk(&g_pwrClock);
     if (err)
         return err;
 
-    err = whal_Stm32l1_Rcc_SetSysClock(&g_whalClock, WHAL_STM32L1_RCC_SYSCLK_SRC_MSI);
+    err = whal_Stm32l1_Rcc_SetSysClock(WHAL_STM32L1_RCC_SYSCLK_SRC_MSI);
     if (err)
         return err;
-    err = whal_Stm32l1_Rcc_DisablePll(&g_whalClock);
+    err = whal_Stm32l1_Rcc_DisablePll();
     if (err)
         return err;
 

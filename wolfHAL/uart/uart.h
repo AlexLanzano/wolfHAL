@@ -31,7 +31,7 @@ typedef struct {
 } whal_UartDriver;
 
 /*
- * @brief UART device instance tying a register map and driver.
+ * @brief UART device instance with a base address, driver vtable, and platform-specific cfg.
  */
 struct whal_Uart {
     const size_t base;

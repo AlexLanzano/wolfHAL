@@ -399,6 +399,20 @@ whal_Error whal_Stm32n6_CrypAesCcm_Process(whal_AesCcm *dev,
 whal_Error whal_Stm32n6_CrypAesCcm_Finalize(whal_AesCcm *dev,
                                             void *tag, size_t tagSz);
 
+/* ---- Singleton externs ---- */
+
+/*
+ * @brief Platform-owned CRYP + mode singletons. Defined in the driver TU
+ * from the WHAL_CFG_STM32N6_CRYP*_DEV initializers in board.h.
+ */
+extern const whal_Crypto  whal_Stm32n6_Cryp_Dev;
+extern const whal_AesEcb  whal_Stm32n6_CrypEcb_Dev;
+extern const whal_AesCbc  whal_Stm32n6_CrypCbc_Dev;
+extern const whal_AesCtr  whal_Stm32n6_CrypCtr_Dev;
+extern const whal_AesGcm  whal_Stm32n6_CrypGcm_Dev;
+extern const whal_AesGmac whal_Stm32n6_CrypGmac_Dev;
+extern const whal_AesCcm  whal_Stm32n6_CrypCcm_Dev;
+
 /* ---- Vtable externs ---- */
 
 #ifndef WHAL_CFG_STM32N6_CRYP_INIT_DIRECT_API_MAPPING

@@ -30,7 +30,7 @@ typedef struct {
 } whal_WatchdogDriver;
 
 /*
- * @brief Watchdog device instance tying a register map and driver.
+ * @brief Watchdog device instance with a base address, driver vtable, and platform-specific cfg.
  */
 struct whal_Watchdog {
     const size_t base;

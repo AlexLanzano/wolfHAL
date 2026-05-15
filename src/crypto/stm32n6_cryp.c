@@ -1,11 +1,19 @@
 #include <stdint.h>
-#include "board.h"  /* provides whal_Stm32n6_Cryp*_Dev singletons */
+#include "board.h"  /* provides WHAL_CFG_STM32N6_CRYP*_DEV initializers */
 #include <wolfHAL/crypto/stm32n6_cryp.h>
 #include <wolfHAL/crypto/crypto.h>
 #include <wolfHAL/error.h>
-#include <wolfHAL/regmap.h>
+#include <wolfHAL/reg.h>
 #include <wolfHAL/bitops.h>
 #include <wolfHAL/endian.h>
+
+const whal_Crypto  whal_Stm32n6_Cryp_Dev      = WHAL_CFG_STM32N6_CRYP_DEV;
+const whal_AesEcb  whal_Stm32n6_CrypEcb_Dev   = WHAL_CFG_STM32N6_CRYP_ECB_DEV;
+const whal_AesCbc  whal_Stm32n6_CrypCbc_Dev   = WHAL_CFG_STM32N6_CRYP_CBC_DEV;
+const whal_AesCtr  whal_Stm32n6_CrypCtr_Dev   = WHAL_CFG_STM32N6_CRYP_CTR_DEV;
+const whal_AesGcm  whal_Stm32n6_CrypGcm_Dev   = WHAL_CFG_STM32N6_CRYP_GCM_DEV;
+const whal_AesGmac whal_Stm32n6_CrypGmac_Dev  = WHAL_CFG_STM32N6_CRYP_GMAC_DEV;
+const whal_AesCcm  whal_Stm32n6_CrypCcm_Dev   = WHAL_CFG_STM32N6_CRYP_CCM_DEV;
 
 /* Control Register (CRYP_CR) */
 #define CRYP_CR_REG            0x00

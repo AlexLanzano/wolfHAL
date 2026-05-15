@@ -8,7 +8,7 @@
 #include <wolfHAL/i2c/stm32wb_i2c.h>
 #include <wolfHAL/i2c/i2c.h>
 #include <wolfHAL/error.h>
-#include <wolfHAL/regmap.h>
+#include <wolfHAL/reg.h>
 #include <wolfHAL/bitops.h>
 
 /*

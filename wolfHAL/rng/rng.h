@@ -25,7 +25,7 @@ typedef struct {
 } whal_RngDriver;
 
 /*
- * @brief RNG device instance tying a register map and driver.
+ * @brief RNG device instance with a base address, driver vtable, and platform-specific cfg.
  */
 struct whal_Rng {
     const size_t base;

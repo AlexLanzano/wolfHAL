@@ -5,11 +5,6 @@
 
 static void Test_Rng_Api(void)
 {
-    uint8_t buf[8];
-
-    WHAL_ASSERT_EQ(whal_Rng_Init(NULL), WHAL_EINVAL);
-    WHAL_ASSERT_EQ(whal_Rng_Deinit(NULL), WHAL_EINVAL);
-    WHAL_ASSERT_EQ(whal_Rng_Generate(NULL, buf, sizeof(buf)), WHAL_EINVAL);
     WHAL_ASSERT_EQ(whal_Rng_Generate(BOARD_RNG_DEV, NULL, 8), WHAL_EINVAL);
 }
 

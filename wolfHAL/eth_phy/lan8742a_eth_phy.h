@@ -20,6 +20,12 @@ typedef struct whal_Lan8742a_Cfg {
     whal_Timeout *timeout;
 } whal_Lan8742a_Cfg;
 
+/*
+ * @brief Platform-owned LAN8742A PHY device singleton. Defined in the
+ * driver TU from the WHAL_CFG_LAN8742A_DEV initializer in board.h.
+ */
+extern const whal_EthPhy whal_Lan8742a_Dev;
+
 #ifndef WHAL_CFG_LAN8742A_ETH_PHY_DIRECT_API_MAPPING
 /*
  * @brief Driver instance for LAN8742A PHY.

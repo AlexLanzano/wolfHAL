@@ -37,7 +37,7 @@ Platform and peripheral drivers follow the same structure:
 
 1. A **driver vtable** — a struct of function pointers that the driver must
    populate.
-2. A **device struct** — contains a register map, a pointer to the driver
+2. A **device struct** — contains a base address, a pointer to the driver
    vtable, and a pointer to driver-specific configuration.
 3. A **generic dispatch layer** — validates inputs and calls through the vtable.
 
@@ -65,12 +65,15 @@ For a peripheral driver implementing device type `foo` for chip `mychip`:
 
 For a board-level driver implementing device type `foo` on platform `myplatform`:
 
-- `wolfHAL/foo/myplatform_foo.h` — types, enums, descriptor macros, and
-  chip-specific helper declarations or definitions (no driver extern, no
-  `_DRIVER` macro). Clock drivers in particular are header-only — every
-  `whal_<Chip>_<Subsys>_*` helper is defined as a `static inline` directly
-  in the header. Other board-level drivers (power, supply) may still keep
-  their definitions in `src/foo/myplatform_foo.c`.
+- `wolfHAL/foo/myplatform_foo.h` — types, enums, descriptor macros, the
+  chip's fixed `WHAL_<PLATFORM>_<SUBSYS>_BASE` address, and chip-specific
+  helper declarations or definitions (no device handle, no driver extern,
+  no `_DRIVER` macro, no generic `foo.h` to include). Clock drivers in
+  particular are header-only — every `whal_<Chip>_<Subsys>_*` helper is
+  defined as a `static inline` in the header and reads from the
+  hardcoded base. Other board-level drivers (power, supply) follow the
+  same shape but may keep their definitions in
+  `src/foo/myplatform_foo.c` if the helpers are larger.
 
 ### Driver Vtable
 
@@ -142,14 +145,20 @@ static whal_Error whal_Myplatform_Foo_Init(whal_Foo *fooDev)
 
 For peripherals that a board only ever uses one instance of, the driver
 does not need to take the device handle at all. The convention is
-**single-instance**: the driver source `#include`s `board.h` and reads
-its `.base` and `.cfg` directly from a `static const whal_<Type>`
-singleton that the board declares there. The function signature still
-takes the generic handle so it can sit behind the generic vtable, but
-the body ignores it:
+**single-instance**: the driver header `extern`-declares a singleton, the
+driver `.c` `#include`s `board.h` and defines the singleton from a
+`WHAL_CFG_<PLAT>_<X>_DEV` initializer macro that the board supplies. The
+driver body reads its `.base` and `.cfg` from the singleton. The function
+signature still takes the generic handle so it can sit behind the
+generic vtable, but the body ignores it:
 
 ```c
-#include "board.h"  /* provides whal_Myplatform_Foo_Dev singleton */
+/* wolfHAL/foo/myplatform_foo.h */
+extern const whal_Foo whal_Myplatform_Foo_Dev;
+
+/* src/foo/myplatform_foo.c */
+#include "board.h"  /* provides WHAL_CFG_MYPLATFORM_FOO_DEV initializer */
+const whal_Foo whal_Myplatform_Foo_Dev = WHAL_CFG_MYPLATFORM_FOO_DEV;
 
 whal_Error whal_Myplatform_Foo_Init(whal_Foo *fooDev)
 {
@@ -161,12 +170,10 @@ whal_Error whal_Myplatform_Foo_Init(whal_Foo *fooDev)
 }
 ```
 
-Boards call the entry points with `WHAL_SINGLETON` (defined as
+Boards call the entry points with `WHAL_INTERNAL_DEV` (defined as
 `((void *)0)` in `wolfHAL/wolfHAL.h`) — the sentinel just makes the
-intent explicit at the call site. Singletons declared with `static const`
-in `board.h` are duplicated into every translation unit that includes the
-header, but only the driver TU reads the storage; `--gc-sections` drops
-the rest.
+intent explicit at the call site. The driver TU owns the singleton's
+storage; including translation units only see the `extern` declaration.
 
 There are two flavors:
 
@@ -376,22 +383,22 @@ Use `typedef` for types (gives proper type-checking and debugger visibility)
 and `#define` for the driver instance and functions (which are values, not
 types).
 
-For single-instance drivers, the alias header must also bridge the
-singleton name so the upstream driver body (which reads
-`whal_Stm32wb_<Drv>_Dev`) finds the storage declared under the alias
-platform's name in the consuming board's `board.h`. Add one more
-`#define`:
+For single-instance drivers, the alias header must also `#define` the
+alias-platform singleton name onto the upstream singleton so callers can
+reach the storage under either name:
 
 ```c
 #define whal_Stm32h5_Gpio_Dev whal_Stm32wb_Gpio_Dev
 ```
 
-The board declares its singleton under `whal_<AliasPlat>_<Drv>_Dev` so
-that the rest of the board source talks about its own platform; the
-`#define` lets the upstream driver source keep reading from its
-canonical name. A small number of singletons are inherently
-platform-agnostic and keep neutral names everywhere
-(`whal_Nvic_Dev`, `whal_SysTick_Dev`, `whal_Lan8742a_Dev`).
+The driver `.c` (upstream) defines the singleton from
+`WHAL_CFG_STM32WB_GPIO_DEV`, which the aliased board provides under that
+same upstream-prefixed name in its `board.h`. See
+`wolfHAL/watchdog/stm32n6_iwdg.h` for an in-tree example. A small number
+of singletons are inherently platform-agnostic and keep neutral names
+everywhere (`whal_Nvic_Dev`, `whal_SysTick_Dev`, `whal_Lan8742a_Dev`);
+their initializer macros drop the platform segment too
+(`WHAL_CFG_NVIC_DEV`, `WHAL_CFG_SYSTICK_DEV`).
 
 #### Source
 
@@ -452,13 +459,13 @@ whal_Foo g_whalFoo = {
 
 ## Clock
 
-Header: `wolfHAL/clock/clock.h`
-
-Clock is a **board-level driver** (see Driver Categories). The generic
-`clock.h` declares only the typed handle `whal_Clock { base }` — no
-`whal_Clock_Init`/`Deinit`/`Enable`/`Disable` API, no `whal_ClockDriver`
-vtable. Each chip clock driver exposes imperative chip-specific helpers
-that boards call directly from `Board_Init` in the right order.
+Clock is a **board-level driver** (see Driver Categories). There is no
+generic `clock.h`, no `whal_Clock` handle, no `whal_Clock_Init`/`Deinit`/
+`Enable`/`Disable` API, no `whal_ClockDriver` vtable. Each chip clock
+driver exposes imperative chip-specific helpers that boards call
+directly from `Board_Init` in the right order. The driver header owns
+the chip's fixed clock-controller `_BASE` macro and the helpers take no
+device pointer parameter.
 
 ### API contract
 
@@ -490,19 +497,15 @@ macros freely — those are not constrained.
 A chip with a fairly common clock tree exposes:
 
 ```c
-whal_Error whal_<Chip>_<Subsys>_EnableOsc(whal_Clock *,
-                                          const whal_<Chip>_<Subsys>_OscCfg *);
-whal_Error whal_<Chip>_<Subsys>_DisableOsc(whal_Clock *,
-                                           const whal_<Chip>_<Subsys>_OscCfg *);
-whal_Error whal_<Chip>_<Subsys>_EnablePll(whal_Clock *,
-                                          const whal_<Chip>_<Subsys>_PllCfg *);
-whal_Error whal_<Chip>_<Subsys>_DisablePll(whal_Clock *);
-whal_Error whal_<Chip>_<Subsys>_SetSysClock(whal_Clock *,
-                                            whal_<Chip>_<Subsys>_SysClockSrc);
-whal_Error whal_<Chip>_<Subsys>_EnablePeriphClk(whal_Clock *,
-                                                const whal_<Chip>_<Subsys>_PeriphClk *);
-whal_Error whal_<Chip>_<Subsys>_DisablePeriphClk(whal_Clock *,
-                                                 const whal_<Chip>_<Subsys>_PeriphClk *);
+#define WHAL_<CHIP>_<SUBSYS>_BASE  0x<addr>   /* at top of header */
+
+whal_Error whal_<Chip>_<Subsys>_EnableOsc(const whal_<Chip>_<Subsys>_OscCfg *);
+whal_Error whal_<Chip>_<Subsys>_DisableOsc(const whal_<Chip>_<Subsys>_OscCfg *);
+whal_Error whal_<Chip>_<Subsys>_EnablePll(const whal_<Chip>_<Subsys>_PllCfg *);
+whal_Error whal_<Chip>_<Subsys>_DisablePll(void);
+whal_Error whal_<Chip>_<Subsys>_SetSysClock(whal_<Chip>_<Subsys>_SysClockSrc);
+whal_Error whal_<Chip>_<Subsys>_EnablePeriphClk(const whal_<Chip>_<Subsys>_PeriphClk *);
+whal_Error whal_<Chip>_<Subsys>_DisablePeriphClk(const whal_<Chip>_<Subsys>_PeriphClk *);
 ```
 
 Adapt the set to what the chip actually has. A chip without a PLL drops
@@ -1219,7 +1222,7 @@ hardware retains all necessary context internally.
 
 Applications reach each algorithm through its `BOARD_<ALGO>_DEV` macro
 (`BOARD_AES_GCM_DEV`, `BOARD_SHA256_DEV`, etc.). Boards point those at
-`WHAL_SINGLETON` for the common single-instance case or at a
+`WHAL_INTERNAL_DEV` for the common single-instance case or at a
 `&g_whalAesGcm` pointer if they have kept the device in `board.c`.
 
 One-shot:
@@ -1450,14 +1453,16 @@ the `.driver` field is omitted from the `whal_Crypto` device.
 
 Crypto drivers that are single-instance (most on-MCU AES/hash blocks
 qualify, since the chip exposes one of each) follow the pattern in the
-"Single-instance drivers" section above: the board declares the
-`whal_Crypto` and each per-algorithm device as `static const
-whal_<Plat>_<Algo>_Dev` in `board.h` rather than as `g_whal<X>` in
-`board.c`, the per-algorithm device's `.crypto` points at the cast
-address of the `whal_Crypto` singleton, and any streaming state is
-declared as a `static` immediately above the singleton that uses it.
-The board's `BOARD_<ALGO>_DEV` macro is then `WHAL_SINGLETON`. See
-`boards/stm32wb55xx_nucleo/board.h` for a worked example.
+"Single-instance drivers" section above: the driver header
+`extern`-declares each singleton (the `whal_Crypto` peripheral and each
+per-algorithm `whal_<Plat>_<Algo>_Dev`), the driver `.c` defines them
+from `WHAL_CFG_<PLAT>_<ALGO>_DEV` initializers in `board.h`, and any
+streaming state is a `static` variable in the driver `.c` whose address
+the initializer plumbs into the `.state` field. The per-algorithm
+initializer's `.crypto` is the cast address of the `whal_Crypto`
+singleton. The board's `BOARD_<ALGO>_DEV` macro is then
+`WHAL_INTERNAL_DEV`. See `boards/stm32wb55xx_nucleo/board.h` for a
+worked example.
 
 ### Reference Implementations
 
@@ -1470,14 +1475,14 @@ The board's `BOARD_<ALGO>_DEV` macro is then `WHAL_SINGLETON`. See
 
 ## Power
 
-Header: `wolfHAL/power/power.h`
-
-Power is a **board-level driver** (see Driver Categories). The generic
-`power.h` declares only the typed handle `whal_Power { base }` — no
-`whal_Power_Init`/`Deinit`/`Enable`/`Disable` API, no `whal_PowerDriver`
-vtable. Each chip power driver exposes imperative chip-specific helpers
-that boards call directly from `Board_Init` (typically before clock setup,
-to bring up regulators that downstream peripherals depend on).
+Power is a **board-level driver** (see Driver Categories). There is no
+generic `power.h`, no `whal_Power` handle, no `whal_Power_Init`/`Deinit`/
+`Enable`/`Disable` API, no `whal_PowerDriver` vtable. Each chip power
+driver exposes imperative chip-specific helpers that boards call
+directly from `Board_Init` (typically before clock setup, to bring up
+regulators that downstream peripherals depend on). The driver header
+owns the chip's fixed `_BASE` macro and the helpers take no device
+pointer parameter.
 
 ### API contract
 
@@ -1487,9 +1492,9 @@ power-controller name (e.g. `Pwr` on STM32L1, `Supc` on PIC32CZ). The set
 of operations is whatever the chip actually exposes — there is no fixed
 list. Examples:
 
-- `whal_Stm32l1_Pwr_SetVosRange(whal_Power *, range, timeout)` — voltage
-  scaling range select with ready-bit poll
-- `whal_Pic32cz_Supc_EnableSupply(whal_Power *, const whal_Pic32cz_Supc_Supply *)`
+- `whal_Stm32l1_Pwr_SetVosRange(range, timeout)` — voltage scaling range
+  select with ready-bit poll
+- `whal_Pic32cz_Supc_EnableSupply(const whal_Pic32cz_Supc_Supply *)`
   / `DisableSupply(...)` — toggle a regulator output identified by a
   descriptor (register mask + position)
 

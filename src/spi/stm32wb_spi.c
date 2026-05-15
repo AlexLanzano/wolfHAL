@@ -8,7 +8,7 @@
 #include <wolfHAL/spi/stm32wb_spi.h>
 #include <wolfHAL/spi/spi.h>
 #include <wolfHAL/error.h>
-#include <wolfHAL/regmap.h>
+#include <wolfHAL/reg.h>
 #include <wolfHAL/bitops.h>
 
 /*

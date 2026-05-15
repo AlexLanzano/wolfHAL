@@ -374,6 +374,20 @@ whal_Error whal_Stm32wb_AesCcm_Process(whal_AesCcm *dev,
 whal_Error whal_Stm32wb_AesCcm_Finalize(whal_AesCcm *dev,
                                         void *tag, size_t tagSz);
 
+/* ---- Singleton externs ---- */
+
+/*
+ * @brief Platform-owned AES + mode singletons. Defined in the driver TU
+ * from the WHAL_CFG_STM32WB_AES*_DEV initializers in board.h.
+ */
+extern const whal_Crypto  whal_Stm32wb_Aes_Dev;
+extern const whal_AesEcb  whal_Stm32wb_AesEcb_Dev;
+extern const whal_AesCbc  whal_Stm32wb_AesCbc_Dev;
+extern const whal_AesCtr  whal_Stm32wb_AesCtr_Dev;
+extern const whal_AesGcm  whal_Stm32wb_AesGcm_Dev;
+extern const whal_AesGmac whal_Stm32wb_AesGmac_Dev;
+extern const whal_AesCcm  whal_Stm32wb_AesCcm_Dev;
+
 /* ---- Vtable externs ---- */
 
 #ifndef WHAL_CFG_STM32WB_AES_INIT_DIRECT_API_MAPPING

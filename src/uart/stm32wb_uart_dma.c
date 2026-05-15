@@ -5,7 +5,7 @@
 #include <wolfHAL/uart/stm32wb_uart_dma.h>
 #include <wolfHAL/uart/uart.h>
 #include <wolfHAL/error.h>
-#include <wolfHAL/regmap.h>
+#include <wolfHAL/reg.h>
 #include <wolfHAL/bitops.h>
 #include <wolfHAL/timeout.h>
 

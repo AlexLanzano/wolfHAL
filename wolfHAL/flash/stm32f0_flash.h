@@ -37,6 +37,11 @@ typedef enum whal_Stm32f0_Flash_Latency {
  * @brief Driver instance for the STM32F0 embedded flash controller.
  */
 extern const whal_FlashDriver whal_Stm32f0_Flash_Driver;
+/*
+ * @brief Platform-owned device singleton. Defined in the driver TU
+ * from the WHAL_CFG_STM32F0_FLASH_DEV initializer in board.h.
+ */
+extern const whal_Flash whal_Stm32f0_Flash_Dev;
 
 /*
  * @brief Initialize the STM32F0 flash driver. Mainly validates cfg and is

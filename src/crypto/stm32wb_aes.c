@@ -1,11 +1,24 @@
 #include <stdint.h>
-#include "board.h"  /* provides whal_Stm32wb_Aes*_Dev singletons */
+#include "board.h"  /* provides WHAL_CFG_STM32WB_AES*_DEV initializers */
 #include <wolfHAL/crypto/stm32wb_aes.h>
 #include <wolfHAL/crypto/crypto.h>
 #include <wolfHAL/error.h>
-#include <wolfHAL/regmap.h>
+#include <wolfHAL/reg.h>
 #include <wolfHAL/bitops.h>
 #include <wolfHAL/endian.h>
+
+/* Mutable state buffers for GCM/CCM streaming sessions. Internal linkage —
+ * referenced only by the AesGcm/AesCcm singletons below. */
+static whal_Stm32wb_AesGcm_State g_stm32wbAesGcmDevState;
+static whal_Stm32wb_AesCcm_State g_stm32wbAesCcmDevState;
+
+const whal_Crypto  whal_Stm32wb_Aes_Dev      = WHAL_CFG_STM32WB_AES_DEV;
+const whal_AesEcb  whal_Stm32wb_AesEcb_Dev   = WHAL_CFG_STM32WB_AES_ECB_DEV;
+const whal_AesCbc  whal_Stm32wb_AesCbc_Dev   = WHAL_CFG_STM32WB_AES_CBC_DEV;
+const whal_AesCtr  whal_Stm32wb_AesCtr_Dev   = WHAL_CFG_STM32WB_AES_CTR_DEV;
+const whal_AesGcm  whal_Stm32wb_AesGcm_Dev   = WHAL_CFG_STM32WB_AES_GCM_DEV;
+const whal_AesGmac whal_Stm32wb_AesGmac_Dev  = WHAL_CFG_STM32WB_AES_GMAC_DEV;
+const whal_AesCcm  whal_Stm32wb_AesCcm_Dev   = WHAL_CFG_STM32WB_AES_CCM_DEV;
 
 /* Control Register */
 #define AES_CR_REG        0x00

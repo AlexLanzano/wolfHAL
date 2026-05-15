@@ -1,11 +1,13 @@
 #include <stdint.h>
-#include "board.h"  /* provides whal_Stm32l1_Flash_Dev singleton */
+#include "board.h"  /* provides WHAL_CFG_STM32L1_FLASH_DEV initializer */
 #include <wolfHAL/flash/stm32l1_flash.h>
 #include <wolfHAL/flash/flash.h>
 #include <wolfHAL/error.h>
-#include <wolfHAL/regmap.h>
+#include <wolfHAL/reg.h>
 #include <wolfHAL/bitops.h>
 #include <wolfHAL/timeout.h>
+
+const whal_Flash whal_Stm32l1_Flash_Dev = WHAL_CFG_STM32L1_FLASH_DEV;
 
 /*
  * STM32L1 Flash Register Definitions (RM0038 Section 3.9)

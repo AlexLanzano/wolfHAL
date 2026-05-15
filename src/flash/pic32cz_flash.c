@@ -1,11 +1,13 @@
 #include <stdint.h>
-#include "board.h"  /* provides whal_Pic32cz_Flash_Dev singleton */
+#include "board.h"  /* provides WHAL_CFG_PIC32CZ_FLASH_DEV initializer */
 #include <wolfHAL/flash/pic32cz_flash.h>
 #include <wolfHAL/flash/flash.h>
 #include <wolfHAL/error.h>
-#include <wolfHAL/regmap.h>
+#include <wolfHAL/reg.h>
 #include <wolfHAL/bitops.h>
 #include <wolfHAL/timeout.h>
+
+const whal_Flash whal_Pic32cz_Flash_Dev = WHAL_CFG_PIC32CZ_FLASH_DEV;
 
 /*
  * PIC32CZ FCW (Flash Controller Write) Register Definitions

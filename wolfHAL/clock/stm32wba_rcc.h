@@ -3,16 +3,17 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#include <wolfHAL/clock/clock.h>
 #include <wolfHAL/error.h>
-#include <wolfHAL/regmap.h>
+#include <wolfHAL/reg.h>
 #include <wolfHAL/bitops.h>
 
 /*
  * @file stm32wba_rcc.h
  * @brief STM32WBA RCC (Reset and Clock Control) driver.
  *
- * Boards bring up the clock tree imperatively from Board_Init.
+ * Boards bring up the clock tree imperatively from Board_Init. The RCC
+ * peripheral lives at a fixed address — clock is a board-level driver
+ * with no device struct, no generic API, no vtable.
  *
  * Differences from STM32WB:
  *   - No MSI oscillator
@@ -20,6 +21,8 @@
  *   - PLL1 split across RCC_PLL1CFGR and RCC_PLL1DIVR
  *   - HPRE5 prescaler for AHB5 domain
  */
+
+#define WHAL_STM32WBA_RCC_BASE            0x46020C00
 
 #define WHAL_STM32WBA_RCC_CR_REG          0x000
 #define WHAL_STM32WBA_RCC_CR_PLL1ON_Msk   (1UL << 24)
@@ -147,19 +150,18 @@ typedef struct {
 /*
  * @brief Turn on an oscillator (HSI16/HSE32) and wait for its ready bit.
  *
- * @param clkDev RCC device instance.
  * @param cfg    Oscillator on/ready bit descriptor.
  *
  * @retval WHAL_SUCCESS Always.
  */
 static inline whal_Error whal_Stm32wba_Rcc_EnableOsc(
-    const whal_Clock *clkDev, const whal_Stm32wba_Rcc_OscCfg *cfg)
+    const whal_Stm32wba_Rcc_OscCfg *cfg)
 {
     size_t rdy;
 
-    whal_Reg_Update(clkDev->base, cfg->onReg, cfg->onMsk, cfg->onMsk);
+    whal_Reg_Update(WHAL_STM32WBA_RCC_BASE, cfg->onReg, cfg->onMsk, cfg->onMsk);
     do {
-        whal_Reg_Get(clkDev->base, cfg->rdyReg, cfg->rdyMsk,
+        whal_Reg_Get(WHAL_STM32WBA_RCC_BASE, cfg->rdyReg, cfg->rdyMsk,
                      cfg->rdyPos, &rdy);
     } while (!rdy);
     return WHAL_SUCCESS;
@@ -168,15 +170,14 @@ static inline whal_Error whal_Stm32wba_Rcc_EnableOsc(
 /*
  * @brief Turn off an oscillator (HSI16/HSE32).
  *
- * @param clkDev RCC device instance.
  * @param cfg    Oscillator on/ready bit descriptor.
  *
  * @retval WHAL_SUCCESS Always.
  */
 static inline whal_Error whal_Stm32wba_Rcc_DisableOsc(
-    const whal_Clock *clkDev, const whal_Stm32wba_Rcc_OscCfg *cfg)
+    const whal_Stm32wba_Rcc_OscCfg *cfg)
 {
-    whal_Reg_Update(clkDev->base, cfg->onReg, cfg->onMsk, 0);
+    whal_Reg_Update(WHAL_STM32WBA_RCC_BASE, cfg->onReg, cfg->onMsk, 0);
     return WHAL_SUCCESS;
 }
 
@@ -186,26 +187,25 @@ static inline whal_Error whal_Stm32wba_Rcc_DisableOsc(
  * Turns PLL1 off (waits for !PLL1RDY), programs PLL1CFGR (SRC/RGE/M plus
  * REN enable) and PLL1DIVR (N/P/Q/R), sets PLL1ON, polls PLL1RDY.
  *
- * @param clkDev RCC device instance.
  * @param cfg    PLL1 configuration.
  *
  * @retval WHAL_SUCCESS Always.
  */
 static inline whal_Error whal_Stm32wba_Rcc_EnablePll1(
-    const whal_Clock *clkDev, const whal_Stm32wba_Rcc_Pll1Cfg *cfg)
+    const whal_Stm32wba_Rcc_Pll1Cfg *cfg)
 {
     size_t rdy;
 
     /* Disable PLL1 before reconfiguring; wait until off. */
-    whal_Reg_Update(clkDev->base, WHAL_STM32WBA_RCC_CR_REG,
+    whal_Reg_Update(WHAL_STM32WBA_RCC_BASE, WHAL_STM32WBA_RCC_CR_REG,
                     WHAL_STM32WBA_RCC_CR_PLL1ON_Msk, 0);
     do {
-        whal_Reg_Get(clkDev->base, WHAL_STM32WBA_RCC_CR_REG,
+        whal_Reg_Get(WHAL_STM32WBA_RCC_BASE, WHAL_STM32WBA_RCC_CR_REG,
                      WHAL_STM32WBA_RCC_CR_PLL1RDY_Msk,
                      WHAL_STM32WBA_RCC_CR_PLL1RDY_Pos, &rdy);
     } while (rdy);
 
-    whal_Reg_Write(clkDev->base, WHAL_STM32WBA_RCC_PLL1CFGR_REG,
+    whal_Reg_Write(WHAL_STM32WBA_RCC_BASE, WHAL_STM32WBA_RCC_PLL1CFGR_REG,
                    whal_SetBits(WHAL_STM32WBA_RCC_PLL1CFGR_SRC_Msk,
                                 WHAL_STM32WBA_RCC_PLL1CFGR_SRC_Pos, cfg->clkSrc) |
                    whal_SetBits(WHAL_STM32WBA_RCC_PLL1CFGR_RGE_Msk,
@@ -214,7 +214,7 @@ static inline whal_Error whal_Stm32wba_Rcc_EnablePll1(
                                 WHAL_STM32WBA_RCC_PLL1CFGR_M_Pos,   cfg->m) |
                    whal_SetBits(WHAL_STM32WBA_RCC_PLL1CFGR_REN_Msk,
                                 WHAL_STM32WBA_RCC_PLL1CFGR_REN_Pos, 1));
-    whal_Reg_Write(clkDev->base, WHAL_STM32WBA_RCC_PLL1DIVR_REG,
+    whal_Reg_Write(WHAL_STM32WBA_RCC_BASE, WHAL_STM32WBA_RCC_PLL1DIVR_REG,
                    whal_SetBits(WHAL_STM32WBA_RCC_PLL1DIVR_N_Msk,
                                 WHAL_STM32WBA_RCC_PLL1DIVR_N_Pos, cfg->n) |
                    whal_SetBits(WHAL_STM32WBA_RCC_PLL1DIVR_P_Msk,
@@ -224,11 +224,11 @@ static inline whal_Error whal_Stm32wba_Rcc_EnablePll1(
                    whal_SetBits(WHAL_STM32WBA_RCC_PLL1DIVR_R_Msk,
                                 WHAL_STM32WBA_RCC_PLL1DIVR_R_Pos, cfg->r));
 
-    whal_Reg_Update(clkDev->base, WHAL_STM32WBA_RCC_CR_REG,
+    whal_Reg_Update(WHAL_STM32WBA_RCC_BASE, WHAL_STM32WBA_RCC_CR_REG,
                     WHAL_STM32WBA_RCC_CR_PLL1ON_Msk,
                     WHAL_STM32WBA_RCC_CR_PLL1ON_Msk);
     do {
-        whal_Reg_Get(clkDev->base, WHAL_STM32WBA_RCC_CR_REG,
+        whal_Reg_Get(WHAL_STM32WBA_RCC_BASE, WHAL_STM32WBA_RCC_CR_REG,
                      WHAL_STM32WBA_RCC_CR_PLL1RDY_Msk,
                      WHAL_STM32WBA_RCC_CR_PLL1RDY_Pos, &rdy);
     } while (!rdy);
@@ -238,13 +238,11 @@ static inline whal_Error whal_Stm32wba_Rcc_EnablePll1(
 /*
  * @brief Turn PLL1 off (clears RCC_CR.PLL1ON).
  *
- * @param clkDev RCC device instance.
- *
  * @retval WHAL_SUCCESS Always.
  */
-static inline whal_Error whal_Stm32wba_Rcc_DisablePll1(const whal_Clock *clkDev)
+static inline whal_Error whal_Stm32wba_Rcc_DisablePll1(void)
 {
-    whal_Reg_Update(clkDev->base, WHAL_STM32WBA_RCC_CR_REG,
+    whal_Reg_Update(WHAL_STM32WBA_RCC_BASE, WHAL_STM32WBA_RCC_CR_REG,
                     WHAL_STM32WBA_RCC_CR_PLL1ON_Msk, 0);
     return WHAL_SUCCESS;
 }
@@ -254,19 +252,17 @@ static inline whal_Error whal_Stm32wba_Rcc_DisablePll1(const whal_Clock *clkDev)
  *
  * Sets BDCR1.LSI1ON and polls BDCR1.LSI1RDY.
  *
- * @param clkDev RCC device instance.
- *
  * @retval WHAL_SUCCESS Always.
  */
-static inline whal_Error whal_Stm32wba_Rcc_EnableLsi(const whal_Clock *clkDev)
+static inline whal_Error whal_Stm32wba_Rcc_EnableLsi(void)
 {
     size_t rdy;
 
-    whal_Reg_Update(clkDev->base, WHAL_STM32WBA_RCC_BDCR1_REG,
+    whal_Reg_Update(WHAL_STM32WBA_RCC_BASE, WHAL_STM32WBA_RCC_BDCR1_REG,
                     WHAL_STM32WBA_RCC_BDCR1_LSI1ON_Msk,
                     WHAL_STM32WBA_RCC_BDCR1_LSI1ON_Msk);
     do {
-        whal_Reg_Get(clkDev->base, WHAL_STM32WBA_RCC_BDCR1_REG,
+        whal_Reg_Get(WHAL_STM32WBA_RCC_BASE, WHAL_STM32WBA_RCC_BDCR1_REG,
                      WHAL_STM32WBA_RCC_BDCR1_LSI1RDY_Msk,
                      WHAL_STM32WBA_RCC_BDCR1_LSI1RDY_Pos, &rdy);
     } while (!rdy);
@@ -276,13 +272,11 @@ static inline whal_Error whal_Stm32wba_Rcc_EnableLsi(const whal_Clock *clkDev)
 /*
  * @brief Disable LSI1 (clears BDCR1.LSI1ON).
  *
- * @param clkDev RCC device instance.
- *
  * @retval WHAL_SUCCESS Always.
  */
-static inline whal_Error whal_Stm32wba_Rcc_DisableLsi(const whal_Clock *clkDev)
+static inline whal_Error whal_Stm32wba_Rcc_DisableLsi(void)
 {
-    whal_Reg_Update(clkDev->base, WHAL_STM32WBA_RCC_BDCR1_REG,
+    whal_Reg_Update(WHAL_STM32WBA_RCC_BASE, WHAL_STM32WBA_RCC_BDCR1_REG,
                     WHAL_STM32WBA_RCC_BDCR1_LSI1ON_Msk, 0);
     return WHAL_SUCCESS;
 }
@@ -290,22 +284,21 @@ static inline whal_Error whal_Stm32wba_Rcc_DisableLsi(const whal_Clock *clkDev)
 /*
  * @brief Switch SYSCLK to the requested source and wait for the switch.
  *
- * @param clkDev RCC device instance.
  * @param src    System clock source.
  *
  * @retval WHAL_SUCCESS Always.
  */
 static inline whal_Error whal_Stm32wba_Rcc_SetSysClock(
-    const whal_Clock *clkDev, whal_Stm32wba_Rcc_SysClockSrc src)
+    whal_Stm32wba_Rcc_SysClockSrc src)
 {
     size_t sws;
 
-    whal_Reg_Update(clkDev->base, WHAL_STM32WBA_RCC_CFGR1_REG,
+    whal_Reg_Update(WHAL_STM32WBA_RCC_BASE, WHAL_STM32WBA_RCC_CFGR1_REG,
                     WHAL_STM32WBA_RCC_CFGR1_SW_Msk,
                     whal_SetBits(WHAL_STM32WBA_RCC_CFGR1_SW_Msk,
                                  WHAL_STM32WBA_RCC_CFGR1_SW_Pos, src));
     do {
-        whal_Reg_Get(clkDev->base, WHAL_STM32WBA_RCC_CFGR1_REG,
+        whal_Reg_Get(WHAL_STM32WBA_RCC_BASE, WHAL_STM32WBA_RCC_CFGR1_REG,
                      WHAL_STM32WBA_RCC_CFGR1_SWS_Msk,
                      WHAL_STM32WBA_RCC_CFGR1_SWS_Pos, &sws);
     } while (sws != (size_t)src);
@@ -315,15 +308,14 @@ static inline whal_Error whal_Stm32wba_Rcc_SetSysClock(
 /*
  * @brief Select the RNG kernel clock source (RCC_CCIPR2.RNGSEL).
  *
- * @param clkDev RCC device instance.
  * @param src    RNG kernel clock source.
  *
  * @retval WHAL_SUCCESS Always.
  */
 static inline whal_Error whal_Stm32wba_Rcc_SetRngClockSrc(
-    const whal_Clock *clkDev, whal_Stm32wba_Rcc_RngSrc src)
+    whal_Stm32wba_Rcc_RngSrc src)
 {
-    whal_Reg_Update(clkDev->base, WHAL_STM32WBA_RCC_CCIPR2_REG,
+    whal_Reg_Update(WHAL_STM32WBA_RCC_BASE, WHAL_STM32WBA_RCC_CCIPR2_REG,
                     WHAL_STM32WBA_RCC_CCIPR2_RNGSEL_Msk,
                     whal_SetBits(WHAL_STM32WBA_RCC_CCIPR2_RNGSEL_Msk,
                                  WHAL_STM32WBA_RCC_CCIPR2_RNGSEL_Pos,
@@ -334,15 +326,13 @@ static inline whal_Error whal_Stm32wba_Rcc_SetRngClockSrc(
 /*
  * @brief Program the AHB5 domain prescaler (RCC_CFGR4.HPRE5).
  *
- * @param clkDev RCC device instance.
  * @param hpre5  HPRE5 encoded divider value.
  *
  * @retval WHAL_SUCCESS Always.
  */
-static inline whal_Error whal_Stm32wba_Rcc_SetHpre5(
-    const whal_Clock *clkDev, uint8_t hpre5)
+static inline whal_Error whal_Stm32wba_Rcc_SetHpre5(uint8_t hpre5)
 {
-    whal_Reg_Update(clkDev->base, WHAL_STM32WBA_RCC_CFGR4_REG,
+    whal_Reg_Update(WHAL_STM32WBA_RCC_BASE, WHAL_STM32WBA_RCC_CFGR4_REG,
                     WHAL_STM32WBA_RCC_CFGR4_HPRE5_Msk,
                     whal_SetBits(WHAL_STM32WBA_RCC_CFGR4_HPRE5_Msk,
                                  WHAL_STM32WBA_RCC_CFGR4_HPRE5_Pos, hpre5));
@@ -352,15 +342,14 @@ static inline whal_Error whal_Stm32wba_Rcc_SetHpre5(
 /*
  * @brief Set the enable bit for a peripheral clock gate.
  *
- * @param clkDev RCC device instance.
  * @param clk    Peripheral clock descriptor (RCC *ENR register + bit).
  *
  * @retval WHAL_SUCCESS Always.
  */
 static inline whal_Error whal_Stm32wba_Rcc_EnablePeriphClk(
-    const whal_Clock *clkDev, const whal_Stm32wba_Rcc_PeriphClk *clk)
+    const whal_Stm32wba_Rcc_PeriphClk *clk)
 {
-    whal_Reg_Update(clkDev->base, clk->regOffset, clk->enableMask,
+    whal_Reg_Update(WHAL_STM32WBA_RCC_BASE, clk->regOffset, clk->enableMask,
                     whal_SetBits(clk->enableMask, clk->enablePos, 1));
     return WHAL_SUCCESS;
 }
@@ -368,15 +357,14 @@ static inline whal_Error whal_Stm32wba_Rcc_EnablePeriphClk(
 /*
  * @brief Clear the enable bit for a peripheral clock gate.
  *
- * @param clkDev RCC device instance.
  * @param clk    Peripheral clock descriptor (RCC *ENR register + bit).
  *
  * @retval WHAL_SUCCESS Always.
  */
 static inline whal_Error whal_Stm32wba_Rcc_DisablePeriphClk(
-    const whal_Clock *clkDev, const whal_Stm32wba_Rcc_PeriphClk *clk)
+    const whal_Stm32wba_Rcc_PeriphClk *clk)
 {
-    whal_Reg_Update(clkDev->base, clk->regOffset, clk->enableMask,
+    whal_Reg_Update(WHAL_STM32WBA_RCC_BASE, clk->regOffset, clk->enableMask,
                     whal_SetBits(clk->enableMask, clk->enablePos, 0));
     return WHAL_SUCCESS;
 }

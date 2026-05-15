@@ -27,8 +27,6 @@
 
 /* --- Device macros --- */
 
-#define WHAL_STM32H563_RCC_BASE 0x44020C00
-
 #define WHAL_STM32H563_GPIO_BASE 0x42020000
 #define WHAL_STM32H563_GPIO_DRIVER &whal_Stm32h5_Gpio_Driver
 

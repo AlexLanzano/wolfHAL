@@ -3,9 +3,8 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#include <wolfHAL/clock/clock.h>
 #include <wolfHAL/error.h>
-#include <wolfHAL/regmap.h>
+#include <wolfHAL/reg.h>
 #include <wolfHAL/bitops.h>
 
 /**
@@ -19,6 +18,8 @@
  *   - Separate SYSSW and CPUSW fields in CFGR1
  *   - PLL1 configuration split across PLL1CFGR1/PLL1CFGR2/PLL1CFGR3
  */
+
+#define WHAL_STM32N6_RCC_BASE            0x46028000
 
 #define WHAL_STM32N6_RCC_CR_REG          0x000
 #define WHAL_STM32N6_RCC_CR_PLL1ON_Msk   (1UL << 8)
@@ -147,19 +148,18 @@ typedef struct {
 /**
  * @brief Turn on an oscillator and wait for its ready bit.
  *
- * @param clkDev RCC device instance.
  * @param cfg    Oscillator on/ready bit descriptor (e.g. WHAL_STM32N6_RCC_HSE_CFG).
  *
  * @retval WHAL_SUCCESS Always.
  */
 static inline whal_Error whal_Stm32n6_Rcc_EnableOsc(
-    const whal_Clock *clkDev, const whal_Stm32n6_Rcc_OscCfg *cfg)
+    const whal_Stm32n6_Rcc_OscCfg *cfg)
 {
     size_t rdy;
 
-    whal_Reg_Update(clkDev->base, cfg->onReg, cfg->onMsk, cfg->onMsk);
+    whal_Reg_Update(WHAL_STM32N6_RCC_BASE, cfg->onReg, cfg->onMsk, cfg->onMsk);
     do {
-        whal_Reg_Get(clkDev->base, cfg->rdyReg, cfg->rdyMsk,
+        whal_Reg_Get(WHAL_STM32N6_RCC_BASE, cfg->rdyReg, cfg->rdyMsk,
                      cfg->rdyPos, &rdy);
     } while (!rdy);
     return WHAL_SUCCESS;
@@ -168,15 +168,14 @@ static inline whal_Error whal_Stm32n6_Rcc_EnableOsc(
 /**
  * @brief Turn off an oscillator.
  *
- * @param clkDev RCC device instance.
  * @param cfg    Oscillator on/ready bit descriptor.
  *
  * @retval WHAL_SUCCESS Always.
  */
 static inline whal_Error whal_Stm32n6_Rcc_DisableOsc(
-    const whal_Clock *clkDev, const whal_Stm32n6_Rcc_OscCfg *cfg)
+    const whal_Stm32n6_Rcc_OscCfg *cfg)
 {
-    whal_Reg_Update(clkDev->base, cfg->onReg, cfg->onMsk, 0);
+    whal_Reg_Update(WHAL_STM32N6_RCC_BASE, cfg->onReg, cfg->onMsk, 0);
     return WHAL_SUCCESS;
 }
 
@@ -186,33 +185,32 @@ static inline whal_Error whal_Stm32n6_Rcc_DisableOsc(
  * Turns PLL1 off (waits for !PLL1RDY), programs PLL1CFGR1 (SEL/DIVM/DIVN)
  * and PLL1CFGR3 (PDIVEN + PDIV1/PDIV2), sets PLL1ON, polls PLL1RDY.
  *
- * @param clkDev RCC device instance.
  * @param cfg    PLL1 configuration.
  *
  * @retval WHAL_SUCCESS Always.
  */
 static inline whal_Error whal_Stm32n6_Rcc_EnablePll1(
-    const whal_Clock *clkDev, const whal_Stm32n6_Rcc_Pll1Cfg *cfg)
+    const whal_Stm32n6_Rcc_Pll1Cfg *cfg)
 {
     size_t rdy;
 
     /* Disable PLL1 before reconfiguring; wait until off. */
-    whal_Reg_Update(clkDev->base, WHAL_STM32N6_RCC_CR_REG,
+    whal_Reg_Update(WHAL_STM32N6_RCC_BASE, WHAL_STM32N6_RCC_CR_REG,
                     WHAL_STM32N6_RCC_CR_PLL1ON_Msk, 0);
     do {
-        whal_Reg_Get(clkDev->base, WHAL_STM32N6_RCC_SR_REG,
+        whal_Reg_Get(WHAL_STM32N6_RCC_BASE, WHAL_STM32N6_RCC_SR_REG,
                      WHAL_STM32N6_RCC_SR_PLL1RDY_Msk,
                      WHAL_STM32N6_RCC_SR_PLL1RDY_Pos, &rdy);
     } while (rdy);
 
-    whal_Reg_Write(clkDev->base, WHAL_STM32N6_RCC_PLL1CFGR1_REG,
+    whal_Reg_Write(WHAL_STM32N6_RCC_BASE, WHAL_STM32N6_RCC_PLL1CFGR1_REG,
                    whal_SetBits(WHAL_STM32N6_RCC_PLL1CFGR1_PLL1SEL_Msk,
                                 WHAL_STM32N6_RCC_PLL1CFGR1_PLL1SEL_Pos, cfg->clkSrc) |
                    whal_SetBits(WHAL_STM32N6_RCC_PLL1CFGR1_PLL1DIVM_Msk,
                                 WHAL_STM32N6_RCC_PLL1CFGR1_PLL1DIVM_Pos, cfg->m) |
                    whal_SetBits(WHAL_STM32N6_RCC_PLL1CFGR1_PLL1DIVN_Msk,
                                 WHAL_STM32N6_RCC_PLL1CFGR1_PLL1DIVN_Pos, cfg->n));
-    whal_Reg_Update(clkDev->base, WHAL_STM32N6_RCC_PLL1CFGR3_REG,
+    whal_Reg_Update(WHAL_STM32N6_RCC_BASE, WHAL_STM32N6_RCC_PLL1CFGR3_REG,
                     WHAL_STM32N6_RCC_PLL1CFGR3_PLL1PDIVEN_Msk |
                     WHAL_STM32N6_RCC_PLL1CFGR3_PLL1PDIV1_Msk |
                     WHAL_STM32N6_RCC_PLL1CFGR3_PLL1PDIV2_Msk,
@@ -222,11 +220,11 @@ static inline whal_Error whal_Stm32n6_Rcc_EnablePll1(
                     whal_SetBits(WHAL_STM32N6_RCC_PLL1CFGR3_PLL1PDIV2_Msk,
                                  WHAL_STM32N6_RCC_PLL1CFGR3_PLL1PDIV2_Pos, cfg->pdiv2));
 
-    whal_Reg_Update(clkDev->base, WHAL_STM32N6_RCC_CR_REG,
+    whal_Reg_Update(WHAL_STM32N6_RCC_BASE, WHAL_STM32N6_RCC_CR_REG,
                     WHAL_STM32N6_RCC_CR_PLL1ON_Msk,
                     WHAL_STM32N6_RCC_CR_PLL1ON_Msk);
     do {
-        whal_Reg_Get(clkDev->base, WHAL_STM32N6_RCC_SR_REG,
+        whal_Reg_Get(WHAL_STM32N6_RCC_BASE, WHAL_STM32N6_RCC_SR_REG,
                      WHAL_STM32N6_RCC_SR_PLL1RDY_Msk,
                      WHAL_STM32N6_RCC_SR_PLL1RDY_Pos, &rdy);
     } while (!rdy);
@@ -236,13 +234,12 @@ static inline whal_Error whal_Stm32n6_Rcc_EnablePll1(
 /**
  * @brief Turn PLL1 off (clears RCC_CR.PLL1ON).
  *
- * @param clkDev RCC device instance.
  *
  * @retval WHAL_SUCCESS Always.
  */
-static inline whal_Error whal_Stm32n6_Rcc_DisablePll1(const whal_Clock *clkDev)
+static inline whal_Error whal_Stm32n6_Rcc_DisablePll1(void)
 {
-    whal_Reg_Update(clkDev->base, WHAL_STM32N6_RCC_CR_REG,
+    whal_Reg_Update(WHAL_STM32N6_RCC_BASE, WHAL_STM32N6_RCC_CR_REG,
                     WHAL_STM32N6_RCC_CR_PLL1ON_Msk, 0);
     return WHAL_SUCCESS;
 }
@@ -252,22 +249,21 @@ static inline whal_Error whal_Stm32n6_Rcc_DisablePll1(const whal_Clock *clkDev)
  *
  * Programs CFGR1.SYSSW and polls CFGR1.SYSSWS until it reports the new source.
  *
- * @param clkDev RCC device instance.
  * @param src    System clock source.
  *
  * @retval WHAL_SUCCESS Always.
  */
 static inline whal_Error whal_Stm32n6_Rcc_SetSysClock(
-    const whal_Clock *clkDev, whal_Stm32n6_Rcc_SysClockSrc src)
+    whal_Stm32n6_Rcc_SysClockSrc src)
 {
     size_t sws;
 
-    whal_Reg_Update(clkDev->base, WHAL_STM32N6_RCC_CFGR1_REG,
+    whal_Reg_Update(WHAL_STM32N6_RCC_BASE, WHAL_STM32N6_RCC_CFGR1_REG,
                     WHAL_STM32N6_RCC_CFGR1_SYSSW_Msk,
                     whal_SetBits(WHAL_STM32N6_RCC_CFGR1_SYSSW_Msk,
                                  WHAL_STM32N6_RCC_CFGR1_SYSSW_Pos, src));
     do {
-        whal_Reg_Get(clkDev->base, WHAL_STM32N6_RCC_CFGR1_REG,
+        whal_Reg_Get(WHAL_STM32N6_RCC_BASE, WHAL_STM32N6_RCC_CFGR1_REG,
                      WHAL_STM32N6_RCC_CFGR1_SYSSWS_Msk,
                      WHAL_STM32N6_RCC_CFGR1_SYSSWS_Pos, &sws);
     } while (sws != (size_t)src);
@@ -279,22 +275,21 @@ static inline whal_Error whal_Stm32n6_Rcc_SetSysClock(
  *
  * Programs CFGR1.CPUSW and polls CFGR1.CPUSWS until it reports the new source.
  *
- * @param clkDev RCC device instance.
  * @param src    CPU clock source.
  *
  * @retval WHAL_SUCCESS Always.
  */
 static inline whal_Error whal_Stm32n6_Rcc_SetCpuClock(
-    const whal_Clock *clkDev, whal_Stm32n6_Rcc_CpuClockSrc src)
+    whal_Stm32n6_Rcc_CpuClockSrc src)
 {
     size_t sws;
 
-    whal_Reg_Update(clkDev->base, WHAL_STM32N6_RCC_CFGR1_REG,
+    whal_Reg_Update(WHAL_STM32N6_RCC_BASE, WHAL_STM32N6_RCC_CFGR1_REG,
                     WHAL_STM32N6_RCC_CFGR1_CPUSW_Msk,
                     whal_SetBits(WHAL_STM32N6_RCC_CFGR1_CPUSW_Msk,
                                  WHAL_STM32N6_RCC_CFGR1_CPUSW_Pos, src));
     do {
-        whal_Reg_Get(clkDev->base, WHAL_STM32N6_RCC_CFGR1_REG,
+        whal_Reg_Get(WHAL_STM32N6_RCC_BASE, WHAL_STM32N6_RCC_CFGR1_REG,
                      WHAL_STM32N6_RCC_CFGR1_CPUSWS_Msk,
                      WHAL_STM32N6_RCC_CFGR1_CPUSWS_Pos, &sws);
     } while (sws != (size_t)src);
@@ -304,15 +299,14 @@ static inline whal_Error whal_Stm32n6_Rcc_SetCpuClock(
 /**
  * @brief Select the Ethernet 1 PHY interface (MII/RGMII/RMII).
  *
- * @param clkDev RCC device instance.
  * @param mode   PHY interface selection (RCC_CCIPR2.ETH1SEL).
  *
  * @retval WHAL_SUCCESS Always.
  */
 static inline whal_Error whal_Stm32n6_Rcc_SetEth1If(
-    const whal_Clock *clkDev, whal_Stm32n6_Rcc_Eth1If mode)
+    whal_Stm32n6_Rcc_Eth1If mode)
 {
-    whal_Reg_Update(clkDev->base, WHAL_STM32N6_RCC_CCIPR2_REG,
+    whal_Reg_Update(WHAL_STM32N6_RCC_BASE, WHAL_STM32N6_RCC_CCIPR2_REG,
                     WHAL_STM32N6_RCC_CCIPR2_ETH1SEL_Msk,
                     whal_SetBits(WHAL_STM32N6_RCC_CCIPR2_ETH1SEL_Msk,
                                  WHAL_STM32N6_RCC_CCIPR2_ETH1SEL_Pos,
@@ -323,15 +317,14 @@ static inline whal_Error whal_Stm32n6_Rcc_SetEth1If(
 /**
  * @brief Set the enable bit for a peripheral clock gate.
  *
- * @param clkDev RCC device instance.
  * @param clk    Peripheral clock descriptor (RCC *ENR register + bit).
  *
  * @retval WHAL_SUCCESS Always.
  */
 static inline whal_Error whal_Stm32n6_Rcc_EnablePeriphClk(
-    const whal_Clock *clkDev, const whal_Stm32n6_Rcc_PeriphClk *clk)
+    const whal_Stm32n6_Rcc_PeriphClk *clk)
 {
-    whal_Reg_Update(clkDev->base, clk->regOffset, clk->enableMask,
+    whal_Reg_Update(WHAL_STM32N6_RCC_BASE, clk->regOffset, clk->enableMask,
                     whal_SetBits(clk->enableMask, clk->enablePos, 1));
     return WHAL_SUCCESS;
 }
@@ -339,15 +332,14 @@ static inline whal_Error whal_Stm32n6_Rcc_EnablePeriphClk(
 /**
  * @brief Clear the enable bit for a peripheral clock gate.
  *
- * @param clkDev RCC device instance.
  * @param clk    Peripheral clock descriptor (RCC *ENR register + bit).
  *
  * @retval WHAL_SUCCESS Always.
  */
 static inline whal_Error whal_Stm32n6_Rcc_DisablePeriphClk(
-    const whal_Clock *clkDev, const whal_Stm32n6_Rcc_PeriphClk *clk)
+    const whal_Stm32n6_Rcc_PeriphClk *clk)
 {
-    whal_Reg_Update(clkDev->base, clk->regOffset, clk->enableMask,
+    whal_Reg_Update(WHAL_STM32N6_RCC_BASE, clk->regOffset, clk->enableMask,
                     whal_SetBits(clk->enableMask, clk->enablePos, 0));
     return WHAL_SUCCESS;
 }

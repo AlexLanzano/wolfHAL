@@ -27,7 +27,7 @@ typedef struct {
 } whal_IpcDriver;
 
 /*
- * @brief IPC device instance tying a register map and driver.
+ * @brief IPC device instance with a base address, driver vtable, and platform-specific cfg.
  */
 struct whal_Ipc {
     const size_t base;

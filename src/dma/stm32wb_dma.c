@@ -5,7 +5,7 @@
 #include <wolfHAL/dma/dma.h>
 #include <wolfHAL/dma/stm32wb_dma.h>
 #include <wolfHAL/error.h>
-#include <wolfHAL/regmap.h>
+#include <wolfHAL/reg.h>
 #include <wolfHAL/bitops.h>
 
 /*

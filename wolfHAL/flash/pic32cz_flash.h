@@ -37,6 +37,11 @@ typedef struct whal_Pic32cz_Flash_Cfg {
  * @brief Driver instance for PIC32CZ flash.
  */
 extern const whal_FlashDriver whal_Pic32cz_Flash_Driver;
+/*
+ * @brief Platform-owned device singleton. Defined in the driver TU
+ * from the WHAL_CFG_PIC32CZ_FLASH_DEV initializer in board.h.
+ */
+extern const whal_Flash whal_Pic32cz_Flash_Dev;
 
 /*
  * @brief Initialize the PIC32CZ flash interface.

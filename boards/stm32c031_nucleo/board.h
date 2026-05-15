@@ -6,10 +6,8 @@
 #include <wolfHAL/wolfHAL.h>
 #include <wolfHAL/platform/st/stm32c031xx.h>
 
-extern whal_Clock g_whalClock;
 extern whal_Uart g_whalUart;
 extern whal_Spi g_whalSpi;
-extern whal_Flash g_whalFlash;
 
 extern whal_Timeout g_whalTimeout;
 extern volatile uint32_t g_tick;
@@ -32,77 +30,72 @@ enum {
 #define BOARD_FLASH_SECTOR_SZ  0x800
 
 /* BOARD_*_DEV: how this board reaches each peripheral. */
-#define BOARD_GPIO_DEV     WHAL_SINGLETON
+#define BOARD_GPIO_DEV     WHAL_INTERNAL_DEV
 #define BOARD_UART_DEV     (&g_whalUart)
 #define BOARD_SPI_DEV      (&g_whalSpi)
-#define BOARD_FLASH_DEV    (&g_whalFlash)
-#define BOARD_CLOCK_DEV    (&g_whalClock)
+#define BOARD_FLASH_DEV    ((whal_Flash *)&whal_Stm32c0_Flash_Dev)
 
-/* Flash singleton — referenced by stm32c0_flash.c directly. Const cfg lives
- * here; the dispatcher stub g_whalFlash in board.c carries only .driver so
- * whal_Flash_* can be vtable-dispatched alongside other flash drivers (e.g.
- * SPI NOR W25Q64). */
-static const whal_Flash whal_Stm32c0_Flash_Dev = {
-    .base = WHAL_STM32C031_FLASH_BASE,
+/* Flash dev initializer — singleton defined in stm32c0_flash.c. */
+#define WHAL_CFG_STM32C0_FLASH_DEV { \
+    .driver = WHAL_STM32C031_FLASH_DRIVER, \
+    .base   = WHAL_STM32C031_FLASH_BASE, \
+    .cfg    = (void *)&(const whal_Stm32c0_Flash_Cfg){ \
+        .startAddr = 0x08000000, \
+        .size      = 0x8000, /* 32 KB */ \
+        .timeout   = &g_whalTimeout, \
+    }, \
+}
 
-    .cfg = (void *)&(const whal_Stm32c0_Flash_Cfg){
-        .startAddr = 0x08000000,
-        .size = 0x8000, /* 32 KB */
-        .timeout = &g_whalTimeout,
-    },
-};
+/* GPIO dev initializer — singleton defined in stm32wb_gpio.c (shared driver). */
+#define WHAL_CFG_STM32WB_GPIO_DEV { \
+    .base = WHAL_STM32C031_GPIO_BASE, \
+    .cfg = (void *)&(const whal_Stm32c0_Gpio_Cfg){ \
+        .pinCfg = (const whal_Stm32c0_Gpio_PinCfg[PIN_COUNT]){ \
+            /* LD4 Green LED on PA5 */ \
+            [LED_PIN] = WHAL_STM32C0_GPIO_PIN( \
+                WHAL_STM32C0_GPIO_PORT_A, 5, WHAL_STM32C0_GPIO_MODE_OUT, \
+                WHAL_STM32C0_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32C0_GPIO_SPEED_LOW, \
+                WHAL_STM32C0_GPIO_PULL_NONE, 0), \
+            /* USART2 TX on PA2, AF1 (ST-Link VCP) */ \
+            [UART_TX_PIN] = WHAL_STM32C0_GPIO_PIN( \
+                WHAL_STM32C0_GPIO_PORT_A, 2, WHAL_STM32C0_GPIO_MODE_ALTFN, \
+                WHAL_STM32C0_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32C0_GPIO_SPEED_FAST, \
+                WHAL_STM32C0_GPIO_PULL_UP, 1), \
+            /* USART2 RX on PA3, AF1 (ST-Link VCP) */ \
+            [UART_RX_PIN] = WHAL_STM32C0_GPIO_PIN( \
+                WHAL_STM32C0_GPIO_PORT_A, 3, WHAL_STM32C0_GPIO_MODE_ALTFN, \
+                WHAL_STM32C0_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32C0_GPIO_SPEED_FAST, \
+                WHAL_STM32C0_GPIO_PULL_UP, 1), \
+            /* SPI1 SCK on PA1, AF0 */ \
+            [SPI_SCK_PIN] = WHAL_STM32C0_GPIO_PIN( \
+                WHAL_STM32C0_GPIO_PORT_A, 1, WHAL_STM32C0_GPIO_MODE_ALTFN, \
+                WHAL_STM32C0_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32C0_GPIO_SPEED_FAST, \
+                WHAL_STM32C0_GPIO_PULL_NONE, 0), \
+            /* SPI1 MISO on PA6, AF0 */ \
+            [SPI_MISO_PIN] = WHAL_STM32C0_GPIO_PIN( \
+                WHAL_STM32C0_GPIO_PORT_A, 6, WHAL_STM32C0_GPIO_MODE_ALTFN, \
+                WHAL_STM32C0_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32C0_GPIO_SPEED_FAST, \
+                WHAL_STM32C0_GPIO_PULL_NONE, 0), \
+            /* SPI1 MOSI on PA7, AF0 */ \
+            [SPI_MOSI_PIN] = WHAL_STM32C0_GPIO_PIN( \
+                WHAL_STM32C0_GPIO_PORT_A, 7, WHAL_STM32C0_GPIO_MODE_ALTFN, \
+                WHAL_STM32C0_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32C0_GPIO_SPEED_FAST, \
+                WHAL_STM32C0_GPIO_PULL_NONE, 0), \
+        }, \
+        .pinCount = PIN_COUNT, \
+    }, \
+}
 
-static const whal_Gpio whal_Stm32c0_Gpio_Dev = {
-    .base = WHAL_STM32C031_GPIO_BASE,
-
-    .cfg = (void *)&(const whal_Stm32c0_Gpio_Cfg){
-        .pinCfg = (const whal_Stm32c0_Gpio_PinCfg[PIN_COUNT]){
-            /* LD4 Green LED on PA5 */
-            [LED_PIN] = WHAL_STM32C0_GPIO_PIN(
-                WHAL_STM32C0_GPIO_PORT_A, 5, WHAL_STM32C0_GPIO_MODE_OUT,
-                WHAL_STM32C0_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32C0_GPIO_SPEED_LOW,
-                WHAL_STM32C0_GPIO_PULL_NONE, 0),
-            /* USART2 TX on PA2, AF1 (ST-Link VCP) */
-            [UART_TX_PIN] = WHAL_STM32C0_GPIO_PIN(
-                WHAL_STM32C0_GPIO_PORT_A, 2, WHAL_STM32C0_GPIO_MODE_ALTFN,
-                WHAL_STM32C0_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32C0_GPIO_SPEED_FAST,
-                WHAL_STM32C0_GPIO_PULL_UP, 1),
-            /* USART2 RX on PA3, AF1 (ST-Link VCP) */
-            [UART_RX_PIN] = WHAL_STM32C0_GPIO_PIN(
-                WHAL_STM32C0_GPIO_PORT_A, 3, WHAL_STM32C0_GPIO_MODE_ALTFN,
-                WHAL_STM32C0_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32C0_GPIO_SPEED_FAST,
-                WHAL_STM32C0_GPIO_PULL_UP, 1),
-            /* SPI1 SCK on PA1, AF0 */
-            [SPI_SCK_PIN] = WHAL_STM32C0_GPIO_PIN(
-                WHAL_STM32C0_GPIO_PORT_A, 1, WHAL_STM32C0_GPIO_MODE_ALTFN,
-                WHAL_STM32C0_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32C0_GPIO_SPEED_FAST,
-                WHAL_STM32C0_GPIO_PULL_NONE, 0),
-            /* SPI1 MISO on PA6, AF0 */
-            [SPI_MISO_PIN] = WHAL_STM32C0_GPIO_PIN(
-                WHAL_STM32C0_GPIO_PORT_A, 6, WHAL_STM32C0_GPIO_MODE_ALTFN,
-                WHAL_STM32C0_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32C0_GPIO_SPEED_FAST,
-                WHAL_STM32C0_GPIO_PULL_NONE, 0),
-            /* SPI1 MOSI on PA7, AF0 */
-            [SPI_MOSI_PIN] = WHAL_STM32C0_GPIO_PIN(
-                WHAL_STM32C0_GPIO_PORT_A, 7, WHAL_STM32C0_GPIO_MODE_ALTFN,
-                WHAL_STM32C0_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32C0_GPIO_SPEED_FAST,
-                WHAL_STM32C0_GPIO_PULL_NONE, 0),
-        },
-        .pinCount = PIN_COUNT,
-    },
-};
-
-/* SysTick singleton — referenced by systick.c directly. */
-static const whal_Timer whal_SysTick_Dev = {
-    .base = WHAL_CORTEX_M0PLUS_SYSTICK_BASE,
-    /* .driver: direct API mapping */
-
-    .cfg = (void *)&(const whal_SysTick_Cfg){
-        .cyclesPerTick = 48000000 / 1000,
-        .clkSrc = WHAL_SYSTICK_CLKSRC_SYSCLK,
-        .tickInt = WHAL_SYSTICK_TICKINT_ENABLED,
-    },
-};
+/* SysTick dev initializer — singleton defined in systick.c. */
+#define WHAL_CFG_SYSTICK_DEV { \
+    .base = WHAL_CORTEX_M0PLUS_SYSTICK_BASE, \
+    /* .driver: direct API mapping */ \
+    .cfg  = (void *)&(const whal_SysTick_Cfg){ \
+        .cyclesPerTick = 48000000 / 1000, \
+        .clkSrc  = WHAL_SYSTICK_CLKSRC_SYSCLK, \
+        .tickInt = WHAL_SYSTICK_TICKINT_ENABLED, \
+    }, \
+}
 
 whal_Error Board_Init(void);
 whal_Error Board_Deinit(void);

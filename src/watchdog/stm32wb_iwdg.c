@@ -1,8 +1,10 @@
-#include "board.h"  /* provides whal_Stm32wb_Iwdg_Dev singleton */
+#include "board.h"  /* provides WHAL_CFG_STM32WB_IWDG_DEV initializer */
 #include <wolfHAL/watchdog/stm32wb_iwdg.h>
 #include <wolfHAL/watchdog/watchdog.h>
 #include <wolfHAL/error.h>
-#include <wolfHAL/regmap.h>
+#include <wolfHAL/reg.h>
+
+const whal_Watchdog whal_Stm32wb_Iwdg_Dev = WHAL_CFG_STM32WB_IWDG_DEV;
 
 /*
  * STM32WB IWDG Register Definitions

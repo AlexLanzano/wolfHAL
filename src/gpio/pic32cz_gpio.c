@@ -1,8 +1,10 @@
-#include "board.h"  /* provides whal_Pic32cz_Gpio_Dev singleton */
+#include "board.h"  /* provides WHAL_CFG_PIC32CZ_GPIO_DEV initializer */
 #include <wolfHAL/gpio/pic32cz_gpio.h>
-#include <wolfHAL/regmap.h>
+#include <wolfHAL/reg.h>
 #include <wolfHAL/bitops.h>
 #include <wolfHAL/error.h>
+
+const whal_Gpio whal_Pic32cz_Gpio_Dev = WHAL_CFG_PIC32CZ_GPIO_DEV;
 
 /*
  * PIC32CZ PORT Register Map

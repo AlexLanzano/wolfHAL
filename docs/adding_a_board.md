@@ -17,14 +17,14 @@ project. It contains four kinds of declaration:
 
 1. `extern` globals for vtable-dispatched drivers (`g_whalUart`,
    `g_whalSpi`, `g_whalI2c`, ...) defined over in `board.c`.
-2. `static const` singletons (`whal_<Plat>_<Drv>_Dev`) for
-   single-instance drivers — these are read directly by the driver
-   bodies (`#include "board.h"` from the driver source). Each
-   translation unit including `board.h` gets its own const copy in
-   `.rodata`; `--gc-sections` folds the unused ones.
+2. `WHAL_CFG_<PLAT>_<X>_DEV` initializer macros that each single-instance
+   driver `.c` uses to define its `whal_<Plat>_<X>_Dev` singleton. The
+   driver header `extern`-declares the singleton; the `.c` `#include`s
+   `board.h` and writes `const whal_<X> whal_<Plat>_<X>_Dev = WHAL_CFG_<PLAT>_<X>_DEV;`.
 3. `BOARD_<PERIPH>_DEV` macros that the application and tests use to
-   reach each peripheral — these resolve to either `WHAL_SINGLETON` or
-   `&g_whal<X>`, depending on how this board has wired the driver.
+   reach each peripheral — these resolve to either `WHAL_INTERNAL_DEV`
+   (driver ignores it) or to a cast pointer at the singleton
+   (e.g. `((whal_Flash *)&whal_<Plat>_Flash_Dev)`).
 4. Board constants (pin indices, flash test addresses, etc.) and the
    `Board_Init` / `Board_Deinit` / `Board_WaitMs` prototypes.
 
@@ -34,37 +34,41 @@ project. It contains four kinds of declaration:
 #include <wolfHAL/wolfHAL.h>
 #include <wolfHAL/platform/vendor/device.h>
 
-extern whal_Clock   g_whalClock;
 extern whal_Uart    g_whalUart;
 extern whal_Timeout g_whalTimeout;
 
 #define BOARD_LED_PIN 0
 
 /* BOARD_<PERIPH>_DEV: how this board reaches each peripheral.
- * WHAL_SINGLETON for single-instance drivers whose body reads from a
- * named singleton below; &g_whal<X> for drivers that still use vtable
- * dispatch (or for the coexistence-stub variant). */
-#define BOARD_GPIO_DEV     WHAL_SINGLETON
+ * WHAL_INTERNAL_DEV for single-instance drivers (driver ignores the
+ * pointer); &g_whal<X> for drivers still using vtable dispatch; or a cast
+ * pointer at a driver-owned singleton when single-instance must coexist
+ * with another driver of the same generic type. */
+#define BOARD_GPIO_DEV     WHAL_INTERNAL_DEV
 #define BOARD_UART_DEV     (&g_whalUart)
-#define BOARD_CLOCK_DEV    (&g_whalClock)
-#define BOARD_WATCHDOG_DEV WHAL_SINGLETON
-#define BOARD_RNG_DEV      WHAL_SINGLETON
+#define BOARD_WATCHDOG_DEV WHAL_INTERNAL_DEV
+#define BOARD_RNG_DEV      WHAL_INTERNAL_DEV
 
-/* Singleton consumed by the GPIO driver body directly. */
-static const whal_Gpio whal_Myplatform_Gpio_Dev = {
-    .base = WHAL_MYPLATFORM_GPIO_BASE,
-    .cfg  = (void *)&(const whal_Myplatform_Gpio_Cfg){
-        /* ...pin table... */
-    },
-};
+/* Initializer for the GPIO singleton. The driver header extern-declares
+ * whal_Myplatform_Gpio_Dev; the driver .c writes
+ *     const whal_Gpio whal_Myplatform_Gpio_Dev = WHAL_CFG_MYPLATFORM_GPIO_DEV;
+ * after #include "board.h". */
+#define WHAL_CFG_MYPLATFORM_GPIO_DEV { \
+    .base = WHAL_MYPLATFORM_GPIO_BASE, \
+    /* .driver: direct API mapping */ \
+    .cfg  = (void *)&(const whal_Myplatform_Gpio_Cfg){ \
+        /* ...pin table... */ \
+    }, \
+}
 
-/* Singleton consumed by the RNG driver body directly. */
-static const whal_Rng whal_Myplatform_Rng_Dev = {
-    .base = WHAL_MYPLATFORM_RNG_BASE,
-    .cfg  = (void *)&(const whal_Myplatform_Rng_Cfg){
-        .timeout = &g_whalTimeout,
-    },
-};
+/* Initializer for the RNG singleton (same pattern). */
+#define WHAL_CFG_MYPLATFORM_RNG_DEV { \
+    .base = WHAL_MYPLATFORM_RNG_BASE, \
+    /* .driver: direct API mapping */ \
+    .cfg  = (void *)&(const whal_Myplatform_Rng_Cfg){ \
+        .timeout = &g_whalTimeout, \
+    }, \
+}
 
 whal_Error Board_Init(void);
 whal_Error Board_Deinit(void);
@@ -72,25 +76,28 @@ void Board_WaitMs(size_t ms);
 ```
 
 When a chip's driver is implemented as an alias of another chip's driver
-(e.g. STM32N6 IWDG reusing the STM32WB body), the singleton must be
-declared under this board's own platform name — the alias header bridges
-the two names with a `#define` (see `wolfHAL/watchdog/stm32n6_iwdg.h`).
-A small number of singletons are inherently cross-platform and keep
-neutral names: `whal_Nvic_Dev` (Cortex-M NVIC), `whal_SysTick_Dev`
-(Cortex-M SysTick), `whal_Lan8742a_Dev` (generic Ethernet PHY).
+(e.g. STM32N6 IWDG reusing the STM32WB body), the `WHAL_CFG_<PLAT>_<X>_DEV`
+initializer uses this board's own platform name — the alias header
+bridges the singleton name with a `#define` (see
+`wolfHAL/watchdog/stm32n6_iwdg.h`). A small number of singletons are
+inherently cross-platform and keep neutral names: `whal_Nvic_Dev`
+(Cortex-M NVIC), `whal_SysTick_Dev` (Cortex-M SysTick), `whal_Lan8742a_Dev`
+(generic Ethernet PHY); their initializer macros drop the platform segment
+too (e.g. `WHAL_CFG_NVIC_DEV`, `WHAL_CFG_SYSTICK_DEV`).
 
 Single-instance drivers that need per-instance mutable state (e.g.
-AES-GCM / AES-CCM accumulators) declare the state as a `static` variable
-in `board.h` immediately above the singleton that points at it. Each
-including translation unit gets its own copy, but only the driver TU
-writes to it, and `--gc-sections` strips the rest.
+AES-GCM / AES-CCM accumulators) keep the state as a `static` variable in
+their driver `.c` and point the singleton's `.state` field at it via the
+initializer macro. Use the macro to inject the address from board.h
+without making the buffer itself live in board scope.
 
 ### board.c
 
 Defines the `extern` device instances declared in `board.h` (the
 vtable-dispatched ones) and implements `Board_Init()` / `Board_Deinit()`.
-Per-instance const cfg for single-instance drivers lives in `board.h`
-alongside the singleton; `board.c` does not need to repeat it.
+Single-instance singletons are defined in their driver `.c` files from the
+`WHAL_CFG_<PLAT>_<X>_DEV` initializers in `board.h`; `board.c` does not
+need to declare or initialize them.
 
 `Board_Init()` is responsible for initializing all peripherals in
 dependency order. For example, the clock controller must be initialized
@@ -104,10 +111,6 @@ present) may need to come before the clock. It should return
 #include "board.h"
 #include <wolfHAL/platform/vendor/device.h>
 #include "peripheral.h"
-
-whal_Clock g_whalClock = {
-    .base = WHAL_MYPLATFORM_CLOCK_BASE,
-};
 
 whal_Uart g_whalUart = {
     .base = WHAL_MYPLATFORM_UART1_BASE,
@@ -132,25 +135,26 @@ whal_Error Board_Init(void)
 
     /* Bring up the clock tree imperatively. The chip's clock driver
      * exposes Enable*/Disable*/Set* helpers; boards call them in order.
-     * The exact sequence is chip-specific — see the chip's clock header. */
-    err = whal_Myplatform_Clock_EnableOsc(&g_whalClock,
+     * The helpers take no device pointer — each reads the chip's fixed
+     * clock-controller base from its own header. The exact sequence is
+     * chip-specific — see the chip's clock header. */
+    err = whal_Myplatform_Clock_EnableOsc(
         &(whal_Myplatform_Clock_OscCfg){WHAL_MYPLATFORM_CLOCK_OSC0_CFG});
     if (err)
         return err;
-    err = whal_Myplatform_Clock_SetSysClock(&g_whalClock,
+    err = whal_Myplatform_Clock_SetSysClock(
         WHAL_MYPLATFORM_CLOCK_SYSCLK_SRC_OSC0);
     if (err)
         return err;
 
     for (i = 0; i < PERIPH_CLK_COUNT; i++) {
-        err = whal_Myplatform_Clock_EnablePeriphClk(&g_whalClock,
-                                                    &g_periphClks[i]);
+        err = whal_Myplatform_Clock_EnablePeriphClk(&g_periphClks[i]);
         if (err)
             return err;
     }
 
     /* Initialize peripherals. Pass the corresponding BOARD_<PERIPH>_DEV
-     * macro — it will be WHAL_SINGLETON for single-instance drivers or
+     * macro — it will be WHAL_INTERNAL_DEV for single-instance drivers or
      * &g_whal<X> for vtable-dispatched drivers, whichever this board
      * declared in board.h. */
     err = whal_Gpio_Init(BOARD_GPIO_DEV);
@@ -180,27 +184,25 @@ whal_Error Board_Init(void)
 #### Coexisting drivers of the same type
 
 When two drivers of the same generic type share a board (the typical case
-is on-chip flash plus an external SPI-NOR flash), the const cfg singleton
-in `board.h` is not enough on its own — the generic dispatcher
-(`whal_Flash_Read`, etc.) must still vtable-dispatch to pick which
-driver runs. The pattern is a "stub" in `board.c` carrying only the
-`.driver` field, paired with the const cfg singleton in `board.h`:
+is on-chip flash plus an external SPI-NOR flash), the platform driver's
+singleton carries `.driver` alongside `.base` and `.cfg` so generic API
+calls (`whal_Flash_Read`, etc.) can vtable-dispatch through it.
+`BOARD_FLASH_DEV` casts the singleton's address to the non-const generic
+type so the dispatcher signature accepts it:
 
 ```c
 /* board.h */
-static const whal_Flash whal_Myplatform_Flash_Dev = {
-    .base = WHAL_MYPLATFORM_FLASH_BASE,
-    .cfg  = (void *)&(const whal_Myplatform_Flash_Cfg){ /* ... */ },
-};
+#define WHAL_CFG_MYPLATFORM_FLASH_DEV { \
+    .driver = WHAL_MYPLATFORM_FLASH_DRIVER, \
+    .base   = WHAL_MYPLATFORM_FLASH_BASE, \
+    .cfg    = (void *)&(const whal_Myplatform_Flash_Cfg){ /* ... */ }, \
+}
 
-#define BOARD_FLASH_DEV (&g_whalFlash)
+#define BOARD_FLASH_DEV ((whal_Flash *)&whal_Myplatform_Flash_Dev)
 
-/* board.c — dispatcher stub. The driver body still reads .base and .cfg
- * from whal_Myplatform_Flash_Dev; this struct only exists so that
- * whal_Flash_* can vtable-dispatch to it. */
-whal_Flash g_whalFlash = {
-    .driver = WHAL_MYPLATFORM_FLASH_DRIVER,
-};
+/* src/flash/myplatform_flash.c — driver TU owns the singleton. */
+#include "board.h"
+const whal_Flash whal_Myplatform_Flash_Dev = WHAL_CFG_MYPLATFORM_FLASH_DEV;
 ```
 
 The external SPI-NOR side does not need this dance — it is already a
@@ -212,9 +214,10 @@ Once started, most watchdog peripherals cannot be stopped — if `Board_Init()`
 starts the watchdog, any delay before the application begins refreshing it will
 cause an unexpected reset. The application or test should call
 `whal_Watchdog_Init(BOARD_WATCHDOG_DEV)` directly when it is ready to begin
-refreshing. The board still declares the watchdog device (whether as a
-singleton in `board.h` or as `g_whalWatchdog` in `board.c`, depending on the
-driver), points `BOARD_WATCHDOG_DEV` at it, and enables any required clocks
+refreshing. The board still declares the watchdog device (whether through
+a `WHAL_CFG_<PLAT>_<IWDG|WWDG>_DEV` initializer that the driver `.c`
+consumes or as `g_whalWatchdog` in `board.c`, depending on the driver),
+points `BOARD_WATCHDOG_DEV` at it, and enables any required clocks
 (e.g., WWDG APB clock, IWDG LSI oscillator) in `Board_Init()` so the
 watchdog is ready to be started.
 
@@ -233,8 +236,7 @@ whal_Error Board_Deinit(void)
     whal_Gpio_Deinit(BOARD_GPIO_DEV);
 
     for (size_t i = PERIPH_CLK_COUNT; i-- > 0; ) {
-        err = whal_Myplatform_Clock_DisablePeriphClk(&g_whalClock,
-                                                     &g_periphClks[i]);
+        err = whal_Myplatform_Clock_DisablePeriphClk(&g_periphClks[i]);
         if (err)
             return err;
     }
@@ -290,8 +292,9 @@ Two families of build-time knobs commonly appear in `board.mk`:
   driver linked into the build.
 - `WHAL_CFG_<PLAT>_<DRV>_SINGLE_INSTANCE` makes a conditionally
   single-instance driver read its `.base` and `.cfg` from the
-  corresponding `whal_<Plat>_<Drv>_Dev` singleton in `board.h` instead
-  of dereferencing the handle argument. The flag is per-driver
+  corresponding `whal_<Plat>_<Drv>_Dev` singleton (defined in the driver
+  `.c` from the `WHAL_CFG_<PLAT>_<DRV>_DEV` initializer in `board.h`)
+  instead of dereferencing the handle argument. The flag is per-driver
   per-platform; default builds keep the pointer-based path. Other
   drivers are unconditionally single-instance and need no flag — their
   driver bodies always read from the singleton.

@@ -57,6 +57,11 @@ typedef enum {
  * @brief Driver instance for the STM32L1 embedded flash controller.
  */
 extern const whal_FlashDriver whal_Stm32l1_Flash_Driver;
+/*
+ * @brief Platform-owned device singleton. Defined in the driver TU
+ * from the WHAL_CFG_STM32L1_FLASH_DEV initializer in board.h.
+ */
+extern const whal_Flash whal_Stm32l1_Flash_Dev;
 
 /*
  * @brief Initialize the STM32L1 flash driver. Validates cfg.

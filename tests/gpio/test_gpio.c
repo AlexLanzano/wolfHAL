@@ -4,12 +4,6 @@
 
 static void Test_Gpio_Api(void)
 {
-    size_t val;
-
-    WHAL_ASSERT_EQ(whal_Gpio_Init(NULL), WHAL_EINVAL);
-    WHAL_ASSERT_EQ(whal_Gpio_Deinit(NULL), WHAL_EINVAL);
-    WHAL_ASSERT_EQ(whal_Gpio_Get(NULL, 0, &val), WHAL_EINVAL);
-    WHAL_ASSERT_EQ(whal_Gpio_Set(NULL, 0, 0), WHAL_EINVAL);
     WHAL_ASSERT_EQ(whal_Gpio_Get(BOARD_GPIO_DEV, 0, NULL), WHAL_EINVAL);
 }
 

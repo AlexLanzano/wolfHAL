@@ -1,7 +1,9 @@
-#include "board.h"  /* provides whal_Lan8742a_Dev singleton */
+#include "board.h"  /* provides WHAL_CFG_LAN8742A_DEV initializer */
 #include <wolfHAL/eth_phy/lan8742a_eth_phy.h>
 #include <wolfHAL/eth/eth.h>
 #include <wolfHAL/error.h>
+
+const whal_EthPhy whal_Lan8742a_Dev = WHAL_CFG_LAN8742A_DEV;
 
 /*
  * LAN8742A PHY Register Definitions (IEEE 802.3 standard + vendor)

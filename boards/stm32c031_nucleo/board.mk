@@ -1,22 +1,22 @@
 _BOARD_DIR := $(patsubst %/,%,$(dir $(lastword $(MAKEFILE_LIST))))
 
 PLATFORM = stm32c0
-TESTS ?= clock gpio timer flash uart
+TESTS ?= gpio timer flash uart
 
 GCC = $(GCC_PATH)arm-none-eabi-gcc
 LD = $(GCC_PATH)arm-none-eabi-gcc
 OBJCOPY = $(GCC_PATH)arm-none-eabi-objcopy
 
 CFLAGS += -Wall -Werror $(INCLUDE) -g3 -Os -ffunction-sections -fdata-sections \
-          -ffreestanding -nostdlib -mcpu=cortex-m0plus -mthumb \
-          -DPLATFORM_STM32C0 -MMD -MP \
-          -DWHAL_CFG_STM32C0_GPIO_DIRECT_API_MAPPING \
-          -DWHAL_CFG_STM32C0_RCC_DIRECT_API_MAPPING \
-          -DWHAL_CFG_STM32C0_UART_DIRECT_API_MAPPING \
-          -DWHAL_CFG_STM32C0_SPI_DIRECT_API_MAPPING \
-          -DWHAL_CFG_SYSTICK_TIMER_DIRECT_API_MAPPING
+ -ffreestanding -nostdlib -mcpu=cortex-m0plus -mthumb \
+ -DPLATFORM_STM32C0 -MMD -MP \
+ -DWHAL_CFG_STM32C0_GPIO_DIRECT_API_MAPPING \
+ -DWHAL_CFG_STM32C0_RCC_DIRECT_API_MAPPING \
+ -DWHAL_CFG_STM32C0_UART_DIRECT_API_MAPPING \
+ -DWHAL_CFG_STM32C0_SPI_DIRECT_API_MAPPING \
+ -DWHAL_CFG_SYSTICK_TIMER_DIRECT_API_MAPPING
 LDFLAGS = -mcpu=cortex-m0plus -mthumb -ffreestanding -nostartfiles \
-          -Wl,--omagic -Wl,--gc-sections -static
+ -Wl,--omagic -Wl,--gc-sections -static
 
 LINKER_SCRIPT ?= $(_BOARD_DIR)/linker.ld
 
@@ -45,4 +45,4 @@ OPENOCD_TARGET ?= target/stm32c0x.cfg
 flash:
 	@test -n "$(IMAGE)" || { echo "IMAGE=<path/to/image> required" >&2; exit 1; }
 	$(OPENOCD) -f $(OPENOCD_INTERFACE) -f $(OPENOCD_TARGET) \
-	    -c "program $(IMAGE) verify reset exit"
+	 -c "program $(IMAGE) verify reset exit"

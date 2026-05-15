@@ -16,7 +16,7 @@ static void Test_Flash_LockReadback(void)
     WHAL_ASSERT_EQ(whal_Flash_Lock(BOARD_FLASH_DEV, 0, 0), WHAL_SUCCESS);
 
     size_t val = 0;
-    whal_Reg_Get(g_whalFlash.base, FLASH_CR_REG,
+    whal_Reg_Get(whal_Stm32wb_Flash_Dev.base, FLASH_CR_REG,
                  FLASH_CR_LOCK_Msk, FLASH_CR_LOCK_Pos, &val);
     WHAL_ASSERT_EQ(val, 1);
 }

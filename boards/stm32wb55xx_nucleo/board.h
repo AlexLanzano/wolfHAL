@@ -6,10 +6,8 @@
 #include <wolfHAL/wolfHAL.h>
 #include <wolfHAL/platform/st/stm32wb55xx.h>
 
-extern whal_Clock g_whalClock;
 extern whal_Uart g_whalUart;
 extern whal_Spi g_whalSpi;
-extern whal_Flash g_whalFlash;
 extern whal_Crypto g_whalCrypto;
 extern whal_I2c g_whalI2c;
 
@@ -35,178 +33,173 @@ enum {
 #define BOARD_FLASH_TEST_ADDR     0x0807F000
 #define BOARD_FLASH_SECTOR_SZ     0x1000
 
-/* BOARD_*_DEV: how this board reaches each peripheral. WHAL_SINGLETON for
+/* BOARD_*_DEV: how this board reaches each peripheral. WHAL_INTERNAL_DEV for
  * single-instance drivers (driver ignores the pointer); &g_whal<X> for
  * drivers still using vtable dispatch / pointer-based path. */
-#define BOARD_GPIO_DEV       WHAL_SINGLETON
+#define BOARD_GPIO_DEV       WHAL_INTERNAL_DEV
 #define BOARD_UART_DEV       (&g_whalUart)
 #define BOARD_SPI_DEV        (&g_whalSpi)
 #define BOARD_I2C_DEV        (&g_whalI2c)
-#define BOARD_FLASH_DEV      (&g_whalFlash)
-#define BOARD_CLOCK_DEV      (&g_whalClock)
-#define BOARD_WATCHDOG_DEV   WHAL_SINGLETON
-#define BOARD_RNG_DEV        WHAL_SINGLETON
-#define BOARD_AES_ECB_DEV    WHAL_SINGLETON
-#define BOARD_AES_CBC_DEV    WHAL_SINGLETON
-#define BOARD_AES_CTR_DEV    WHAL_SINGLETON
-#define BOARD_AES_GCM_DEV    WHAL_SINGLETON
-#define BOARD_AES_GMAC_DEV   WHAL_SINGLETON
-#define BOARD_AES_CCM_DEV    WHAL_SINGLETON
+#define BOARD_FLASH_DEV      ((whal_Flash *)&whal_Stm32wb_Flash_Dev)
+#define BOARD_WATCHDOG_DEV   WHAL_INTERNAL_DEV
+#define BOARD_RNG_DEV        WHAL_INTERNAL_DEV
+#define BOARD_AES_ECB_DEV    WHAL_INTERNAL_DEV
+#define BOARD_AES_CBC_DEV    WHAL_INTERNAL_DEV
+#define BOARD_AES_CTR_DEV    WHAL_INTERNAL_DEV
+#define BOARD_AES_GCM_DEV    WHAL_INTERNAL_DEV
+#define BOARD_AES_GMAC_DEV   WHAL_INTERNAL_DEV
+#define BOARD_AES_CCM_DEV    WHAL_INTERNAL_DEV
 
-/* GPIO singleton — referenced by stm32wb_gpio.c directly. */
-static const whal_Gpio whal_Stm32wb_Gpio_Dev = {
-    .base = WHAL_STM32WB55_GPIO_BASE,
-    .cfg  = (void *)&(const whal_Stm32wb_Gpio_Cfg){
-        .pinCfg = (const whal_Stm32wb_Gpio_PinCfg[PIN_COUNT]){
-            [LED_PIN] = WHAL_STM32WB_GPIO_PIN(
-                WHAL_STM32WB_GPIO_PORT_B, 5, WHAL_STM32WB_GPIO_MODE_OUT,
-                WHAL_STM32WB_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32WB_GPIO_SPEED_LOW,
-                WHAL_STM32WB_GPIO_PULL_UP, 0),
-            [UART_TX_PIN] = WHAL_STM32WB_GPIO_PIN(
-                WHAL_STM32WB_GPIO_PORT_B, 6, WHAL_STM32WB_GPIO_MODE_ALTFN,
-                WHAL_STM32WB_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32WB_GPIO_SPEED_FAST,
-                WHAL_STM32WB_GPIO_PULL_UP, 7),
-            [UART_RX_PIN] = WHAL_STM32WB_GPIO_PIN(
-                WHAL_STM32WB_GPIO_PORT_B, 7, WHAL_STM32WB_GPIO_MODE_ALTFN,
-                WHAL_STM32WB_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32WB_GPIO_SPEED_FAST,
-                WHAL_STM32WB_GPIO_PULL_UP, 7),
-            [SPI_SCK_PIN] = WHAL_STM32WB_GPIO_PIN(
-                WHAL_STM32WB_GPIO_PORT_A, 5, WHAL_STM32WB_GPIO_MODE_ALTFN,
-                WHAL_STM32WB_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32WB_GPIO_SPEED_FAST,
-                WHAL_STM32WB_GPIO_PULL_NONE, 5),
-            [SPI_MISO_PIN] = WHAL_STM32WB_GPIO_PIN(
-                WHAL_STM32WB_GPIO_PORT_A, 6, WHAL_STM32WB_GPIO_MODE_ALTFN,
-                WHAL_STM32WB_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32WB_GPIO_SPEED_FAST,
-                WHAL_STM32WB_GPIO_PULL_NONE, 5),
-            [SPI_MOSI_PIN] = WHAL_STM32WB_GPIO_PIN(
-                WHAL_STM32WB_GPIO_PORT_A, 7, WHAL_STM32WB_GPIO_MODE_ALTFN,
-                WHAL_STM32WB_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32WB_GPIO_SPEED_FAST,
-                WHAL_STM32WB_GPIO_PULL_NONE, 5),
-            [SPI_CS_PIN] = WHAL_STM32WB_GPIO_PIN(
-                WHAL_STM32WB_GPIO_PORT_A, 4, WHAL_STM32WB_GPIO_MODE_OUT,
-                WHAL_STM32WB_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32WB_GPIO_SPEED_FAST,
-                WHAL_STM32WB_GPIO_PULL_UP, 0),
-            [I2C_SCL_PIN] = WHAL_STM32WB_GPIO_PIN(
-                WHAL_STM32WB_GPIO_PORT_B, 8, WHAL_STM32WB_GPIO_MODE_ALTFN,
-                WHAL_STM32WB_GPIO_OUTTYPE_OPENDRAIN, WHAL_STM32WB_GPIO_SPEED_FAST,
-                WHAL_STM32WB_GPIO_PULL_UP, 4),
-            [I2C_SDA_PIN] = WHAL_STM32WB_GPIO_PIN(
-                WHAL_STM32WB_GPIO_PORT_B, 9, WHAL_STM32WB_GPIO_MODE_ALTFN,
-                WHAL_STM32WB_GPIO_OUTTYPE_OPENDRAIN, WHAL_STM32WB_GPIO_SPEED_FAST,
-                WHAL_STM32WB_GPIO_PULL_UP, 4),
-        },
-        .pinCount = PIN_COUNT,
-    },
-};
+/* GPIO dev initializer — singleton defined in stm32wb_gpio.c. */
+#define WHAL_CFG_STM32WB_GPIO_DEV { \
+    .base = WHAL_STM32WB55_GPIO_BASE, \
+    .cfg  = (void *)&(const whal_Stm32wb_Gpio_Cfg){ \
+        .pinCfg = (const whal_Stm32wb_Gpio_PinCfg[PIN_COUNT]){ \
+            [LED_PIN] = WHAL_STM32WB_GPIO_PIN( \
+                WHAL_STM32WB_GPIO_PORT_B, 5, WHAL_STM32WB_GPIO_MODE_OUT, \
+                WHAL_STM32WB_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32WB_GPIO_SPEED_LOW, \
+                WHAL_STM32WB_GPIO_PULL_UP, 0), \
+            [UART_TX_PIN] = WHAL_STM32WB_GPIO_PIN( \
+                WHAL_STM32WB_GPIO_PORT_B, 6, WHAL_STM32WB_GPIO_MODE_ALTFN, \
+                WHAL_STM32WB_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32WB_GPIO_SPEED_FAST, \
+                WHAL_STM32WB_GPIO_PULL_UP, 7), \
+            [UART_RX_PIN] = WHAL_STM32WB_GPIO_PIN( \
+                WHAL_STM32WB_GPIO_PORT_B, 7, WHAL_STM32WB_GPIO_MODE_ALTFN, \
+                WHAL_STM32WB_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32WB_GPIO_SPEED_FAST, \
+                WHAL_STM32WB_GPIO_PULL_UP, 7), \
+            [SPI_SCK_PIN] = WHAL_STM32WB_GPIO_PIN( \
+                WHAL_STM32WB_GPIO_PORT_A, 5, WHAL_STM32WB_GPIO_MODE_ALTFN, \
+                WHAL_STM32WB_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32WB_GPIO_SPEED_FAST, \
+                WHAL_STM32WB_GPIO_PULL_NONE, 5), \
+            [SPI_MISO_PIN] = WHAL_STM32WB_GPIO_PIN( \
+                WHAL_STM32WB_GPIO_PORT_A, 6, WHAL_STM32WB_GPIO_MODE_ALTFN, \
+                WHAL_STM32WB_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32WB_GPIO_SPEED_FAST, \
+                WHAL_STM32WB_GPIO_PULL_NONE, 5), \
+            [SPI_MOSI_PIN] = WHAL_STM32WB_GPIO_PIN( \
+                WHAL_STM32WB_GPIO_PORT_A, 7, WHAL_STM32WB_GPIO_MODE_ALTFN, \
+                WHAL_STM32WB_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32WB_GPIO_SPEED_FAST, \
+                WHAL_STM32WB_GPIO_PULL_NONE, 5), \
+            [SPI_CS_PIN] = WHAL_STM32WB_GPIO_PIN( \
+                WHAL_STM32WB_GPIO_PORT_A, 4, WHAL_STM32WB_GPIO_MODE_OUT, \
+                WHAL_STM32WB_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32WB_GPIO_SPEED_FAST, \
+                WHAL_STM32WB_GPIO_PULL_UP, 0), \
+            [I2C_SCL_PIN] = WHAL_STM32WB_GPIO_PIN( \
+                WHAL_STM32WB_GPIO_PORT_B, 8, WHAL_STM32WB_GPIO_MODE_ALTFN, \
+                WHAL_STM32WB_GPIO_OUTTYPE_OPENDRAIN, WHAL_STM32WB_GPIO_SPEED_FAST, \
+                WHAL_STM32WB_GPIO_PULL_UP, 4), \
+            [I2C_SDA_PIN] = WHAL_STM32WB_GPIO_PIN( \
+                WHAL_STM32WB_GPIO_PORT_B, 9, WHAL_STM32WB_GPIO_MODE_ALTFN, \
+                WHAL_STM32WB_GPIO_OUTTYPE_OPENDRAIN, WHAL_STM32WB_GPIO_SPEED_FAST, \
+                WHAL_STM32WB_GPIO_PULL_UP, 4), \
+        }, \
+        .pinCount = PIN_COUNT, \
+    }, \
+}
 
-/* AES crypto + mode singletons — referenced by stm32wb_aes.c directly. */
-static const whal_Crypto whal_Stm32wb_Aes_Dev = {
-    .base = WHAL_STM32WB55_AES1_BASE,
-    /* .driver: direct API mapping */
-    .cfg = (void *)&(const whal_Stm32wb_Aes_Cfg){
-        .timeout = &g_whalTimeout,
-    },
-};
+/* AES crypto + mode dev initializers — singletons defined in stm32wb_aes.c.
+ * Mutable GCM/CCM state buffers (g_stm32wbAesGcm/CcmDevState) are static in
+ * the driver TU. */
+#define WHAL_CFG_STM32WB_AES_DEV { \
+    .base = WHAL_STM32WB55_AES1_BASE, \
+    /* .driver: direct API mapping */ \
+    .cfg  = (void *)&(const whal_Stm32wb_Aes_Cfg){ \
+        .timeout = &g_whalTimeout, \
+    }, \
+}
 
-static const whal_AesEcb whal_Stm32wb_AesEcb_Dev = {
-    .crypto = (whal_Crypto *)&whal_Stm32wb_Aes_Dev,
-    /* .driver: direct API mapping */
-};
+#define WHAL_CFG_STM32WB_AES_ECB_DEV { \
+    .crypto = (whal_Crypto *)&whal_Stm32wb_Aes_Dev, \
+    /* .driver: direct API mapping */ \
+}
 
-static const whal_AesCbc whal_Stm32wb_AesCbc_Dev = {
-    .crypto = (whal_Crypto *)&whal_Stm32wb_Aes_Dev,
-    /* .driver: direct API mapping */
-};
+#define WHAL_CFG_STM32WB_AES_CBC_DEV { \
+    .crypto = (whal_Crypto *)&whal_Stm32wb_Aes_Dev, \
+    /* .driver: direct API mapping */ \
+}
 
-static const whal_AesCtr whal_Stm32wb_AesCtr_Dev = {
-    .crypto = (whal_Crypto *)&whal_Stm32wb_Aes_Dev,
-    /* .driver: direct API mapping */
-};
+#define WHAL_CFG_STM32WB_AES_CTR_DEV { \
+    .crypto = (whal_Crypto *)&whal_Stm32wb_Aes_Dev, \
+    /* .driver: direct API mapping */ \
+}
 
-static whal_Stm32wb_AesGcm_State g_aesGcmDevState;
-static const whal_AesGcm whal_Stm32wb_AesGcm_Dev = {
-    .crypto = (whal_Crypto *)&whal_Stm32wb_Aes_Dev,
-    /* .driver: direct API mapping */
-    .state = &g_aesGcmDevState,
-};
+#define WHAL_CFG_STM32WB_AES_GCM_DEV { \
+    .crypto = (whal_Crypto *)&whal_Stm32wb_Aes_Dev, \
+    /* .driver: direct API mapping */ \
+    .state  = &g_stm32wbAesGcmDevState, \
+}
 
-static const whal_AesGmac whal_Stm32wb_AesGmac_Dev = {
-    .crypto = (whal_Crypto *)&whal_Stm32wb_Aes_Dev,
-    /* .driver: direct API mapping */
-};
+#define WHAL_CFG_STM32WB_AES_GMAC_DEV { \
+    .crypto = (whal_Crypto *)&whal_Stm32wb_Aes_Dev, \
+    /* .driver: direct API mapping */ \
+}
 
-static whal_Stm32wb_AesCcm_State g_aesCcmDevState;
-static const whal_AesCcm whal_Stm32wb_AesCcm_Dev = {
-    .crypto = (whal_Crypto *)&whal_Stm32wb_Aes_Dev,
-    /* .driver: direct API mapping */
-    .state = &g_aesCcmDevState,
-};
+#define WHAL_CFG_STM32WB_AES_CCM_DEV { \
+    .crypto = (whal_Crypto *)&whal_Stm32wb_Aes_Dev, \
+    /* .driver: direct API mapping */ \
+    .state  = &g_stm32wbAesCcmDevState, \
+}
 
-/* Flash singleton — referenced by stm32wb_flash.c directly. Const cfg lives
- * here; the dispatcher stub g_whalFlash in board.c carries only .driver so
- * whal_Flash_* can be vtable-dispatched alongside other flash drivers (e.g.
- * SPI NOR W25Q64). */
-static const whal_Flash whal_Stm32wb_Flash_Dev = {
-    .base = WHAL_STM32WB55_FLASH_BASE,
+/* Flash dev initializer — the singleton itself is defined in stm32wb_flash.c
+ * (which #includes this header). BOARD_FLASH_DEV takes its address so
+ * whal_Flash_* can dispatch via .driver alongside coexisting flash drivers
+ * (e.g. SPI NOR W25Q64). */
+#define WHAL_CFG_STM32WB_FLASH_DEV { \
+    .driver = WHAL_STM32WB55_FLASH_DRIVER, \
+    .base   = WHAL_STM32WB55_FLASH_BASE, \
+    .cfg    = (void *)&(const whal_Stm32wb_Flash_Cfg){ \
+        .timeout   = &g_whalTimeout, \
+        .startAddr = 0x08000000, \
+        .size      = 0x80000, /* 512 KB (upper half reserved for BLE stack) */ \
+    }, \
+}
 
-    .cfg = (void *)&(const whal_Stm32wb_Flash_Cfg){
-        .timeout = &g_whalTimeout,
-        .startAddr = 0x08000000,
-        .size = 0x80000, /* 512 KB (upper half reserved for BLE stack) */
-    },
-};
+/* IWDG dev initializer — singleton defined in stm32wb_iwdg.c. */
+#define WHAL_CFG_STM32WB_IWDG_DEV { \
+    .base = WHAL_STM32WB55_IWDG_BASE, \
+    /* .driver: direct API mapping */ \
+    .cfg  = (void *)&(const whal_Stm32wb_Iwdg_Cfg){ \
+        .prescaler = WHAL_STM32WB_IWDG_PR_32, \
+        .reload    = 100, \
+        .timeout   = &g_whalTimeout, \
+    }, \
+}
 
-/* IWDG singleton — referenced by stm32wb_iwdg.c directly. */
-static const whal_Watchdog whal_Stm32wb_Iwdg_Dev = {
-    .base = WHAL_STM32WB55_IWDG_BASE,
-    /* .driver: direct API mapping */
+/* WWDG dev initializer — singleton defined in stm32wb_wwdg.c. */
+#define WHAL_CFG_STM32WB_WWDG_DEV { \
+    .base = WHAL_STM32WB55_WWDG_BASE, \
+    /* .driver: direct API mapping */ \
+    .cfg  = (void *)&(const whal_Stm32wb_Wwdg_Cfg){ \
+        .prescaler = WHAL_STM32WB_WWDG_TB_128, \
+        .window    = 0x7F, \
+        .counter   = 0x7F, \
+    }, \
+}
 
-    .cfg = (void *)&(const whal_Stm32wb_Iwdg_Cfg){
-        .prescaler = WHAL_STM32WB_IWDG_PR_32,
-        .reload = 100,
-        .timeout = &g_whalTimeout,
-    },
-};
+/* RNG dev initializer — singleton defined in stm32wb_rng.c. */
+#define WHAL_CFG_STM32WB_RNG_DEV { \
+    .base = WHAL_STM32WB55_RNG_BASE, \
+    /* .driver: direct API mapping */ \
+    .cfg  = (void *)&(const whal_Stm32wb_Rng_Cfg){ \
+        .timeout = &g_whalTimeout, \
+    }, \
+}
 
-/* WWDG singleton — referenced by stm32wb_wwdg.c directly. */
-static const whal_Watchdog whal_Stm32wb_Wwdg_Dev = {
-    .base = WHAL_STM32WB55_WWDG_BASE,
-    /* .driver: direct API mapping */
+/* NVIC dev initializer — singleton defined in cortex_m4_nvic.c. */
+#define WHAL_CFG_NVIC_DEV { \
+    .base = WHAL_CORTEX_M4_NVIC_BASE, \
+    /* .driver: direct API mapping */ \
+}
 
-    .cfg = (void *)&(const whal_Stm32wb_Wwdg_Cfg){
-        .prescaler = WHAL_STM32WB_WWDG_TB_128,
-        .window = 0x7F,
-        .counter = 0x7F,
-    },
-};
-
-/* RNG singleton — referenced by stm32wb_rng.c directly. */
-static const whal_Rng whal_Stm32wb_Rng_Dev = {
-    .base = WHAL_STM32WB55_RNG_BASE,
-    /* .driver: direct API mapping */
-
-    .cfg = (void *)&(const whal_Stm32wb_Rng_Cfg){
-        .timeout = &g_whalTimeout,
-    },
-};
-
-/* NVIC singleton — referenced by cortex_m4_nvic.c directly. */
-static const whal_Irq whal_Nvic_Dev = {
-    .base = WHAL_CORTEX_M4_NVIC_BASE,
-    /* .driver: direct API mapping */
-};
-
-/* SysTick singleton — referenced by systick.c directly. */
-static const whal_Timer whal_SysTick_Dev = {
-    .base = WHAL_CORTEX_M4_SYSTICK_BASE,
-    /* .driver: direct API mapping */
-
-    .cfg = (void *)&(const whal_SysTick_Cfg){
-        .cyclesPerTick = 64000000 / 1000,
-        .clkSrc = WHAL_SYSTICK_CLKSRC_SYSCLK,
-        .tickInt = WHAL_SYSTICK_TICKINT_ENABLED,
-    },
-};
+/* SysTick dev initializer — singleton defined in systick.c. */
+#define WHAL_CFG_SYSTICK_DEV { \
+    .base = WHAL_CORTEX_M4_SYSTICK_BASE, \
+    /* .driver: direct API mapping */ \
+    .cfg  = (void *)&(const whal_SysTick_Cfg){ \
+        .cyclesPerTick = 64000000 / 1000, \
+        .clkSrc  = WHAL_SYSTICK_CLKSRC_SYSCLK, \
+        .tickInt = WHAL_SYSTICK_TICKINT_ENABLED, \
+    }, \
+}
 
 whal_Error Board_Init(void);
 whal_Error Board_Deinit(void);

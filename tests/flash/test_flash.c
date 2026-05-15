@@ -10,15 +10,6 @@ static size_t g_testFlashSectorSz;
 
 static void Test_Flash_Api(void)
 {
-    uint8_t buf[8];
-
-    WHAL_ASSERT_EQ(whal_Flash_Init(NULL), WHAL_EINVAL);
-    WHAL_ASSERT_EQ(whal_Flash_Deinit(NULL), WHAL_EINVAL);
-    WHAL_ASSERT_EQ(whal_Flash_Lock(NULL, 0, 0), WHAL_EINVAL);
-    WHAL_ASSERT_EQ(whal_Flash_Unlock(NULL, 0, 0), WHAL_EINVAL);
-    WHAL_ASSERT_EQ(whal_Flash_Read(NULL, 0, buf, sizeof(buf)), WHAL_EINVAL);
-    WHAL_ASSERT_EQ(whal_Flash_Write(NULL, 0, buf, sizeof(buf)), WHAL_EINVAL);
-    WHAL_ASSERT_EQ(whal_Flash_Erase(NULL, 0, sizeof(buf)), WHAL_EINVAL);
     WHAL_ASSERT_EQ(whal_Flash_Read(g_testFlashDev, 0, NULL, 8), WHAL_EINVAL);
     WHAL_ASSERT_EQ(whal_Flash_Write(g_testFlashDev, 0, NULL, 8), WHAL_EINVAL);
 }

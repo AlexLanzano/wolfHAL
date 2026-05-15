@@ -34,8 +34,6 @@
 
 /* --- Regmap and driver macros --- */
 
-#define WHAL_STM32WBA55_RCC_BASE 0x46020C00
-
 #define WHAL_STM32WBA55_GPIO_BASE 0x42020000
 #define WHAL_STM32WBA55_GPIO_DRIVER &whal_Stm32wba_Gpio_Driver
 
@@ -67,8 +65,10 @@
 #define WHAL_STM32WBA55_GPDMA1_DRIVER &whal_Stm32wba_Gpdma_Driver
 
 #define WHAL_STM32WBA55_AES_BASE 0x420C0000
+#define WHAL_STM32WBA55_AES_DRIVER &whal_Stm32wba_Aes_CryptoDriver
 
 #define WHAL_STM32WBA55_HASH_BASE 0x420C0400
+#define WHAL_STM32WBA55_HASH_DRIVER &whal_Stm32wba_Hash_CryptoDriver
 
 #define WHAL_STM32WBA55_IWDG_BASE 0x40003000
 #define WHAL_STM32WBA55_IWDG_DRIVER &whal_Stm32wba_Iwdg_Driver

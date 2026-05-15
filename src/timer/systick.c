@@ -1,9 +1,11 @@
-#include "board.h"  /* provides whal_SysTick_Dev singleton */
+#include "board.h"  /* provides WHAL_CFG_SYSTICK_DEV initializer */
 #include <wolfHAL/error.h>
-#include <wolfHAL/regmap.h>
+#include <wolfHAL/reg.h>
 #include <wolfHAL/bitops.h>
 #include <wolfHAL/timer/timer.h>
 #include <wolfHAL/timer/systick.h>
+
+const whal_Timer whal_SysTick_Dev = WHAL_CFG_SYSTICK_DEV;
 
 #define SYSTICK_CSR_REG 0x00
 #define SYSTICK_CSR_ENABLE_Pos 0

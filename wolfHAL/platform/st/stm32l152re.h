@@ -11,7 +11,6 @@
 #include <wolfHAL/i2c/stm32l1_i2c.h>
 #include <wolfHAL/watchdog/stm32l1_iwdg.h>
 #include <wolfHAL/watchdog/stm32l1_wwdg.h>
-#include <wolfHAL/power/stm32l1_pwr.h>
 
 /*
  * @file stm32l152re.h
@@ -30,8 +29,6 @@
  */
 
 /* --- Device macros --- */
-
-#define WHAL_STM32L152_RCC_BASE 0x40023800
 
 #define WHAL_STM32L152_GPIO_BASE 0x40020000
 #define WHAL_STM32L152_GPIO_DRIVER &whal_Stm32l1_Gpio_Driver
@@ -68,8 +65,6 @@
 
 #define WHAL_STM32L152_WWDG_BASE 0x40002C00
 #define WHAL_STM32L152_WWDG_DRIVER &whal_Stm32l1_Wwdg_Driver
-
-#define WHAL_STM32L152_PWR_BASE 0x40007000
 
 /* --- Clock gate macros --- */
 

@@ -3,11 +3,8 @@
 #include "board.h"
 #include "test.h"
 
-#ifdef WHAL_TEST_ENABLE_CLOCK
-void whal_Test_Clock(void);
 #ifdef WHAL_TEST_ENABLE_CLOCK_PLATFORM
 void whal_Test_Clock_Platform(void);
-#endif
 #endif
 
 #ifdef WHAL_TEST_ENABLE_GPIO
@@ -52,11 +49,8 @@ void whal_Test_Spi_Loopback_Platform(void);
 #endif
 #endif
 
-#ifdef WHAL_TEST_ENABLE_CRYPTO
-void whal_Test_Crypto(void);
 #ifdef WHAL_TEST_ENABLE_CRYPTO_PLATFORM
 void whal_Test_Crypto_Platform(void);
-#endif
 #endif
 
 #ifdef WHAL_TEST_ENABLE_AES_ECB
@@ -143,18 +137,12 @@ void whal_Test_I2c_Platform(void);
 #endif
 #endif
 
-#ifdef WHAL_TEST_ENABLE_DMA
-void whal_Test_Dma(void);
 #ifdef WHAL_TEST_ENABLE_DMA_PLATFORM
 void whal_Test_Dma_Platform(void);
 #endif
-#endif
 
-#ifdef WHAL_TEST_ENABLE_IRQ
-void whal_Test_Irq(void);
 #ifdef WHAL_TEST_ENABLE_IRQ_PLATFORM
 void whal_Test_Irq_Platform(void);
-#endif
 #endif
 
 #ifdef WHAL_TEST_ENABLE_SENSOR
@@ -196,11 +184,8 @@ void main(void)
     whal_Test_Printf("wolfHAL HW Test Suite\n");
     whal_Test_Printf("=====================\n");
 
-#ifdef WHAL_TEST_ENABLE_CLOCK
-    whal_Test_Clock();
 #ifdef WHAL_TEST_ENABLE_CLOCK_PLATFORM
     whal_Test_Clock_Platform();
-#endif
 #endif
 
 #ifdef WHAL_TEST_ENABLE_GPIO
@@ -245,11 +230,8 @@ void main(void)
 #endif
 #endif
 
-#ifdef WHAL_TEST_ENABLE_CRYPTO
-    whal_Test_Crypto();
 #ifdef WHAL_TEST_ENABLE_CRYPTO_PLATFORM
     whal_Test_Crypto_Platform();
-#endif
 #endif
 
 #ifdef WHAL_TEST_ENABLE_AES_ECB
@@ -336,18 +318,12 @@ void main(void)
 #endif
 #endif
 
-#ifdef WHAL_TEST_ENABLE_DMA
-    whal_Test_Dma();
 #ifdef WHAL_TEST_ENABLE_DMA_PLATFORM
     whal_Test_Dma_Platform();
 #endif
-#endif
 
-#ifdef WHAL_TEST_ENABLE_IRQ
-    whal_Test_Irq();
 #ifdef WHAL_TEST_ENABLE_IRQ_PLATFORM
     whal_Test_Irq_Platform();
-#endif
 #endif
 
 #ifdef WHAL_TEST_ENABLE_SENSOR

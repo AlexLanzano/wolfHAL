@@ -3,9 +3,8 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#include <wolfHAL/power/power.h>
 #include <wolfHAL/error.h>
-#include <wolfHAL/regmap.h>
+#include <wolfHAL/reg.h>
 #include <wolfHAL/bitops.h>
 #include <wolfHAL/timeout.h>
 
@@ -14,8 +13,9 @@
  * @brief STM32L1 PWR (power control) driver.
  *
  * Boards bring up the regulator imperatively from Board_Init by calling
- * the helpers below. Power is a board-level driver — there is no generic
- * whal_Power_* API or vtable.
+ * the helpers below. Power is a board-level driver — there is no whal_Power
+ * device struct, no generic API, no vtable. The base address is the chip's
+ * fixed PWR location (WHAL_STM32L1_PWR_BASE).
  *
  * The internal voltage regulator output range (PWR_CR.VOS) bounds the
  * maximum permitted SYSCLK and PLL VCO frequencies. Must be configured
@@ -25,6 +25,8 @@
  *   Range 2 (1.5 V): SYSCLK <= 16 MHz, PLL VCO <= 48 MHz. Reset default.
  *   Range 3 (1.2 V): SYSCLK <=  4 MHz, PLL disabled.
  */
+
+#define WHAL_STM32L1_PWR_BASE         0x40007000
 
 #define WHAL_STM32L1_PWR_CR_REG       0x00
 #define WHAL_STM32L1_PWR_CR_VOS_Pos   11
@@ -49,7 +51,6 @@ typedef enum {
  * writes the new range to PWR_CR.VOS, then waits for VOSF == 0 again. Must
  * be called before raising the system clock past the current range's limit.
  *
- * @param powerDev Power device instance.
  * @param range    Target VOS range.
  * @param timeout  Timeout instance (NULL for unbounded wait).
  *
@@ -57,22 +58,21 @@ typedef enum {
  * @retval WHAL_ETIMEOUT VOSF didn't clear within the timeout.
  */
 static inline whal_Error whal_Stm32l1_Pwr_SetVosRange(
-    const whal_Power *powerDev, whal_Stm32l1_Pwr_VosRange range,
-    whal_Timeout *timeout)
+    whal_Stm32l1_Pwr_VosRange range, whal_Timeout *timeout)
 {
     whal_Error err;
 
-    err = whal_Reg_ReadPoll(powerDev->base, WHAL_STM32L1_PWR_CSR_REG,
+    err = whal_Reg_ReadPoll(WHAL_STM32L1_PWR_BASE, WHAL_STM32L1_PWR_CSR_REG,
                             WHAL_STM32L1_PWR_CSR_VOSF_Msk, 0, timeout);
     if (err)
         return err;
 
-    whal_Reg_Update(powerDev->base, WHAL_STM32L1_PWR_CR_REG,
+    whal_Reg_Update(WHAL_STM32L1_PWR_BASE, WHAL_STM32L1_PWR_CR_REG,
                     WHAL_STM32L1_PWR_CR_VOS_Msk,
                     whal_SetBits(WHAL_STM32L1_PWR_CR_VOS_Msk,
                                  WHAL_STM32L1_PWR_CR_VOS_Pos, range));
 
-    return whal_Reg_ReadPoll(powerDev->base, WHAL_STM32L1_PWR_CSR_REG,
+    return whal_Reg_ReadPoll(WHAL_STM32L1_PWR_BASE, WHAL_STM32L1_PWR_CSR_REG,
                              WHAL_STM32L1_PWR_CSR_VOSF_Msk, 0, timeout);
 }
 

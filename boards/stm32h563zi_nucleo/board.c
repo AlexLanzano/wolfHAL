@@ -25,11 +25,6 @@ whal_Timeout g_whalTimeout = {
     .GetTick = Board_GetTick,
 };
 
-/* Clock */
-whal_Clock g_whalClock = {
-    .base = WHAL_STM32H563_RCC_BASE,
-};
-
 static const whal_Stm32h5_Rcc_PeriphClk g_periphClks[] = {
     {WHAL_STM32H563_GPIOA_CLOCK},
     {WHAL_STM32H563_GPIOB_CLOCK},
@@ -74,13 +69,6 @@ whal_Spi g_whalSpi = {
     },
 };
 
-/* Flash — dispatcher stub. The const cfg lives in board.h as
- * whal_Stm32h5_Flash_Dev; this only carries .driver so whal_Flash_* can
- * dispatch through the vtable. */
-whal_Flash g_whalFlash = {
-    .driver = WHAL_STM32H563_FLASH_DRIVER,
-};
-
 /* Ethernet descriptor rings + buffer pool (referenced by the ETH singleton
  * cfg in board.h). */
 whal_Stm32h5_Eth_TxDesc ethTxDescs[BOARD_ETH_TX_DESC_COUNT]
@@ -119,29 +107,29 @@ whal_Error Board_Init(void)
     /* RCC_CR.HSIDIV resets to /4 (16 MHz) on H5, not /1. Force it back to
      * /1 so the PLL sees 64 MHz; otherwise the divider chain below silently
      * lands on 42 MHz instead of 168 MHz. */
-    err = whal_Stm32h5_Rcc_SetHsiDiv(&g_whalClock, 0);
+    err = whal_Stm32h5_Rcc_SetHsiDiv(0);
     if (err)
         return err;
 
-    err = whal_Stm32h5_Rcc_EnableOsc(&g_whalClock,
+    err = whal_Stm32h5_Rcc_EnableOsc(
         &(whal_Stm32h5_Rcc_OscCfg){WHAL_STM32H5_RCC_HSI_CFG});
     if (err)
         return err;
 
-    err = whal_Stm32h5_Rcc_EnablePll1(&g_whalClock, &(whal_Stm32h5_Rcc_PllCfg){
+    err = whal_Stm32h5_Rcc_EnablePll1(&(whal_Stm32h5_Rcc_PllCfg){
         .clkSrc = WHAL_STM32H5_RCC_PLLCLK_SRC_HSI,
         .m = 8, .n = 62, .p = 2, .q = 2, .r = 2,
     });
     if (err)
         return err;
 
-    err = whal_Stm32h5_Rcc_SetSysClock(&g_whalClock, WHAL_STM32H5_RCC_SYSCLK_SRC_PLL1);
+    err = whal_Stm32h5_Rcc_SetSysClock(WHAL_STM32H5_RCC_SYSCLK_SRC_PLL1);
     if (err)
         return err;
 
     /* Enable clocks (excludes ETH — needs SBS RMII config first) */
     for (size_t i = 0; i < PERIPH_CLK_COUNT; i++) {
-        err = whal_Stm32h5_Rcc_EnablePeriphClk(&g_whalClock, &g_periphClks[i]);
+        err = whal_Stm32h5_Rcc_EnablePeriphClk(&g_periphClks[i]);
         if (err)
             return err;
     }
@@ -152,18 +140,18 @@ whal_Error Board_Init(void)
 
     /* Enable ETH clocks after RMII mode is selected */
     for (size_t i = 0; i < ETH_CLOCK_COUNT; i++) {
-        err = whal_Stm32h5_Rcc_EnablePeriphClk(&g_whalClock, &g_ethClocks[i]);
+        err = whal_Stm32h5_Rcc_EnablePeriphClk(&g_ethClocks[i]);
         if (err)
             return err;
     }
 
     /* Enable HSI48 for RNG kernel clock */
-    err = whal_Stm32h5_Rcc_EnableOsc(&g_whalClock,
+    err = whal_Stm32h5_Rcc_EnableOsc(
         &(whal_Stm32h5_Rcc_OscCfg){WHAL_STM32H5_RCC_HSI48_CFG});
     if (err)
         return err;
 
-    err = whal_Gpio_Init(WHAL_SINGLETON);
+    err = whal_Gpio_Init(WHAL_INTERNAL_DEV);
     if (err)
         return err;
 
@@ -175,23 +163,23 @@ whal_Error Board_Init(void)
     if (err)
         return err;
 
-    err = whal_Rng_Init(WHAL_SINGLETON);
+    err = whal_Rng_Init(WHAL_INTERNAL_DEV);
     if (err)
         return err;
 
-    err = whal_Eth_Init(WHAL_SINGLETON);
+    err = whal_Eth_Init(WHAL_INTERNAL_DEV);
     if (err)
         return err;
 
-    err = whal_EthPhy_Init(WHAL_SINGLETON);
+    err = whal_EthPhy_Init(WHAL_INTERNAL_DEV);
     if (err)
         return err;
 
-    err = whal_Timer_Init(WHAL_SINGLETON);
+    err = whal_Timer_Init(WHAL_INTERNAL_DEV);
     if (err)
         return err;
 
-    err = whal_Timer_Start(WHAL_SINGLETON);
+    err = whal_Timer_Start(WHAL_INTERNAL_DEV);
     if (err)
         return err;
 
@@ -210,23 +198,23 @@ whal_Error Board_Deinit(void)
     if (err)
         return err;
 
-    err = whal_Timer_Stop(WHAL_SINGLETON);
+    err = whal_Timer_Stop(WHAL_INTERNAL_DEV);
     if (err)
         return err;
 
-    err = whal_Timer_Deinit(WHAL_SINGLETON);
+    err = whal_Timer_Deinit(WHAL_INTERNAL_DEV);
     if (err)
         return err;
 
-    err = whal_EthPhy_Deinit(WHAL_SINGLETON);
+    err = whal_EthPhy_Deinit(WHAL_INTERNAL_DEV);
     if (err)
         return err;
 
-    err = whal_Eth_Deinit(WHAL_SINGLETON);
+    err = whal_Eth_Deinit(WHAL_INTERNAL_DEV);
     if (err)
         return err;
 
-    err = whal_Rng_Deinit(WHAL_SINGLETON);
+    err = whal_Rng_Deinit(WHAL_INTERNAL_DEV);
     if (err)
         return err;
 
@@ -238,28 +226,28 @@ whal_Error Board_Deinit(void)
     if (err)
         return err;
 
-    err = whal_Gpio_Deinit(WHAL_SINGLETON);
+    err = whal_Gpio_Deinit(WHAL_INTERNAL_DEV);
     if (err)
         return err;
 
     /* Disable ETH clocks */
     for (size_t i = ETH_CLOCK_COUNT; i-- > 0; ) {
-        err = whal_Stm32h5_Rcc_DisablePeriphClk(&g_whalClock, &g_ethClocks[i]);
+        err = whal_Stm32h5_Rcc_DisablePeriphClk(&g_ethClocks[i]);
         if (err)
             return err;
     }
 
     /* Disable clocks */
     for (size_t i = PERIPH_CLK_COUNT; i-- > 0; ) {
-        err = whal_Stm32h5_Rcc_DisablePeriphClk(&g_whalClock, &g_periphClks[i]);
+        err = whal_Stm32h5_Rcc_DisablePeriphClk(&g_periphClks[i]);
         if (err)
             return err;
     }
 
-    err = whal_Stm32h5_Rcc_SetSysClock(&g_whalClock, WHAL_STM32H5_RCC_SYSCLK_SRC_HSI);
+    err = whal_Stm32h5_Rcc_SetSysClock(WHAL_STM32H5_RCC_SYSCLK_SRC_HSI);
     if (err)
         return err;
-    err = whal_Stm32h5_Rcc_DisablePll1(&g_whalClock);
+    err = whal_Stm32h5_Rcc_DisablePll1();
     if (err)
         return err;
 

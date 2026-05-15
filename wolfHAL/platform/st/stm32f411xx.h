@@ -28,8 +28,6 @@
 
 /* --- Device macros --- */
 
-#define WHAL_STM32F411_RCC_BASE 0x40023800
-
 #define WHAL_STM32F411_GPIO_BASE 0x40020000
 #define WHAL_STM32F411_GPIO_DRIVER &whal_Stm32f4_Gpio_Driver
 
