@@ -2,7 +2,6 @@
 #define WHAL_TIMER_H
 
 #include <wolfHAL/error.h>
-#include <wolfHAL/regmap.h>
 #include <stddef.h>
 
 /*
@@ -32,7 +31,7 @@ typedef struct {
  * @brief Timer device instance pairing configuration with a driver.
  */
 struct whal_Timer{
-    const whal_Regmap regmap;
+    const size_t base;
     const whal_TimerDriver *driver;
     void *cfg;
 };

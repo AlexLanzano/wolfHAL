@@ -4,14 +4,18 @@
 #include <wolfHAL/timer/systick.h>
 #include <wolfHAL/irq/cortex_m4_nvic.h>
 
-#define WHAL_CORTEX_M55_SYSTICK_REGMAP  \
-    .base = 0xE000E010,                 \
-    .size = 0x400
+/*
+ * @file cortex_m55.h
+ * @brief ARM Cortex-M55 core platform constants.
+ *
+ * Exposes SysTick and NVIC base addresses and driver pointers for boards
+ * built on the Cortex-M55 core. Pulled in by chip-specific platform headers.
+ */
+
+#define WHAL_CORTEX_M55_SYSTICK_BASE 0xE000E010
 #define WHAL_CORTEX_M55_SYSTICK_DRIVER &whal_SysTick_Driver
 
-#define WHAL_CORTEX_M55_NVIC_REGMAP     \
-    .base = 0xE000E100,                 \
-    .size = 0x400
+#define WHAL_CORTEX_M55_NVIC_BASE 0xE000E100
 #define WHAL_CORTEX_M55_NVIC_DRIVER &whal_Nvic_Driver
 
 #endif /* WHAL_CORTEX_M55_H */

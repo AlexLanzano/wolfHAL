@@ -14,6 +14,8 @@
 
 typedef whal_Stm32wb_Uart_Cfg whal_Stm32c0_Uart_Cfg;
 
+#define whal_Stm32c0_Uart_Dev whal_Stm32wb_Uart_Dev
+
 /*
  * @brief Compute UART BRR register value.
  *

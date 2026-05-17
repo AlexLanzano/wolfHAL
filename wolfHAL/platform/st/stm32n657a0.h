@@ -41,78 +41,46 @@
 
 /* --- Regmap and driver macros --- */
 
-#define WHAL_STM32N657_RCC_REGMAP       \
-    .base = 0x46028000,                 \
-    .size = 0x800
-
-#define WHAL_STM32N657_GPIO_REGMAP      \
-    .base = 0x46020000,                 \
-    .size = 0x4400
+#define WHAL_STM32N657_GPIO_BASE 0x46020000
 #define WHAL_STM32N657_GPIO_DRIVER &whal_Stm32n6_Gpio_Driver
 
-#define WHAL_STM32N657_USART1_REGMAP    \
-    .base = 0x42001000,                 \
-    .size = 0x400
+#define WHAL_STM32N657_USART1_BASE 0x42001000
 #define WHAL_STM32N657_USART1_DRIVER &whal_Stm32n6_Uart_Driver
 
-#define WHAL_STM32N657_USART2_REGMAP    \
-    .base = 0x40004400,                 \
-    .size = 0x400
+#define WHAL_STM32N657_USART2_BASE 0x40004400
 #define WHAL_STM32N657_USART2_DRIVER &whal_Stm32n6_Uart_Driver
 
-#define WHAL_STM32N657_USART3_REGMAP    \
-    .base = 0x40004800,                 \
-    .size = 0x400
+#define WHAL_STM32N657_USART3_BASE 0x40004800
 #define WHAL_STM32N657_USART3_DRIVER &whal_Stm32n6_Uart_Driver
 
-#define WHAL_STM32N657_SPI1_REGMAP      \
-    .base = 0x42003000,                 \
-    .size = 0x400
+#define WHAL_STM32N657_SPI1_BASE 0x42003000
 #define WHAL_STM32N657_SPI1_DRIVER &whal_Stm32n6_Spi_Driver
 
-#define WHAL_STM32N657_I2C1_REGMAP      \
-    .base = 0x40005400,                 \
-    .size = 0x400
+#define WHAL_STM32N657_I2C1_BASE 0x40005400
 #define WHAL_STM32N657_I2C1_DRIVER &whal_Stm32n6_I2c_Driver
 
-#define WHAL_STM32N657_I2C4_REGMAP      \
-    .base = 0x46001C00,                 \
-    .size = 0x400
+#define WHAL_STM32N657_I2C4_BASE 0x46001C00
 #define WHAL_STM32N657_I2C4_DRIVER &whal_Stm32n6_I2c_Driver
 
-#define WHAL_STM32N657_RNG_REGMAP       \
-    .base = 0x44020000,                 \
-    .size = 0x400
+#define WHAL_STM32N657_RNG_BASE 0x44020000
 #define WHAL_STM32N657_RNG_DRIVER &whal_Stm32n6_Rng_Driver
 
-#define WHAL_STM32N657_CRYP_REGMAP      \
-    .base = 0x44020800,                 \
-    .size = 0x400
-#define WHAL_STM32N657_CRYP_DRIVER &whal_Stm32n6_Cryp_Driver
+#define WHAL_STM32N657_CRYP_BASE 0x44020800
+#define WHAL_STM32N657_CRYP_DRIVER &whal_Stm32n6_Cryp_CryptoDriver
 
-#define WHAL_STM32N657_HASH_REGMAP      \
-    .base = 0x44020400,                 \
-    .size = 0x400
-#define WHAL_STM32N657_HASH_DRIVER &whal_Stm32n6_Hash_Driver
+#define WHAL_STM32N657_HASH_BASE 0x44020400
+#define WHAL_STM32N657_HASH_DRIVER &whal_Stm32n6_Hash_CryptoDriver
 
-#define WHAL_STM32N657_GPDMA1_REGMAP    \
-    .base = 0x40021000,                 \
-    .size = 0x1000
+#define WHAL_STM32N657_GPDMA1_BASE 0x40021000
 #define WHAL_STM32N657_GPDMA1_DRIVER &whal_Stm32n6_Gpdma_Driver
 
-#define WHAL_STM32N657_IWDG_REGMAP      \
-    .base = 0x46004800,                 \
-    .size = 0x400
+#define WHAL_STM32N657_IWDG_BASE 0x46004800
 #define WHAL_STM32N657_IWDG_DRIVER &whal_Stm32n6_Iwdg_Driver
 
-#define WHAL_STM32N657_WWDG_REGMAP      \
-    .base = 0x40002C00,                 \
-    .size = 0x400
+#define WHAL_STM32N657_WWDG_BASE 0x40002C00
 #define WHAL_STM32N657_WWDG_DRIVER &whal_Stm32n6_Wwdg_Driver
 
-#define WHAL_STM32N657_ETH_REGMAP       \
-    .base = 0x48036000,                 \
-    .size = 0x2000
+#define WHAL_STM32N657_ETH_BASE 0x48036000
 #define WHAL_STM32N657_ETH_DRIVER &whal_Stm32n6_Eth_Driver
 
 /* --- Clock gate macros --- */

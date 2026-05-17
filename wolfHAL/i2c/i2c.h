@@ -2,7 +2,6 @@
 #define WHAL_I2C_H
 
 #include <wolfHAL/error.h>
-#include <wolfHAL/regmap.h>
 #include <stdint.h>
 #include <stddef.h>
 
@@ -63,10 +62,10 @@ typedef struct {
 } whal_I2cDriver;
 
 /*
- * @brief I2C device instance tying a register map and driver.
+ * @brief I2C device instance with a base address, driver vtable, and platform-specific cfg.
  */
 struct whal_I2c {
-    const whal_Regmap regmap;
+    const size_t base;
     const whal_I2cDriver *driver;
     void *cfg;
 };

@@ -1,8 +1,11 @@
+#include "board.h"  /* provides WHAL_CFG_STM32F0_WWDG_DEV initializer */
 #include <wolfHAL/watchdog/stm32f0_wwdg.h>
 #include <wolfHAL/watchdog/watchdog.h>
 #include <wolfHAL/error.h>
-#include <wolfHAL/regmap.h>
+#include <wolfHAL/reg.h>
 #include <wolfHAL/bitops.h>
+
+const whal_Watchdog whal_Stm32f0_Wwdg_Dev = WHAL_CFG_STM32F0_WWDG_DEV;
 
 #define CR_REG 0x00
 #define CR_T_Pos 0
@@ -28,14 +31,10 @@
 
 whal_Error whal_Stm32f0_Wwdg_Init(whal_Watchdog *wdgDev)
 {
-    size_t base;
-    whal_Stm32f0_Wwdg_Cfg *cfg;
-
-    if (!wdgDev || !wdgDev->cfg)
-        return WHAL_EINVAL;
-
-    base = wdgDev->regmap.base;
-    cfg = wdgDev->cfg;
+    const whal_Stm32f0_Wwdg_Cfg *cfg =
+        (const whal_Stm32f0_Wwdg_Cfg *)whal_Stm32f0_Wwdg_Dev.cfg;
+    size_t base = whal_Stm32f0_Wwdg_Dev.base;
+    (void)wdgDev;
 
     if (cfg->prescaler > 3 || cfg->window > 0x7F || cfg->counter > 0x7F)
         return WHAL_EINVAL;
@@ -51,22 +50,16 @@ whal_Error whal_Stm32f0_Wwdg_Init(whal_Watchdog *wdgDev)
 
 whal_Error whal_Stm32f0_Wwdg_Deinit(whal_Watchdog *wdgDev)
 {
-    if (!wdgDev)
-        return WHAL_EINVAL;
-
+    (void)wdgDev;
     return WHAL_SUCCESS;
 }
 
 whal_Error whal_Stm32f0_Wwdg_Refresh(whal_Watchdog *wdgDev)
 {
-    size_t base;
-    whal_Stm32f0_Wwdg_Cfg *cfg;
-
-    if (!wdgDev || !wdgDev->cfg)
-        return WHAL_EINVAL;
-
-    base = wdgDev->regmap.base;
-    cfg = wdgDev->cfg;
+    const whal_Stm32f0_Wwdg_Cfg *cfg =
+        (const whal_Stm32f0_Wwdg_Cfg *)whal_Stm32f0_Wwdg_Dev.cfg;
+    size_t base = whal_Stm32f0_Wwdg_Dev.base;
+    (void)wdgDev;
 
     whal_Reg_Write(base, CR_REG, CR_WDGA_Msk | cfg->counter);
 

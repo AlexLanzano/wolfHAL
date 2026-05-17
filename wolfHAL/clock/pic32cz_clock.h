@@ -3,8 +3,9 @@
 
 #include <stdint.h>
 #include <stddef.h>
+#include <wolfHAL/error.h>
+#include <wolfHAL/reg.h>
 #include <wolfHAL/bitops.h>
-#include <wolfHAL/clock/clock.h>
 
 /*
  * @file pic32cz_clock.h
@@ -20,6 +21,66 @@
  * Path:  Reference -> PLL -> GCLK Generator -> GCLK Peripheral Channel -> Peripheral
  *                                            -> MCLK -> CPU/bus clocks
  */
+
+#define WHAL_PIC32CZ_CLOCK_BASE            0x44040000
+
+/*
+ * PIC32CZ Clock System Register Map.
+ * OSCCTRL @ 0x00000, GCLK @ 0x10000, MCLK @ 0x12000.
+ */
+
+#define WHAL_PIC32CZ_CLOCK_OSCCTRL 0x00000
+
+#define WHAL_PIC32CZ_CLOCK_OSCCTRL_PLLxCTRL_REG(pllInst)        (0x40 + ((pllInst) * 20))
+#define WHAL_PIC32CZ_CLOCK_OSCCTRL_PLLxCTRL_ENABLE_Pos          1
+#define WHAL_PIC32CZ_CLOCK_OSCCTRL_PLLxCTRL_ENABLE_Msk          (1UL << WHAL_PIC32CZ_CLOCK_OSCCTRL_PLLxCTRL_ENABLE_Pos)
+#define WHAL_PIC32CZ_CLOCK_OSCCTRL_PLLxCTRL_REFSEL_Pos          8
+#define WHAL_PIC32CZ_CLOCK_OSCCTRL_PLLxCTRL_REFSEL_Msk          (WHAL_BITMASK(3) << WHAL_PIC32CZ_CLOCK_OSCCTRL_PLLxCTRL_REFSEL_Pos)
+#define WHAL_PIC32CZ_CLOCK_OSCCTRL_PLLxCTRL_BWSEL_Pos           11
+#define WHAL_PIC32CZ_CLOCK_OSCCTRL_PLLxCTRL_BWSEL_Msk           (WHAL_BITMASK(3) << WHAL_PIC32CZ_CLOCK_OSCCTRL_PLLxCTRL_BWSEL_Pos)
+
+#define WHAL_PIC32CZ_CLOCK_OSCCTRL_PLLxFBDIV_REG(pllInst)       (0x44 + ((pllInst) * 20))
+#define WHAL_PIC32CZ_CLOCK_OSCCTRL_PLLxFBDIV_Pos                0
+#define WHAL_PIC32CZ_CLOCK_OSCCTRL_PLLxFBDIV_Msk                (WHAL_BITMASK(10) << WHAL_PIC32CZ_CLOCK_OSCCTRL_PLLxFBDIV_Pos)
+
+#define WHAL_PIC32CZ_CLOCK_OSCCTRL_PLLxREFDIV_REG(pllInst)      (0x48 + ((pllInst) * 20))
+#define WHAL_PIC32CZ_CLOCK_OSCCTRL_PLLxREFDIV_Pos               0
+#define WHAL_PIC32CZ_CLOCK_OSCCTRL_PLLxREFDIV_Msk               (WHAL_BITMASK(6) << WHAL_PIC32CZ_CLOCK_OSCCTRL_PLLxREFDIV_Pos)
+
+#define WHAL_PIC32CZ_CLOCK_OSCCTRL_PLLxPOSTDIVA_REG(pllInst)    (0x4C + ((pllInst) * 20))
+
+#define WHAL_PIC32CZ_CLOCK_OSCCTRL_STATUS_REG                   (WHAL_PIC32CZ_CLOCK_OSCCTRL + 0x10)
+#define WHAL_PIC32CZ_CLOCK_OSCCTRL_STATUS_PLLxLOCK_Pos(pllInst) (24 + (pllInst))
+#define WHAL_PIC32CZ_CLOCK_OSCCTRL_STATUS_PLLxLOCK_Msk(pllInst) (1UL << WHAL_PIC32CZ_CLOCK_OSCCTRL_STATUS_PLLxLOCK_Pos(pllInst))
+
+#define WHAL_PIC32CZ_CLOCK_GCLK 0x10000
+
+#define WHAL_PIC32CZ_CLOCK_GCLK_GENCTRLx_REG(gclkInst) ((WHAL_PIC32CZ_CLOCK_GCLK + 0x20 + ((gclkInst) * 0x4)))
+#define WHAL_PIC32CZ_CLOCK_GCLK_GENCTRLx_SRC_Pos       0
+#define WHAL_PIC32CZ_CLOCK_GCLK_GENCTRLx_SRC_Msk       (WHAL_BITMASK(5) << WHAL_PIC32CZ_CLOCK_GCLK_GENCTRLx_SRC_Pos)
+#define WHAL_PIC32CZ_CLOCK_GCLK_GENCTRLx_GENEN_Pos     8
+#define WHAL_PIC32CZ_CLOCK_GCLK_GENCTRLx_GENEN_Msk     (1UL << WHAL_PIC32CZ_CLOCK_GCLK_GENCTRLx_GENEN_Pos)
+#define WHAL_PIC32CZ_CLOCK_GCLK_GENCTRLx_DIV_Pos       16
+#define WHAL_PIC32CZ_CLOCK_GCLK_GENCTRLx_DIV_Msk       (WHAL_BITMASK(16) << WHAL_PIC32CZ_CLOCK_GCLK_GENCTRLx_DIV_Pos)
+
+#define WHAL_PIC32CZ_CLOCK_GCLK_PCHCTRLx_REG(periphChannel) (WHAL_PIC32CZ_CLOCK_GCLK + 0x80 + ((periphChannel) * 0x4))
+#define WHAL_PIC32CZ_CLOCK_GCLK_PCHCTRLx_GEN_Pos            0
+#define WHAL_PIC32CZ_CLOCK_GCLK_PCHCTRLx_GEN_Msk            (WHAL_BITMASK(4) << WHAL_PIC32CZ_CLOCK_GCLK_PCHCTRLx_GEN_Pos)
+#define WHAL_PIC32CZ_CLOCK_GCLK_PCHCTRLx_CHEN_Pos           6
+#define WHAL_PIC32CZ_CLOCK_GCLK_PCHCTRLx_CHEN_Msk           (1UL << WHAL_PIC32CZ_CLOCK_GCLK_PCHCTRLx_CHEN_Pos)
+
+#define WHAL_PIC32CZ_CLOCK_GCLK_SYNCBUSY_REG                    (WHAL_PIC32CZ_CLOCK_GCLK + 0x04)
+#define WHAL_PIC32CZ_CLOCK_GCLK_SYNCBUSY_GENCTRLx_Pos(gclkInst) (2 + (gclkInst))
+#define WHAL_PIC32CZ_CLOCK_GCLK_SYNCBUSY_GENCTRLx_Msk(gclkInst) (1UL << WHAL_PIC32CZ_CLOCK_GCLK_SYNCBUSY_GENCTRLx_Pos(gclkInst))
+
+#define WHAL_PIC32CZ_CLOCK_MCLK 0x12000
+#define WHAL_PIC32CZ_CLOCK_MCLK_INTFLAG_REG       (WHAL_PIC32CZ_CLOCK_MCLK + 0x08)
+#define WHAL_PIC32CZ_CLOCK_MCLK_INTFLAG_CKRDY_Pos 0
+#define WHAL_PIC32CZ_CLOCK_MCLK_INTFLAG_CKRDY_Msk (1UL << WHAL_PIC32CZ_CLOCK_MCLK_INTFLAG_CKRDY_Pos)
+#define WHAL_PIC32CZ_CLOCK_MCLK_DIV1_REG          (WHAL_PIC32CZ_CLOCK_MCLK + 0x10)
+#define WHAL_PIC32CZ_CLOCK_MCLK_DIV1_Pos          0
+#define WHAL_PIC32CZ_CLOCK_MCLK_DIV1_Msk          (WHAL_BITMASK(8) << WHAL_PIC32CZ_CLOCK_MCLK_DIV1_Pos)
+#define WHAL_PIC32CZ_CLOCK_MCLK_CLKxMSK_REG(enableInst) (WHAL_PIC32CZ_CLOCK_MCLK + 0x3C + ((enableInst) * 0x4))
 
 /*
  * @brief PLL instance.
@@ -127,32 +188,171 @@ typedef struct {
 } whal_Pic32cz_Clock_PeriphClk;
 
 /*
- * @brief Configure and enable a PLL. Blocks until lock is detected.
+ * @brief Configure and enable a PLL, then wait for PLLxLOCK.
+ *
+ * Programs PLLxFBDIV, PLLxREFDIV, the requested output post-dividers /
+ * output-enable bits in PLLxPOSTDIVA, then enables the PLL by setting
+ * ENABLE/REFSEL/BWSEL in PLLxCTRL. Polls OSCCTRL.STATUS until the
+ * matching PLLxLOCK bit asserts.
+ *
+ * @param cfg    PLL configuration.
+ *
+ * @retval WHAL_SUCCESS Always.
  */
-whal_Error whal_Pic32cz_Clock_EnablePll(whal_Clock *clkDev,
-                                       const whal_Pic32cz_Clock_PllCfg *cfg);
+static inline whal_Error whal_Pic32cz_Clock_EnablePll(
+    const whal_Pic32cz_Clock_PllCfg *cfg)
+{
+    size_t status;
+    uint8_t i;
+    size_t pllCtrlReg, pllFbdivReg, pllRefdivReg, pllPostdivaReg;
+
+    pllCtrlReg     = WHAL_PIC32CZ_CLOCK_OSCCTRL_PLLxCTRL_REG(cfg->pllInst);
+    pllFbdivReg    = WHAL_PIC32CZ_CLOCK_OSCCTRL_PLLxFBDIV_REG(cfg->pllInst);
+    pllRefdivReg   = WHAL_PIC32CZ_CLOCK_OSCCTRL_PLLxREFDIV_REG(cfg->pllInst);
+    pllPostdivaReg = WHAL_PIC32CZ_CLOCK_OSCCTRL_PLLxPOSTDIVA_REG(cfg->pllInst);
+
+    whal_Reg_Update(WHAL_PIC32CZ_CLOCK_BASE, pllFbdivReg,
+                    WHAL_PIC32CZ_CLOCK_OSCCTRL_PLLxFBDIV_Msk,
+                    whal_SetBits(WHAL_PIC32CZ_CLOCK_OSCCTRL_PLLxFBDIV_Msk,
+                                 WHAL_PIC32CZ_CLOCK_OSCCTRL_PLLxFBDIV_Pos,
+                                 cfg->fbDiv));
+    whal_Reg_Update(WHAL_PIC32CZ_CLOCK_BASE, pllRefdivReg,
+                    WHAL_PIC32CZ_CLOCK_OSCCTRL_PLLxREFDIV_Msk,
+                    whal_SetBits(WHAL_PIC32CZ_CLOCK_OSCCTRL_PLLxREFDIV_Msk,
+                                 WHAL_PIC32CZ_CLOCK_OSCCTRL_PLLxREFDIV_Pos,
+                                 cfg->refDiv));
+    for (i = 0; i < cfg->outCfgCount; i++) {
+        const whal_Pic32cz_Clock_PllOutCfg *out = &cfg->outCfg[i];
+        whal_Reg_Update(WHAL_PIC32CZ_CLOCK_BASE, pllPostdivaReg,
+                        out->outEnMask | out->postDivMask,
+                        whal_SetBits(out->postDivMask, out->postDivPos, out->postDiv) |
+                        whal_SetBits(out->outEnMask, out->outEnPos, 1));
+    }
+
+    whal_Reg_Update(WHAL_PIC32CZ_CLOCK_BASE, pllCtrlReg,
+                    WHAL_PIC32CZ_CLOCK_OSCCTRL_PLLxCTRL_ENABLE_Msk |
+                    WHAL_PIC32CZ_CLOCK_OSCCTRL_PLLxCTRL_REFSEL_Msk |
+                    WHAL_PIC32CZ_CLOCK_OSCCTRL_PLLxCTRL_BWSEL_Msk,
+                    WHAL_PIC32CZ_CLOCK_OSCCTRL_PLLxCTRL_ENABLE_Msk |
+                    whal_SetBits(WHAL_PIC32CZ_CLOCK_OSCCTRL_PLLxCTRL_REFSEL_Msk,
+                                 WHAL_PIC32CZ_CLOCK_OSCCTRL_PLLxCTRL_REFSEL_Pos, cfg->refSel) |
+                    whal_SetBits(WHAL_PIC32CZ_CLOCK_OSCCTRL_PLLxCTRL_BWSEL_Msk,
+                                 WHAL_PIC32CZ_CLOCK_OSCCTRL_PLLxCTRL_BWSEL_Pos, cfg->bwSel));
+
+    do {
+        whal_Reg_Get(WHAL_PIC32CZ_CLOCK_BASE, WHAL_PIC32CZ_CLOCK_OSCCTRL_STATUS_REG,
+                     WHAL_PIC32CZ_CLOCK_OSCCTRL_STATUS_PLLxLOCK_Msk(cfg->pllInst),
+                     WHAL_PIC32CZ_CLOCK_OSCCTRL_STATUS_PLLxLOCK_Pos(cfg->pllInst),
+                     &status);
+    } while (!status);
+    return WHAL_SUCCESS;
+}
 
 /*
- * @brief Configure and enable a GCLK generator. Blocks until sync clears.
+ * @brief Enable a GCLK generator with the supplied source and divider.
+ *
+ * Programs GCLK_GENCTRLx (SRC/GENEN/DIV) and waits for the GCLK_SYNCBUSY
+ * bit for this generator to clear.
+ *
+ * @param cfg    Generator configuration.
+ *
+ * @retval WHAL_SUCCESS Always.
  */
-whal_Error whal_Pic32cz_Clock_EnableGclkGen(whal_Clock *clkDev,
-                                           const whal_Pic32cz_Clock_GenCfg *cfg);
+static inline whal_Error whal_Pic32cz_Clock_EnableGclkGen(
+    const whal_Pic32cz_Clock_GenCfg *cfg)
+{
+    size_t status;
+
+    whal_Reg_Update(WHAL_PIC32CZ_CLOCK_BASE, WHAL_PIC32CZ_CLOCK_GCLK_GENCTRLx_REG(cfg->gen),
+                    WHAL_PIC32CZ_CLOCK_GCLK_GENCTRLx_SRC_Msk |
+                    WHAL_PIC32CZ_CLOCK_GCLK_GENCTRLx_GENEN_Msk |
+                    WHAL_PIC32CZ_CLOCK_GCLK_GENCTRLx_DIV_Msk,
+                    whal_SetBits(WHAL_PIC32CZ_CLOCK_GCLK_GENCTRLx_SRC_Msk,
+                                 WHAL_PIC32CZ_CLOCK_GCLK_GENCTRLx_SRC_Pos, cfg->genSrc) |
+                    WHAL_PIC32CZ_CLOCK_GCLK_GENCTRLx_GENEN_Msk |
+                    whal_SetBits(WHAL_PIC32CZ_CLOCK_GCLK_GENCTRLx_DIV_Msk,
+                                 WHAL_PIC32CZ_CLOCK_GCLK_GENCTRLx_DIV_Pos, cfg->genDiv));
+    do {
+        whal_Reg_Get(WHAL_PIC32CZ_CLOCK_BASE, WHAL_PIC32CZ_CLOCK_GCLK_SYNCBUSY_REG,
+                     WHAL_PIC32CZ_CLOCK_GCLK_SYNCBUSY_GENCTRLx_Msk(cfg->gen),
+                     WHAL_PIC32CZ_CLOCK_GCLK_SYNCBUSY_GENCTRLx_Pos(cfg->gen),
+                     &status);
+    } while (status);
+    return WHAL_SUCCESS;
+}
 
 /*
- * @brief Set the MCLK CPU divider. Blocks until ready.
+ * @brief Program the main clock CPU divider (MCLK DIV1).
+ *
+ * Writes MCLK.DIV1 and polls MCLK.INTFLAG.CKRDY for the change to settle.
+ *
+ * @param div    Divider value to write into MCLK.DIV1.
+ *
+ * @retval WHAL_SUCCESS Always.
  */
-whal_Error whal_Pic32cz_Clock_SetMclkDiv(whal_Clock *clkDev, uint8_t div);
+static inline whal_Error whal_Pic32cz_Clock_SetMclkDiv(
+    uint8_t div)
+{
+    size_t status;
+
+    whal_Reg_Update(WHAL_PIC32CZ_CLOCK_BASE, WHAL_PIC32CZ_CLOCK_MCLK_DIV1_REG,
+                    WHAL_PIC32CZ_CLOCK_MCLK_DIV1_Msk,
+                    whal_SetBits(WHAL_PIC32CZ_CLOCK_MCLK_DIV1_Msk,
+                                 WHAL_PIC32CZ_CLOCK_MCLK_DIV1_Pos, div));
+    do {
+        whal_Reg_Get(WHAL_PIC32CZ_CLOCK_BASE, WHAL_PIC32CZ_CLOCK_MCLK_INTFLAG_REG,
+                     WHAL_PIC32CZ_CLOCK_MCLK_INTFLAG_CKRDY_Msk,
+                     WHAL_PIC32CZ_CLOCK_MCLK_INTFLAG_CKRDY_Pos, &status);
+    } while (!status);
+    return WHAL_SUCCESS;
+}
 
 /*
- * @brief Enable a peripheral clock — connects GCLK channel to a generator
- *        and enables the peripheral's MCLK bus gate.
+ * @brief Route a GCLK generator to a peripheral channel and ungate the MCLK bit.
+ *
+ * Configures GCLK_PCHCTRLx with the requested generator + channel-enable
+ * bit, then sets the matching MCLK_CLKxMSK enable bit.
+ *
+ * @param clk    Peripheral clock descriptor (GCLK channel + MCLK enable bit).
+ *
+ * @retval WHAL_SUCCESS Always.
  */
-whal_Error whal_Pic32cz_Clock_EnablePeriphClk(whal_Clock *clkDev,
-                                             const whal_Pic32cz_Clock_PeriphClk *clk);
+static inline whal_Error whal_Pic32cz_Clock_EnablePeriphClk(
+    const whal_Pic32cz_Clock_PeriphClk *clk)
+{
+    whal_Reg_Update(WHAL_PIC32CZ_CLOCK_BASE,
+                    WHAL_PIC32CZ_CLOCK_GCLK_PCHCTRLx_REG(clk->gclkPeriphChannel),
+                    WHAL_PIC32CZ_CLOCK_GCLK_PCHCTRLx_GEN_Msk |
+                    WHAL_PIC32CZ_CLOCK_GCLK_PCHCTRLx_CHEN_Msk,
+                    whal_SetBits(WHAL_PIC32CZ_CLOCK_GCLK_PCHCTRLx_GEN_Msk,
+                                 WHAL_PIC32CZ_CLOCK_GCLK_PCHCTRLx_GEN_Pos,
+                                 clk->gclkPeriphSrc) |
+                    WHAL_PIC32CZ_CLOCK_GCLK_PCHCTRLx_CHEN_Msk);
+    whal_Reg_Update(WHAL_PIC32CZ_CLOCK_BASE,
+                    WHAL_PIC32CZ_CLOCK_MCLK_CLKxMSK_REG(clk->mclkEnableInst),
+                    clk->mclkEnableMask,
+                    whal_SetBits(clk->mclkEnableMask, clk->mclkEnablePos, 1));
+    return WHAL_SUCCESS;
+}
+
 /*
- * @brief Disable a peripheral clock.
+ * @brief Gate off a peripheral's MCLK bit and disable the GCLK channel.
+ *
+ * @param clk    Peripheral clock descriptor (GCLK channel + MCLK enable bit).
+ *
+ * @retval WHAL_SUCCESS Always.
  */
-whal_Error whal_Pic32cz_Clock_DisablePeriphClk(whal_Clock *clkDev,
-                                              const whal_Pic32cz_Clock_PeriphClk *clk);
+static inline whal_Error whal_Pic32cz_Clock_DisablePeriphClk(
+    const whal_Pic32cz_Clock_PeriphClk *clk)
+{
+    whal_Reg_Update(WHAL_PIC32CZ_CLOCK_BASE,
+                    WHAL_PIC32CZ_CLOCK_MCLK_CLKxMSK_REG(clk->mclkEnableInst),
+                    clk->mclkEnableMask,
+                    whal_SetBits(clk->mclkEnableMask, clk->mclkEnablePos, 0));
+    whal_Reg_Update(WHAL_PIC32CZ_CLOCK_BASE,
+                    WHAL_PIC32CZ_CLOCK_GCLK_PCHCTRLx_REG(clk->gclkPeriphChannel),
+                    WHAL_PIC32CZ_CLOCK_GCLK_PCHCTRLx_CHEN_Msk, 0);
+    return WHAL_SUCCESS;
+}
 
 #endif /* WHAL_PIC32CZ_CLOCK_H */

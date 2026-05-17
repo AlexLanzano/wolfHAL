@@ -2,7 +2,6 @@
 #define WHAL_IRQ_H
 
 #include <wolfHAL/error.h>
-#include <wolfHAL/regmap.h>
 #include <stddef.h>
 
 /*
@@ -35,7 +34,7 @@ typedef struct {
  * @brief Interrupt controller device instance.
  */
 struct whal_Irq {
-    const whal_Regmap regmap;
+    const size_t base;
     const whal_IrqDriver *driver;
     const void *cfg;
 };

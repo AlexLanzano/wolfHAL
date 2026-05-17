@@ -47,10 +47,13 @@ typedef struct whal_Stm32n6_Eth_Cfg {
     size_t rxDescCount;                   /**< Number of RX descriptors */
     size_t rxBufSize;                     /**< Size of each RX buffer in bytes */
     whal_Timeout *timeout;
-    /* Runtime state (set by driver, not by user) */
-    size_t txHead;                        /**< Next TX descriptor to use */
-    size_t rxHead;                        /**< Next RX descriptor to check */
 } whal_Stm32n6_Eth_Cfg;
+
+/*
+ * @brief Platform-owned Ethernet device singleton. Defined in the driver TU
+ * from the WHAL_CFG_STM32N6_ETH_DEV initializer in board.h.
+ */
+extern const whal_Eth whal_Stm32n6_Eth_Dev;
 
 #ifndef WHAL_CFG_STM32N6_ETH_DIRECT_API_MAPPING
 /**

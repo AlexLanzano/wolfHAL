@@ -1,9 +1,13 @@
 #include <stdint.h>
 #include <stddef.h>
+#if defined(WHAL_CFG_STM32WBA_GPDMA_SINGLE_INSTANCE) || \
+    defined(WHAL_CFG_STM32N6_GPDMA_SINGLE_INSTANCE)
+#include "board.h"  /* provides whal_Stm32wba_Gpdma_Dev singleton (possibly via platform alias macro) */
+#endif
 #include <wolfHAL/dma/stm32wba_gpdma.h>
 #include <wolfHAL/dma/dma.h>
 #include <wolfHAL/error.h>
-#include <wolfHAL/regmap.h>
+#include <wolfHAL/reg.h>
 #include <wolfHAL/bitops.h>
 #include <wolfHAL/timeout.h>
 
@@ -115,24 +119,39 @@
 
 whal_Error whal_Stm32wba_Gpdma_Init(whal_Dma *dmaDev)
 {
+#if defined(WHAL_CFG_STM32WBA_GPDMA_SINGLE_INSTANCE) || \
+    defined(WHAL_CFG_STM32N6_GPDMA_SINGLE_INSTANCE)
+    (void)dmaDev;
+#else
     if (!dmaDev || !dmaDev->cfg)
         return WHAL_EINVAL;
+#endif
 
     return WHAL_SUCCESS;
 }
 
 whal_Error whal_Stm32wba_Gpdma_Deinit(whal_Dma *dmaDev)
 {
+#if defined(WHAL_CFG_STM32WBA_GPDMA_SINGLE_INSTANCE) || \
+    defined(WHAL_CFG_STM32N6_GPDMA_SINGLE_INSTANCE)
+    const whal_Stm32wba_Gpdma_Cfg *cfg =
+        (const whal_Stm32wba_Gpdma_Cfg *)whal_Stm32wba_Gpdma_Dev.cfg;
+    size_t base = whal_Stm32wba_Gpdma_Dev.base;
+    (void)dmaDev;
+#else
     const whal_Stm32wba_Gpdma_Cfg *cfg;
+    size_t base;
 
     if (!dmaDev || !dmaDev->cfg)
         return WHAL_EINVAL;
 
     cfg = (const whal_Stm32wba_Gpdma_Cfg *)dmaDev->cfg;
+    base = dmaDev->base;
+#endif
 
     /* Reset all channels */
     for (uint8_t ch = 0; ch < cfg->numChannels; ch++) {
-        whal_Reg_Write(dmaDev->regmap.base, GPDMA_CxCR(ch),
+        whal_Reg_Write(base, GPDMA_CxCR(ch),
                        GPDMA_CxCR_RESET_Msk);
     }
 
@@ -142,18 +161,29 @@ whal_Error whal_Stm32wba_Gpdma_Deinit(whal_Dma *dmaDev)
 whal_Error whal_Stm32wba_Gpdma_Configure(whal_Dma *dmaDev, size_t ch,
                                          const void *chCfg)
 {
-    const whal_Stm32wba_Gpdma_Cfg *cfg;
     const whal_Stm32wba_Gpdma_ChCfg *ccfg;
-    size_t base;
     size_t tr1, tr2;
     whal_Error err;
+#if defined(WHAL_CFG_STM32WBA_GPDMA_SINGLE_INSTANCE) || \
+    defined(WHAL_CFG_STM32N6_GPDMA_SINGLE_INSTANCE)
+    const whal_Stm32wba_Gpdma_Cfg *cfg =
+        (const whal_Stm32wba_Gpdma_Cfg *)whal_Stm32wba_Gpdma_Dev.cfg;
+    size_t base = whal_Stm32wba_Gpdma_Dev.base;
+    (void)dmaDev;
+
+    if (!chCfg)
+        return WHAL_EINVAL;
+#else
+    const whal_Stm32wba_Gpdma_Cfg *cfg;
+    size_t base;
 
     if (!dmaDev || !dmaDev->cfg || !chCfg)
         return WHAL_EINVAL;
 
     cfg = (const whal_Stm32wba_Gpdma_Cfg *)dmaDev->cfg;
+    base = dmaDev->base;
+#endif
     ccfg = (const whal_Stm32wba_Gpdma_ChCfg *)chCfg;
-    base = dmaDev->regmap.base;
 
     if (ch >= cfg->numChannels)
         return WHAL_EINVAL;
@@ -219,28 +249,13 @@ whal_Error whal_Stm32wba_Gpdma_Configure(whal_Dma *dmaDev, size_t ch,
 
 whal_Error whal_Stm32wba_Gpdma_Start(whal_Dma *dmaDev, size_t ch)
 {
-    const whal_Stm32wba_Gpdma_Cfg *cfg;
-
-    if (!dmaDev || !dmaDev->cfg)
-        return WHAL_EINVAL;
-
-    cfg = (const whal_Stm32wba_Gpdma_Cfg *)dmaDev->cfg;
-
-    if (ch >= cfg->numChannels)
-        return WHAL_EINVAL;
-
-    /* Clear any stale flags from the previous transfer before enabling */
-    whal_Reg_Write(dmaDev->regmap.base, GPDMA_CxFCR(ch), GPDMA_CxFCR_ALL);
-
-    /* Set EN bit without disturbing the already-configured interrupt enables */
-    whal_Reg_Update(dmaDev->regmap.base, GPDMA_CxCR(ch), GPDMA_CxCR_EN_Msk,
-                    GPDMA_CxCR_EN_Msk);
-
-    return WHAL_SUCCESS;
-}
-
-whal_Error whal_Stm32wba_Gpdma_Stop(whal_Dma *dmaDev, size_t ch)
-{
+#if defined(WHAL_CFG_STM32WBA_GPDMA_SINGLE_INSTANCE) || \
+    defined(WHAL_CFG_STM32N6_GPDMA_SINGLE_INSTANCE)
+    const whal_Stm32wba_Gpdma_Cfg *cfg =
+        (const whal_Stm32wba_Gpdma_Cfg *)whal_Stm32wba_Gpdma_Dev.cfg;
+    size_t base = whal_Stm32wba_Gpdma_Dev.base;
+    (void)dmaDev;
+#else
     const whal_Stm32wba_Gpdma_Cfg *cfg;
     size_t base;
 
@@ -248,7 +263,40 @@ whal_Error whal_Stm32wba_Gpdma_Stop(whal_Dma *dmaDev, size_t ch)
         return WHAL_EINVAL;
 
     cfg = (const whal_Stm32wba_Gpdma_Cfg *)dmaDev->cfg;
-    base = dmaDev->regmap.base;
+    base = dmaDev->base;
+#endif
+
+    if (ch >= cfg->numChannels)
+        return WHAL_EINVAL;
+
+    /* Clear any stale flags from the previous transfer before enabling */
+    whal_Reg_Write(base, GPDMA_CxFCR(ch), GPDMA_CxFCR_ALL);
+
+    /* Set EN bit without disturbing the already-configured interrupt enables */
+    whal_Reg_Update(base, GPDMA_CxCR(ch), GPDMA_CxCR_EN_Msk,
+                    GPDMA_CxCR_EN_Msk);
+
+    return WHAL_SUCCESS;
+}
+
+whal_Error whal_Stm32wba_Gpdma_Stop(whal_Dma *dmaDev, size_t ch)
+{
+#if defined(WHAL_CFG_STM32WBA_GPDMA_SINGLE_INSTANCE) || \
+    defined(WHAL_CFG_STM32N6_GPDMA_SINGLE_INSTANCE)
+    const whal_Stm32wba_Gpdma_Cfg *cfg =
+        (const whal_Stm32wba_Gpdma_Cfg *)whal_Stm32wba_Gpdma_Dev.cfg;
+    size_t base = whal_Stm32wba_Gpdma_Dev.base;
+    (void)dmaDev;
+#else
+    const whal_Stm32wba_Gpdma_Cfg *cfg;
+    size_t base;
+
+    if (!dmaDev || !dmaDev->cfg)
+        return WHAL_EINVAL;
+
+    cfg = (const whal_Stm32wba_Gpdma_Cfg *)dmaDev->cfg;
+    base = dmaDev->base;
+#endif
 
     if (ch >= cfg->numChannels)
         return WHAL_EINVAL;
@@ -263,13 +311,19 @@ whal_Error whal_Stm32wba_Gpdma_Stop(whal_Dma *dmaDev, size_t ch)
 void whal_Stm32wba_Gpdma_IRQHandler(whal_Dma *dmaDev, size_t ch,
                                     whal_Stm32wba_Gpdma_Callback cb, void *ctx)
 {
-    size_t base;
     size_t sr;
+#if defined(WHAL_CFG_STM32WBA_GPDMA_SINGLE_INSTANCE) || \
+    defined(WHAL_CFG_STM32N6_GPDMA_SINGLE_INSTANCE)
+    size_t base = whal_Stm32wba_Gpdma_Dev.base;
+    (void)dmaDev;
+#else
+    size_t base;
 
     if (!dmaDev)
         return;
 
-    base = dmaDev->regmap.base;
+    base = dmaDev->base;
+#endif
     sr = whal_Reg_Read(base, GPDMA_CxSR(ch));
 
     if (sr & GPDMA_CxSR_ALL_ERR) {

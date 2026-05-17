@@ -6,9 +6,6 @@ static void Test_Sensor_Api(void)
 {
     uint8_t data[32];
 
-    WHAL_ASSERT_EQ(whal_Sensor_Init(NULL), WHAL_EINVAL);
-    WHAL_ASSERT_EQ(whal_Sensor_Deinit(NULL), WHAL_EINVAL);
-    WHAL_ASSERT_EQ(whal_Sensor_Read(NULL, data), WHAL_EINVAL);
 }
 
 void whal_Test_Sensor(void)

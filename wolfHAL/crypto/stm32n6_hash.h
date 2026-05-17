@@ -14,13 +14,25 @@
 
 typedef whal_Stm32wba_Hash_Cfg whal_Stm32n6_Hash_Cfg;
 
-#ifndef WHAL_CFG_STM32N6_HASH_DIRECT_API_MAPPING
-#define whal_Stm32n6_Hash_Driver  whal_Stm32wba_Hash_Driver
-#define whal_Stm32n6_Hash_Init    whal_Stm32wba_Hash_Init
-#define whal_Stm32n6_Hash_Deinit  whal_Stm32wba_Hash_Deinit
-#define whal_Stm32n6_Hash_StartOp whal_Stm32wba_Hash_StartOp
-#define whal_Stm32n6_Hash_Process whal_Stm32wba_Hash_Process
-#define whal_Stm32n6_Hash_EndOp   whal_Stm32wba_Hash_EndOp
-#endif /* !WHAL_CFG_STM32N6_HASH_DIRECT_API_MAPPING */
+typedef whal_Stm32wba_HmacSha1_State   whal_Stm32n6_HmacSha1_State;
+typedef whal_Stm32wba_HmacSha224_State  whal_Stm32n6_HmacSha224_State;
+typedef whal_Stm32wba_HmacSha256_State  whal_Stm32n6_HmacSha256_State;
+
+#define whal_Stm32n6_Hash_Dev       whal_Stm32wba_Hash_Dev
+#define whal_Stm32n6_Sha1_Dev       whal_Stm32wba_Sha1_Dev
+#define whal_Stm32n6_Sha224_Dev     whal_Stm32wba_Sha224_Dev
+#define whal_Stm32n6_Sha256_Dev     whal_Stm32wba_Sha256_Dev
+#define whal_Stm32n6_HmacSha1_Dev   whal_Stm32wba_HmacSha1_Dev
+#define whal_Stm32n6_HmacSha224_Dev whal_Stm32wba_HmacSha224_Dev
+#define whal_Stm32n6_HmacSha256_Dev whal_Stm32wba_HmacSha256_Dev
+
+#define whal_Stm32n6_Hash_CryptoDriver    whal_Stm32wba_Hash_CryptoDriver
+
+#define whal_Stm32n6_Hash_Sha1Driver      whal_Stm32wba_Hash_Sha1Driver
+#define whal_Stm32n6_Hash_Sha224Driver    whal_Stm32wba_Hash_Sha224Driver
+#define whal_Stm32n6_Hash_Sha256Driver    whal_Stm32wba_Hash_Sha256Driver
+#define whal_Stm32n6_Hash_HmacSha1Driver  whal_Stm32wba_Hash_HmacSha1Driver
+#define whal_Stm32n6_Hash_HmacSha224Driver whal_Stm32wba_Hash_HmacSha224Driver
+#define whal_Stm32n6_Hash_HmacSha256Driver whal_Stm32wba_Hash_HmacSha256Driver
 
 #endif /* WHAL_STM32N6_HASH_H */

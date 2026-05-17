@@ -1,8 +1,12 @@
 #include <stdint.h>
+#if defined(WHAL_CFG_STM32F0_UART_SINGLE_INSTANCE) || \
+    defined(WHAL_CFG_STM32F3_UART_SINGLE_INSTANCE)
+#include "board.h"  /* provides whal_Stm32f0_Uart_Dev singleton (possibly via platform alias macro) */
+#endif
 #include <wolfHAL/uart/stm32f0_uart.h>
 #include <wolfHAL/uart/uart.h>
 #include <wolfHAL/error.h>
-#include <wolfHAL/regmap.h>
+#include <wolfHAL/reg.h>
 #include <wolfHAL/bitops.h>
 #include <wolfHAL/timeout.h>
 
@@ -46,20 +50,28 @@
 
 whal_Error whal_Stm32f0_Uart_Init(whal_Uart *uartDev)
 {
+#if defined(WHAL_CFG_STM32F0_UART_SINGLE_INSTANCE) || \
+    defined(WHAL_CFG_STM32F3_UART_SINGLE_INSTANCE)
+    const whal_Stm32f0_Uart_Cfg *cfg =
+        (const whal_Stm32f0_Uart_Cfg *)whal_Stm32f0_Uart_Dev.cfg;
+    size_t base = whal_Stm32f0_Uart_Dev.base;
+    (void)uartDev;
+#else
     whal_Stm32f0_Uart_Cfg *cfg;
-    const whal_Regmap *reg;
+    size_t base;
 
     if (!uartDev || !uartDev->cfg)
         return WHAL_EINVAL;
 
-    reg = &uartDev->regmap;
+    base = uartDev->base;
     cfg = (whal_Stm32f0_Uart_Cfg *)uartDev->cfg;
+#endif
 
-    whal_Reg_Update(reg->base, UART_BRR_REG, UART_BRR_Msk,
+    whal_Reg_Update(base, UART_BRR_REG, UART_BRR_Msk,
                     whal_SetBits(UART_BRR_Msk, UART_BRR_Pos, cfg->brr));
 
     /* Enable UE, RE, TE — no FIFOEN on STM32F0 */
-    whal_Reg_Update(reg->base, UART_CR1_REG,
+    whal_Reg_Update(base, UART_CR1_REG,
                     UART_CR1_UE_Msk | UART_CR1_RE_Msk | UART_CR1_TE_Msk,
                     whal_SetBits(UART_CR1_UE_Msk, UART_CR1_UE_Pos, 1) |
                     whal_SetBits(UART_CR1_RE_Msk, UART_CR1_RE_Pos, 1) |
@@ -70,20 +82,26 @@ whal_Error whal_Stm32f0_Uart_Init(whal_Uart *uartDev)
 
 whal_Error whal_Stm32f0_Uart_Deinit(whal_Uart *uartDev)
 {
-    const whal_Regmap *reg;
+#if defined(WHAL_CFG_STM32F0_UART_SINGLE_INSTANCE) || \
+    defined(WHAL_CFG_STM32F3_UART_SINGLE_INSTANCE)
+    size_t base = whal_Stm32f0_Uart_Dev.base;
+    (void)uartDev;
+#else
+    size_t base;
 
     if (!uartDev)
         return WHAL_EINVAL;
 
-    reg = &uartDev->regmap;
+    base = uartDev->base;
+#endif
 
-    whal_Reg_Update(reg->base, UART_CR1_REG,
+    whal_Reg_Update(base, UART_CR1_REG,
                     UART_CR1_UE_Msk | UART_CR1_RE_Msk | UART_CR1_TE_Msk,
                     whal_SetBits(UART_CR1_UE_Msk, UART_CR1_UE_Pos, 0) |
                     whal_SetBits(UART_CR1_RE_Msk, UART_CR1_RE_Pos, 0) |
                     whal_SetBits(UART_CR1_TE_Msk, UART_CR1_TE_Pos, 0));
 
-    whal_Reg_Update(reg->base, UART_BRR_REG, UART_BRR_Msk,
+    whal_Reg_Update(base, UART_BRR_REG, UART_BRR_Msk,
                     whal_SetBits(UART_BRR_Msk, UART_BRR_Pos, 0));
 
     return WHAL_SUCCESS;
@@ -92,22 +110,33 @@ whal_Error whal_Stm32f0_Uart_Deinit(whal_Uart *uartDev)
 whal_Error whal_Stm32f0_Uart_Send(whal_Uart *uartDev, const void *data,
                                   size_t dataSz)
 {
-    const whal_Regmap *reg;
-    whal_Stm32f0_Uart_Cfg *cfg;
     const uint8_t *buf = data;
+#if defined(WHAL_CFG_STM32F0_UART_SINGLE_INSTANCE) || \
+    defined(WHAL_CFG_STM32F3_UART_SINGLE_INSTANCE)
+    const whal_Stm32f0_Uart_Cfg *cfg =
+        (const whal_Stm32f0_Uart_Cfg *)whal_Stm32f0_Uart_Dev.cfg;
+    size_t base = whal_Stm32f0_Uart_Dev.base;
+    (void)uartDev;
+
+    if (!data)
+        return WHAL_EINVAL;
+#else
+    size_t base;
+    whal_Stm32f0_Uart_Cfg *cfg;
 
     if (!uartDev || !uartDev->cfg || !data)
         return WHAL_EINVAL;
 
-    reg = &uartDev->regmap;
+    base = uartDev->base;
     cfg = (whal_Stm32f0_Uart_Cfg *)uartDev->cfg;
+#endif
 
     for (size_t i = 0; i < dataSz; ++i) {
         whal_Error err;
-        whal_Reg_Update(reg->base, UART_TDR_REG, UART_TDR_Msk,
+        whal_Reg_Update(base, UART_TDR_REG, UART_TDR_Msk,
                         whal_SetBits(UART_TDR_Msk, UART_TDR_Pos, buf[i]));
 
-        err = whal_Reg_ReadPoll(reg->base, UART_ISR_REG, UART_ISR_TC_Msk,
+        err = whal_Reg_ReadPoll(base, UART_ISR_REG, UART_ISR_TC_Msk,
                                 UART_ISR_TC_Msk, cfg->timeout);
         if (err)
             return err;
@@ -118,25 +147,36 @@ whal_Error whal_Stm32f0_Uart_Send(whal_Uart *uartDev, const void *data,
 
 whal_Error whal_Stm32f0_Uart_Recv(whal_Uart *uartDev, void *data, size_t dataSz)
 {
-    const whal_Regmap *reg;
-    whal_Stm32f0_Uart_Cfg *cfg;
     uint8_t *buf = data;
+#if defined(WHAL_CFG_STM32F0_UART_SINGLE_INSTANCE) || \
+    defined(WHAL_CFG_STM32F3_UART_SINGLE_INSTANCE)
+    const whal_Stm32f0_Uart_Cfg *cfg =
+        (const whal_Stm32f0_Uart_Cfg *)whal_Stm32f0_Uart_Dev.cfg;
+    size_t base = whal_Stm32f0_Uart_Dev.base;
+    (void)uartDev;
+
+    if (!data)
+        return WHAL_EINVAL;
+#else
+    size_t base;
+    whal_Stm32f0_Uart_Cfg *cfg;
 
     if (!uartDev || !uartDev->cfg || !data)
         return WHAL_EINVAL;
 
-    reg = &uartDev->regmap;
+    base = uartDev->base;
     cfg = (whal_Stm32f0_Uart_Cfg *)uartDev->cfg;
+#endif
 
     for (size_t i = 0; i < dataSz; ++i) {
         size_t d;
-        whal_Error err = whal_Reg_ReadPoll(reg->base, UART_ISR_REG,
+        whal_Error err = whal_Reg_ReadPoll(base, UART_ISR_REG,
                                            UART_ISR_RXNE_Msk,
                                            UART_ISR_RXNE_Msk, cfg->timeout);
         if (err)
             return err;
 
-        whal_Reg_Get(reg->base, UART_RDR_REG, UART_RDR_Msk, UART_RDR_Pos, &d);
+        whal_Reg_Get(base, UART_RDR_REG, UART_RDR_Msk, UART_RDR_Pos, &d);
         buf[i] = d;
     }
 

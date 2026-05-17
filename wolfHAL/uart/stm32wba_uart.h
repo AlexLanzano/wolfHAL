@@ -14,6 +14,8 @@
 
 typedef whal_Stm32wb_Uart_Cfg whal_Stm32wba_Uart_Cfg;
 
+#define whal_Stm32wba_Uart_Dev whal_Stm32wb_Uart_Dev
+
 #ifndef WHAL_CFG_STM32WBA_UART_DIRECT_API_MAPPING
 #define whal_Stm32wba_Uart_Driver whal_Stm32wb_Uart_Driver
 #define whal_Stm32wba_Uart_Init   whal_Stm32wb_Uart_Init

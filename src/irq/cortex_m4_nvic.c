@@ -1,6 +1,9 @@
+#include "board.h"  /* provides WHAL_CFG_NVIC_DEV initializer */
 #include <wolfHAL/irq/cortex_m4_nvic.h>
 #include <wolfHAL/error.h>
-#include <wolfHAL/regmap.h>
+#include <wolfHAL/reg.h>
+
+const whal_Irq whal_Nvic_Dev = WHAL_CFG_NVIC_DEV;
 
 /*
  * ARM Cortex-M4 NVIC register offsets (relative to 0xE000E100).
@@ -23,30 +26,21 @@
 
 whal_Error whal_Nvic_Init(whal_Irq *irqDev)
 {
-    if (!irqDev) {
-        return WHAL_EINVAL;
-    }
-
+    (void)irqDev;
     return WHAL_SUCCESS;
 }
 
 whal_Error whal_Nvic_Deinit(whal_Irq *irqDev)
 {
-    if (!irqDev) {
-        return WHAL_EINVAL;
-    }
-
+    (void)irqDev;
     return WHAL_SUCCESS;
 }
 
 whal_Error whal_Nvic_Enable(whal_Irq *irqDev, size_t irq,
                                     const void *irqCfg)
 {
-    if (!irqDev) {
-        return WHAL_EINVAL;
-    }
-
-    size_t base = irqDev->regmap.base;
+    size_t base = whal_Nvic_Dev.base;
+    (void)irqDev;
 
     /* Set priority if config provided */
     if (irqCfg) {
@@ -65,11 +59,8 @@ whal_Error whal_Nvic_Enable(whal_Irq *irqDev, size_t irq,
 
 whal_Error whal_Nvic_Disable(whal_Irq *irqDev, size_t irq)
 {
-    if (!irqDev) {
-        return WHAL_EINVAL;
-    }
-
-    size_t base = irqDev->regmap.base;
+    size_t base = whal_Nvic_Dev.base;
+    (void)irqDev;
 
     whal_Reg_Write(base, NVIC_ICER_REG(irq), (1UL << (irq & 0x1F)));
 

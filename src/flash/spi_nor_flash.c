@@ -1,4 +1,7 @@
 #include <stdint.h>
+#ifdef WHAL_CFG_SPI_NOR_SINGLE_INSTANCE
+#include "board.h"  /* provides whal_SpiNor_Dev singleton */
+#endif
 #include <wolfHAL/flash/spi_nor_flash.h>
 #include <wolfHAL/flash/flash.h>
 #include <wolfHAL/spi/spi.h>
@@ -151,10 +154,15 @@ whal_Error whal_SpiNor_Init(whal_Flash *flashDev)
     uint8_t cmd;
     whal_Error err;
 
+#ifdef WHAL_CFG_SPI_NOR_SINGLE_INSTANCE
+    cfg = (whal_SpiNor_Cfg *)whal_SpiNor_Dev.cfg;
+    (void)flashDev;
+#else
     if (!flashDev || !flashDev->cfg)
         return WHAL_EINVAL;
 
     cfg = (whal_SpiNor_Cfg *)flashDev->cfg;
+#endif
 
     if (!cfg->spiDev || !cfg->spiComCfg || !cfg->gpioDev)
         return WHAL_EINVAL;
@@ -205,10 +213,19 @@ cleanup:
 
 whal_Error whal_SpiNor_Deinit(whal_Flash *flashDev)
 {
+    whal_SpiNor_Cfg *cfg;
+
+#ifdef WHAL_CFG_SPI_NOR_SINGLE_INSTANCE
+    cfg = (whal_SpiNor_Cfg *)whal_SpiNor_Dev.cfg;
+    (void)flashDev;
+#else
     if (!flashDev || !flashDev->cfg)
         return WHAL_EINVAL;
 
-    return SpiNor_CsDeassert((whal_SpiNor_Cfg *)flashDev->cfg);
+    cfg = (whal_SpiNor_Cfg *)flashDev->cfg;
+#endif
+
+    return SpiNor_CsDeassert(cfg);
 }
 
 whal_Error whal_SpiNor_Lock(whal_Flash *flashDev, size_t addr, size_t len)
@@ -220,10 +237,15 @@ whal_Error whal_SpiNor_Lock(whal_Flash *flashDev, size_t addr, size_t len)
     (void)addr;
     (void)len;
 
+#ifdef WHAL_CFG_SPI_NOR_SINGLE_INSTANCE
+    cfg = (whal_SpiNor_Cfg *)whal_SpiNor_Dev.cfg;
+    (void)flashDev;
+#else
     if (!flashDev || !flashDev->cfg)
         return WHAL_EINVAL;
 
     cfg = (whal_SpiNor_Cfg *)flashDev->cfg;
+#endif
 
     err = whal_Spi_StartCom(cfg->spiDev, cfg->spiComCfg);
     if (err)
@@ -262,10 +284,15 @@ whal_Error whal_SpiNor_Unlock(whal_Flash *flashDev, size_t addr, size_t len)
     (void)addr;
     (void)len;
 
+#ifdef WHAL_CFG_SPI_NOR_SINGLE_INSTANCE
+    cfg = (whal_SpiNor_Cfg *)whal_SpiNor_Dev.cfg;
+    (void)flashDev;
+#else
     if (!flashDev || !flashDev->cfg)
         return WHAL_EINVAL;
 
     cfg = (whal_SpiNor_Cfg *)flashDev->cfg;
+#endif
 
     err = whal_Spi_StartCom(cfg->spiDev, cfg->spiComCfg);
     if (err)
@@ -303,10 +330,18 @@ whal_Error whal_SpiNor3b_Read(whal_Flash *flashDev, size_t addr, void *data,
     uint8_t frame[4];
     whal_Error err;
 
+#ifdef WHAL_CFG_SPI_NOR_SINGLE_INSTANCE
+    cfg = (whal_SpiNor_Cfg *)whal_SpiNor_Dev.cfg;
+    (void)flashDev;
+
+    if (!data || dataSz == 0)
+        return WHAL_EINVAL;
+#else
     if (!flashDev || !flashDev->cfg || !data || dataSz == 0)
         return WHAL_EINVAL;
 
     cfg = (whal_SpiNor_Cfg *)flashDev->cfg;
+#endif
 
     if (addr & ~0xFFFFFF || addr >= cfg->capacity ||
         dataSz > cfg->capacity - addr)
@@ -345,10 +380,18 @@ whal_Error whal_SpiNor3b_Write(whal_Flash *flashDev, size_t addr,
     size_t offset;
     size_t pageRemaining;
 
+#ifdef WHAL_CFG_SPI_NOR_SINGLE_INSTANCE
+    cfg = (whal_SpiNor_Cfg *)whal_SpiNor_Dev.cfg;
+    (void)flashDev;
+
+    if (!data || dataSz == 0)
+        return WHAL_EINVAL;
+#else
     if (!flashDev || !flashDev->cfg || !data || dataSz == 0)
         return WHAL_EINVAL;
 
     cfg = (whal_SpiNor_Cfg *)flashDev->cfg;
+#endif
 
     if (addr & ~0xFFFFFF || addr >= cfg->capacity ||
         dataSz > cfg->capacity - addr)
@@ -409,10 +452,18 @@ whal_Error whal_SpiNor3b_Erase4k(whal_Flash *flashDev, size_t addr,
     size_t end;
     size_t cur;
 
+#ifdef WHAL_CFG_SPI_NOR_SINGLE_INSTANCE
+    cfg = (whal_SpiNor_Cfg *)whal_SpiNor_Dev.cfg;
+    (void)flashDev;
+
+    if (dataSz == 0)
+        return WHAL_EINVAL;
+#else
     if (!flashDev || !flashDev->cfg || dataSz == 0)
         return WHAL_EINVAL;
 
     cfg = (whal_SpiNor_Cfg *)flashDev->cfg;
+#endif
 
     if (addr & ~0xFFFFFF || addr >= cfg->capacity ||
         dataSz > cfg->capacity - addr)
@@ -465,10 +516,18 @@ whal_Error whal_SpiNor3b_Erase32k(whal_Flash *flashDev, size_t addr,
     size_t end;
     size_t cur;
 
+#ifdef WHAL_CFG_SPI_NOR_SINGLE_INSTANCE
+    cfg = (whal_SpiNor_Cfg *)whal_SpiNor_Dev.cfg;
+    (void)flashDev;
+
+    if (dataSz == 0)
+        return WHAL_EINVAL;
+#else
     if (!flashDev || !flashDev->cfg || dataSz == 0)
         return WHAL_EINVAL;
 
     cfg = (whal_SpiNor_Cfg *)flashDev->cfg;
+#endif
 
     if (addr & ~0xFFFFFF || addr >= cfg->capacity ||
         dataSz > cfg->capacity - addr)
@@ -521,10 +580,18 @@ whal_Error whal_SpiNor3b_Erase64k(whal_Flash *flashDev, size_t addr,
     size_t end;
     size_t cur;
 
+#ifdef WHAL_CFG_SPI_NOR_SINGLE_INSTANCE
+    cfg = (whal_SpiNor_Cfg *)whal_SpiNor_Dev.cfg;
+    (void)flashDev;
+
+    if (dataSz == 0)
+        return WHAL_EINVAL;
+#else
     if (!flashDev || !flashDev->cfg || dataSz == 0)
         return WHAL_EINVAL;
 
     cfg = (whal_SpiNor_Cfg *)flashDev->cfg;
+#endif
 
     if (addr & ~0xFFFFFF || addr >= cfg->capacity ||
         dataSz > cfg->capacity - addr)
@@ -577,10 +644,15 @@ whal_Error whal_SpiNor_EraseChip(whal_Flash *flashDev, size_t addr,
     (void)addr;
     (void)dataSz;
 
+#ifdef WHAL_CFG_SPI_NOR_SINGLE_INSTANCE
+    cfg = (whal_SpiNor_Cfg *)whal_SpiNor_Dev.cfg;
+    (void)flashDev;
+#else
     if (!flashDev || !flashDev->cfg)
         return WHAL_EINVAL;
 
     cfg = (whal_SpiNor_Cfg *)flashDev->cfg;
+#endif
 
     err = whal_Spi_StartCom(cfg->spiDev, cfg->spiComCfg);
     if (err)
@@ -608,10 +680,18 @@ whal_Error whal_SpiNor3b_ReadFast(whal_Flash *flashDev, size_t addr,
     uint8_t frame[5];
     whal_Error err;
 
+#ifdef WHAL_CFG_SPI_NOR_SINGLE_INSTANCE
+    cfg = (whal_SpiNor_Cfg *)whal_SpiNor_Dev.cfg;
+    (void)flashDev;
+
+    if (!data || dataSz == 0)
+        return WHAL_EINVAL;
+#else
     if (!flashDev || !flashDev->cfg || !data || dataSz == 0)
         return WHAL_EINVAL;
 
     cfg = (whal_SpiNor_Cfg *)flashDev->cfg;
+#endif
 
     if (addr & ~0xFFFFFF || addr >= cfg->capacity ||
         dataSz > cfg->capacity - addr)
@@ -651,7 +731,12 @@ whal_Error whal_SpiNor4bMode_Init(whal_Flash *flashDev)
     if (err)
         return err;
 
+#ifdef WHAL_CFG_SPI_NOR_SINGLE_INSTANCE
+    cfg = (whal_SpiNor_Cfg *)whal_SpiNor_Dev.cfg;
+    (void)flashDev;
+#else
     cfg = (whal_SpiNor_Cfg *)flashDev->cfg;
+#endif
 
     err = whal_Spi_StartCom(cfg->spiDev, cfg->spiComCfg);
     if (err)
@@ -671,10 +756,18 @@ whal_Error whal_SpiNor4b_Read(whal_Flash *flashDev, size_t addr,
     uint8_t frame[5];
     whal_Error err;
 
+#ifdef WHAL_CFG_SPI_NOR_SINGLE_INSTANCE
+    cfg = (whal_SpiNor_Cfg *)whal_SpiNor_Dev.cfg;
+    (void)flashDev;
+
+    if (!data || dataSz == 0)
+        return WHAL_EINVAL;
+#else
     if (!flashDev || !flashDev->cfg || !data || dataSz == 0)
         return WHAL_EINVAL;
 
     cfg = (whal_SpiNor_Cfg *)flashDev->cfg;
+#endif
 
     if (addr >= cfg->capacity || dataSz > cfg->capacity - addr)
         return WHAL_EINVAL;
@@ -709,10 +802,18 @@ whal_Error whal_SpiNor4b_ReadFast(whal_Flash *flashDev, size_t addr,
     uint8_t frame[6];
     whal_Error err;
 
+#ifdef WHAL_CFG_SPI_NOR_SINGLE_INSTANCE
+    cfg = (whal_SpiNor_Cfg *)whal_SpiNor_Dev.cfg;
+    (void)flashDev;
+
+    if (!data || dataSz == 0)
+        return WHAL_EINVAL;
+#else
     if (!flashDev || !flashDev->cfg || !data || dataSz == 0)
         return WHAL_EINVAL;
 
     cfg = (whal_SpiNor_Cfg *)flashDev->cfg;
+#endif
 
     if (addr >= cfg->capacity || dataSz > cfg->capacity - addr)
         return WHAL_EINVAL;
@@ -751,10 +852,18 @@ whal_Error whal_SpiNor4b_Write(whal_Flash *flashDev, size_t addr,
     size_t offset;
     size_t pageRemaining;
 
+#ifdef WHAL_CFG_SPI_NOR_SINGLE_INSTANCE
+    cfg = (whal_SpiNor_Cfg *)whal_SpiNor_Dev.cfg;
+    (void)flashDev;
+
+    if (!data || dataSz == 0)
+        return WHAL_EINVAL;
+#else
     if (!flashDev || !flashDev->cfg || !data || dataSz == 0)
         return WHAL_EINVAL;
 
     cfg = (whal_SpiNor_Cfg *)flashDev->cfg;
+#endif
 
     if (addr >= cfg->capacity || dataSz > cfg->capacity - addr)
         return WHAL_EINVAL;
@@ -809,10 +918,18 @@ whal_Error whal_SpiNor4b_Erase4k(whal_Flash *flashDev, size_t addr,
     size_t end;
     size_t cur;
 
+#ifdef WHAL_CFG_SPI_NOR_SINGLE_INSTANCE
+    cfg = (whal_SpiNor_Cfg *)whal_SpiNor_Dev.cfg;
+    (void)flashDev;
+
+    if (dataSz == 0)
+        return WHAL_EINVAL;
+#else
     if (!flashDev || !flashDev->cfg || dataSz == 0)
         return WHAL_EINVAL;
 
     cfg = (whal_SpiNor_Cfg *)flashDev->cfg;
+#endif
 
     if (addr >= cfg->capacity || dataSz > cfg->capacity - addr)
         return WHAL_EINVAL;
@@ -864,10 +981,18 @@ whal_Error whal_SpiNor4b_Erase64k(whal_Flash *flashDev, size_t addr,
     size_t end;
     size_t cur;
 
+#ifdef WHAL_CFG_SPI_NOR_SINGLE_INSTANCE
+    cfg = (whal_SpiNor_Cfg *)whal_SpiNor_Dev.cfg;
+    (void)flashDev;
+
+    if (dataSz == 0)
+        return WHAL_EINVAL;
+#else
     if (!flashDev || !flashDev->cfg || dataSz == 0)
         return WHAL_EINVAL;
 
     cfg = (whal_SpiNor_Cfg *)flashDev->cfg;
+#endif
 
     if (addr >= cfg->capacity || dataSz > cfg->capacity - addr)
         return WHAL_EINVAL;
@@ -920,10 +1045,18 @@ whal_Error whal_SpiNor4bMode_Read(whal_Flash *flashDev, size_t addr,
     uint8_t frame[5];
     whal_Error err;
 
+#ifdef WHAL_CFG_SPI_NOR_SINGLE_INSTANCE
+    cfg = (whal_SpiNor_Cfg *)whal_SpiNor_Dev.cfg;
+    (void)flashDev;
+
+    if (!data || dataSz == 0)
+        return WHAL_EINVAL;
+#else
     if (!flashDev || !flashDev->cfg || !data || dataSz == 0)
         return WHAL_EINVAL;
 
     cfg = (whal_SpiNor_Cfg *)flashDev->cfg;
+#endif
 
     if (addr >= cfg->capacity || dataSz > cfg->capacity - addr)
         return WHAL_EINVAL;
@@ -958,10 +1091,18 @@ whal_Error whal_SpiNor4bMode_ReadFast(whal_Flash *flashDev, size_t addr,
     uint8_t frame[6];
     whal_Error err;
 
+#ifdef WHAL_CFG_SPI_NOR_SINGLE_INSTANCE
+    cfg = (whal_SpiNor_Cfg *)whal_SpiNor_Dev.cfg;
+    (void)flashDev;
+
+    if (!data || dataSz == 0)
+        return WHAL_EINVAL;
+#else
     if (!flashDev || !flashDev->cfg || !data || dataSz == 0)
         return WHAL_EINVAL;
 
     cfg = (whal_SpiNor_Cfg *)flashDev->cfg;
+#endif
 
     if (addr >= cfg->capacity || dataSz > cfg->capacity - addr)
         return WHAL_EINVAL;
@@ -1000,10 +1141,18 @@ whal_Error whal_SpiNor4bMode_Write(whal_Flash *flashDev, size_t addr,
     size_t offset;
     size_t pageRemaining;
 
+#ifdef WHAL_CFG_SPI_NOR_SINGLE_INSTANCE
+    cfg = (whal_SpiNor_Cfg *)whal_SpiNor_Dev.cfg;
+    (void)flashDev;
+
+    if (!data || dataSz == 0)
+        return WHAL_EINVAL;
+#else
     if (!flashDev || !flashDev->cfg || !data || dataSz == 0)
         return WHAL_EINVAL;
 
     cfg = (whal_SpiNor_Cfg *)flashDev->cfg;
+#endif
 
     if (addr >= cfg->capacity || dataSz > cfg->capacity - addr)
         return WHAL_EINVAL;
@@ -1058,10 +1207,18 @@ whal_Error whal_SpiNor4bMode_Erase4k(whal_Flash *flashDev, size_t addr,
     size_t end;
     size_t cur;
 
+#ifdef WHAL_CFG_SPI_NOR_SINGLE_INSTANCE
+    cfg = (whal_SpiNor_Cfg *)whal_SpiNor_Dev.cfg;
+    (void)flashDev;
+
+    if (dataSz == 0)
+        return WHAL_EINVAL;
+#else
     if (!flashDev || !flashDev->cfg || dataSz == 0)
         return WHAL_EINVAL;
 
     cfg = (whal_SpiNor_Cfg *)flashDev->cfg;
+#endif
 
     if (addr >= cfg->capacity || dataSz > cfg->capacity - addr)
         return WHAL_EINVAL;
@@ -1113,10 +1270,18 @@ whal_Error whal_SpiNor4bMode_Erase32k(whal_Flash *flashDev, size_t addr,
     size_t end;
     size_t cur;
 
+#ifdef WHAL_CFG_SPI_NOR_SINGLE_INSTANCE
+    cfg = (whal_SpiNor_Cfg *)whal_SpiNor_Dev.cfg;
+    (void)flashDev;
+
+    if (dataSz == 0)
+        return WHAL_EINVAL;
+#else
     if (!flashDev || !flashDev->cfg || dataSz == 0)
         return WHAL_EINVAL;
 
     cfg = (whal_SpiNor_Cfg *)flashDev->cfg;
+#endif
 
     if (addr >= cfg->capacity || dataSz > cfg->capacity - addr)
         return WHAL_EINVAL;
@@ -1168,10 +1333,18 @@ whal_Error whal_SpiNor4bMode_Erase64k(whal_Flash *flashDev, size_t addr,
     size_t end;
     size_t cur;
 
+#ifdef WHAL_CFG_SPI_NOR_SINGLE_INSTANCE
+    cfg = (whal_SpiNor_Cfg *)whal_SpiNor_Dev.cfg;
+    (void)flashDev;
+
+    if (dataSz == 0)
+        return WHAL_EINVAL;
+#else
     if (!flashDev || !flashDev->cfg || dataSz == 0)
         return WHAL_EINVAL;
 
     cfg = (whal_SpiNor_Cfg *)flashDev->cfg;
+#endif
 
     if (addr >= cfg->capacity || dataSz > cfg->capacity - addr)
         return WHAL_EINVAL;
@@ -1250,10 +1423,18 @@ whal_Error whal_SpiNor4bExReg_Read(whal_Flash *flashDev, size_t addr,
     size_t chunk;
     size_t bankRemaining;
 
+#ifdef WHAL_CFG_SPI_NOR_SINGLE_INSTANCE
+    cfg = (whal_SpiNor_Cfg *)whal_SpiNor_Dev.cfg;
+    (void)flashDev;
+
+    if (!data || dataSz == 0)
+        return WHAL_EINVAL;
+#else
     if (!flashDev || !flashDev->cfg || !data || dataSz == 0)
         return WHAL_EINVAL;
 
     cfg = (whal_SpiNor_Cfg *)flashDev->cfg;
+#endif
 
     if (addr >= cfg->capacity || dataSz > cfg->capacity - addr)
         return WHAL_EINVAL;
@@ -1308,10 +1489,18 @@ whal_Error whal_SpiNor4bExReg_ReadFast(whal_Flash *flashDev, size_t addr,
     size_t chunk;
     size_t bankRemaining;
 
+#ifdef WHAL_CFG_SPI_NOR_SINGLE_INSTANCE
+    cfg = (whal_SpiNor_Cfg *)whal_SpiNor_Dev.cfg;
+    (void)flashDev;
+
+    if (!data || dataSz == 0)
+        return WHAL_EINVAL;
+#else
     if (!flashDev || !flashDev->cfg || !data || dataSz == 0)
         return WHAL_EINVAL;
 
     cfg = (whal_SpiNor_Cfg *)flashDev->cfg;
+#endif
 
     if (addr >= cfg->capacity || dataSz > cfg->capacity - addr)
         return WHAL_EINVAL;
@@ -1367,10 +1556,18 @@ whal_Error whal_SpiNor4bExReg_Write(whal_Flash *flashDev, size_t addr,
     size_t offset;
     size_t pageRemaining;
 
+#ifdef WHAL_CFG_SPI_NOR_SINGLE_INSTANCE
+    cfg = (whal_SpiNor_Cfg *)whal_SpiNor_Dev.cfg;
+    (void)flashDev;
+
+    if (!data || dataSz == 0)
+        return WHAL_EINVAL;
+#else
     if (!flashDev || !flashDev->cfg || !data || dataSz == 0)
         return WHAL_EINVAL;
 
     cfg = (whal_SpiNor_Cfg *)flashDev->cfg;
+#endif
 
     if (addr >= cfg->capacity || dataSz > cfg->capacity - addr)
         return WHAL_EINVAL;
@@ -1429,10 +1626,18 @@ whal_Error whal_SpiNor4bExReg_Erase4k(whal_Flash *flashDev, size_t addr,
     size_t end;
     size_t cur;
 
+#ifdef WHAL_CFG_SPI_NOR_SINGLE_INSTANCE
+    cfg = (whal_SpiNor_Cfg *)whal_SpiNor_Dev.cfg;
+    (void)flashDev;
+
+    if (dataSz == 0)
+        return WHAL_EINVAL;
+#else
     if (!flashDev || !flashDev->cfg || dataSz == 0)
         return WHAL_EINVAL;
 
     cfg = (whal_SpiNor_Cfg *)flashDev->cfg;
+#endif
 
     if (addr >= cfg->capacity || dataSz > cfg->capacity - addr)
         return WHAL_EINVAL;
@@ -1488,10 +1693,18 @@ whal_Error whal_SpiNor4bExReg_Erase32k(whal_Flash *flashDev, size_t addr,
     size_t end;
     size_t cur;
 
+#ifdef WHAL_CFG_SPI_NOR_SINGLE_INSTANCE
+    cfg = (whal_SpiNor_Cfg *)whal_SpiNor_Dev.cfg;
+    (void)flashDev;
+
+    if (dataSz == 0)
+        return WHAL_EINVAL;
+#else
     if (!flashDev || !flashDev->cfg || dataSz == 0)
         return WHAL_EINVAL;
 
     cfg = (whal_SpiNor_Cfg *)flashDev->cfg;
+#endif
 
     if (addr >= cfg->capacity || dataSz > cfg->capacity - addr)
         return WHAL_EINVAL;
@@ -1547,10 +1760,18 @@ whal_Error whal_SpiNor4bExReg_Erase64k(whal_Flash *flashDev, size_t addr,
     size_t end;
     size_t cur;
 
+#ifdef WHAL_CFG_SPI_NOR_SINGLE_INSTANCE
+    cfg = (whal_SpiNor_Cfg *)whal_SpiNor_Dev.cfg;
+    (void)flashDev;
+
+    if (dataSz == 0)
+        return WHAL_EINVAL;
+#else
     if (!flashDev || !flashDev->cfg || dataSz == 0)
         return WHAL_EINVAL;
 
     cfg = (whal_SpiNor_Cfg *)flashDev->cfg;
+#endif
 
     if (addr >= cfg->capacity || dataSz > cfg->capacity - addr)
         return WHAL_EINVAL;

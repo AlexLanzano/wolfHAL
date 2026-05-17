@@ -1,9 +1,13 @@
 #include <stdint.h>
+#include "board.h"  /* provides WHAL_CFG_STM32H5_FLASH_DEV initializer */
+#include <wolfHAL/reg.h>
 #include <wolfHAL/flash/stm32h5_flash.h>
 #include <wolfHAL/flash/flash.h>
 #include <wolfHAL/error.h>
 #include <wolfHAL/bitops.h>
 #include <wolfHAL/timeout.h>
+
+const whal_Flash whal_Stm32h5_Flash_Dev = WHAL_CFG_STM32H5_FLASH_DEV;
 
 /*
  * STM32H5 Flash Register Definitions
@@ -133,17 +137,12 @@ whal_Error whal_Stm32h5_Flash_Deinit(whal_Flash *flashDev)
 whal_Error whal_Stm32h5_Flash_Lock(whal_Flash *flashDev, size_t addr,
                                    size_t len)
 {
-    const whal_Regmap *regmap;
-
+    size_t base = whal_Stm32h5_Flash_Dev.base;
+    (void)flashDev;
     (void)addr;
     (void)len;
 
-    if (!flashDev)
-        return WHAL_EINVAL;
-
-    regmap = &flashDev->regmap;
-
-    whal_Reg_Update(regmap->base, FLASH_NSCR_REG, FLASH_NSCR_LOCK_Msk,
+    whal_Reg_Update(base, FLASH_NSCR_REG, FLASH_NSCR_LOCK_Msk,
                     whal_SetBits(FLASH_NSCR_LOCK_Msk, FLASH_NSCR_LOCK_Pos, 1));
 
     return WHAL_SUCCESS;
@@ -152,18 +151,13 @@ whal_Error whal_Stm32h5_Flash_Lock(whal_Flash *flashDev, size_t addr,
 whal_Error whal_Stm32h5_Flash_Unlock(whal_Flash *flashDev, size_t addr,
                                      size_t len)
 {
-    const whal_Regmap *regmap;
-
+    size_t base = whal_Stm32h5_Flash_Dev.base;
+    (void)flashDev;
     (void)addr;
     (void)len;
 
-    if (!flashDev)
-        return WHAL_EINVAL;
-
-    regmap = &flashDev->regmap;
-
-    whal_Reg_Write(regmap->base, FLASH_NSKEYR_REG, FLASH_KEY1);
-    whal_Reg_Write(regmap->base, FLASH_NSKEYR_REG, FLASH_KEY2);
+    whal_Reg_Write(base, FLASH_NSKEYR_REG, FLASH_KEY1);
+    whal_Reg_Write(base, FLASH_NSKEYR_REG, FLASH_KEY2);
 
     return WHAL_SUCCESS;
 }
@@ -171,13 +165,13 @@ whal_Error whal_Stm32h5_Flash_Unlock(whal_Flash *flashDev, size_t addr,
 whal_Error whal_Stm32h5_Flash_Read(whal_Flash *flashDev, size_t addr,
                                    void *data, size_t dataSz)
 {
+    const whal_Stm32h5_Flash_Cfg *cfg =
+        (const whal_Stm32h5_Flash_Cfg *)whal_Stm32h5_Flash_Dev.cfg;
     uint8_t *dataBuf = (uint8_t *)data;
-    whal_Stm32h5_Flash_Cfg *cfg;
+    (void)flashDev;
 
-    if (!flashDev || !flashDev->cfg || !data)
+    if (!data)
         return WHAL_EINVAL;
-
-    cfg = flashDev->cfg;
 
     if (addr < cfg->startAddr || addr + dataSz > cfg->startAddr + cfg->size)
         return WHAL_EINVAL;
@@ -209,16 +203,15 @@ static whal_Error CheckErrors(size_t base)
 whal_Error whal_Stm32h5_Flash_Write(whal_Flash *flashDev, size_t addr,
                                     const void *data, size_t dataSz)
 {
+    const whal_Stm32h5_Flash_Cfg *cfg =
+        (const whal_Stm32h5_Flash_Cfg *)whal_Stm32h5_Flash_Dev.cfg;
+    size_t base = whal_Stm32h5_Flash_Dev.base;
     const uint8_t *dataBuf = (const uint8_t *)data;
-    whal_Stm32h5_Flash_Cfg *cfg;
-    const whal_Regmap *regmap;
     whal_Error err;
+    (void)flashDev;
 
-    if (!flashDev || !flashDev->cfg || !data)
+    if (!data)
         return WHAL_EINVAL;
-
-    cfg = flashDev->cfg;
-    regmap = &flashDev->regmap;
 
     /* Address and size must be 16-byte aligned (128-bit flash-word) */
     if ((addr & 0xF) || (dataSz & 0xF))
@@ -228,15 +221,15 @@ whal_Error whal_Stm32h5_Flash_Write(whal_Flash *flashDev, size_t addr,
         return WHAL_EINVAL;
 
     /* Wait for any ongoing operation */
-    err = WaitNotBusy(regmap->base, cfg->timeout);
+    err = WaitNotBusy(base, cfg->timeout);
     if (err)
         return err;
 
     /* Clear all error and status flags */
-    whal_Reg_Write(regmap->base, FLASH_NSCCR_REG, FLASH_NSCCR_CLR_ALL);
+    whal_Reg_Write(base, FLASH_NSCCR_REG, FLASH_NSCCR_CLR_ALL);
 
     /* Enable programming */
-    whal_Reg_Update(regmap->base, FLASH_NSCR_REG, FLASH_NSCR_PG_Msk,
+    whal_Reg_Update(base, FLASH_NSCR_REG, FLASH_NSCR_PG_Msk,
                     whal_SetBits(FLASH_NSCR_PG_Msk, FLASH_NSCR_PG_Pos, 1));
 
     /* Program data in 128-bit (16 byte) flash-word chunks */
@@ -249,18 +242,18 @@ whal_Error whal_Stm32h5_Flash_Write(whal_Flash *flashDev, size_t addr,
         flashAddr[2] = dataAddr[2];
         flashAddr[3] = dataAddr[3];
 
-        err = WaitNotBusy(regmap->base, cfg->timeout);
+        err = WaitNotBusy(base, cfg->timeout);
         if (err)
             goto cleanup;
 
-        err = CheckErrors(regmap->base);
+        err = CheckErrors(base);
         if (err)
             goto cleanup;
     }
 
 cleanup:
     /* Disable programming */
-    whal_Reg_Update(regmap->base, FLASH_NSCR_REG, FLASH_NSCR_PG_Msk, 0);
+    whal_Reg_Update(base, FLASH_NSCR_REG, FLASH_NSCR_PG_Msk, 0);
 
     return err;
 }
@@ -268,17 +261,13 @@ cleanup:
 whal_Error whal_Stm32h5_Flash_Erase(whal_Flash *flashDev, size_t addr,
                                     size_t dataSz)
 {
-    whal_Stm32h5_Flash_Cfg *cfg;
-    const whal_Regmap *regmap;
+    const whal_Stm32h5_Flash_Cfg *cfg =
+        (const whal_Stm32h5_Flash_Cfg *)whal_Stm32h5_Flash_Dev.cfg;
+    size_t base = whal_Stm32h5_Flash_Dev.base;
     whal_Error err;
     size_t offset;
     size_t startSector, endSector;
-
-    if (!flashDev || !flashDev->cfg)
-        return WHAL_EINVAL;
-
-    cfg = flashDev->cfg;
-    regmap = &flashDev->regmap;
+    (void)flashDev;
 
     if (dataSz == 0)
         return WHAL_SUCCESS;
@@ -287,12 +276,12 @@ whal_Error whal_Stm32h5_Flash_Erase(whal_Flash *flashDev, size_t addr,
         return WHAL_EINVAL;
 
     /* Wait for any ongoing operation */
-    err = WaitNotBusy(regmap->base, cfg->timeout);
+    err = WaitNotBusy(base, cfg->timeout);
     if (err)
         return err;
 
     /* Clear all error and status flags */
-    whal_Reg_Write(regmap->base, FLASH_NSCCR_REG, FLASH_NSCCR_CLR_ALL);
+    whal_Reg_Write(base, FLASH_NSCCR_REG, FLASH_NSCCR_CLR_ALL);
 
     offset = addr - cfg->startAddr;
     startSector = offset >> FLASH_SECTOR_SHIFT;
@@ -303,7 +292,7 @@ whal_Error whal_Stm32h5_Flash_Erase(whal_Flash *flashDev, size_t addr,
         size_t sectorInBank = sector - (bank * FLASH_SECTORS_PER_BANK);
 
         /* Configure and start sector erase in one write */
-        whal_Reg_Update(regmap->base, FLASH_NSCR_REG,
+        whal_Reg_Update(base, FLASH_NSCR_REG,
                         FLASH_NSCR_SER_Msk | FLASH_NSCR_SNB_Msk |
                         FLASH_NSCR_BKSEL_Msk | FLASH_NSCR_STRT_Msk,
                         whal_SetBits(FLASH_NSCR_SER_Msk, FLASH_NSCR_SER_Pos, 1) |
@@ -313,18 +302,18 @@ whal_Error whal_Stm32h5_Flash_Erase(whal_Flash *flashDev, size_t addr,
                                      bank) |
                         whal_SetBits(FLASH_NSCR_STRT_Msk, FLASH_NSCR_STRT_Pos, 1));
 
-        err = WaitNotBusy(regmap->base, cfg->timeout);
+        err = WaitNotBusy(base, cfg->timeout);
         if (err)
             goto cleanup;
 
-        err = CheckErrors(regmap->base);
+        err = CheckErrors(base);
         if (err)
             goto cleanup;
     }
 
 cleanup:
     /* Clear sector erase mode */
-    whal_Reg_Update(regmap->base, FLASH_NSCR_REG, FLASH_NSCR_SER_Msk, 0);
+    whal_Reg_Update(base, FLASH_NSCR_REG, FLASH_NSCR_SER_Msk, 0);
 
     return err;
 }
@@ -334,10 +323,10 @@ cleanup:
 whal_Error whal_Stm32h5_Flash_Ext_SetLatency(whal_Flash *flashDev,
                                              uint8_t latency)
 {
-    if (!flashDev)
-        return WHAL_EINVAL;
+    size_t base = whal_Stm32h5_Flash_Dev.base;
+    (void)flashDev;
 
-    whal_Reg_Update(flashDev->regmap.base, FLASH_ACR_REG,
+    whal_Reg_Update(base, FLASH_ACR_REG,
                     FLASH_ACR_LATENCY_WRHIGHFREQ_Msk, latency);
 
     return WHAL_SUCCESS;

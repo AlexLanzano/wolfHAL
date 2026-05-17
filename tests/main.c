@@ -3,11 +3,8 @@
 #include "board.h"
 #include "test.h"
 
-#ifdef WHAL_TEST_ENABLE_CLOCK
-void whal_Test_Clock(void);
 #ifdef WHAL_TEST_ENABLE_CLOCK_PLATFORM
 void whal_Test_Clock_Platform(void);
-#endif
 #endif
 
 #ifdef WHAL_TEST_ENABLE_GPIO
@@ -52,11 +49,56 @@ void whal_Test_Spi_Loopback_Platform(void);
 #endif
 #endif
 
-#ifdef WHAL_TEST_ENABLE_CRYPTO
-void whal_Test_Crypto(void);
 #ifdef WHAL_TEST_ENABLE_CRYPTO_PLATFORM
 void whal_Test_Crypto_Platform(void);
 #endif
+
+#ifdef WHAL_TEST_ENABLE_AES_ECB
+void whal_Test_AesEcb(void);
+#endif
+
+#ifdef WHAL_TEST_ENABLE_AES_CBC
+void whal_Test_AesCbc(void);
+#endif
+
+#ifdef WHAL_TEST_ENABLE_AES_CTR
+void whal_Test_AesCtr(void);
+#endif
+
+#ifdef WHAL_TEST_ENABLE_AES_GCM
+void whal_Test_AesGcm(void);
+#endif
+
+#ifdef WHAL_TEST_ENABLE_AES_GMAC
+void whal_Test_AesGmac(void);
+#endif
+
+#ifdef WHAL_TEST_ENABLE_AES_CCM
+void whal_Test_AesCcm(void);
+#endif
+
+#ifdef WHAL_TEST_ENABLE_SHA1
+void whal_Test_Sha1(void);
+#endif
+
+#ifdef WHAL_TEST_ENABLE_SHA224
+void whal_Test_Sha224(void);
+#endif
+
+#ifdef WHAL_TEST_ENABLE_SHA256
+void whal_Test_Sha256(void);
+#endif
+
+#ifdef WHAL_TEST_ENABLE_HMAC_SHA1
+void whal_Test_HmacSha1(void);
+#endif
+
+#ifdef WHAL_TEST_ENABLE_HMAC_SHA224
+void whal_Test_HmacSha224(void);
+#endif
+
+#ifdef WHAL_TEST_ENABLE_HMAC_SHA256
+void whal_Test_HmacSha256(void);
 #endif
 
 #ifdef WHAL_TEST_ENABLE_BLOCK
@@ -95,18 +137,12 @@ void whal_Test_I2c_Platform(void);
 #endif
 #endif
 
-#ifdef WHAL_TEST_ENABLE_DMA
-void whal_Test_Dma(void);
 #ifdef WHAL_TEST_ENABLE_DMA_PLATFORM
 void whal_Test_Dma_Platform(void);
 #endif
-#endif
 
-#ifdef WHAL_TEST_ENABLE_IRQ
-void whal_Test_Irq(void);
 #ifdef WHAL_TEST_ENABLE_IRQ_PLATFORM
 void whal_Test_Irq_Platform(void);
-#endif
 #endif
 
 #ifdef WHAL_TEST_ENABLE_SENSOR
@@ -128,10 +164,10 @@ void whal_Test_Puts(const char *s)
     if (len == 0)
         return;
 
-    whal_Uart_Send(&g_whalUart, s, len);
+    whal_Uart_Send(BOARD_UART_DEV, s, len);
 
     if (s[len - 1] == '\n')
-        whal_Uart_Send(&g_whalUart, "\r", 1);
+        whal_Uart_Send(BOARD_UART_DEV, "\r", 1);
 }
 
 void main(void)
@@ -143,16 +179,13 @@ void main(void)
     if (Board_Init() != WHAL_SUCCESS)
         while (1);
 
-    whal_Gpio_Set(&g_whalGpio, BOARD_LED_PIN, 1);
+    whal_Gpio_Set(BOARD_GPIO_DEV, BOARD_LED_PIN, 1);
 
     whal_Test_Printf("wolfHAL HW Test Suite\n");
     whal_Test_Printf("=====================\n");
 
-#ifdef WHAL_TEST_ENABLE_CLOCK
-    whal_Test_Clock();
 #ifdef WHAL_TEST_ENABLE_CLOCK_PLATFORM
     whal_Test_Clock_Platform();
-#endif
 #endif
 
 #ifdef WHAL_TEST_ENABLE_GPIO
@@ -197,11 +230,56 @@ void main(void)
 #endif
 #endif
 
-#ifdef WHAL_TEST_ENABLE_CRYPTO
-    whal_Test_Crypto();
 #ifdef WHAL_TEST_ENABLE_CRYPTO_PLATFORM
     whal_Test_Crypto_Platform();
 #endif
+
+#ifdef WHAL_TEST_ENABLE_AES_ECB
+    whal_Test_AesEcb();
+#endif
+
+#ifdef WHAL_TEST_ENABLE_AES_CBC
+    whal_Test_AesCbc();
+#endif
+
+#ifdef WHAL_TEST_ENABLE_AES_CTR
+    whal_Test_AesCtr();
+#endif
+
+#ifdef WHAL_TEST_ENABLE_AES_GCM
+    whal_Test_AesGcm();
+#endif
+
+#ifdef WHAL_TEST_ENABLE_AES_GMAC
+    whal_Test_AesGmac();
+#endif
+
+#ifdef WHAL_TEST_ENABLE_AES_CCM
+    whal_Test_AesCcm();
+#endif
+
+#ifdef WHAL_TEST_ENABLE_SHA1
+    whal_Test_Sha1();
+#endif
+
+#ifdef WHAL_TEST_ENABLE_SHA224
+    whal_Test_Sha224();
+#endif
+
+#ifdef WHAL_TEST_ENABLE_SHA256
+    whal_Test_Sha256();
+#endif
+
+#ifdef WHAL_TEST_ENABLE_HMAC_SHA1
+    whal_Test_HmacSha1();
+#endif
+
+#ifdef WHAL_TEST_ENABLE_HMAC_SHA224
+    whal_Test_HmacSha224();
+#endif
+
+#ifdef WHAL_TEST_ENABLE_HMAC_SHA256
+    whal_Test_HmacSha256();
 #endif
 
 #ifdef WHAL_TEST_ENABLE_BLOCK
@@ -240,18 +318,12 @@ void main(void)
 #endif
 #endif
 
-#ifdef WHAL_TEST_ENABLE_DMA
-    whal_Test_Dma();
 #ifdef WHAL_TEST_ENABLE_DMA_PLATFORM
     whal_Test_Dma_Platform();
 #endif
-#endif
 
-#ifdef WHAL_TEST_ENABLE_IRQ
-    whal_Test_Irq();
 #ifdef WHAL_TEST_ENABLE_IRQ_PLATFORM
     whal_Test_Irq_Platform();
-#endif
 #endif
 
 #ifdef WHAL_TEST_ENABLE_SENSOR
@@ -261,14 +333,14 @@ void main(void)
     WHAL_TEST_SUMMARY();
 
     if (g_whalTestFailed == 0) {
-        whal_Gpio_Set(&g_whalGpio, BOARD_LED_PIN, 1);
+        whal_Gpio_Set(BOARD_GPIO_DEV, BOARD_LED_PIN, 1);
         while (1);
     }
 
     while (1) {
-        whal_Gpio_Set(&g_whalGpio, BOARD_LED_PIN, 1);
+        whal_Gpio_Set(BOARD_GPIO_DEV, BOARD_LED_PIN, 1);
         Board_WaitMs(100);
-        whal_Gpio_Set(&g_whalGpio, BOARD_LED_PIN, 0);
+        whal_Gpio_Set(BOARD_GPIO_DEV, BOARD_LED_PIN, 0);
         Board_WaitMs(100);
     }
 }

@@ -1,25 +1,26 @@
 _BOARD_DIR := $(patsubst %/,%,$(dir $(lastword $(MAKEFILE_LIST))))
 
 PLATFORM = stm32l1
-TESTS ?= clock gpio timer flash uart spi i2c
+TESTS ?= gpio timer flash uart spi i2c
 
 GCC = $(GCC_PATH)arm-none-eabi-gcc
 LD = $(GCC_PATH)arm-none-eabi-gcc
 OBJCOPY = $(GCC_PATH)arm-none-eabi-objcopy
 
-CFLAGS += -Wall -Werror $(INCLUDE) -g3 \
-          -ffreestanding -nostdlib \
-          -mcpu=cortex-m3 -mthumb \
-          -DPLATFORM_STM32L1 -MMD -MP \
-          -DWHAL_CFG_STM32L1_GPIO_DIRECT_API_MAPPING \
-          -DWHAL_CFG_STM32L1_RCC_DIRECT_API_MAPPING \
-          -DWHAL_CFG_STM32L1_UART_DIRECT_API_MAPPING \
-          -DWHAL_CFG_STM32L1_SPI_DIRECT_API_MAPPING \
-          -DWHAL_CFG_STM32L1_I2C_DIRECT_API_MAPPING \
-          $(if $(filter iwdg,$(WATCHDOG)),-DBOARD_WATCHDOG_IWDG) \
-          $(if $(filter wwdg,$(WATCHDOG)),-DBOARD_WATCHDOG_WWDG)
+CFLAGS += -Wall -Werror $(INCLUDE) -g3 -Os -ffunction-sections -fdata-sections \
+ -ffreestanding -nostdlib \
+ -mcpu=cortex-m3 -mthumb \
+ -DPLATFORM_STM32L1 -MMD -MP \
+ -DWHAL_CFG_STM32L1_GPIO_DIRECT_API_MAPPING \
+ -DWHAL_CFG_STM32L1_RCC_DIRECT_API_MAPPING \
+ -DWHAL_CFG_STM32L1_UART_DIRECT_API_MAPPING \
+ -DWHAL_CFG_STM32L1_SPI_DIRECT_API_MAPPING \
+ -DWHAL_CFG_STM32L1_I2C_DIRECT_API_MAPPING \
+ $(if $(filter iwdg,$(WATCHDOG)),-DBOARD_WATCHDOG_IWDG) \
+ $(if $(filter wwdg,$(WATCHDOG)),-DBOARD_WATCHDOG_WWDG) \
+ -DWHAL_CFG_SYSTICK_TIMER_DIRECT_API_MAPPING
 LDFLAGS = -mcpu=cortex-m3 -mthumb \
-          -ffreestanding -nostartfiles -Wl,--omagic -static
+ -ffreestanding -nostartfiles -Wl,--omagic -Wl,--gc-sections -static
 
 LINKER_SCRIPT ?= $(_BOARD_DIR)/linker.ld
 
@@ -28,7 +29,6 @@ INCLUDE += -I$(_BOARD_DIR) -I$(WHAL_DIR)/boards/peripheral
 BOARD_SOURCE = $(_BOARD_DIR)/ivt.c
 BOARD_SOURCE += $(_BOARD_DIR)/board.c
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*.c)
-BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/timer.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/flash.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/rng.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/crypto.c)
@@ -50,4 +50,4 @@ OPENOCD_TARGET ?= target/stm32l1.cfg
 flash:
 	@test -n "$(IMAGE)" || { echo "IMAGE=<path/to/image> required" >&2; exit 1; }
 	$(OPENOCD) -f $(OPENOCD_INTERFACE) -f $(OPENOCD_TARGET) \
-	    -c "program $(IMAGE) verify reset exit"
+	 -c "program $(IMAGE) verify reset exit"

@@ -2,20 +2,49 @@
 #define WHAL_STM32F3_RCC_H
 
 #include <stdint.h>
-#include <wolfHAL/clock/clock.h>
 #include <stddef.h>
+#include <wolfHAL/error.h>
+#include <wolfHAL/reg.h>
+#include <wolfHAL/bitops.h>
 
 /*
  * @file stm32f3_rcc.h
  * @brief STM32F3 RCC (Reset and Clock Control) driver.
  *
- * Boards bring up the clock tree imperatively from Board_Init.
+ * Boards bring up the clock tree imperatively from Board_Init. The RCC
+ * peripheral lives at a fixed address — clock is a board-level driver
+ * with no device struct, no generic API, no vtable.
  *
  * Clock sources:
  *   HSI = 8 MHz internal RC
  *   HSE = 4-32 MHz external
  *   PLL = HSI/2 or HSE/PREDIV * PLLMUL (max 72 MHz)
  */
+
+#define WHAL_STM32F3_RCC_BASE            0x40021000
+
+#define WHAL_STM32F3_RCC_CR_REG          0x00
+#define WHAL_STM32F3_RCC_CR_PLLON_Msk    (1UL << 24)
+#define WHAL_STM32F3_RCC_CR_PLLRDY_Msk   (1UL << 25)
+#define WHAL_STM32F3_RCC_CR_PLLRDY_Pos   25
+
+#define WHAL_STM32F3_RCC_CFGR_REG        0x04
+#define WHAL_STM32F3_RCC_CFGR_SW_Pos     0
+#define WHAL_STM32F3_RCC_CFGR_SW_Msk     (WHAL_BITMASK(2) << WHAL_STM32F3_RCC_CFGR_SW_Pos)
+#define WHAL_STM32F3_RCC_CFGR_SWS_Pos    2
+#define WHAL_STM32F3_RCC_CFGR_SWS_Msk    (WHAL_BITMASK(2) << WHAL_STM32F3_RCC_CFGR_SWS_Pos)
+#define WHAL_STM32F3_RCC_CFGR_PLLSRC_Pos 16
+#define WHAL_STM32F3_RCC_CFGR_PLLSRC_Msk (1UL << WHAL_STM32F3_RCC_CFGR_PLLSRC_Pos)
+#define WHAL_STM32F3_RCC_CFGR_PLLMUL_Pos 18
+#define WHAL_STM32F3_RCC_CFGR_PLLMUL_Msk (WHAL_BITMASK(4) << WHAL_STM32F3_RCC_CFGR_PLLMUL_Pos)
+
+#define WHAL_STM32F3_RCC_CFGR2_REG        0x2C
+#define WHAL_STM32F3_RCC_CFGR2_PREDIV_Pos 0
+#define WHAL_STM32F3_RCC_CFGR2_PREDIV_Msk (WHAL_BITMASK(4) << WHAL_STM32F3_RCC_CFGR2_PREDIV_Pos)
+
+#define WHAL_STM32F3_RCC_CFGR3_REG        0x30
+#define WHAL_STM32F3_RCC_CFGR3_I2C1SW_Pos 4
+#define WHAL_STM32F3_RCC_CFGR3_I2C1SW_Msk (1UL << WHAL_STM32F3_RCC_CFGR3_I2C1SW_Pos)
 
 /*
  * @brief System clock source selection (RCC_CFGR.SW).
@@ -81,48 +110,170 @@ typedef struct {
     .rdyReg = 0x000, .rdyMsk = (1UL << 17), .rdyPos = 17
 
 /*
- * @brief Enable an oscillator (HSI/HSE). Blocks until ready.
+ * @brief Turn on an oscillator (HSI/HSE) and wait for its ready bit.
+ *
+ * @param cfg    Oscillator on/ready bit descriptor.
+ *
+ * @retval WHAL_SUCCESS Always.
  */
-whal_Error whal_Stm32f3_Rcc_EnableOsc(whal_Clock *clkDev,
-                                     const whal_Stm32f3_Rcc_OscCfg *cfg);
-/*
- * @brief Disable an oscillator.
- */
-whal_Error whal_Stm32f3_Rcc_DisableOsc(whal_Clock *clkDev,
-                                      const whal_Stm32f3_Rcc_OscCfg *cfg);
+static inline whal_Error whal_Stm32f3_Rcc_EnableOsc(
+    const whal_Stm32f3_Rcc_OscCfg *cfg)
+{
+    size_t rdy;
+
+    whal_Reg_Update(WHAL_STM32F3_RCC_BASE, cfg->onReg, cfg->onMsk, cfg->onMsk);
+    do {
+        whal_Reg_Get(WHAL_STM32F3_RCC_BASE, cfg->rdyReg, cfg->rdyMsk,
+                     cfg->rdyPos, &rdy);
+    } while (!rdy);
+    return WHAL_SUCCESS;
+}
 
 /*
- * @brief Configure the PLL and enable it. Caller must have the PLL source
- *        oscillator already enabled. Blocks until PLL is ready.
+ * @brief Turn off an oscillator (HSI/HSE).
+ *
+ * @param cfg    Oscillator on/ready bit descriptor.
+ *
+ * @retval WHAL_SUCCESS Always.
  */
-whal_Error whal_Stm32f3_Rcc_EnablePll(whal_Clock *clkDev,
-                                     const whal_Stm32f3_Rcc_PllCfg *cfg);
-/*
- * @brief Disable the PLL.
- */
-whal_Error whal_Stm32f3_Rcc_DisablePll(whal_Clock *clkDev);
+static inline whal_Error whal_Stm32f3_Rcc_DisableOsc(
+    const whal_Stm32f3_Rcc_OscCfg *cfg)
+{
+    whal_Reg_Update(WHAL_STM32F3_RCC_BASE, cfg->onReg, cfg->onMsk, 0);
+    return WHAL_SUCCESS;
+}
 
 /*
- * @brief Switch SYSCLK to the given source. Blocks until SWS confirms.
+ * @brief Configure and enable the PLL, waiting for lock.
+ *
+ * Turns the PLL off, programs PREDIV (CFGR2), PLLMUL and PLLSRC (CFGR), then
+ * sets PLLON and polls PLLRDY. Caller must have enabled the reference clock.
+ *
+ * @param cfg    PLL configuration.
+ *
+ * @retval WHAL_SUCCESS Always.
  */
-whal_Error whal_Stm32f3_Rcc_SetSysClock(whal_Clock *clkDev,
-                                       whal_Stm32f3_Rcc_SysClockSrc src);
+static inline whal_Error whal_Stm32f3_Rcc_EnablePll(
+    const whal_Stm32f3_Rcc_PllCfg *cfg)
+{
+    size_t rdy;
+    uint32_t pllsrc;
+
+    /* Disable PLL before reconfiguring. */
+    whal_Reg_Update(WHAL_STM32F3_RCC_BASE, WHAL_STM32F3_RCC_CR_REG,
+                    WHAL_STM32F3_RCC_CR_PLLON_Msk, 0);
+
+    whal_Reg_Update(WHAL_STM32F3_RCC_BASE, WHAL_STM32F3_RCC_CFGR2_REG,
+                    WHAL_STM32F3_RCC_CFGR2_PREDIV_Msk,
+                    whal_SetBits(WHAL_STM32F3_RCC_CFGR2_PREDIV_Msk,
+                                 WHAL_STM32F3_RCC_CFGR2_PREDIV_Pos,
+                                 cfg->prediv - 1));
+    whal_Reg_Update(WHAL_STM32F3_RCC_BASE, WHAL_STM32F3_RCC_CFGR_REG,
+                    WHAL_STM32F3_RCC_CFGR_PLLMUL_Msk,
+                    whal_SetBits(WHAL_STM32F3_RCC_CFGR_PLLMUL_Msk,
+                                 WHAL_STM32F3_RCC_CFGR_PLLMUL_Pos,
+                                 cfg->pllmul - 2));
+
+    pllsrc = (cfg->clkSrc == WHAL_STM32F3_RCC_PLLSRC_HSE_PREDIV) ? 1 : 0;
+    whal_Reg_Update(WHAL_STM32F3_RCC_BASE, WHAL_STM32F3_RCC_CFGR_REG,
+                    WHAL_STM32F3_RCC_CFGR_PLLSRC_Msk,
+                    whal_SetBits(WHAL_STM32F3_RCC_CFGR_PLLSRC_Msk,
+                                 WHAL_STM32F3_RCC_CFGR_PLLSRC_Pos,
+                                 pllsrc));
+
+    whal_Reg_Update(WHAL_STM32F3_RCC_BASE, WHAL_STM32F3_RCC_CR_REG,
+                    WHAL_STM32F3_RCC_CR_PLLON_Msk,
+                    WHAL_STM32F3_RCC_CR_PLLON_Msk);
+    do {
+        whal_Reg_Get(WHAL_STM32F3_RCC_BASE, WHAL_STM32F3_RCC_CR_REG,
+                     WHAL_STM32F3_RCC_CR_PLLRDY_Msk,
+                     WHAL_STM32F3_RCC_CR_PLLRDY_Pos, &rdy);
+    } while (!rdy);
+    return WHAL_SUCCESS;
+}
 
 /*
- * @brief Select the I2C1 peripheral clock source (RCC_CFGR3.I2C1SW).
+ * @brief Turn the PLL off (clears RCC_CR.PLLON).
+ *
+ * @retval WHAL_SUCCESS Always.
  */
-whal_Error whal_Stm32f3_Rcc_SetI2c1ClkSrc(whal_Clock *clkDev,
-                                         whal_Stm32f3_Rcc_I2c1ClkSrc src);
+static inline whal_Error whal_Stm32f3_Rcc_DisablePll(void)
+{
+    whal_Reg_Update(WHAL_STM32F3_RCC_BASE, WHAL_STM32F3_RCC_CR_REG,
+                    WHAL_STM32F3_RCC_CR_PLLON_Msk, 0);
+    return WHAL_SUCCESS;
+}
 
 /*
- * @brief Enable a peripheral clock.
+ * @brief Switch SYSCLK to the requested source and wait for the switch.
+ *
+ * @param src    System clock source.
+ *
+ * @retval WHAL_SUCCESS Always.
  */
-whal_Error whal_Stm32f3_Rcc_EnablePeriphClk(whal_Clock *clkDev,
-                                           const whal_Stm32f3_Rcc_PeriphClk *clk);
+static inline whal_Error whal_Stm32f3_Rcc_SetSysClock(
+    whal_Stm32f3_Rcc_SysClockSrc src)
+{
+    size_t sws;
+
+    whal_Reg_Update(WHAL_STM32F3_RCC_BASE, WHAL_STM32F3_RCC_CFGR_REG,
+                    WHAL_STM32F3_RCC_CFGR_SW_Msk,
+                    whal_SetBits(WHAL_STM32F3_RCC_CFGR_SW_Msk,
+                                 WHAL_STM32F3_RCC_CFGR_SW_Pos, src));
+    do {
+        whal_Reg_Get(WHAL_STM32F3_RCC_BASE, WHAL_STM32F3_RCC_CFGR_REG,
+                     WHAL_STM32F3_RCC_CFGR_SWS_Msk,
+                     WHAL_STM32F3_RCC_CFGR_SWS_Pos, &sws);
+    } while (sws != (size_t)src);
+    return WHAL_SUCCESS;
+}
+
 /*
- * @brief Disable a peripheral clock.
+ * @brief Select the kernel clock for the I2C1 peripheral.
+ *
+ * @param src    I2C1 kernel clock source.
+ *
+ * @retval WHAL_SUCCESS Always.
  */
-whal_Error whal_Stm32f3_Rcc_DisablePeriphClk(whal_Clock *clkDev,
-                                            const whal_Stm32f3_Rcc_PeriphClk *clk);
+static inline whal_Error whal_Stm32f3_Rcc_SetI2c1ClkSrc(
+    whal_Stm32f3_Rcc_I2c1ClkSrc src)
+{
+    whal_Reg_Update(WHAL_STM32F3_RCC_BASE, WHAL_STM32F3_RCC_CFGR3_REG,
+                    WHAL_STM32F3_RCC_CFGR3_I2C1SW_Msk,
+                    whal_SetBits(WHAL_STM32F3_RCC_CFGR3_I2C1SW_Msk,
+                                 WHAL_STM32F3_RCC_CFGR3_I2C1SW_Pos,
+                                 src));
+    return WHAL_SUCCESS;
+}
+
+/*
+ * @brief Set the enable bit for a peripheral clock gate.
+ *
+ * @param clk    Peripheral clock descriptor (RCC *ENR register + bit).
+ *
+ * @retval WHAL_SUCCESS Always.
+ */
+static inline whal_Error whal_Stm32f3_Rcc_EnablePeriphClk(
+    const whal_Stm32f3_Rcc_PeriphClk *clk)
+{
+    whal_Reg_Update(WHAL_STM32F3_RCC_BASE, clk->regOffset, clk->enableMask,
+                    whal_SetBits(clk->enableMask, clk->enablePos, 1));
+    return WHAL_SUCCESS;
+}
+
+/*
+ * @brief Clear the enable bit for a peripheral clock gate.
+ *
+ * @param clk    Peripheral clock descriptor (RCC *ENR register + bit).
+ *
+ * @retval WHAL_SUCCESS Always.
+ */
+static inline whal_Error whal_Stm32f3_Rcc_DisablePeriphClk(
+    const whal_Stm32f3_Rcc_PeriphClk *clk)
+{
+    whal_Reg_Update(WHAL_STM32F3_RCC_BASE, clk->regOffset, clk->enableMask,
+                    whal_SetBits(clk->enableMask, clk->enablePos, 0));
+    return WHAL_SUCCESS;
+}
 
 #endif /* WHAL_STM32F3_RCC_H */

@@ -7,9 +7,21 @@
  */
 
 #include <wolfHAL/error.h>
-#include <wolfHAL/regmap.h>
+#include <wolfHAL/reg.h>
 
-#include <wolfHAL/clock/clock.h>
+/* Pass WHAL_INTERNAL_DEV as the dev argument when the driver has direct
+ * API mapping enabled AND is single-instance. The driver reads its dev
+ * struct (e.g. whal_Stm32wb_Iwdg_Dev) from board.h and ignores whatever
+ * gets passed in. */
+#define WHAL_INTERNAL_DEV  ((void *)0)
+
+/* Initializer for a dispatcher stub. Use when two drivers share the same
+ * generic type on one board (e.g. on-chip flash + SPI NOR). The stub
+ * carries only the vtable so the generic whal_<Type>_* dispatch can route
+ * to the right driver; the driver itself reads .base and .cfg from its
+ * own singleton in board.h, so they're left unset here. */
+#define WHAL_DISPATCH_STUB(driver_ptr)  { .driver = (driver_ptr) }
+
 #include <wolfHAL/gpio/gpio.h>
 #include <wolfHAL/uart/uart.h>
 #include <wolfHAL/flash/flash.h>
@@ -19,7 +31,6 @@
 #include <wolfHAL/i2c/i2c.h>
 #include <wolfHAL/timer/timer.h>
 #include <wolfHAL/ipc/ipc.h>
-#include <wolfHAL/power/power.h>
 #include <wolfHAL/timeout.h>
 #include <wolfHAL/crypto/crypto.h>
 #include <wolfHAL/dma/dma.h>

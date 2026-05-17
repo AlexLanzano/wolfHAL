@@ -1,7 +1,10 @@
+#include "board.h"  /* provides WHAL_CFG_STM32WB_IWDG_DEV initializer */
 #include <wolfHAL/watchdog/stm32wb_iwdg.h>
 #include <wolfHAL/watchdog/watchdog.h>
 #include <wolfHAL/error.h>
-#include <wolfHAL/regmap.h>
+#include <wolfHAL/reg.h>
+
+const whal_Watchdog whal_Stm32wb_Iwdg_Dev = WHAL_CFG_STM32WB_IWDG_DEV;
 
 /*
  * STM32WB IWDG Register Definitions
@@ -46,62 +49,51 @@
 
 whal_Error whal_Stm32wb_Iwdg_Init(whal_Watchdog *wdgDev)
 {
-    const whal_Regmap *reg;
-    whal_Stm32wb_Iwdg_Cfg *cfg;
+    const whal_Stm32wb_Iwdg_Cfg *cfg =
+        (const whal_Stm32wb_Iwdg_Cfg *)whal_Stm32wb_Iwdg_Dev.cfg;
+    size_t base = whal_Stm32wb_Iwdg_Dev.base;
     whal_Error err;
-
-    if (!wdgDev || !wdgDev->cfg) {
-        return WHAL_EINVAL;
-    }
-
-    reg = &wdgDev->regmap;
-    cfg = wdgDev->cfg;
+    (void)wdgDev;
 
     if (cfg->prescaler > 6 || cfg->reload > 0xFFF) {
         return WHAL_EINVAL;
     }
 
     /* Start the IWDG */
-    whal_Reg_Write(reg->base, IWDG_KR_REG, IWDG_KEY_START);
+    whal_Reg_Write(base, IWDG_KR_REG, IWDG_KEY_START);
 
     /* Enable register access */
-    whal_Reg_Write(reg->base, IWDG_KR_REG, IWDG_KEY_ACCESS);
+    whal_Reg_Write(base, IWDG_KR_REG, IWDG_KEY_ACCESS);
 
     /* Set prescaler */
-    whal_Reg_Write(reg->base, IWDG_PR_REG, cfg->prescaler);
+    whal_Reg_Write(base, IWDG_PR_REG, cfg->prescaler);
 
     /* Set reload value */
-    whal_Reg_Write(reg->base, IWDG_RLR_REG, cfg->reload);
+    whal_Reg_Write(base, IWDG_RLR_REG, cfg->reload);
 
     /* Wait for registers to update */
-    err = whal_Reg_ReadPoll(reg->base, IWDG_SR_REG,
+    err = whal_Reg_ReadPoll(base, IWDG_SR_REG,
                             IWDG_SR_PVU_Msk | IWDG_SR_RVU_Msk, 0,
                             cfg->timeout);
     if (err)
         return err;
 
     /* Refresh counter with new reload value */
-    whal_Reg_Write(reg->base, IWDG_KR_REG, IWDG_KEY_RELOAD);
+    whal_Reg_Write(base, IWDG_KR_REG, IWDG_KEY_RELOAD);
 
     return WHAL_SUCCESS;
 }
 
 whal_Error whal_Stm32wb_Iwdg_Deinit(whal_Watchdog *wdgDev)
 {
-    if (!wdgDev) {
-        return WHAL_EINVAL;
-    }
-
+    (void)wdgDev;
     return WHAL_SUCCESS;
 }
 
 whal_Error whal_Stm32wb_Iwdg_Refresh(whal_Watchdog *wdgDev)
 {
-    if (!wdgDev) {
-        return WHAL_EINVAL;
-    }
-
-    whal_Reg_Write(wdgDev->regmap.base, IWDG_KR_REG, IWDG_KEY_RELOAD);
+    (void)wdgDev;
+    whal_Reg_Write(whal_Stm32wb_Iwdg_Dev.base, IWDG_KR_REG, IWDG_KEY_RELOAD);
 
     return WHAL_SUCCESS;
 }

@@ -1,4 +1,7 @@
 #include <stdint.h>
+#ifdef WHAL_CFG_SDHC_SPI_SINGLE_INSTANCE
+#include "board.h"  /* provides whal_SdhcSpi_Dev singleton */
+#endif
 #include <wolfHAL/block/sdhc_spi_block.h>
 #include <wolfHAL/block/block.h>
 #include <wolfHAL/spi/spi.h>
@@ -147,10 +150,15 @@ whal_Error whal_SdhcSpi_Init(whal_Block *blockDev)
     uint8_t dummy = DUMMY;
     int i;
 
+#ifdef WHAL_CFG_SDHC_SPI_SINGLE_INSTANCE
+    cfg = (whal_SdhcSpi_Cfg *)whal_SdhcSpi_Dev.cfg;
+    (void)blockDev;
+#else
     if (!blockDev || !blockDev->cfg)
         return WHAL_EINVAL;
 
     cfg = (whal_SdhcSpi_Cfg *)blockDev->cfg;
+#endif
 
     if (!cfg->spiDev || !cfg->spiComCfg || !cfg->gpioDev)
         return WHAL_EINVAL;
@@ -266,10 +274,19 @@ cleanup:
 
 whal_Error whal_SdhcSpi_Deinit(whal_Block *blockDev)
 {
+    whal_SdhcSpi_Cfg *cfg;
+
+#ifdef WHAL_CFG_SDHC_SPI_SINGLE_INSTANCE
+    cfg = (whal_SdhcSpi_Cfg *)whal_SdhcSpi_Dev.cfg;
+    (void)blockDev;
+#else
     if (!blockDev || !blockDev->cfg)
         return WHAL_EINVAL;
 
-    SdhcSpi_CsDeassert((whal_SdhcSpi_Cfg *)blockDev->cfg);
+    cfg = (whal_SdhcSpi_Cfg *)blockDev->cfg;
+#endif
+
+    SdhcSpi_CsDeassert(cfg);
     return WHAL_SUCCESS;
 }
 
@@ -285,10 +302,18 @@ whal_Error whal_SdhcSpi_Read(whal_Block *blockDev, uint32_t block,
     uint8_t dummy = DUMMY;
     uint32_t i;
 
+#ifdef WHAL_CFG_SDHC_SPI_SINGLE_INSTANCE
+    cfg = (whal_SdhcSpi_Cfg *)whal_SdhcSpi_Dev.cfg;
+    (void)blockDev;
+
+    if (!data || blockCount == 0)
+        return WHAL_EINVAL;
+#else
     if (!blockDev || !blockDev->cfg || !data || blockCount == 0)
         return WHAL_EINVAL;
 
     cfg = (whal_SdhcSpi_Cfg *)blockDev->cfg;
+#endif
 
     err = whal_Spi_StartCom(cfg->spiDev, cfg->spiComCfg);
     if (err)
@@ -355,10 +380,18 @@ whal_Error whal_SdhcSpi_Write(whal_Block *blockDev, uint32_t block,
     uint8_t dummy = DUMMY;
     uint32_t i;
 
+#ifdef WHAL_CFG_SDHC_SPI_SINGLE_INSTANCE
+    cfg = (whal_SdhcSpi_Cfg *)whal_SdhcSpi_Dev.cfg;
+    (void)blockDev;
+
+    if (!data || blockCount == 0)
+        return WHAL_EINVAL;
+#else
     if (!blockDev || !blockDev->cfg || !data || blockCount == 0)
         return WHAL_EINVAL;
 
     cfg = (whal_SdhcSpi_Cfg *)blockDev->cfg;
+#endif
 
     err = whal_Spi_StartCom(cfg->spiDev, cfg->spiComCfg);
     if (err)
@@ -430,10 +463,18 @@ whal_Error whal_SdhcSpi_Erase(whal_Block *blockDev, uint32_t block,
     uint8_t r1;
     uint32_t endBlock;
 
+#ifdef WHAL_CFG_SDHC_SPI_SINGLE_INSTANCE
+    cfg = (whal_SdhcSpi_Cfg *)whal_SdhcSpi_Dev.cfg;
+    (void)blockDev;
+
+    if (blockCount == 0)
+        return WHAL_EINVAL;
+#else
     if (!blockDev || !blockDev->cfg || blockCount == 0)
         return WHAL_EINVAL;
 
     cfg = (whal_SdhcSpi_Cfg *)blockDev->cfg;
+#endif
 
     if (blockCount - 1u > UINT32_MAX - block)
         return WHAL_EINVAL;

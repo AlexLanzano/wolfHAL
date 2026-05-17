@@ -21,6 +21,12 @@ typedef struct whal_Stm32wb_Rng_Cfg {
     whal_Timeout *timeout;
 } whal_Stm32wb_Rng_Cfg;
 
+/*
+ * @brief Platform-owned RNG device singleton. Defined in the driver TU
+ * from the WHAL_CFG_STM32WB_RNG_DEV initializer in board.h.
+ */
+extern const whal_Rng whal_Stm32wb_Rng_Dev;
+
 #ifndef WHAL_CFG_STM32WB_RNG_DIRECT_API_MAPPING
 /*
  * @brief Driver instance for STM32WB RNG peripheral.

@@ -2,7 +2,6 @@
 #define WHAL_ETH_H
 
 #include <wolfHAL/error.h>
-#include <wolfHAL/regmap.h>
 #include <stddef.h>
 #include <stdint.h>
 
@@ -50,10 +49,10 @@ typedef struct {
 } whal_EthDriver;
 
 /*
- * @brief Ethernet device instance tying a register map and driver.
+ * @brief Ethernet device instance with a base address, driver vtable, and platform-specific cfg.
  */
 struct whal_Eth {
-    const whal_Regmap regmap;
+    const size_t base;
     const whal_EthDriver *driver;
     void *cfg;
     uint8_t macAddr[6];

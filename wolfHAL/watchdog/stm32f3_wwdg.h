@@ -13,6 +13,8 @@
 
 typedef whal_Stm32f0_Wwdg_Cfg whal_Stm32f3_Wwdg_Cfg;
 
+#define whal_Stm32f3_Wwdg_Dev whal_Stm32f0_Wwdg_Dev
+
 #ifndef WHAL_CFG_STM32F3_WWDG_DIRECT_API_MAPPING
 #define whal_Stm32f3_Wwdg_Driver  whal_Stm32f0_Wwdg_Driver
 #define whal_Stm32f3_Wwdg_Init    whal_Stm32f0_Wwdg_Init

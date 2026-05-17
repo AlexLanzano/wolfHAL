@@ -73,9 +73,11 @@ extern whal_Flash g_whalSpiNorW25q64;
 
 ### Source
 
-Define the device instance with its configuration. The device references board
-globals (`g_whalSpi`, `g_whalGpio`, `SPI_CS_PIN`, `g_whalTimeout`) from
-`board.h`:
+Define the device instance with its configuration. The device reaches its
+underlying bus (SPI here) and any other host-side peripherals through the
+board's `BOARD_<PERIPH>_DEV` macros so the same peripheral source works
+regardless of how each board has wired those drivers. Other board values
+(`SPI_CS_PIN`, `g_whalTimeout`) come from `board.h` directly:
 
 ```c
 #include "spi_nor_w25q64.h"
@@ -95,9 +97,9 @@ static whal_Spi_ComCfg g_w25q64ComCfg = {
 whal_Flash g_whalSpiNorW25q64 = {
     .driver = &whal_SpiNor_Driver,
     .cfg = &(whal_SpiNor_Cfg) {
-        .spiDev = &g_whalSpi,
+        .spiDev = BOARD_SPI_DEV,
         .spiComCfg = &g_w25q64ComCfg,
-        .gpioDev = &g_whalGpio,
+        .gpioDev = BOARD_GPIO_DEV,
         .csPin = SPI_CS_PIN,
         .timeout = &g_whalTimeout,
         .pageSz = W25Q64_PAGE_SZ,

@@ -1,9 +1,20 @@
 #include <stdint.h>
+#include "board.h"  /* provides WHAL_CFG_STM32H5_ETH_DEV initializer */
 #include <wolfHAL/eth/stm32h5_eth.h>
 #include <wolfHAL/eth/eth.h>
 #include <wolfHAL/error.h>
-#include <wolfHAL/regmap.h>
+#include <wolfHAL/reg.h>
 #include <wolfHAL/bitops.h>
+
+const whal_Eth whal_Stm32h5_Eth_Dev = WHAL_CFG_STM32H5_ETH_DEV;
+
+/* Driver-internal runtime state. The const cfg lives in the singleton above
+ * (initialized from board.h), so cfg field accesses fold without LTO; the
+ * mutable ring-tracking state stays here, separate from the cfg. */
+static struct {
+    size_t txHead;
+    size_t rxHead;
+} eth_state;
 
 /*
  * STM32H5 Ethernet MAC Register Definitions
@@ -120,8 +131,13 @@
 /* Max TX frame size */
 #define ETH_MAX_FRAME_SIZE 1536
 
-/* MDIO clock range for 168 MHz AHB: CR=4 gives /102 ≈ 1.6 MHz */
-#define ETH_MDIO_CR 4
+/* MDIO clock range select (CR field in MACMDIOAR). The MAC uses this to
+ * pick the AHB->MDC divider. Values map to AHB freq bands:
+ *   CR=0: 60-100 MHz   CR=1: 100-150 MHz
+ *   CR=2: 20-35  MHz   CR=3: 35-60   MHz
+ *   CR=4: 150-250MHz   CR=5: 250-300 MHz
+ * HSI default (32 MHz HCLK) -> CR=2. */
+#define ETH_MDIO_CR 2
 
 #ifdef WHAL_CFG_STM32H5_ETH_DIRECT_API_MAPPING
 #define whal_Stm32h5_Eth_Init      whal_Eth_Init
@@ -142,20 +158,12 @@ static whal_Error MdioPoll(size_t base, whal_Timeout *timeout)
 
 whal_Error whal_Stm32h5_Eth_Init(whal_Eth *ethDev)
 {
-    whal_Stm32h5_Eth_Cfg *cfg;
-    size_t base;
+    const whal_Stm32h5_Eth_Cfg *cfg =
+        (const whal_Stm32h5_Eth_Cfg *)whal_Stm32h5_Eth_Dev.cfg;
+    size_t base = whal_Stm32h5_Eth_Dev.base;
     whal_Error err;
 
-    if (!ethDev || !ethDev->cfg)
-        return WHAL_EINVAL;
-
-    cfg = (whal_Stm32h5_Eth_Cfg *)ethDev->cfg;
-    base = ethDev->regmap.base;
-
-    if (!cfg->txDescs || !cfg->txBufs || cfg->txDescCount == 0 ||
-        !cfg->rxDescs || !cfg->rxBufs || cfg->rxDescCount == 0 ||
-        cfg->txBufSize == 0 || cfg->rxBufSize == 0)
-        return WHAL_EINVAL;
+    (void)ethDev;
 
     /* DMA software reset */
     whal_Reg_Update(base, ETH_DMAMR_REG, ETH_DMAMR_SWR_Msk,
@@ -217,27 +225,25 @@ whal_Error whal_Stm32h5_Eth_Init(whal_Eth *ethDev)
 
     /* MAC address */
     whal_Reg_Write(base, ETH_MACA0LR_REG,
-                   ((uint32_t)ethDev->macAddr[3] << 24) |
-                   ((uint32_t)ethDev->macAddr[2] << 16) |
-                   ((uint32_t)ethDev->macAddr[1] << 8) |
-                   ((uint32_t)ethDev->macAddr[0]));
+                   ((uint32_t)whal_Stm32h5_Eth_Dev.macAddr[3] << 24) |
+                   ((uint32_t)whal_Stm32h5_Eth_Dev.macAddr[2] << 16) |
+                   ((uint32_t)whal_Stm32h5_Eth_Dev.macAddr[1] << 8) |
+                   ((uint32_t)whal_Stm32h5_Eth_Dev.macAddr[0]));
     whal_Reg_Write(base, ETH_MACA0HR_REG,
-                   ((uint32_t)ethDev->macAddr[5] << 8) |
-                   ((uint32_t)ethDev->macAddr[4]));
+                   ((uint32_t)whal_Stm32h5_Eth_Dev.macAddr[5] << 8) |
+                   ((uint32_t)whal_Stm32h5_Eth_Dev.macAddr[4]));
 
     /* Reset ring tracking state */
-    cfg->txHead = 0;
-    cfg->rxHead = 0;
+    eth_state.txHead = 0;
+    eth_state.rxHead = 0;
 
     return WHAL_SUCCESS;
 }
 
 whal_Error whal_Stm32h5_Eth_Deinit(whal_Eth *ethDev)
 {
-    if (!ethDev)
-        return WHAL_EINVAL;
-
-    whal_Reg_Update(ethDev->regmap.base, ETH_DMAMR_REG,
+    (void)ethDev;
+    whal_Reg_Update(whal_Stm32h5_Eth_Dev.base, ETH_DMAMR_REG,
                     ETH_DMAMR_SWR_Msk, ETH_DMAMR_SWR_Msk);
 
     return WHAL_SUCCESS;
@@ -246,14 +252,10 @@ whal_Error whal_Stm32h5_Eth_Deinit(whal_Eth *ethDev)
 whal_Error whal_Stm32h5_Eth_Start(whal_Eth *ethDev, uint8_t speed,
                                   uint8_t duplex)
 {
-    whal_Stm32h5_Eth_Cfg *cfg;
-    size_t base;
-
-    if (!ethDev || !ethDev->cfg)
-        return WHAL_EINVAL;
-
-    cfg = (whal_Stm32h5_Eth_Cfg *)ethDev->cfg;
-    base = ethDev->regmap.base;
+    const whal_Stm32h5_Eth_Cfg *cfg =
+        (const whal_Stm32h5_Eth_Cfg *)whal_Stm32h5_Eth_Dev.cfg;
+    size_t base = whal_Stm32h5_Eth_Dev.base;
+    (void)ethDev;
 
     /* Configure MAC speed and duplex to match PHY */
     whal_Reg_Update(base, ETH_MACCR_REG,
@@ -283,12 +285,8 @@ whal_Error whal_Stm32h5_Eth_Start(whal_Eth *ethDev, uint8_t speed,
 
 whal_Error whal_Stm32h5_Eth_Stop(whal_Eth *ethDev)
 {
-    size_t base;
-
-    if (!ethDev)
-        return WHAL_EINVAL;
-
-    base = ethDev->regmap.base;
+    size_t base = whal_Stm32h5_Eth_Dev.base;
+    (void)ethDev;
 
     /* Stop DMA TX */
     whal_Reg_Update(base, ETH_DMACTXCR_REG, ETH_DMACTXCR_ST_Msk, 0);
@@ -307,20 +305,16 @@ whal_Error whal_Stm32h5_Eth_Send(whal_Eth *ethDev, const void *frame,
                                  size_t len)
 {
     const uint8_t *frameBuf = (const uint8_t *)frame;
-    whal_Stm32h5_Eth_Cfg *cfg;
+    const whal_Stm32h5_Eth_Cfg *cfg =
+        (const whal_Stm32h5_Eth_Cfg *)whal_Stm32h5_Eth_Dev.cfg;
     whal_Stm32h5_Eth_TxDesc *desc;
-    size_t base;
+    size_t base = whal_Stm32h5_Eth_Dev.base;
     size_t idx;
+    (void)ethDev;
 
-    if (!ethDev || !ethDev->cfg || !frame || len == 0)
+    if (!frame || len == 0 || len > cfg->txBufSize)
         return WHAL_EINVAL;
-
-    cfg = (whal_Stm32h5_Eth_Cfg *)ethDev->cfg;
-
-    if (len > cfg->txBufSize)
-        return WHAL_EINVAL;
-    base = ethDev->regmap.base;
-    idx = cfg->txHead;
+    idx = eth_state.txHead;
     desc = &cfg->txDescs[idx];
 
     /* Check if descriptor is available (OWN must be 0) */
@@ -339,7 +333,7 @@ whal_Error whal_Stm32h5_Eth_Send(whal_Eth *ethDev, const void *frame,
     desc->des[3] = TDES3_OWN | TDES3_FD | TDES3_LD | (len & 0x7FFF);
 
     /* Advance ring position */
-    cfg->txHead = (idx + 1) % cfg->txDescCount;
+    eth_state.txHead = (idx + 1) % cfg->txDescCount;
 
     /* Kick DMA — tail pointer past the end of the ring */
     whal_Reg_Write(base, ETH_DMACTXDTPR_REG,
@@ -352,19 +346,19 @@ whal_Error whal_Stm32h5_Eth_Recv(whal_Eth *ethDev, void *frame,
                                  size_t *len)
 {
     uint8_t *frameBuf = (uint8_t *)frame;
-    whal_Stm32h5_Eth_Cfg *cfg;
+    const whal_Stm32h5_Eth_Cfg *cfg =
+        (const whal_Stm32h5_Eth_Cfg *)whal_Stm32h5_Eth_Dev.cfg;
     whal_Stm32h5_Eth_RxDesc *desc;
-    size_t base;
+    size_t base = whal_Stm32h5_Eth_Dev.base;
     size_t idx;
     uint32_t rdes3;
     size_t pktLen;
+    (void)ethDev;
 
-    if (!ethDev || !ethDev->cfg || !frame || !len)
+    if (!frame || !len)
         return WHAL_EINVAL;
 
-    cfg = (whal_Stm32h5_Eth_Cfg *)ethDev->cfg;
-    base = ethDev->regmap.base;
-    idx = cfg->rxHead;
+    idx = eth_state.rxHead;
     desc = &cfg->rxDescs[idx];
 
     rdes3 = desc->des[3];
@@ -377,7 +371,7 @@ whal_Error whal_Stm32h5_Eth_Recv(whal_Eth *ethDev, void *frame,
     if (rdes3 & RDES3_ES) {
         desc->des[0] = (uintptr_t)(cfg->rxBufs + idx * cfg->rxBufSize);
         desc->des[3] = RDES3_OWN | RDES3_IOC | RDES3_BUF1V;
-        cfg->rxHead = (idx + 1) % cfg->rxDescCount;
+        eth_state.rxHead = (idx + 1) % cfg->rxDescCount;
         whal_Reg_Write(base, ETH_DMACRXDTPR_REG,
                        (uintptr_t)&cfg->rxDescs[cfg->rxDescCount]);
         return WHAL_EHARDWARE;
@@ -401,7 +395,7 @@ whal_Error whal_Stm32h5_Eth_Recv(whal_Eth *ethDev, void *frame,
     desc->des[3] = RDES3_OWN | RDES3_IOC | RDES3_BUF1V;
 
     /* Advance ring position */
-    cfg->rxHead = (idx + 1) % cfg->rxDescCount;
+    eth_state.rxHead = (idx + 1) % cfg->rxDescCount;
 
     /* Update RX tail pointer — always past end of ring */
     whal_Reg_Write(base, ETH_DMACRXDTPR_REG,
@@ -413,15 +407,14 @@ whal_Error whal_Stm32h5_Eth_Recv(whal_Eth *ethDev, void *frame,
 whal_Error whal_Stm32h5_Eth_MdioRead(whal_Eth *ethDev, uint8_t phyAddr,
                                       uint8_t reg, uint16_t *val)
 {
-    whal_Stm32h5_Eth_Cfg *cfg;
-    size_t base;
+    const whal_Stm32h5_Eth_Cfg *cfg =
+        (const whal_Stm32h5_Eth_Cfg *)whal_Stm32h5_Eth_Dev.cfg;
+    size_t base = whal_Stm32h5_Eth_Dev.base;
     whal_Error err;
+    (void)ethDev;
 
-    if (!ethDev || !ethDev->cfg || !val)
+    if (!val)
         return WHAL_EINVAL;
-
-    cfg = (whal_Stm32h5_Eth_Cfg *)ethDev->cfg;
-    base = ethDev->regmap.base;
 
     err = MdioPoll(base, cfg->timeout);
     if (err)
@@ -451,15 +444,11 @@ whal_Error whal_Stm32h5_Eth_MdioRead(whal_Eth *ethDev, uint8_t phyAddr,
 whal_Error whal_Stm32h5_Eth_MdioWrite(whal_Eth *ethDev, uint8_t phyAddr,
                                        uint8_t reg, uint16_t val)
 {
-    whal_Stm32h5_Eth_Cfg *cfg;
-    size_t base;
+    const whal_Stm32h5_Eth_Cfg *cfg =
+        (const whal_Stm32h5_Eth_Cfg *)whal_Stm32h5_Eth_Dev.cfg;
+    size_t base = whal_Stm32h5_Eth_Dev.base;
     whal_Error err;
-
-    if (!ethDev || !ethDev->cfg)
-        return WHAL_EINVAL;
-
-    cfg = (whal_Stm32h5_Eth_Cfg *)ethDev->cfg;
-    base = ethDev->regmap.base;
+    (void)ethDev;
 
     err = MdioPoll(base, cfg->timeout);
     if (err)
@@ -491,10 +480,8 @@ whal_Error whal_Stm32h5_Eth_MdioWrite(whal_Eth *ethDev, uint8_t phyAddr,
 whal_Error whal_Stm32h5_Eth_Ext_EnableLoopback(whal_Eth *ethDev,
                                                 uint8_t enable)
 {
-    if (!ethDev)
-        return WHAL_EINVAL;
-
-    whal_Reg_Update(ethDev->regmap.base, ETH_MACCR_REG, ETH_MACCR_LM_Msk,
+    (void)ethDev;
+    whal_Reg_Update(whal_Stm32h5_Eth_Dev.base, ETH_MACCR_REG, ETH_MACCR_LM_Msk,
                     whal_SetBits(ETH_MACCR_LM_Msk, ETH_MACCR_LM_Pos,
                                  enable ? 1 : 0));
 

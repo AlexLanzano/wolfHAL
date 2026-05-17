@@ -6,15 +6,22 @@
 #include <wolfHAL/platform/microchip/pic32cz.h>
 #include "peripheral.h"
 
-/* Power */
-static whal_Power g_whalPower = {
-    .regmap = { WHAL_PIC32CZ_SUPC_REGMAP },
+/* SysTick timing (must precede g_whalTimeout below) */
+volatile uint32_t g_tick = 0;
+volatile uint8_t g_waiting = 0;
+volatile uint8_t g_tickOverflow = 0;
+
+uint32_t Board_GetTick(void)
+{
+    return g_tick;
+}
+
+whal_Timeout g_whalTimeout = {
+    .timeoutTicks = 1000,
+    .GetTick = Board_GetTick,
 };
 
-/* Clock */
-whal_Clock g_whalClock = {
-    .regmap = { WHAL_PIC32CZ_CLOCK_REGMAP },
-};
+/* SUPC singleton lives in board.h as `static const`. */
 
 /* Peripheral clocks */
 static const whal_Pic32cz_Clock_PeriphClk g_periphClks[] = {
@@ -28,39 +35,10 @@ static const whal_Pic32cz_Clock_PeriphClk g_periphClks[] = {
 };
 #define PERIPH_CLK_COUNT (sizeof(g_periphClks) / sizeof(g_periphClks[0]))
 
-/* GPIO */
-whal_Gpio g_whalGpio = {
-    .regmap = { WHAL_PIC32CZ_GPIO_REGMAP },
-    /* .driver: direct API mapping */
-
-    .cfg = &(whal_Pic32cz_Gpio_Cfg) {
-        .pinCfgCount = 3,
-        .pinCfg = (whal_Pic32cz_Gpio_PinCfg[]) {
-            { /* LED */
-                .port = 1,
-                .pin = 21,
-                .dir = WHAL_PIC32CZ_DIR_OUTPUT,
-                .out = 0,
-            },
-            { /* UART TX */
-                .port = 2,
-                .pin = 21,
-                .pmuxEn = 1,
-                .pmux = WHAL_PIC32CZ_PMUX_SERCOM_ALT,
-            },
-            { /* UART RX */
-                .port = 2,
-                .pin = 22,
-                .pmuxEn = 1,
-                .pmux = WHAL_PIC32CZ_PMUX_SERCOM_ALT,
-            },
-        },
-    },
-};
 
 /* UART */
 whal_Uart g_whalUart = {
-    .regmap = { WHAL_PIC32CZ_SERCOM4_UART_REGMAP },
+    .base = WHAL_PIC32CZ_SERCOM4_UART_BASE,
     /* .driver: direct API mapping */
 
     .cfg = &(whal_Pic32cz_Uart_Cfg) {
@@ -69,29 +47,6 @@ whal_Uart g_whalUart = {
         .rxPad = WHAL_PIC32CZ_UART_RXPO_PAD1,
     },
 };
-
-/* Timer */
-whal_Timer g_whalTimer = {
-    .regmap = { WHAL_CORTEX_M7_SYSTICK_REGMAP },
-    .driver = WHAL_CORTEX_M7_SYSTICK_DRIVER,
-
-    .cfg = &(whal_SysTick_Cfg) {
-        .cyclesPerTick = 300000000 / 1000,
-        .clkSrc = WHAL_SYSTICK_CLKSRC_SYSCLK,
-        .tickInt = WHAL_SYSTICK_TICKINT_ENABLED,
-    },
-};
-
-/* Flash */
-whal_Flash g_whalFlash = {
-    .regmap = { WHAL_PIC32CZ_FLASH_REGMAP },
-    .driver = WHAL_PIC32CZ_FLASH_DRIVER,
-};
-
-/* SysTick timing */
-volatile uint32_t g_tick = 0;
-volatile uint8_t g_waiting = 0;
-volatile uint8_t g_tickOverflow = 0;
 
 void SysTick_Handler()
 {
@@ -126,7 +81,7 @@ whal_Error Board_Init(void)
     whal_Error err;
 
     /* Enable PLL power supply before clock init */
-    err = whal_Pic32cz_Supc_EnableSupply(&g_whalPower,
+    err = whal_Pic32cz_Supc_EnableSupply(
             &(whal_Pic32cz_Supc_Supply){WHAL_PIC32CZ_SUPC_PLL});
     if (err) {
         return err;
@@ -134,7 +89,7 @@ whal_Error Board_Init(void)
 
     /* PLL0: DFLL48 / 12 * 225 / 3 = 300 MHz, then GCLK0 from PLL0 OUT0,
      * then MCLK CPU divider /2 = 150 MHz CPU. */
-    err = whal_Pic32cz_Clock_EnablePll(&g_whalClock, &(whal_Pic32cz_Clock_PllCfg){
+    err = whal_Pic32cz_Clock_EnablePll(&(whal_Pic32cz_Clock_PllCfg){
         .pllInst = WHAL_PIC32CZ_PLL0,
         .refSel = WHAL_PIC32CZ_REFSEL_DFLL48M,
         .bwSel = WHAL_PIC32CZ_BWSEL_10MHz_TO_20MHz,
@@ -151,10 +106,10 @@ whal_Error Board_Init(void)
     });
     if (err)
         return err;
-    err = whal_Pic32cz_Clock_SetMclkDiv(&g_whalClock, 2);
+    err = whal_Pic32cz_Clock_SetMclkDiv(2);
     if (err)
         return err;
-    err = whal_Pic32cz_Clock_EnableGclkGen(&g_whalClock, &(whal_Pic32cz_Clock_GenCfg){
+    err = whal_Pic32cz_Clock_EnableGclkGen(&(whal_Pic32cz_Clock_GenCfg){
         .gen = 0,
         .genSrc = WHAL_PIC32CZ_GENSRC_PLL0_CLOCKOUT0,
         .genDiv = 1,
@@ -164,12 +119,12 @@ whal_Error Board_Init(void)
 
     /* Enable peripheral clocks */
     for (size_t i = 0; i < PERIPH_CLK_COUNT; i++) {
-        err = whal_Pic32cz_Clock_EnablePeriphClk(&g_whalClock, &g_periphClks[i]);
+        err = whal_Pic32cz_Clock_EnablePeriphClk(&g_periphClks[i]);
         if (err)
             return err;
     }
 
-    err = whal_Gpio_Init(&g_whalGpio);
+    err = whal_Gpio_Init(WHAL_INTERNAL_DEV);
     if (err) {
         return err;
     }
@@ -179,17 +134,17 @@ whal_Error Board_Init(void)
         return err;
     }
 
-    err = whal_Flash_Init(&g_whalFlash);
+    err = whal_Flash_Init(BOARD_FLASH_DEV);
     if (err) {
         return err;
     }
 
-    err = whal_Timer_Init(&g_whalTimer);
+    err = whal_Timer_Init(WHAL_INTERNAL_DEV);
     if (err) {
         return err;
     }
 
-    err = whal_Timer_Start(&g_whalTimer);
+    err = whal_Timer_Start(WHAL_INTERNAL_DEV);
     if (err) {
         return err;
     }
@@ -211,17 +166,17 @@ whal_Error Board_Deinit(void)
         return err;
     }
 
-    err = whal_Timer_Stop(&g_whalTimer);
+    err = whal_Timer_Stop(WHAL_INTERNAL_DEV);
     if (err) {
         return err;
     }
 
-    err = whal_Timer_Deinit(&g_whalTimer);
+    err = whal_Timer_Deinit(WHAL_INTERNAL_DEV);
     if (err) {
         return err;
     }
 
-    err = whal_Flash_Deinit(&g_whalFlash);
+    err = whal_Flash_Deinit(BOARD_FLASH_DEV);
     if (err) {
         return err;
     }
@@ -231,14 +186,14 @@ whal_Error Board_Deinit(void)
         return err;
     }
 
-    err = whal_Gpio_Deinit(&g_whalGpio);
+    err = whal_Gpio_Deinit(WHAL_INTERNAL_DEV);
     if (err) {
         return err;
     }
 
     /* Disable peripheral clocks */
     for (size_t i = 0; i < PERIPH_CLK_COUNT; i++) {
-        err = whal_Pic32cz_Clock_DisablePeriphClk(&g_whalClock, &g_periphClks[i]);
+        err = whal_Pic32cz_Clock_DisablePeriphClk(&g_periphClks[i]);
         if (err)
             return err;
     }

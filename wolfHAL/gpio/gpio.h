@@ -2,7 +2,6 @@
 #define WHAL_GPIO_H
 
 #include <wolfHAL/error.h>
-#include <wolfHAL/regmap.h>
 #include <stddef.h>
 
 /*
@@ -30,7 +29,7 @@ typedef struct {
  * @brief GPIO device instance containing driver and configuration data.
  */
 struct whal_Gpio {
-    const whal_Regmap regmap;
+    const size_t base;
     const whal_GpioDriver *driver;
     const void *cfg;
 };

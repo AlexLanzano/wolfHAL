@@ -1,6 +1,6 @@
 #include <wolfHAL/timer/timer.h>
 #include <wolfHAL/error.h>
-#include <wolfHAL/regmap.h>
+#include <wolfHAL/reg.h>
 #include <wolfHAL/bitops.h>
 
 inline whal_Error whal_Timer_Init(whal_Timer *timerDev)

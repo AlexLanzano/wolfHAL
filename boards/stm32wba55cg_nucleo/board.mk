@@ -1,26 +1,34 @@
 _BOARD_DIR := $(patsubst %/,%,$(dir $(lastword $(MAKEFILE_LIST))))
 
 PLATFORM = stm32wba
-TESTS ?= clock gpio flash timer rng crypto uart spi i2c irq
+TESTS ?= gpio flash timer rng aes_ecb aes_cbc aes_ctr aes_gcm aes_gmac aes_ccm sha1 sha224 sha256 hmac_sha1 hmac_sha224 hmac_sha256 uart spi i2c
 
 GCC = $(GCC_PATH)arm-none-eabi-gcc
 LD = $(GCC_PATH)arm-none-eabi-ld
 OBJCOPY = $(GCC_PATH)arm-none-eabi-objcopy
 
-CFLAGS += -Wall -Werror $(INCLUDE) -g3 \
-          -ffreestanding -nostdlib -mcpu=cortex-m33 -mthumb \
-          -DPLATFORM_STM32WBA -MMD -MP \
-          -DWHAL_CFG_STM32WBA_RCC_PLL_DRIVER \
-          $(if $(DMA),-DBOARD_DMA) \
-          $(if $(filter iwdg,$(WATCHDOG)),-DBOARD_WATCHDOG_IWDG) \
-          $(if $(filter wwdg,$(WATCHDOG)),-DBOARD_WATCHDOG_WWDG) \
-          -DWHAL_CFG_CRYPTO_AES_ECB  -DWHAL_CFG_CRYPTO_AES_CBC  \
-          -DWHAL_CFG_CRYPTO_AES_CTR  -DWHAL_CFG_CRYPTO_AES_GCM  \
-          -DWHAL_CFG_CRYPTO_AES_GMAC -DWHAL_CFG_CRYPTO_AES_CCM  \
-          -DWHAL_CFG_CRYPTO_SHA1     -DWHAL_CFG_CRYPTO_SHA224    \
-          -DWHAL_CFG_CRYPTO_SHA256   -DWHAL_CFG_CRYPTO_HMAC_SHA1 \
-          -DWHAL_CFG_CRYPTO_HMAC_SHA224 -DWHAL_CFG_CRYPTO_HMAC_SHA256
-LDFLAGS = --omagic -static
+CFLAGS += -Wall -Werror $(INCLUDE) -g3 -Os -ffunction-sections -fdata-sections \
+ -ffreestanding -nostdlib -mcpu=cortex-m33 -mthumb \
+ -DPLATFORM_STM32WBA -MMD -MP \
+ -DWHAL_CFG_STM32WBA_RCC_PLL_DRIVER \
+ -DWHAL_CFG_STM32WBA_AES_ECB_DIRECT_API_MAPPING \
+ -DWHAL_CFG_STM32WBA_AES_CBC_DIRECT_API_MAPPING \
+ -DWHAL_CFG_STM32WBA_AES_CTR_DIRECT_API_MAPPING \
+ -DWHAL_CFG_STM32WBA_AES_GCM_DIRECT_API_MAPPING \
+ -DWHAL_CFG_STM32WBA_AES_GMAC_DIRECT_API_MAPPING \
+ -DWHAL_CFG_STM32WBA_AES_CCM_DIRECT_API_MAPPING \
+ -DWHAL_CFG_STM32WBA_HASH_SHA1_DIRECT_API_MAPPING \
+ -DWHAL_CFG_STM32WBA_HASH_SHA224_DIRECT_API_MAPPING \
+ -DWHAL_CFG_STM32WBA_HASH_SHA256_DIRECT_API_MAPPING \
+ -DWHAL_CFG_STM32WBA_HASH_HMAC_SHA1_DIRECT_API_MAPPING \
+ -DWHAL_CFG_STM32WBA_HASH_HMAC_SHA224_DIRECT_API_MAPPING \
+ -DWHAL_CFG_STM32WBA_HASH_HMAC_SHA256_DIRECT_API_MAPPING \
+ $(if $(DMA),-DBOARD_DMA) \
+ $(if $(filter iwdg,$(WATCHDOG)),-DBOARD_WATCHDOG_IWDG) \
+ $(if $(filter wwdg,$(WATCHDOG)),-DBOARD_WATCHDOG_WWDG) \
+ -DWHAL_CFG_SYSTICK_TIMER_DIRECT_API_MAPPING \
+ -DWHAL_CFG_NVIC_IRQ_DIRECT_API_MAPPING
+LDFLAGS = --omagic -static --gc-sections
 
 LINKER_SCRIPT ?= $(_BOARD_DIR)/linker.ld
 
@@ -32,7 +40,6 @@ BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/gpio.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/clock.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/uart.c)
-BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/timer.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/flash.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/spi.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/i2c.c)
@@ -42,7 +49,6 @@ BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/rng.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/crypto.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/block.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/dma.c)
-BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/irq.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/irq/cortex_m4_nvic.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/stm32wba_*.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/systick.c)
@@ -59,4 +65,4 @@ OPENOCD_TARGET ?= target/stm32wba5x.cfg
 flash:
 	@test -n "$(IMAGE)" || { echo "IMAGE=<path/to/image> required" >&2; exit 1; }
 	$(OPENOCD) -f $(OPENOCD_INTERFACE) -f $(OPENOCD_TARGET) \
-	    -c "program $(IMAGE) verify reset exit"
+	 -c "program $(IMAGE) verify reset exit"

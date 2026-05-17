@@ -14,6 +14,8 @@
 
 typedef whal_Stm32f0_Flash_Cfg whal_Stm32f3_Flash_Cfg;
 
+#define whal_Stm32f3_Flash_Dev whal_Stm32f0_Flash_Dev
+
 #define WHAL_STM32F3_FLASH_LATENCY_0 WHAL_STM32F0_FLASH_LATENCY_0
 #define WHAL_STM32F3_FLASH_LATENCY_1 WHAL_STM32F0_FLASH_LATENCY_1
 #define WHAL_STM32F3_FLASH_LATENCY_2 2

@@ -33,6 +33,11 @@ typedef struct whal_Stm32wba_Flash_Cfg {
  * @brief Driver instance for the STM32WBA embedded flash controller.
  */
 extern const whal_FlashDriver whal_Stm32wba_Flash_Driver;
+/*
+ * @brief Platform-owned device singleton. Defined in the driver TU
+ * from the WHAL_CFG_STM32WBA_FLASH_DEV initializer in board.h.
+ */
+extern const whal_Flash whal_Stm32wba_Flash_Dev;
 
 /*
  * @brief Initialize the STM32WBA flash driver. Validates cfg.

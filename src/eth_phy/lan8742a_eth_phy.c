@@ -1,6 +1,9 @@
+#include "board.h"  /* provides WHAL_CFG_LAN8742A_DEV initializer */
 #include <wolfHAL/eth_phy/lan8742a_eth_phy.h>
 #include <wolfHAL/eth/eth.h>
 #include <wolfHAL/error.h>
+
+const whal_EthPhy whal_Lan8742a_Dev = WHAL_CFG_LAN8742A_DEV;
 
 /*
  * LAN8742A PHY Register Definitions (IEEE 802.3 standard + vendor)
@@ -29,21 +32,18 @@
 
 whal_Error whal_Lan8742a_Init(whal_EthPhy *phyDev)
 {
-    whal_Lan8742a_Cfg *cfg;
+    const whal_Lan8742a_Cfg *cfg =
+        (const whal_Lan8742a_Cfg *)whal_Lan8742a_Dev.cfg;
+    uint8_t addr = whal_Lan8742a_Dev.addr;
     whal_Error err;
     uint16_t val;
-
-    if (!phyDev || !phyDev->eth || !phyDev->cfg)
-        return WHAL_EINVAL;
-
-    cfg = (whal_Lan8742a_Cfg *)phyDev->cfg;
+    (void)phyDev;
 #ifdef WHAL_CFG_NO_TIMEOUT
     (void)cfg;
 #endif
 
     /* Software reset */
-    err = whal_Eth_MdioWrite(phyDev->eth, phyDev->addr, PHY_BCR,
-                             PHY_BCR_RESET);
+    err = whal_Eth_MdioWrite(NULL, addr, PHY_BCR, PHY_BCR_RESET);
     if (err)
         return err;
 
@@ -52,17 +52,17 @@ whal_Error whal_Lan8742a_Init(whal_EthPhy *phyDev)
     do {
         if (WHAL_TIMEOUT_EXPIRED(cfg->timeout))
             return WHAL_ETIMEOUT;
-        err = whal_Eth_MdioRead(phyDev->eth, phyDev->addr, PHY_BCR, &val);
+        err = whal_Eth_MdioRead(NULL, addr, PHY_BCR, &val);
         if (err)
             return err;
     } while (val & PHY_BCR_RESET);
 
     /* Enable autonegotiation */
-    err = whal_Eth_MdioRead(phyDev->eth, phyDev->addr, PHY_BCR, &val);
+    err = whal_Eth_MdioRead(NULL, addr, PHY_BCR, &val);
     if (err)
         return err;
     val |= PHY_BCR_ANEN;
-    err = whal_Eth_MdioWrite(phyDev->eth, phyDev->addr, PHY_BCR, val);
+    err = whal_Eth_MdioWrite(NULL, addr, PHY_BCR, val);
     if (err)
         return err;
 
@@ -71,38 +71,37 @@ whal_Error whal_Lan8742a_Init(whal_EthPhy *phyDev)
 
 whal_Error whal_Lan8742a_Deinit(whal_EthPhy *phyDev)
 {
-    if (!phyDev || !phyDev->eth)
-        return WHAL_EINVAL;
-
+    (void)phyDev;
     return WHAL_SUCCESS;
 }
 
 whal_Error whal_Lan8742a_GetLinkState(whal_EthPhy *phyDev, uint8_t *up,
                                        uint8_t *speed, uint8_t *duplex)
 {
+    uint8_t addr = whal_Lan8742a_Dev.addr;
     whal_Error err;
     uint16_t bsr;
     uint16_t scsr;
+    (void)phyDev;
 
-    if (!phyDev || !phyDev->eth || !up || !speed || !duplex)
+    if (!up || !speed || !duplex)
         return WHAL_EINVAL;
 
     /*
      * BSR link bit is latching-low (IEEE 802.3). First read clears a
      * stale link-down event; second read gives current status.
      */
-    err = whal_Eth_MdioRead(phyDev->eth, phyDev->addr, PHY_BSR, &bsr);
+    err = whal_Eth_MdioRead(NULL, addr, PHY_BSR, &bsr);
     if (err)
         return err;
-    err = whal_Eth_MdioRead(phyDev->eth, phyDev->addr, PHY_BSR, &bsr);
+    err = whal_Eth_MdioRead(NULL, addr, PHY_BSR, &bsr);
     if (err)
         return err;
 
     *up = (bsr & PHY_BSR_LINK) ? 1 : 0;
 
     if (*up) {
-        err = whal_Eth_MdioRead(phyDev->eth, phyDev->addr, PHY_PHYSCSR,
-                                &scsr);
+        err = whal_Eth_MdioRead(NULL, addr, PHY_PHYSCSR, &scsr);
         if (err)
             return err;
         uint16_t spd = scsr & PHY_PHYSCSR_SPEED_Msk;

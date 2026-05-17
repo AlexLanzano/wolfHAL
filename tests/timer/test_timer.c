@@ -4,15 +4,6 @@
 #include "board.h"
 #include "test.h"
 
-static void Test_Timer_Api(void)
-{
-    WHAL_ASSERT_EQ(whal_Timer_Init(NULL), WHAL_EINVAL);
-    WHAL_ASSERT_EQ(whal_Timer_Deinit(NULL), WHAL_EINVAL);
-    WHAL_ASSERT_EQ(whal_Timer_Start(NULL), WHAL_EINVAL);
-    WHAL_ASSERT_EQ(whal_Timer_Stop(NULL), WHAL_EINVAL);
-    WHAL_ASSERT_EQ(whal_Timer_Reset(NULL), WHAL_EINVAL);
-}
-
 static void Test_Timer_TicksAdvance(void)
 {
     size_t before = g_tick;
@@ -33,7 +24,6 @@ static void Test_Timer_TicksAdvance(void)
 void whal_Test_Timer(void)
 {
     WHAL_TEST_SUITE_START("timer");
-    WHAL_TEST(Test_Timer_Api);
     WHAL_TEST(Test_Timer_TicksAdvance);
     WHAL_TEST_SUITE_END();
 }

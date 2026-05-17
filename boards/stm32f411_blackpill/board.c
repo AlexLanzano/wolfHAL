@@ -24,8 +24,9 @@ whal_Timeout g_whalTimeout = {
     .GetTick = Board_GetTick,
 };
 
-/* STM32F411CE sector layout (512 KB) */
-static const whal_Stm32f4_Flash_Sector g_flashSectors[] = {
+/* STM32F411CE sector layout (512 KB). Referenced by the flash singleton's
+ * cfg in board.h, so this must be globally visible (not static). */
+const whal_Stm32f4_Flash_Sector g_flashSectors[FLASH_SECTOR_COUNT] = {
     { .addr = 0x08000000, .size = 0x04000 },  /* Sector 0: 16 KB */
     { .addr = 0x08004000, .size = 0x04000 },  /* Sector 1: 16 KB */
     { .addr = 0x08008000, .size = 0x04000 },  /* Sector 2: 16 KB */
@@ -34,12 +35,6 @@ static const whal_Stm32f4_Flash_Sector g_flashSectors[] = {
     { .addr = 0x08020000, .size = 0x20000 },  /* Sector 5: 128 KB */
     { .addr = 0x08040000, .size = 0x20000 },  /* Sector 6: 128 KB */
     { .addr = 0x08060000, .size = 0x20000 },  /* Sector 7: 128 KB */
-};
-#define FLASH_SECTOR_COUNT (sizeof(g_flashSectors) / sizeof(g_flashSectors[0]))
-
-/* Clock */
-whal_Clock g_whalClock = {
-    .regmap = { WHAL_STM32F411_RCC_REGMAP },
 };
 
 static const whal_Stm32f4_Rcc_PeriphClk g_periphClks[] = {
@@ -50,63 +45,10 @@ static const whal_Stm32f4_Rcc_PeriphClk g_periphClks[] = {
 };
 #define PERIPH_CLK_COUNT (sizeof(g_periphClks) / sizeof(g_periphClks[0]))
 
-/* GPIO */
-whal_Gpio g_whalGpio = {
-    .regmap = { WHAL_STM32F411_GPIO_REGMAP },
-    /* .driver: direct API mapping */
-
-    .cfg = &(whal_Stm32f4_Gpio_Cfg) {
-        .pinCfg = (whal_Stm32f4_Gpio_PinCfg[PIN_COUNT]) {
-            /* LED on PC13 (active low) */
-            [LED_PIN] = WHAL_STM32F4_GPIO_PIN(
-                WHAL_STM32F4_GPIO_PORT_C, 13, WHAL_STM32F4_GPIO_MODE_OUT,
-                WHAL_STM32F4_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32F4_GPIO_SPEED_LOW,
-                WHAL_STM32F4_GPIO_PULL_NONE, 0),
-            /* USART2 TX on PA2 (AF7) */
-            [UART_TX_PIN] = WHAL_STM32F4_GPIO_PIN(
-                WHAL_STM32F4_GPIO_PORT_A, 2, WHAL_STM32F4_GPIO_MODE_ALTFN,
-                WHAL_STM32F4_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32F4_GPIO_SPEED_FAST,
-                WHAL_STM32F4_GPIO_PULL_UP, 7),
-            /* USART2 RX on PA3 (AF7) */
-            [UART_RX_PIN] = WHAL_STM32F4_GPIO_PIN(
-                WHAL_STM32F4_GPIO_PORT_A, 3, WHAL_STM32F4_GPIO_MODE_ALTFN,
-                WHAL_STM32F4_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32F4_GPIO_SPEED_FAST,
-                WHAL_STM32F4_GPIO_PULL_UP, 7),
-            /* SPI1 SCK on PA5 (AF5) */
-            [SPI_SCK_PIN] = WHAL_STM32F4_GPIO_PIN(
-                WHAL_STM32F4_GPIO_PORT_A, 5, WHAL_STM32F4_GPIO_MODE_ALTFN,
-                WHAL_STM32F4_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32F4_GPIO_SPEED_FAST,
-                WHAL_STM32F4_GPIO_PULL_NONE, 5),
-            /* SPI1 MISO on PA6 (AF5) */
-            [SPI_MISO_PIN] = WHAL_STM32F4_GPIO_PIN(
-                WHAL_STM32F4_GPIO_PORT_A, 6, WHAL_STM32F4_GPIO_MODE_ALTFN,
-                WHAL_STM32F4_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32F4_GPIO_SPEED_FAST,
-                WHAL_STM32F4_GPIO_PULL_NONE, 5),
-            /* SPI1 MOSI on PA7 (AF5) */
-            [SPI_MOSI_PIN] = WHAL_STM32F4_GPIO_PIN(
-                WHAL_STM32F4_GPIO_PORT_A, 7, WHAL_STM32F4_GPIO_MODE_ALTFN,
-                WHAL_STM32F4_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32F4_GPIO_SPEED_FAST,
-                WHAL_STM32F4_GPIO_PULL_NONE, 5),
-        },
-        .pinCount = PIN_COUNT,
-    },
-};
-
-/* Timer */
-whal_Timer g_whalTimer = {
-    .regmap = { WHAL_CORTEX_M4_SYSTICK_REGMAP },
-    .driver = WHAL_CORTEX_M4_SYSTICK_DRIVER,
-
-    .cfg = &(whal_SysTick_Cfg) {
-        .cyclesPerTick = 100000000 / 1000, /* 100 MHz / 1 kHz = 1 ms tick */
-        .clkSrc = WHAL_SYSTICK_CLKSRC_SYSCLK,
-        .tickInt = WHAL_SYSTICK_TICKINT_ENABLED,
-    },
-};
 
 /* UART */
 whal_Uart g_whalUart = {
-    .regmap = { WHAL_STM32F411_USART2_REGMAP },
+    .base = WHAL_STM32F411_USART2_BASE,
     /* .driver: direct API mapping */
 
     .cfg = &(whal_Stm32f4_Uart_Cfg) {
@@ -117,25 +59,11 @@ whal_Uart g_whalUart = {
 
 /* SPI */
 whal_Spi g_whalSpi = {
-    .regmap = { WHAL_STM32F411_SPI1_REGMAP },
+    .base = WHAL_STM32F411_SPI1_BASE,
     /* .driver: direct API mapping */
 
     .cfg = &(whal_Stm32f4_Spi_Cfg) {
         .pclk = 100000000,
-        .timeout = &g_whalTimeout,
-    },
-};
-
-/* Flash */
-whal_Flash g_whalFlash = {
-    .regmap = { WHAL_STM32F411_FLASH_REGMAP },
-    .driver = WHAL_STM32F411_FLASH_DRIVER,
-
-    .cfg = &(whal_Stm32f4_Flash_Cfg) {
-        .startAddr = 0x08000000,
-        .size = 0x80000, /* 512 KB */
-        .sectors = g_flashSectors,
-        .sectorCount = FLASH_SECTOR_COUNT,
         .timeout = &g_whalTimeout,
     },
 };
@@ -161,38 +89,38 @@ whal_Error Board_Init(void)
     whal_Error err;
 
     /* Set flash latency before increasing clock speed */
-    err = whal_Stm32f4_Flash_Ext_SetLatency(&g_whalFlash,
+    err = whal_Stm32f4_Flash_Ext_SetLatency(BOARD_FLASH_DEV,
                                             WHAL_STM32F4_FLASH_LATENCY_3);
     if (err)
         return err;
 
     /* HSE 25 MHz -> PLL (25/25 * 200 / 2 = 100 MHz) -> SYSCLK = PLL */
-    err = whal_Stm32f4_Rcc_EnableOsc(&g_whalClock,
+    err = whal_Stm32f4_Rcc_EnableOsc(
         &(whal_Stm32f4_Rcc_OscCfg){WHAL_STM32F4_RCC_HSE_CFG});
     if (err)
         return err;
-    err = whal_Stm32f4_Rcc_EnablePll(&g_whalClock, &(whal_Stm32f4_Rcc_PllCfg){
+    err = whal_Stm32f4_Rcc_EnablePll(&(whal_Stm32f4_Rcc_PllCfg){
         .clkSrc = WHAL_STM32F4_RCC_PLLCLK_SRC_HSE,
         .m = 25, .n = 200, .p = 0, .q = 4,
     });
     if (err)
         return err;
     /* APB1 = SYSCLK/2 = 50 MHz, APB2 = SYSCLK/1 = 100 MHz */
-    err = whal_Stm32f4_Rcc_SetBusPrescalers(&g_whalClock,
+    err = whal_Stm32f4_Rcc_SetBusPrescalers(
         &(whal_Stm32f4_Rcc_BusCfg){.ppre1 = 4, .ppre2 = 0});
     if (err)
         return err;
-    err = whal_Stm32f4_Rcc_SetSysClock(&g_whalClock, WHAL_STM32F4_RCC_SYSCLK_SRC_PLL);
+    err = whal_Stm32f4_Rcc_SetSysClock(WHAL_STM32F4_RCC_SYSCLK_SRC_PLL);
     if (err)
         return err;
 
     for (size_t i = 0; i < PERIPH_CLK_COUNT; i++) {
-        err = whal_Stm32f4_Rcc_EnablePeriphClk(&g_whalClock, &g_periphClks[i]);
+        err = whal_Stm32f4_Rcc_EnablePeriphClk(&g_periphClks[i]);
         if (err)
             return err;
     }
 
-    err = whal_Gpio_Init(&g_whalGpio);
+    err = whal_Gpio_Init(WHAL_INTERNAL_DEV);
     if (err)
         return err;
 
@@ -204,11 +132,11 @@ whal_Error Board_Init(void)
     if (err)
         return err;
 
-    err = whal_Timer_Init(&g_whalTimer);
+    err = whal_Timer_Init(WHAL_INTERNAL_DEV);
     if (err)
         return err;
 
-    err = whal_Timer_Start(&g_whalTimer);
+    err = whal_Timer_Start(WHAL_INTERNAL_DEV);
     if (err)
         return err;
 
@@ -227,11 +155,11 @@ whal_Error Board_Deinit(void)
     if (err)
         return err;
 
-    err = whal_Timer_Stop(&g_whalTimer);
+    err = whal_Timer_Stop(WHAL_INTERNAL_DEV);
     if (err)
         return err;
 
-    err = whal_Timer_Deinit(&g_whalTimer);
+    err = whal_Timer_Deinit(WHAL_INTERNAL_DEV);
     if (err)
         return err;
 
@@ -243,20 +171,20 @@ whal_Error Board_Deinit(void)
     if (err)
         return err;
 
-    err = whal_Gpio_Deinit(&g_whalGpio);
+    err = whal_Gpio_Deinit(WHAL_INTERNAL_DEV);
     if (err)
         return err;
 
     for (size_t i = PERIPH_CLK_COUNT; i-- > 0; ) {
-        err = whal_Stm32f4_Rcc_DisablePeriphClk(&g_whalClock, &g_periphClks[i]);
+        err = whal_Stm32f4_Rcc_DisablePeriphClk(&g_periphClks[i]);
         if (err)
             return err;
     }
 
-    err = whal_Stm32f4_Rcc_SetSysClock(&g_whalClock, WHAL_STM32F4_RCC_SYSCLK_SRC_HSI);
+    err = whal_Stm32f4_Rcc_SetSysClock(WHAL_STM32F4_RCC_SYSCLK_SRC_HSI);
     if (err)
         return err;
-    err = whal_Stm32f4_Rcc_DisablePll(&g_whalClock);
+    err = whal_Stm32f4_Rcc_DisablePll();
     if (err)
         return err;
 
