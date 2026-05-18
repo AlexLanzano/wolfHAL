@@ -192,6 +192,10 @@
 #define whal_Pic32cz_Uart_RecvAsync whal_Uart_RecvAsync
 #endif /* WHAL_CFG_PIC32CZ_UART_DIRECT_API_MAPPING */
 
+#ifdef WHAL_CFG_PIC32CZ_UART_SINGLE_INSTANCE
+const whal_Uart whal_Pic32cz_Uart_Dev = WHAL_CFG_PIC32CZ_UART_DEV;
+#endif
+
 whal_Error whal_Pic32cz_Uart_Init(whal_Uart *uartDev)
 {
     whal_Error err;

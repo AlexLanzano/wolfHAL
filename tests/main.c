@@ -166,10 +166,6 @@ void whal_Test_Dma_Platform(void);
 void whal_Test_Irq_Platform(void);
 #endif
 
-#ifdef WHAL_TEST_ENABLE_SENSOR
-void whal_Test_Sensor(void);
-#endif
-
 int g_whalTestPassed;
 int g_whalTestFailed;
 int g_whalTestSkipped;
@@ -345,10 +341,6 @@ void main(void)
 
 #ifdef WHAL_TEST_ENABLE_IRQ_PLATFORM
     whal_Test_Irq_Platform();
-#endif
-
-#ifdef WHAL_TEST_ENABLE_SENSOR
-    whal_Test_Sensor();
 #endif
 
     WHAL_TEST_SUMMARY();

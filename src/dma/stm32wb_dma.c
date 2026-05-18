@@ -120,6 +120,10 @@
 #define whal_Stm32wb_Dma_Stop      whal_Dma_Stop
 #endif /* WHAL_CFG_STM32WB_DMA_DIRECT_API_MAPPING */
 
+#ifdef WHAL_CFG_STM32WB_DMA_SINGLE_INSTANCE
+const whal_Dma whal_Stm32wb_Dma_Dev = WHAL_CFG_STM32WB_DMA_DEV;
+#endif
+
 whal_Error whal_Stm32wb_Dma_Init(whal_Dma *dmaDev)
 {
 #ifdef WHAL_CFG_STM32WB_DMA_SINGLE_INSTANCE

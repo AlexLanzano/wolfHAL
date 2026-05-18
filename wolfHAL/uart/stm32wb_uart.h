@@ -51,10 +51,24 @@ typedef struct whal_Stm32wb_Uart_Cfg {
     whal_Timeout *timeout;
 } whal_Stm32wb_Uart_Cfg;
 
+/*
+ * @brief Single-instance device struct. Defined in the driver TU
+ * from the WHAL_CFG_STM32WB_UART_DEV initializer in board.h.
+ */
+#if defined(WHAL_CFG_STM32WB_UART_SINGLE_INSTANCE) || \
+    defined(WHAL_CFG_STM32H5_UART_SINGLE_INSTANCE) || \
+    defined(WHAL_CFG_STM32C0_UART_SINGLE_INSTANCE) || \
+    defined(WHAL_CFG_STM32N6_UART_SINGLE_INSTANCE) || \
+    defined(WHAL_CFG_STM32WBA_UART_SINGLE_INSTANCE)
+extern const whal_Uart whal_Stm32wb_Uart_Dev;
+#endif
+
 #if !defined(WHAL_CFG_STM32WB_UART_DIRECT_API_MAPPING) && \
     !defined(WHAL_CFG_STM32WB_UART_DMA_DIRECT_API_MAPPING) && \
     !defined(WHAL_CFG_STM32H5_UART_DIRECT_API_MAPPING) && \
-    !defined(WHAL_CFG_STM32C0_UART_DIRECT_API_MAPPING)
+    !defined(WHAL_CFG_STM32C0_UART_DIRECT_API_MAPPING) && \
+    !defined(WHAL_CFG_STM32N6_UART_DIRECT_API_MAPPING) && \
+    !defined(WHAL_CFG_STM32WBA_UART_DIRECT_API_MAPPING)
 /*
  * @brief Polled UART driver. Implements Init, Deinit, Send, Recv.
  */

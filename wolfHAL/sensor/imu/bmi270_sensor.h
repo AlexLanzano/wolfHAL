@@ -67,6 +67,14 @@ typedef struct {
     void (*DelayMs)(size_t ms);   /* Millisecond delay function */
 } whal_Bmi270_Cfg;
 
+/*
+ * @brief Single-instance device struct. Defined in the driver TU
+ * from the WHAL_CFG_BMI270_DEV initializer in board.h.
+ */
+#ifdef WHAL_CFG_BMI270_SINGLE_INSTANCE
+extern const whal_Sensor whal_Bmi270_Dev;
+#endif
+
 #ifndef WHAL_CFG_BMI270_SENSOR_DIRECT_API_MAPPING
 /*
  * @brief Driver instance for the BMI270.

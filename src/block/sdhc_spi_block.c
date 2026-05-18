@@ -68,6 +68,10 @@
 #define whal_SdhcSpi_Erase  whal_Block_Erase
 #endif /* WHAL_CFG_SDHC_SPI_BLOCK_DIRECT_API_MAPPING */
 
+#ifdef WHAL_CFG_SDHC_SPI_SINGLE_INSTANCE
+const whal_Block whal_SdhcSpi_Dev = WHAL_CFG_SDHC_SPI_DEV;
+#endif
+
 static whal_Error SdhcSpi_CsAssert(whal_SdhcSpi_Cfg *cfg)
 {
     uint8_t dummy = DUMMY;

@@ -97,6 +97,14 @@ typedef struct {
     uint8_t numChannels;     /* Number of channels (7 for DMA1, 5 for DMA2) */
 } whal_Stm32wb_Dma_Cfg;
 
+/*
+ * @brief Single-instance device struct. Defined in the driver TU
+ * from the WHAL_CFG_STM32WB_DMA_DEV initializer in board.h.
+ */
+#ifdef WHAL_CFG_STM32WB_DMA_SINGLE_INSTANCE
+extern const whal_Dma whal_Stm32wb_Dma_Dev;
+#endif
+
 #ifndef WHAL_CFG_STM32WB_DMA_DIRECT_API_MAPPING
 /*
  * @brief Driver instance for STM32WB DMA.

@@ -56,6 +56,14 @@ typedef struct whal_SdhcSpi_Cfg {
     whal_Timeout *timeout;      /* Optional timeout for poll loops */
 } whal_SdhcSpi_Cfg;
 
+/*
+ * @brief Single-instance device struct. Defined in the driver TU
+ * from the WHAL_CFG_SDHC_SPI_DEV initializer in board.h.
+ */
+#ifdef WHAL_CFG_SDHC_SPI_SINGLE_INSTANCE
+extern const whal_Block whal_SdhcSpi_Dev;
+#endif
+
 #ifndef WHAL_CFG_SDHC_SPI_BLOCK_DIRECT_API_MAPPING
 /*
  * @brief Driver instance for SDHC/SDXC over SPI.

@@ -63,6 +63,15 @@ typedef struct whal_Stm32f4_Uart_Cfg {
     whal_Timeout *timeout;
 } whal_Stm32f4_Uart_Cfg;
 
+/*
+ * @brief Single-instance device struct. Defined in the driver TU
+ * from the WHAL_CFG_STM32F4_UART_DEV initializer in board.h.
+ */
+#if defined(WHAL_CFG_STM32F4_UART_SINGLE_INSTANCE) || \
+    defined(WHAL_CFG_STM32L1_UART_SINGLE_INSTANCE)
+extern const whal_Uart whal_Stm32f4_Uart_Dev;
+#endif
+
 #ifndef WHAL_CFG_STM32F4_UART_DIRECT_API_MAPPING
 /*
  * @brief Driver instance for STM32F4 UART peripheral.

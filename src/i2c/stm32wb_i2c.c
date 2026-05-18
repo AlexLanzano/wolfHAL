@@ -159,6 +159,13 @@
 #define whal_Stm32wb_I2c_Transfer whal_I2c_Transfer
 #endif /* WHAL_CFG_I2C_API_MAPPING */
 
+#if defined(WHAL_CFG_STM32WB_I2C_SINGLE_INSTANCE) || \
+    defined(WHAL_CFG_STM32F0_I2C_SINGLE_INSTANCE) || \
+    defined(WHAL_CFG_STM32F3_I2C_SINGLE_INSTANCE) || \
+    defined(WHAL_CFG_STM32N6_I2C_SINGLE_INSTANCE)
+const whal_I2c whal_Stm32wb_I2c_Dev = WHAL_CFG_STM32WB_I2C_DEV;
+#endif
+
 static uint32_t Stm32wb_I2c_CalcTimingr(uint32_t pclk, uint32_t freq)
 {
     uint32_t tLowNs, tHighNs;

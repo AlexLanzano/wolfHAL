@@ -80,6 +80,11 @@
 #define whal_Stm32f4_Uart_RecvAsync whal_Uart_RecvAsync
 #endif /* WHAL_CFG_STM32F4_UART_DIRECT_API_MAPPING */
 
+#if defined(WHAL_CFG_STM32F4_UART_SINGLE_INSTANCE) || \
+    defined(WHAL_CFG_STM32L1_UART_SINGLE_INSTANCE)
+const whal_Uart whal_Stm32f4_Uart_Dev = WHAL_CFG_STM32F4_UART_DEV;
+#endif
+
 whal_Error whal_Stm32f4_Uart_Init(whal_Uart *uartDev)
 {
     uint32_t brr;
