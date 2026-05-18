@@ -98,6 +98,13 @@
 #define whal_Stm32wb_Spi_SendRecv whal_Spi_SendRecv
 #endif /* WHAL_CFG_SPI_API_MAPPING */
 
+#if defined(WHAL_CFG_STM32WB_SPI_SINGLE_INSTANCE) || \
+    defined(WHAL_CFG_STM32C0_SPI_SINGLE_INSTANCE) || \
+    defined(WHAL_CFG_STM32F0_SPI_SINGLE_INSTANCE) || \
+    defined(WHAL_CFG_STM32F3_SPI_SINGLE_INSTANCE)
+const whal_Spi whal_Stm32wb_Spi_Dev = WHAL_CFG_STM32WB_SPI_DEV;
+#endif
+
 /*
  * Calculate the baud rate prescaler index for a target baud rate.
  *

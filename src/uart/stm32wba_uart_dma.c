@@ -48,6 +48,10 @@
 #define UART_RDR_REG      0x24
 #define UART_TDR_REG      0x28
 
+#ifdef WHAL_CFG_STM32WBA_UART_DMA_SINGLE_INSTANCE
+const whal_Uart whal_Stm32wba_UartDma_Dev = WHAL_CFG_STM32WBA_UART_DMA_DEV;
+#endif
+
 whal_Error whal_Stm32wba_UartDma_SendAsync(whal_Uart *uartDev, const void *data,
                                            size_t dataSz)
 {

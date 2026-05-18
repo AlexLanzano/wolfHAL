@@ -69,6 +69,11 @@
 #define whal_Stm32f0_Uart_RecvAsync whal_Uart_RecvAsync
 #endif
 
+#if defined(WHAL_CFG_STM32F0_UART_SINGLE_INSTANCE) || \
+    defined(WHAL_CFG_STM32F3_UART_SINGLE_INSTANCE)
+const whal_Uart whal_Stm32f0_Uart_Dev = WHAL_CFG_STM32F0_UART_DEV;
+#endif
+
 whal_Error whal_Stm32f0_Uart_Init(whal_Uart *uartDev)
 {
 #if defined(WHAL_CFG_STM32F0_UART_SINGLE_INSTANCE) || \

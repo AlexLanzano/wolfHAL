@@ -124,6 +124,12 @@
 #define whal_Stm32h5_Spi_SendRecv whal_Spi_SendRecv
 #endif /* WHAL_CFG_STM32H5_SPI_DIRECT_API_MAPPING */
 
+#if defined(WHAL_CFG_STM32H5_SPI_SINGLE_INSTANCE) || \
+    defined(WHAL_CFG_STM32N6_SPI_SINGLE_INSTANCE) || \
+    defined(WHAL_CFG_STM32WBA_SPI_SINGLE_INSTANCE)
+const whal_Spi whal_Stm32h5_Spi_Dev = WHAL_CFG_STM32H5_SPI_DEV;
+#endif
+
 /*
  * Calculate the baud rate prescaler index for a target baud rate.
  * SPI baud rate = fPCLK / (2 ^ (MBR + 1))

@@ -47,6 +47,14 @@ typedef struct whal_Stm32l1_I2c_Cfg {
     uint8_t _addrSz;       /**< Address size in bits (set by StartCom) */
 } whal_Stm32l1_I2c_Cfg;
 
+/*
+ * @brief Single-instance device struct. Defined in the driver TU
+ * from the WHAL_CFG_STM32L1_I2C_DEV initializer in board.h.
+ */
+#ifdef WHAL_CFG_STM32L1_I2C_SINGLE_INSTANCE
+extern const whal_I2c whal_Stm32l1_I2c_Dev;
+#endif
+
 #ifndef WHAL_CFG_STM32L1_I2C_DIRECT_API_MAPPING
 /**
  * @brief Driver instance for STM32L1 I2C peripheral.

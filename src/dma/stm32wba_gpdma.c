@@ -138,6 +138,11 @@
 #define whal_Stm32wba_Gpdma_Stop      whal_Dma_Stop
 #endif
 
+#if defined(WHAL_CFG_STM32WBA_GPDMA_SINGLE_INSTANCE) || \
+    defined(WHAL_CFG_STM32N6_GPDMA_SINGLE_INSTANCE)
+const whal_Dma whal_Stm32wba_Gpdma_Dev = WHAL_CFG_STM32WBA_GPDMA_DEV;
+#endif
+
 whal_Error whal_Stm32wba_Gpdma_Init(whal_Dma *dmaDev)
 {
 #if defined(WHAL_CFG_STM32WBA_GPDMA_SINGLE_INSTANCE) || \

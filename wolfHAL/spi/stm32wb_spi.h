@@ -48,6 +48,17 @@ typedef struct whal_Stm32wb_Spi_Cfg {
     whal_Timeout *timeout;
 } whal_Stm32wb_Spi_Cfg;
 
+/*
+ * @brief Single-instance device struct. Defined in the driver TU
+ * from the WHAL_CFG_STM32WB_SPI_DEV initializer in board.h.
+ */
+#if defined(WHAL_CFG_STM32WB_SPI_SINGLE_INSTANCE) || \
+    defined(WHAL_CFG_STM32C0_SPI_SINGLE_INSTANCE) || \
+    defined(WHAL_CFG_STM32F0_SPI_SINGLE_INSTANCE) || \
+    defined(WHAL_CFG_STM32F3_SPI_SINGLE_INSTANCE)
+extern const whal_Spi whal_Stm32wb_Spi_Dev;
+#endif
+
 #if !defined(WHAL_CFG_STM32WB_SPI_DIRECT_API_MAPPING) && \
     !defined(WHAL_CFG_STM32C0_SPI_DIRECT_API_MAPPING)
 /*

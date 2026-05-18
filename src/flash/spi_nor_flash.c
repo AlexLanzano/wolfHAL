@@ -72,6 +72,9 @@
 
 #define DUMMY 0xFF
 
+#ifdef WHAL_CFG_SPI_NOR_SINGLE_INSTANCE
+const whal_Flash whal_SpiNor_Dev = WHAL_CFG_SPI_NOR_DEV;
+#endif
 
 static whal_Error SpiNor_CsAssert(whal_SpiNor_Cfg *cfg)
 {

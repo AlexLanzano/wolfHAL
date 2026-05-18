@@ -63,6 +63,10 @@
 #define whal_Bmi270_Read   whal_Sensor_Read
 #endif /* WHAL_CFG_BMI270_SENSOR_DIRECT_API_MAPPING */
 
+#ifdef WHAL_CFG_BMI270_SINGLE_INSTANCE
+const whal_Sensor whal_Bmi270_Dev = WHAL_CFG_BMI270_DEV;
+#endif
+
 whal_Error whal_Bmi270_Init(whal_Sensor *dev)
 {
     whal_Bmi270_Cfg *cfg;

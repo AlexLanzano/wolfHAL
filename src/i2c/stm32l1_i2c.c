@@ -102,6 +102,10 @@
 #define whal_Stm32l1_I2c_Transfer whal_I2c_Transfer
 #endif
 
+#ifdef WHAL_CFG_STM32L1_I2C_SINGLE_INSTANCE
+const whal_I2c whal_Stm32l1_I2c_Dev = WHAL_CFG_STM32L1_I2C_DEV;
+#endif
+
 static whal_Error Stm32l1_I2c_WaitSR1(size_t base, uint32_t flag,
                                        whal_Timeout *timeout)
 {

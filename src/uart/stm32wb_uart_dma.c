@@ -59,6 +59,10 @@
 #define whal_Stm32wb_UartDma_RecvAsync whal_Uart_RecvAsync
 #endif /* WHAL_CFG_STM32WB_UART_DMA_DIRECT_API_MAPPING */
 
+#ifdef WHAL_CFG_STM32WB_UART_DMA_SINGLE_INSTANCE
+const whal_Uart whal_Stm32wb_UartDma_Dev = WHAL_CFG_STM32WB_UART_DMA_DEV;
+#endif
+
 whal_Error whal_Stm32wb_UartDma_SendAsync(whal_Uart *uartDev, const void *data,
                                          size_t dataSz)
 {

@@ -46,6 +46,16 @@ typedef struct whal_Stm32h5_Spi_Cfg {
     whal_Timeout *timeout;
 } whal_Stm32h5_Spi_Cfg;
 
+/*
+ * @brief Single-instance device struct. Defined in the driver TU
+ * from the WHAL_CFG_STM32H5_SPI_DEV initializer in board.h.
+ */
+#if defined(WHAL_CFG_STM32H5_SPI_SINGLE_INSTANCE) || \
+    defined(WHAL_CFG_STM32N6_SPI_SINGLE_INSTANCE) || \
+    defined(WHAL_CFG_STM32WBA_SPI_SINGLE_INSTANCE)
+extern const whal_Spi whal_Stm32h5_Spi_Dev;
+#endif
+
 #ifndef WHAL_CFG_STM32H5_SPI_DIRECT_API_MAPPING
 /*
  * @brief Driver instance for STM32H5 SPI peripheral.

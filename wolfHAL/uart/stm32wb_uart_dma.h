@@ -50,6 +50,14 @@ typedef struct {
     volatile whal_Error rxResult;
 } whal_Stm32wb_UartDma_Cfg;
 
+/*
+ * @brief Single-instance device struct. Defined in the driver TU
+ * from the WHAL_CFG_STM32WB_UART_DMA_DEV initializer in board.h.
+ */
+#ifdef WHAL_CFG_STM32WB_UART_DMA_SINGLE_INSTANCE
+extern const whal_Uart whal_Stm32wb_UartDma_Dev;
+#endif
+
 #ifndef WHAL_CFG_STM32WB_UART_DMA_DIRECT_API_MAPPING
 /*
  * @brief DMA-backed UART driver. Implements Init, Deinit, Send, Recv,

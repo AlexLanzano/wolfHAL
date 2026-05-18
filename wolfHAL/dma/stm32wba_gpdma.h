@@ -94,6 +94,15 @@ typedef struct {
     whal_Timeout *timeout;   /* Timeout for channel reset/suspend polling */
 } whal_Stm32wba_Gpdma_Cfg;
 
+/*
+ * @brief Single-instance device struct. Defined in the driver TU
+ * from the WHAL_CFG_STM32WBA_GPDMA_DEV initializer in board.h.
+ */
+#if defined(WHAL_CFG_STM32WBA_GPDMA_SINGLE_INSTANCE) || \
+    defined(WHAL_CFG_STM32N6_GPDMA_SINGLE_INSTANCE)
+extern const whal_Dma whal_Stm32wba_Gpdma_Dev;
+#endif
+
 extern const whal_DmaDriver whal_Stm32wba_Gpdma_Driver;
 
 /*
