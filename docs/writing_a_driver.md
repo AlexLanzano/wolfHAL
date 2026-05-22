@@ -17,21 +17,11 @@ hardware and are portable across any SoC that provides the required bus.
 Examples: `spi_nor_flash` (SPI flash), `sdhc_spi_block` (SD card over SPI),
 `bmi270_sensor` (IMU over I2C), `lan8742a_eth_phy` (Ethernet PHY over MDIO).
 
-**Board-level drivers** only expose a chip-specific interface — no vtable, no
-generic `whal_<Type>_*` API. Their parameters and operations are chip-specific
-enough that abstracting them serves no portable consumer; every caller lives
-in `board.c`. Applications reach board-level behavior through
-`Board_<Operation>()` wrapper functions in `board.c` when needed. A board-level
-driver can be either platform (e.g., the on-MCU clock controller) or
-peripheral (e.g., an external clock generator IC over I2C, or a PMIC). Examples:
-clock, power.
-
 Platform and peripheral drivers share the same vtable interface — the
 application calls `whal_Flash_Read()` whether the flash is on-chip (platform
-driver) or external SPI NOR (peripheral driver). Board-level drivers are the
-exception: there is no generic API for applications to call.
+driver) or external SPI NOR (peripheral driver).
 
-## Common Pattern
+## Common Patterns
 
 Platform and peripheral drivers follow the same structure:
 
@@ -44,49 +34,30 @@ Platform and peripheral drivers follow the same structure:
 To write a driver for a device type, you implement the functions defined in that
 type's vtable and expose them as a const driver instance.
 
-Board-level drivers follow a different pattern: no vtable, no generic
-`whal_<Type>_*` API, no `DIRECT_API_MAPPING`. They expose chip-specific
-helper functions (e.g., `whal_<Chip>_<Subsys>_EnableOsc`) that boards call
-directly. The "Clock" section below is the canonical example. The rest of
-this "Common Pattern" section applies to platform and peripheral drivers
-only.
+### File Layout and Naming Conventions
 
-### File Layout
+For platform and peripheral drivers implementing device type `uart` on platform `myplatform`:
 
-For a platform driver implementing device type `foo` on platform `myplatform`:
+- `wolfHAL/uart/myplatform_uart.h` — configuration types and driver extern
+- `src/uart/myplatform_uart.c` — driver implementation and vtable definition
 
-- `wolfHAL/foo/myplatform_foo.h` — configuration types and driver extern
-- `src/foo/myplatform_foo.c` — driver implementation and vtable definition
-
-For a peripheral driver implementing device type `foo` for chip `mychip`:
-
-- `wolfHAL/foo/mychip_foo.h` — configuration types and driver extern
-- `src/foo/mychip_foo.c` — driver implementation and vtable definition
-
-For a board-level driver implementing device type `foo` on platform `myplatform`:
-
-- `wolfHAL/foo/myplatform_foo.h` — types, enums, descriptor macros, the
-  chip's fixed `WHAL_<PLATFORM>_<SUBSYS>_BASE` address, and chip-specific
-  helper declarations or definitions (no device handle, no driver extern,
-  no `_DRIVER` macro, no generic `foo.h` to include). Clock drivers in
-  particular are header-only — every `whal_<Chip>_<Subsys>_*` helper is
-  defined as a `static inline` in the header and reads from the
-  hardcoded base. Other board-level drivers (power, supply) follow the
-  same shape but may keep their definitions in
-  `src/foo/myplatform_foo.c` if the helpers are larger.
-
-### Driver Vtable
+### Defining and exposing the driver Vtable
 
 Every vtable includes `Init` and `Deinit`. The remaining functions are specific
 to the device type. All functions receive a pointer to the device instance as
 their first argument and return `whal_Error`.
 
 ```c
-const whal_FooDriver whal_Myplatform_Foo_Driver = {
-    .Init   = whal_Myplatform_Foo_Init,
-    .Deinit = whal_Myplatform_Foo_Deinit,
+/* myplatform_uart.c */
+const whal_UartDriver whal_Myplatform_Uart_Driver = {
+    .Init   = whal_Myplatform_Uart_Init,
+    .Deinit = whal_Myplatform_Uart_Deinit,
     /* device-specific operations */
 };
+
+/* myplatform_uart.h */
+extern const whal_UartDriver whal_Myplatform_Uart_Driver;
+
 ```
 
 ### Direct API Mapping
@@ -97,9 +68,9 @@ system map chip-specific function names to the top-level API. Place this
 definition:
 
 ```c
-#ifdef WHAL_CFG_MYPLATFORM_FOO_DIRECT_API_MAPPING
-#define whal_Myplatform_Foo_Init   whal_Foo_Init
-#define whal_Myplatform_Foo_Deinit whal_Foo_Deinit
+#ifdef WHAL_CFG_MYPLATFORM_UART_DIRECT_API_MAPPING
+#define whal_Myplatform_Uart_Init   whal_Uart_Init
+#define whal_Myplatform_Uart_Deinit whal_Uart_Deinit
 /* ... one #define per mapped function ... */
 #endif
 ```
@@ -115,10 +86,10 @@ peripheral driver.
 Wrap the vtable in `#ifndef` since it is unused when mapping is active:
 
 ```c
-#ifndef WHAL_CFG_MYPLATFORM_FOO_DIRECT_API_MAPPING
-const whal_FooDriver whal_Myplatform_Foo_Driver = {
-    .Init   = whal_Myplatform_Foo_Init,
-    .Deinit = whal_Myplatform_Foo_Deinit,
+#ifndef WHAL_CFG_MYPLATFORM_UART_DIRECT_API_MAPPING
+const whal_UartDriver whal_Myplatform_Uart_Driver = {
+    .Init   = whal_Myplatform_Uart_Init,
+    .Deinit = whal_Myplatform_Uart_Deinit,
 };
 #endif
 ```
@@ -128,79 +99,92 @@ declaration in the same `#ifndef` guard. Types and configuration structs
 stay unconditional. Extension functions (`Ext_*`) that have no generic
 equivalent are never mapped and stay unconditional.
 
-### Configuration
+### Conventions for single-instance devices
+When there's only a single IP block for a device on a chip then this is
+considered a single-instance device. For example: the STM32WB platform only has
+a single RNG device.
 
-The device struct's `cfg` field points to your platform-specific configuration.
-Cast it in your driver functions:
+Single-instance device drivers must define the device struct within the driver
+.c file like so:
 
 ```c
-static whal_Error whal_Myplatform_Foo_Init(whal_Foo *fooDev)
+/* wolfHAL/uart/myplatform_uart.h */
+extern const whal_Uart whal_Myplatform_Uart_Dev;
+
+/* src/uart/myplatform_uart.c */
+#include "board.h"  /* provides WHAL_CFG_MYPLATFORM_UART_DEV initializer */
+const whal_Uart whal_Myplatform_Uart_Dev = WHAL_CFG_MYPLATFORM_UART_DEV;
+
+whal_Error whal_Myplatform_Uart_Init(whal_Uart *uartDev)
 {
-    whal_Myplatform_Foo_Cfg *cfg = (whal_Myplatform_Foo_Cfg *)fooDev->cfg;
+    const whal_Myplatform_Uart_Cfg *cfg =
+        (const whal_Myplatform_Uart_Cfg *)whal_Myplatform_Uart_Dev.cfg;
+    size_t base = whal_Myplatform_Uart_Dev.base;
+    (void)uartDev;
     /* ... */
 }
 ```
 
-#### Single-instance drivers
+### Conventions for multi-instance devices
+When there's multiple IP blocks for a device on a chip then this is considered a
+multi-instance device. For example: the STM32WB platform has multiple UART
+devices, each with their own register map offset.
 
-For peripherals that a board only ever uses one instance of, the driver
-does not need to take the device handle at all. The convention is
-**single-instance**: the driver header `extern`-declares a singleton, the
-driver `.c` `#include`s `board.h` and defines the singleton from a
-`WHAL_CFG_<PLAT>_<X>_DEV` initializer macro that the board supplies. The
-driver body reads its `.base` and `.cfg` from the singleton. The function
-signature still takes the generic handle so it can sit behind the
-generic vtable, but the body ignores it:
+Since the user could use multiple instances of the device the user must define
+the device struct within the board.c and pass it in as a function argument. The
+driver must determine this at runtime like so:
 
 ```c
-/* wolfHAL/foo/myplatform_foo.h */
-extern const whal_Foo whal_Myplatform_Foo_Dev;
-
-/* src/foo/myplatform_foo.c */
-#include "board.h"  /* provides WHAL_CFG_MYPLATFORM_FOO_DEV initializer */
-const whal_Foo whal_Myplatform_Foo_Dev = WHAL_CFG_MYPLATFORM_FOO_DEV;
-
-whal_Error whal_Myplatform_Foo_Init(whal_Foo *fooDev)
+/* src/uart/myplatform_uart.c */
+whal_Error whal_Myplatform_Uart_Init(whal_Uart *uartDev)
 {
-    const whal_Myplatform_Foo_Cfg *cfg =
-        (const whal_Myplatform_Foo_Cfg *)whal_Myplatform_Foo_Dev.cfg;
-    size_t base = whal_Myplatform_Foo_Dev.base;
-    (void)fooDev;
+    const whal_Myplatform_Uart_Cfg *cfg =
+        (const whal_Myplatform_Uart_Cfg *)uartDev->cfg;
+    size_t base = uartDev->base;
     /* ... */
 }
 ```
 
-Boards call the entry points with `WHAL_INTERNAL_DEV` (defined as
-`((void *)0)` in `wolfHAL/wolfHAL.h`) — the sentinel just makes the
-intent explicit at the call site. The driver TU owns the singleton's
-storage; including translation units only see the `extern` declaration.
+#### Supporting a single-instance use on a multi-instance device driver
+In some cases a user's application only needs a single instance from a
+multi-instance device driver. To support this use case the driver should provide
+a compile-time configuration option that makes the multi-instance driver behave
+identical to a single-instance driver. Here is an example of how to achieve
+this:
 
-There are two flavors:
+```c
+/* wolfHAL/uart/myplatform_uart.h */
+#ifdef WHAL_CFG_MYPLATFORM_UART_SINGLE_INSTANCE
+extern const whal_Uart whal_Myplatform_Uart_Dev;
+#endif
 
-- **Unconditional single-instance.** Used for peripherals where every
-  supported chip exposes a single instance, so the SI path is the only
-  path. The driver source `#include`s `board.h` at the top, drops the
-  handle null-check, and accesses the singleton directly. No `#if`
-  fences inside the driver body.
-- **Conditional single-instance.** Used on driver types where the chip
-  generally has more than one instance (UART, SPI, I2C, DMA, etc.), so
-  boards must opt in per peripheral with
-  `-DWHAL_CFG_<PLAT>_<DRV>_SINGLE_INSTANCE`. The driver body is
-  bifurcated with `#if defined(...SINGLE_INSTANCE...) / #else`: the SI
-  branch reads the singleton, the `#else` branch is the original
-  pointer-based path. See `src/uart/stm32wb_uart.c` for the canonical
-  shape.
+/* src/uart/myplatform_uart.c */
+#ifdef WHAL_CFG_MYPLATFORM_UART_SINGLE_INSTANCE
+#include "board.h"  /* provides WHAL_CFG_MYPLATFORM_UART_DEV initializer */
+const whal_Uart whal_Myplatform_Uart_Dev = WHAL_CFG_MYPLATFORM_UART_DEV;
+#endif
 
-Single-instance is independent of direct API mapping (described below).
-A driver may be single-instance and vtable-dispatched, single-instance
-and directly mapped, or pointer-based and either. The two knobs do not
-imply each other.
+whal_Error whal_Myplatform_Uart_Init(whal_Uart *uartDev)
+{
+    const whal_Myplatform_Uart_Cfg *cfg;
+    size_t base;
+#ifdef WHAL_CFG_MYPLATFORM_UART_SINGLE_INSTANCE
+    cfg = (const whal_Myplatform_Uart_Cfg *)whal_Myplatform_Uart_Dev.cfg;
+    base = whal_Myplatform_Uart_Dev.base;
+    (void)uartDev;
+#else
+    cfg = (const whal_Myplatform_Uart_Cfg *)uartDev->cfg;
+    base = uartDev->base;
+#endif
+    /* ... */
+}
+```
 
 ### No Cross-Driver Calls
 
 Platform drivers should only touch their own registers. The board handles all
-cross-peripheral setup — clock enables, power-rail sequencing, flash wait
-states — before calling Init.
+cross-peripheral setup, clock enables, power-rail sequencing, flash wait
+states, before calling Init.
 
 There are two exceptions:
 
@@ -273,27 +257,6 @@ err = whal_Reg_ReadPoll(base, SPI_SR_REG, SPI_SR_BSY_Msk,
 
 A NULL timeout pointer means unbounded wait (poll forever).
 
-#### Driver-Specific Helpers
-
-When a driver has many polling sites that also need post-poll cleanup (e.g.,
-clearing a flag), wrap the pattern in a local helper to avoid code duplication:
-
-```c
-static whal_Error WaitForCCF(size_t base, whal_Timeout *timeout)
-{
-    whal_Error err;
-    err = whal_Reg_ReadPoll(base, AES_SR_REG, AES_SR_CCF_Msk,
-                            AES_SR_CCF_Msk, timeout);
-    if (err)
-        return err;
-    whal_Reg_Update(base, AES_CR_REG, AES_CR_CCFC_Msk, AES_CR_CCFC_Msk);
-    return WHAL_SUCCESS;
-}
-```
-
-This keeps code size small — one function body shared across all call sites
-instead of inlined polling loops at each location.
-
 #### Cleanup on Timeout
 
 When a timeout occurs during an operation that has enabled a hardware mode
@@ -356,6 +319,7 @@ are wrapped in `#ifndef` so they are omitted when direct API mapping is active
 for the alias platform:
 
 ```c
+/* stm32h5_gpio.c */
 #ifndef WHAL_STM32H5_GPIO_H
 #define WHAL_STM32H5_GPIO_H
 
@@ -383,40 +347,19 @@ Use `typedef` for types (gives proper type-checking and debugger visibility)
 and `#define` for the driver instance and functions (which are values, not
 types).
 
-For single-instance drivers, the alias header must also `#define` the
-alias-platform singleton name onto the upstream singleton so callers can
-reach the storage under either name:
-
-```c
-#define whal_Stm32h5_Gpio_Dev whal_Stm32wb_Gpio_Dev
-```
-
-The driver `.c` (upstream) defines the singleton from
-`WHAL_CFG_STM32WB_GPIO_DEV`, which the aliased board provides under that
-same upstream-prefixed name in its `board.h`. See
-`wolfHAL/watchdog/stm32n6_iwdg.h` for an in-tree example. A small number
-of singletons are inherently platform-agnostic and keep neutral names
-everywhere (`whal_Nvic_Dev`, `whal_SysTick_Dev`, `whal_Lan8742a_Dev`);
-their initializer macros drop the platform segment too
-(`WHAL_CFG_NVIC_DEV`, `WHAL_CFG_SYSTICK_DEV`).
 
 #### Source
 
 The source file includes the original implementation directly:
 
 ```c
+/* stm32h5_gpio.c */
 #include "stm32wb_gpio.c"
 ```
 
-This works because `#include` is textual insertion — the compiler does not
-distinguish `.h` from `.c`. The new platform's `board.mk` compiles this
-file and does **not** compile the original. The original platform's
-`board.mk` still compiles its own file directly. Both must never appear in
-the same build.
-
 #### When to alias vs. write a new driver
 
-Alias when the register layout is identical — same offsets, same bit positions,
+Alias when the register layout is identical, same offsets, same bit positions,
 same behavior. If even one register differs (different bit position, extra
 field, different reset value that affects behavior), write a new driver. A
 partial alias that papers over register differences with workarounds is worse
@@ -429,32 +372,23 @@ Add base address and driver macros to your platform header
 devices without knowing the register addresses or driver symbols:
 
 ```c
-#define WHAL_MYPLATFORM_FOO_BASE   0x40000000
-#define WHAL_MYPLATFORM_FOO_DRIVER &whal_Myplatform_Foo_Driver
+/* myplatform.h */
+#define WHAL_MYPLATFORM_UART_BASE   0x40000000
+#define WHAL_MYPLATFORM_UART_DRIVER &whal_Myplatform_Uart_Driver
 ```
 
 The board uses these in device struct initializers:
 
 ```c
-whal_Foo g_whalFoo = {
-    .base = WHAL_MYPLATFORM_FOO_BASE,
-    .driver = WHAL_MYPLATFORM_FOO_DRIVER,
-    .cfg = &fooCfg,
+/* board.c */
+
+#include <wolfHAL/platform/myvendor/myplatform.h>
+whal_Uart g_whalUart = {
+    .base = WHAL_MYPLATFORM_UART_BASE,
+    .driver = WHAL_MYPLATFORM_UART_DRIVER,
+    .cfg = &uartCfg,
 };
 ```
-
-When direct API mapping is active for a device type, the board omits the
-`.driver` field since the vtable is unused. It's a good idea to note that
-you are doing so with the following comment.
-
-```c
-whal_Foo g_whalFoo = {
-    .base = WHAL_MYPLATFORM_FOO_BASE,
-    /* .driver: direct API mapping */
-    .cfg = &fooCfg,
-};
-```
-
 ---
 
 ## Clock

@@ -29,17 +29,16 @@ project. It contains four kinds of declaration:
    `Board_Init` / `Board_Deinit` / `Board_WaitMs` prototypes.
 
 ```c
-#pragma once
-
+/* board.h */
 #include <wolfHAL/wolfHAL.h>
-#include <wolfHAL/platform/vendor/device.h>
+#include <wolfHAL/platform/vendor/myplatform.h>
 
 extern whal_Uart    g_whalUart;
 extern whal_Timeout g_whalTimeout;
 
 #define BOARD_LED_PIN 0
 
-/* BOARD_<PERIPH>_DEV: how this board reaches each peripheral.
+/* BOARD_<DEVICE>_DEV: how this board reaches each device.
  * WHAL_INTERNAL_DEV for single-instance drivers (driver ignores the
  * pointer); &g_whal<X> for drivers still using vtable dispatch; or a cast
  * pointer at a driver-owned singleton when single-instance must coexist
@@ -49,7 +48,7 @@ extern whal_Timeout g_whalTimeout;
 #define BOARD_WATCHDOG_DEV WHAL_INTERNAL_DEV
 #define BOARD_RNG_DEV      WHAL_INTERNAL_DEV
 
-/* Initializer for the GPIO singleton. The driver header extern-declares
+/* Initializer for the GPIO single-instance device. The driver header extern-declares
  * whal_Myplatform_Gpio_Dev; the driver .c writes
  *     const whal_Gpio whal_Myplatform_Gpio_Dev = WHAL_CFG_MYPLATFORM_GPIO_DEV;
  * after #include "board.h". */
@@ -74,22 +73,6 @@ whal_Error Board_Init(void);
 whal_Error Board_Deinit(void);
 void Board_WaitMs(size_t ms);
 ```
-
-When a chip's driver is implemented as an alias of another chip's driver
-(e.g. STM32N6 IWDG reusing the STM32WB body), the `WHAL_CFG_<PLAT>_<X>_DEV`
-initializer uses this board's own platform name — the alias header
-bridges the singleton name with a `#define` (see
-`wolfHAL/watchdog/stm32n6_iwdg.h`). A small number of singletons are
-inherently cross-platform and keep neutral names: `whal_Nvic_Dev`
-(Cortex-M NVIC), `whal_SysTick_Dev` (Cortex-M SysTick), `whal_Lan8742a_Dev`
-(generic Ethernet PHY); their initializer macros drop the platform segment
-too (e.g. `WHAL_CFG_NVIC_DEV`, `WHAL_CFG_SYSTICK_DEV`).
-
-Single-instance drivers that need per-instance mutable state (e.g.
-AES-GCM / AES-CCM accumulators) keep the state as a `static` variable in
-their driver `.c` and point the singleton's `.state` field at it via the
-initializer macro. Use the macro to inject the address from board.h
-without making the buffer itself live in board scope.
 
 ### board.c
 
@@ -133,11 +116,6 @@ whal_Error Board_Init(void)
     whal_Error err;
     size_t i;
 
-    /* Bring up the clock tree imperatively. The chip's clock driver
-     * exposes Enable*/Disable*/Set* helpers; boards call them in order.
-     * The helpers take no device pointer — each reads the chip's fixed
-     * clock-controller base from its own header. The exact sequence is
-     * chip-specific — see the chip's clock header. */
     err = whal_Myplatform_Clock_EnableOsc(
         &(whal_Myplatform_Clock_OscCfg){WHAL_MYPLATFORM_CLOCK_OSC0_CFG});
     if (err)
@@ -153,7 +131,7 @@ whal_Error Board_Init(void)
             return err;
     }
 
-    /* Initialize peripherals. Pass the corresponding BOARD_<PERIPH>_DEV
+    /* Initialize devices. Pass the corresponding BOARD_<DEVICE>_DEV
      * macro — it will be WHAL_INTERNAL_DEV for single-instance drivers or
      * &g_whal<X> for vtable-dispatched drivers, whichever this board
      * declared in board.h. */
@@ -185,7 +163,7 @@ whal_Error Board_Init(void)
 
 When two drivers of the same generic type share a board (the typical case
 is on-chip flash plus an external SPI-NOR flash), the platform driver's
-singleton carries `.driver` alongside `.base` and `.cfg` so generic API
+single-instance device carries `.driver` alongside `.base` and `.cfg` so generic API
 calls (`whal_Flash_Read`, etc.) can vtable-dispatch through it.
 `BOARD_FLASH_DEV` casts the singleton's address to the non-const generic
 type so the dispatcher signature accepts it:
