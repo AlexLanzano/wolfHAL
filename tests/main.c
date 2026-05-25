@@ -98,6 +98,10 @@ void whal_Test_AesGmac(void);
 void whal_Test_AesCcm(void);
 #endif
 
+#ifdef WHAL_TEST_ENABLE_PKA
+void whal_Test_Pka(void);
+#endif
+
 #ifdef WHAL_TEST_ENABLE_SHA1
 void whal_Test_Sha1(void);
 #endif
@@ -273,6 +277,10 @@ void main(void)
 
 #ifdef WHAL_TEST_ENABLE_AES_CCM
     whal_Test_AesCcm();
+#endif
+
+#ifdef WHAL_TEST_ENABLE_PKA
+    whal_Test_Pka();
 #endif
 
 #ifdef WHAL_TEST_ENABLE_SHA1

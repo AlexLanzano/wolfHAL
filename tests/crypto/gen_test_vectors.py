@@ -164,3 +164,42 @@ emit("hmacStreamMsg", LONG_BUF)
 emit("hmacSha1StreamMac", hmac_mac(hashes.SHA1(), hmac_key, LONG_BUF))
 emit("hmacSha224StreamMac", hmac_mac(hashes.SHA224(), hmac_key, LONG_BUF))
 emit("hmacSha256StreamMac", hmac_mac(hashes.SHA256(), hmac_key, LONG_BUF))
+
+
+# ---- RSA-1024 raw primitive KAT ----
+# Fixed key matches the rsaN / rsaE / rsaD / ... arrays in test_pka.c.
+# Test plaintext is 0x00..0x7F (128 bytes), guaranteed < n (which starts
+# with 0xBD). The PKA computes raw RSA primitives — no padding — so the
+# expected ciphertext and signature are simply pow(m, e, n) and pow(m, d, n).
+
+rsa_n = int.from_bytes(bytes.fromhex(
+    "BDF8AE2B270559303A254D077AE73339B1F9DCE4A72EAD07CEB5BA9F27D6FA6B"
+    "F73A92EEB7B80907BA35A4F1FDDFB590E3E7A7A63FEE401EF0E519DB786C5B3A"
+    "E4235EC4846AE15EF3657A215A78CFA4E4D3F5006044EC8EC8A4160057950F6A"
+    "A3D68476311F5A8C0194B3D958845356A1D794EF3A8AD0CB06F35EC75E479691"
+), 'big')
+
+rsa_e = 65537
+
+rsa_d = int.from_bytes(bytes.fromhex(
+    "78858EA9DDE5ACC1C601E82EB8B079753F0E902F98492A896B812BD6D145B836"
+    "4AF1244AC2CFC51ADBEE30A93E3171556CE18921162A270FFA30BF08D80B968C"
+    "5C32D3C9F49B793F1AACB719956391611C856191CC3F9F48AD44AD77FF44BBEC"
+    "98685D499B89CBFA85035E0F4B136C85B487282135A611CB5B5029500073DCE9"
+), 'big')
+
+rsa_pt_bytes = bytes(range(128))
+rsa_pt = int.from_bytes(rsa_pt_bytes, 'big')
+
+assert rsa_pt < rsa_n, "plaintext must be < n for raw RSA"
+
+rsa_ct = pow(rsa_pt, rsa_e, rsa_n)
+rsa_sig = pow(rsa_pt, rsa_d, rsa_n)
+
+# Self-check: signature verified with public key should recover the plaintext.
+assert pow(rsa_sig, rsa_e, rsa_n) == rsa_pt
+assert pow(rsa_ct, rsa_d, rsa_n) == rsa_pt
+
+banner("test_pka.c — known-answer vectors")
+emit("expectedCtPublicExp",  rsa_ct.to_bytes(128, 'big'))
+emit("expectedCtPrivateExp", rsa_sig.to_bytes(128, 'big'))

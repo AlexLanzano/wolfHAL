@@ -53,6 +53,7 @@ static const whal_Stm32wb_Rcc_PeriphClk g_periphClks[] = {
     {WHAL_STM32WB55_SPI1_GATE},
     {WHAL_STM32WB55_RNG_GATE},
     {WHAL_STM32WB55_AES1_GATE},
+    {WHAL_STM32WB55_PKA_GATE},
     {WHAL_STM32WB55_I2C1_GATE},
 #ifdef BOARD_WATCHDOG_WWDG
     {WHAL_STM32WB55_WWDG_GATE},
@@ -256,6 +257,13 @@ whal_Error Board_Init(void)
         return err;
     }
 
+    /* PKA: platform-specific Init because whal_Crypto_Init is direct-mapped
+     * to whal_Stm32wb_Aes_Init on this board (AES claims the generic name). */
+    err = whal_Stm32wb_Pka_Init(WHAL_INTERNAL_DEV);
+    if (err) {
+        return err;
+    }
+
     err = whal_Timer_Init(WHAL_INTERNAL_DEV);
     if (err) {
         return err;
@@ -293,6 +301,11 @@ whal_Error Board_Deinit(void)
         return err;
     }
 
+
+    err = whal_Stm32wb_Pka_Deinit(WHAL_INTERNAL_DEV);
+    if (err) {
+        return err;
+    }
 
     err = whal_Crypto_Deinit(&g_whalCrypto);
     if (err) {

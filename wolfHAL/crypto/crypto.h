@@ -905,4 +905,9 @@ whal_Error whal_HmacSha256_Process(whal_HmacSha256 *dev,
 whal_Error whal_HmacSha256_Finalize(whal_HmacSha256 *dev,
                                     void *digest, size_t digestSz);
 
+/* RSA / public-key math primitives live in <wolfHAL/crypto/pka.h> as
+ * direct functions, not in this header. The crypto.h device-typed pattern
+ * is for peripherals with per-instance configuration; the math primitives
+ * don't need that layer. */
+
 #endif /* WHAL_CRYPTO_H */
