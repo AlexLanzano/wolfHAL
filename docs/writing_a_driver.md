@@ -963,10 +963,16 @@ consumption and avoid unnecessary entropy source wear.
 Header: `wolfHAL/crypto/crypto.h`
 
 The crypto subsystem provides access to hardware cryptographic accelerators
-(ciphers, hashes, MACs). Unlike other device types, crypto uses a two-level
-device model: a **hardware device** (`whal_Crypto`) for peripheral lifecycle,
-and **per-algorithm device structs** (`whal_AesGcm`, `whal_Sha256`, etc.)
-that carry typed vtables with direct function arguments.
+(ciphers, hashes, MACs, public-key math). Unlike other device types, crypto
+uses a two-level device model: a **hardware device** (`whal_Crypto`) for
+peripheral lifecycle, and **per-algorithm device structs** (`whal_AesGcm`,
+`whal_Sha256`, etc.) that carry typed vtables with direct function
+arguments.
+
+Public-key math accelerators (PKA) are an exception: lifecycle still goes
+through `whal_Crypto`, but the math operations themselves are exposed as
+**direct functions on big-endian operand byte arrays** — no per-algorithm
+device struct, no vtable. See the *Math Primitives* subsection below.
 
 ### Architecture
 
@@ -1194,6 +1200,57 @@ whal_AesCbc_Process(BOARD_AES_CBC_DEV, block1, out1, 16);
 whal_AesCbc_Process(BOARD_AES_CBC_DEV, block2, out2, 16);
 ```
 
+### Math Primitives
+
+Header: `wolfHAL/crypto/pka.h`
+
+Public-key accelerators (PKA, BIGINT, etc.) expose **stateless math
+primitives** over multi-precision integers rather than algorithm-typed
+streaming sessions. Each call is one-shot: load operands, run one hardware
+opcode, read the result. wolfHAL surfaces these as direct functions on
+big-endian byte arrays:
+
+```c
+whal_Error whal_Pka_ModExp(const uint8_t *A, size_t ASz,
+                           const uint8_t *e, size_t eSz,
+                           const uint8_t *N, size_t NSz,
+                                 uint8_t *result, size_t resultSz);
+
+whal_Error whal_Pka_ModInv   (...);
+whal_Error whal_Pka_ModReduce(...);
+whal_Error whal_Pka_IntMul   (...);
+whal_Error whal_Pka_IntSub   (...);
+whal_Error whal_Pka_RsaCrtExp(...);
+```
+
+There is no `whal_Pka` device struct, no per-primitive vtable, and no
+device handle passed to the call. The platform driver owns a single
+`whal_Crypto` for the PKA peripheral's lifecycle (`Init`/`Deinit`,
+enable/disable, error flag clearing); the math primitives reach the
+peripheral through that internal device.
+
+**Why no algorithm-typed device?** The primitives are single-call,
+share no state between invocations, and the same hardware opcode set is
+the only useful "algorithm" a PKA exposes. A vtable per primitive would
+just be six 1-entry tables.
+
+**RAM hygiene.** A PKA driver should zero every operand slot it writes
+on the success path of each primitive. The peripheral RAM is small and
+shared across opcodes — leaving operand or result bytes in place can
+corrupt the next call (operands shorter than the configured op length
+read stale data from the unwritten high words) and leaks sensitive
+material (private exponents, primes, signature results) until the next
+op overwrites those slots.
+
+**Direct API mapping.** The platform-prefixed primitives
+(`whal_Stm32wb_Pka_ModExp` etc.) are aliased to the generic
+`whal_Pka_*` names via `WHAL_CFG_<PLAT>_PKA_DIRECT_API_MAPPING`, the
+same pattern as other crypto algorithms. The macros live in the driver
+`.c` (not the header) so the binary exports only the generic names.
+
+**Reference:** `wolfHAL/crypto/stm32wb_pka.h` and
+`src/crypto/stm32wb_pka.c`.
+
 ### Writing a Crypto Driver
 
 A single platform driver file typically implements multiple algorithms that
@@ -1337,6 +1394,12 @@ To add support for a new algorithm (e.g., ChaCha20-Poly1305):
 4. Add direct API mapping guards in the driver header.
 5. Add `WHAL_CFG_<ALGO>` config guards around the new API functions.
 
+For stateless math primitives (PKA-style), follow the *Math Primitives*
+pattern instead: declare the generic functions in `wolfHAL/crypto/pka.h`
+(no dispatch layer needed — they're called directly), implement them in
+the platform driver, and alias the platform-prefixed names to the
+generic ones via the driver's direct-API-mapping flag.
+
 ### Board Integration
 
 The board instantiates one `whal_Crypto` device per hardware peripheral, plus
@@ -1404,6 +1467,9 @@ worked example.
   `src/crypto/stm32wb_aes.c`
 - **Hash/HMAC (SHA-1/SHA-224/SHA-256, HMAC variants)**:
   `wolfHAL/crypto/stm32wba_hash.h` and `src/crypto/stm32wba_hash.c`
+- **PKA math primitives (ModExp, ModInv, ModReduce, IntMul, IntSub,
+  RsaCrtExp)**: `wolfHAL/crypto/stm32wb_pka.h` and
+  `src/crypto/stm32wb_pka.c`
 
 ---
 

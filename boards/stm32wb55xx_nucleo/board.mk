@@ -22,7 +22,7 @@
 _BOARD_DIR := $(patsubst %/,%,$(dir $(lastword $(MAKEFILE_LIST))))
 
 PLATFORM = stm32wb
-TESTS ?= clock gpio flash timer rng aes_ecb aes_cbc aes_ctr aes_gcm aes_gmac aes_ccm block uart i2c
+TESTS ?= clock gpio flash timer rng aes_ecb aes_cbc aes_ctr aes_gcm aes_gmac aes_ccm pka block uart i2c
 
 GCC = $(GCC_PATH)arm-none-eabi-gcc
 LD = $(GCC_PATH)arm-none-eabi-ld
@@ -48,6 +48,7 @@ CFLAGS += -Wall -Werror $(INCLUDE) -g3 -Os -ffunction-sections -fdata-sections \
  -DWHAL_CFG_STM32WB_AES_GCM_DIRECT_API_MAPPING \
  -DWHAL_CFG_STM32WB_AES_GMAC_DIRECT_API_MAPPING \
  -DWHAL_CFG_STM32WB_AES_CCM_DIRECT_API_MAPPING \
+ -DWHAL_CFG_STM32WB_PKA_DIRECT_API_MAPPING \
  -DWHAL_CFG_SYSTICK_TIMER_DIRECT_API_MAPPING \
  -DWHAL_CFG_NVIC_IRQ_DIRECT_API_MAPPING
 LDFLAGS = --omagic -static --gc-sections

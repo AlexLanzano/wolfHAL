@@ -71,7 +71,7 @@ enum {
 #define BOARD_AES_GMAC_DEV   WHAL_INTERNAL_DEV
 #define BOARD_AES_CCM_DEV    WHAL_INTERNAL_DEV
 
-/* GPIO dev initializer — singleton defined in stm32wb_gpio.c. */
+/* GPIO dev initializer — single-instance device defined in stm32wb_gpio.c. */
 #define WHAL_CFG_STM32WB_GPIO_DEV { \
     .base = WHAL_STM32WB55_GPIO_BASE, \
     .cfg  = (void *)&(const whal_Stm32wb_Gpio_Cfg){ \
@@ -117,7 +117,7 @@ enum {
     }, \
 }
 
-/* AES crypto + mode dev initializers — singletons defined in stm32wb_aes.c.
+/* AES crypto + mode dev initializers — single-instance devices defined in stm32wb_aes.c.
  * Mutable GCM/CCM state buffers (g_stm32wbAesGcm/CcmDevState) are static in
  * the driver TU. */
 #define WHAL_CFG_STM32WB_AES_DEV { \
@@ -160,7 +160,20 @@ enum {
     .state  = &g_stm32wbAesCcmDevState, \
 }
 
-/* Flash dev initializer — the singleton itself is defined in stm32wb_flash.c
+/* PKA peripheral dev initializer — single-instance device defined in
+ * stm32wb_pka.c. PKA uses vtable dispatch for whal_Crypto_Init (AES
+ * already claims the direct mapping at the Crypto type), so .driver is
+ * set. The math primitives (whal_Pka_*) are direct functions and don't
+ * need a device wrapper. */
+#define WHAL_CFG_STM32WB_PKA_DEV { \
+    .base   = WHAL_STM32WB55_PKA_BASE, \
+    .driver = WHAL_STM32WB55_PKA_DRIVER, \
+    .cfg    = (void *)&(const whal_Stm32wb_Pka_Cfg){ \
+        .timeout = &g_whalTimeout, \
+    }, \
+}
+
+/* Flash dev initializer — the single-instance device itself is defined in stm32wb_flash.c
  * (which #includes this header). BOARD_FLASH_DEV takes its address so
  * whal_Flash_* can dispatch via .driver alongside coexisting flash drivers
  * (e.g. SPI NOR W25Q64). */
@@ -174,7 +187,7 @@ enum {
     }, \
 }
 
-/* IWDG dev initializer — singleton defined in stm32wb_iwdg.c. */
+/* IWDG dev initializer — single-instance device defined in stm32wb_iwdg.c. */
 #define WHAL_CFG_STM32WB_IWDG_DEV { \
     .base = WHAL_STM32WB55_IWDG_BASE, \
     /* .driver: direct API mapping */ \
@@ -185,7 +198,7 @@ enum {
     }, \
 }
 
-/* WWDG dev initializer — singleton defined in stm32wb_wwdg.c. */
+/* WWDG dev initializer — single-instance device defined in stm32wb_wwdg.c. */
 #define WHAL_CFG_STM32WB_WWDG_DEV { \
     .base = WHAL_STM32WB55_WWDG_BASE, \
     /* .driver: direct API mapping */ \
@@ -196,7 +209,7 @@ enum {
     }, \
 }
 
-/* RNG dev initializer — singleton defined in stm32wb_rng.c. */
+/* RNG dev initializer — single-instance device defined in stm32wb_rng.c. */
 #define WHAL_CFG_STM32WB_RNG_DEV { \
     .base = WHAL_STM32WB55_RNG_BASE, \
     /* .driver: direct API mapping */ \
@@ -205,13 +218,13 @@ enum {
     }, \
 }
 
-/* NVIC dev initializer — singleton defined in cortex_m4_nvic.c. */
+/* NVIC dev initializer — single-instance device defined in cortex_m4_nvic.c. */
 #define WHAL_CFG_NVIC_DEV { \
     .base = WHAL_CORTEX_M4_NVIC_BASE, \
     /* .driver: direct API mapping */ \
 }
 
-/* SysTick dev initializer — singleton defined in systick.c. */
+/* SysTick dev initializer — single-instance device defined in systick.c. */
 #define WHAL_CFG_SYSTICK_DEV { \
     .base = WHAL_CORTEX_M4_SYSTICK_BASE, \
     /* .driver: direct API mapping */ \

@@ -32,6 +32,7 @@
 #include <wolfHAL/flash/stm32wb_flash.h>
 #include <wolfHAL/rng/stm32wb_rng.h>
 #include <wolfHAL/crypto/stm32wb_aes.h>
+#include <wolfHAL/crypto/stm32wb_pka.h>
 #include <wolfHAL/dma/stm32wb_dma.h>
 #include <wolfHAL/i2c/stm32wb_i2c.h>
 #include <wolfHAL/watchdog/stm32wb_iwdg.h>
@@ -59,6 +60,9 @@
 
 #define WHAL_STM32WB55_AES1_BASE 0x50060000
 #define WHAL_STM32WB55_AES1_DRIVER &whal_Stm32wb_Aes_CryptoDriver
+
+#define WHAL_STM32WB55_PKA_BASE 0x58002000
+#define WHAL_STM32WB55_PKA_DRIVER &whal_Stm32wb_Pka_CryptoDriver
 
 #define WHAL_STM32WB55_I2C1_BASE 0x40005400
 #define WHAL_STM32WB55_I2C1_DRIVER &whal_Stm32wb_I2c_Driver
@@ -103,6 +107,11 @@
 
 #define WHAL_STM32WB55_AES1_GATE    \
     .regOffset = 0x4C,               \
+    .enableMask = (1UL << 16),       \
+    .enablePos = 16
+
+#define WHAL_STM32WB55_PKA_GATE     \
+    .regOffset = 0x50,               \
     .enableMask = (1UL << 16),       \
     .enablePos = 16
 
