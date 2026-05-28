@@ -23,6 +23,7 @@ build configuration.
 | ST NUCLEO-WB55RG | STM32WB | Cortex-M4 | `stm32wb55xx_nucleo/` |
 | ST NUCLEO-L152RE | STM32L1 | Cortex-M3 | `stm32l152re_nucleo/` |
 | ST NUCLEO-N657X0-Q | STM32N6 | Cortex-M55 | `stm32n657a0_nucleo/` |
+| ST NUCLEO-U5A5ZJ-Q | STM32U5 | Cortex-M33 | `stm32u5a5zj_nucleo/` |
 | ST NUCLEO-WBA55CG | STM32WBA | Cortex-M33 | `stm32wba55cg_nucleo/` |
 
 ## Board Directory Contents
