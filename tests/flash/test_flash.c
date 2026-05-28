@@ -49,12 +49,13 @@ static void Test_Flash_WriteReadErase(void)
     WHAL_ASSERT_EQ(whal_Flash_Unlock(g_testFlashDev, g_testFlashAddr,
                                       g_testFlashSectorSz), WHAL_SUCCESS);
 
+    WHAL_ASSERT_EQ(whal_Flash_Erase(g_testFlashDev, g_testFlashAddr,
+                                     g_testFlashSectorSz), WHAL_SUCCESS);
+
     WHAL_ASSERT_EQ(whal_Flash_Read(g_testFlashDev, g_testFlashAddr,
                                     readback, sizeof(readback)), WHAL_SUCCESS);
     WHAL_ASSERT_MEM_NEQ(readback, pattern, sizeof(pattern));
 
-    WHAL_ASSERT_EQ(whal_Flash_Erase(g_testFlashDev, g_testFlashAddr,
-                                     g_testFlashSectorSz), WHAL_SUCCESS);
 
     do {
         err = whal_Flash_Write(g_testFlashDev, g_testFlashAddr, pattern,
