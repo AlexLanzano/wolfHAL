@@ -1,0 +1,4 @@
+#ifdef WHAL_CFG_STM32U5_WWDG_DIRECT_API_MAPPING
+#define WHAL_CFG_STM32WB_WWDG_DIRECT_API_MAPPING
+#endif
+#include "stm32wb_wwdg.c"

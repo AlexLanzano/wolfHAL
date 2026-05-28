@@ -1,0 +1,4 @@
+#ifdef WHAL_CFG_STM32U5_RNG_DIRECT_API_MAPPING
+#define WHAL_CFG_STM32WBA_RNG_DIRECT_API_MAPPING
+#endif
+#include "stm32wba_rng.c"
