@@ -63,7 +63,7 @@ enum {
 
 /* IWDG/WWDG dev initializers — singletons defined in stm32wb_iwdg.c /
  * stm32wb_wwdg.c (stm32wba is an include alias). */
-#define WHAL_CFG_STM32WB_IWDG_DEV { \
+#define WHAL_CFG_STM32WBA_IWDG_DEV { \
     .base = WHAL_STM32WBA55_IWDG_BASE, \
     .cfg  = (void *)&(const whal_Stm32wba_Iwdg_Cfg){ \
         .prescaler = WHAL_STM32WBA_IWDG_PR_32, \
@@ -72,7 +72,7 @@ enum {
     }, \
 }
 
-#define WHAL_CFG_STM32WB_WWDG_DEV { \
+#define WHAL_CFG_STM32WBA_WWDG_DEV { \
     .base = WHAL_STM32WBA55_WWDG_BASE, \
     .cfg  = (void *)&(const whal_Stm32wba_Wwdg_Cfg){ \
         .prescaler = WHAL_STM32WBA_WWDG_TB_128, \
@@ -84,35 +84,35 @@ enum {
 /* AES + mode dev initializers — singletons defined in stm32wb_aes.c
  * (stm32wba is an include alias). Mutable GCM/CCM state buffers
  * (g_stm32wbAesGcm/CcmDevState) are static in the driver TU. */
-#define WHAL_CFG_STM32WB_AES_DEV { \
+#define WHAL_CFG_STM32WBA_AES_DEV { \
     .base = WHAL_STM32WBA55_AES_BASE, \
     .cfg  = (void *)&(const whal_Stm32wba_Aes_Cfg){ \
         .timeout = &g_whalTimeout, \
     }, \
 }
 
-#define WHAL_CFG_STM32WB_AES_ECB_DEV { \
+#define WHAL_CFG_STM32WBA_AES_ECB_DEV { \
     .crypto = (whal_Crypto *)&whal_Stm32wb_Aes_Dev, \
 }
 
-#define WHAL_CFG_STM32WB_AES_CBC_DEV { \
+#define WHAL_CFG_STM32WBA_AES_CBC_DEV { \
     .crypto = (whal_Crypto *)&whal_Stm32wb_Aes_Dev, \
 }
 
-#define WHAL_CFG_STM32WB_AES_CTR_DEV { \
+#define WHAL_CFG_STM32WBA_AES_CTR_DEV { \
     .crypto = (whal_Crypto *)&whal_Stm32wb_Aes_Dev, \
 }
 
-#define WHAL_CFG_STM32WB_AES_GCM_DEV { \
+#define WHAL_CFG_STM32WBA_AES_GCM_DEV { \
     .crypto = (whal_Crypto *)&whal_Stm32wb_Aes_Dev, \
     .state  = &g_stm32wbAesGcmDevState, \
 }
 
-#define WHAL_CFG_STM32WB_AES_GMAC_DEV { \
+#define WHAL_CFG_STM32WBA_AES_GMAC_DEV { \
     .crypto = (whal_Crypto *)&whal_Stm32wb_Aes_Dev, \
 }
 
-#define WHAL_CFG_STM32WB_AES_CCM_DEV { \
+#define WHAL_CFG_STM32WBA_AES_CCM_DEV { \
     .crypto = (whal_Crypto *)&whal_Stm32wb_Aes_Dev, \
     .state  = &g_stm32wbAesCcmDevState, \
 }
@@ -190,7 +190,7 @@ enum {
 #define BOARD_HMAC_SHA256_DEV  WHAL_INTERNAL_DEV
 
 /* GPIO dev initializer — singleton defined in driver TU. */
-#define WHAL_CFG_STM32WB_GPIO_DEV { \
+#define WHAL_CFG_STM32WBA_GPIO_DEV { \
     .base = WHAL_STM32WBA55_GPIO_BASE, \
     .driver = WHAL_STM32WBA55_GPIO_DRIVER, \
     .cfg = (void *)&(const whal_Stm32wba_Gpio_Cfg){ \

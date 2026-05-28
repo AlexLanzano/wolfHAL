@@ -75,7 +75,7 @@ extern const whal_Stm32f4_Flash_Sector g_flashSectors[FLASH_SECTOR_COUNT];
 }
 
 /* GPIO dev initializer — singleton defined in driver TU. */
-#define WHAL_CFG_STM32WB_GPIO_DEV { \
+#define WHAL_CFG_STM32F4_GPIO_DEV { \
     .base = WHAL_STM32F411_GPIO_BASE, \
     .cfg = (void *)&(const whal_Stm32f4_Gpio_Cfg){ \
         .pinCfg = (const whal_Stm32f4_Gpio_PinCfg[PIN_COUNT]){ \

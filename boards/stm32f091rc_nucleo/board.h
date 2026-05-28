@@ -76,7 +76,7 @@ enum {
 
 /* IWDG dev initializer — singleton defined in stm32wb_iwdg.c
  * (the stm32f0_iwdg.c source is an include alias). */
-#define WHAL_CFG_STM32WB_IWDG_DEV { \
+#define WHAL_CFG_STM32F0_IWDG_DEV { \
     .base = WHAL_STM32F091_IWDG_BASE, \
     .cfg  = (void *)&(const whal_Stm32f0_Iwdg_Cfg){ \
         .prescaler = WHAL_STM32F0_IWDG_PR_64, \
@@ -97,7 +97,7 @@ enum {
 }
 
 /* GPIO dev initializer — singleton defined in driver TU. */
-#define WHAL_CFG_STM32WB_GPIO_DEV { \
+#define WHAL_CFG_STM32F0_GPIO_DEV { \
     .base = WHAL_STM32F091_GPIO_BASE, \
     .cfg = (void *)&(const whal_Stm32f0_Gpio_Cfg){ \
         .pinCfg = (const whal_Stm32f0_Gpio_PinCfg[PIN_COUNT]){ \

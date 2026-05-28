@@ -19,4 +19,10 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA
  */
 
+#ifdef WHAL_CFG_STM32L1_UART_DIRECT_API_MAPPING
+#define WHAL_CFG_STM32F4_UART_DIRECT_API_MAPPING
+#endif
+#ifdef WHAL_CFG_STM32L1_UART_SINGLE_INSTANCE
+#define WHAL_CFG_STM32F4_UART_SINGLE_INSTANCE
+#endif
 #include "stm32f4_uart.c"

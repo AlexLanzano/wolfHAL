@@ -20,8 +20,7 @@
  */
 
 #include <stdint.h>
-#if defined(WHAL_CFG_STM32F0_UART_SINGLE_INSTANCE) || \
-    defined(WHAL_CFG_STM32F3_UART_SINGLE_INSTANCE)
+#ifdef WHAL_CFG_STM32F0_UART_SINGLE_INSTANCE
 #include "board.h"  /* provides whal_Stm32f0_Uart_Dev singleton (possibly via platform alias macro) */
 #endif
 #include <wolfHAL/uart/stm32f0_uart.h>
@@ -59,8 +58,7 @@
 #define UART_TDR_Pos 0
 #define UART_TDR_Msk (WHAL_BITMASK(9) << UART_TDR_Pos)
 
-#if defined(WHAL_CFG_STM32F0_UART_DIRECT_API_MAPPING) || \
-    defined(WHAL_CFG_STM32F3_UART_DIRECT_API_MAPPING)
+#ifdef WHAL_CFG_STM32F0_UART_DIRECT_API_MAPPING
 #define whal_Stm32f0_Uart_Init      whal_Uart_Init
 #define whal_Stm32f0_Uart_Deinit    whal_Uart_Deinit
 #define whal_Stm32f0_Uart_Send      whal_Uart_Send
@@ -69,15 +67,13 @@
 #define whal_Stm32f0_Uart_RecvAsync whal_Uart_RecvAsync
 #endif
 
-#if defined(WHAL_CFG_STM32F0_UART_SINGLE_INSTANCE) || \
-    defined(WHAL_CFG_STM32F3_UART_SINGLE_INSTANCE)
+#ifdef WHAL_CFG_STM32F0_UART_SINGLE_INSTANCE
 const whal_Uart whal_Stm32f0_Uart_Dev = WHAL_CFG_STM32F0_UART_DEV;
 #endif
 
 whal_Error whal_Stm32f0_Uart_Init(whal_Uart *uartDev)
 {
-#if defined(WHAL_CFG_STM32F0_UART_SINGLE_INSTANCE) || \
-    defined(WHAL_CFG_STM32F3_UART_SINGLE_INSTANCE)
+#ifdef WHAL_CFG_STM32F0_UART_SINGLE_INSTANCE
     const whal_Stm32f0_Uart_Cfg *cfg =
         (const whal_Stm32f0_Uart_Cfg *)whal_Stm32f0_Uart_Dev.cfg;
     size_t base = whal_Stm32f0_Uart_Dev.base;
@@ -108,8 +104,7 @@ whal_Error whal_Stm32f0_Uart_Init(whal_Uart *uartDev)
 
 whal_Error whal_Stm32f0_Uart_Deinit(whal_Uart *uartDev)
 {
-#if defined(WHAL_CFG_STM32F0_UART_SINGLE_INSTANCE) || \
-    defined(WHAL_CFG_STM32F3_UART_SINGLE_INSTANCE)
+#ifdef WHAL_CFG_STM32F0_UART_SINGLE_INSTANCE
     size_t base = whal_Stm32f0_Uart_Dev.base;
     (void)uartDev;
 #else
@@ -137,8 +132,7 @@ whal_Error whal_Stm32f0_Uart_Send(whal_Uart *uartDev, const void *data,
                                   size_t dataSz)
 {
     const uint8_t *buf = data;
-#if defined(WHAL_CFG_STM32F0_UART_SINGLE_INSTANCE) || \
-    defined(WHAL_CFG_STM32F3_UART_SINGLE_INSTANCE)
+#ifdef WHAL_CFG_STM32F0_UART_SINGLE_INSTANCE
     const whal_Stm32f0_Uart_Cfg *cfg =
         (const whal_Stm32f0_Uart_Cfg *)whal_Stm32f0_Uart_Dev.cfg;
     size_t base = whal_Stm32f0_Uart_Dev.base;
@@ -174,8 +168,7 @@ whal_Error whal_Stm32f0_Uart_Send(whal_Uart *uartDev, const void *data,
 whal_Error whal_Stm32f0_Uart_Recv(whal_Uart *uartDev, void *data, size_t dataSz)
 {
     uint8_t *buf = data;
-#if defined(WHAL_CFG_STM32F0_UART_SINGLE_INSTANCE) || \
-    defined(WHAL_CFG_STM32F3_UART_SINGLE_INSTANCE)
+#ifdef WHAL_CFG_STM32F0_UART_SINGLE_INSTANCE
     const whal_Stm32f0_Uart_Cfg *cfg =
         (const whal_Stm32f0_Uart_Cfg *)whal_Stm32f0_Uart_Dev.cfg;
     size_t base = whal_Stm32f0_Uart_Dev.base;
@@ -227,8 +220,7 @@ whal_Error whal_Stm32f0_Uart_RecvAsync(whal_Uart *uartDev, void *data,
     return WHAL_ENOTSUP;
 }
 
-#if !defined(WHAL_CFG_STM32F0_UART_DIRECT_API_MAPPING) && \
-    !defined(WHAL_CFG_STM32F3_UART_DIRECT_API_MAPPING)
+#ifndef WHAL_CFG_STM32F0_UART_DIRECT_API_MAPPING
 const whal_UartDriver whal_Stm32f0_Uart_Driver = {
     .Init = whal_Stm32f0_Uart_Init,
     .Deinit = whal_Stm32f0_Uart_Deinit,

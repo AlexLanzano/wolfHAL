@@ -20,10 +20,7 @@
  */
 
 #include <stdint.h>
-#if defined(WHAL_CFG_STM32WB_SPI_SINGLE_INSTANCE) || \
-    defined(WHAL_CFG_STM32C0_SPI_SINGLE_INSTANCE) || \
-    defined(WHAL_CFG_STM32F0_SPI_SINGLE_INSTANCE) || \
-    defined(WHAL_CFG_STM32F3_SPI_SINGLE_INSTANCE)
+#ifdef WHAL_CFG_STM32WB_SPI_SINGLE_INSTANCE
 #include "board.h"  /* provides whal_Stm32wb_Spi_Dev singleton (possibly via platform alias macro) */
 #endif
 #include <wolfHAL/spi/stm32wb_spi.h>
@@ -87,10 +84,7 @@
 #define SPI_DR_Pos 0
 #define SPI_DR_Msk (WHAL_BITMASK(8) << SPI_DR_Pos)
 
-#if defined(WHAL_CFG_STM32WB_SPI_DIRECT_API_MAPPING) || \
-    defined(WHAL_CFG_STM32C0_SPI_DIRECT_API_MAPPING) || \
-    defined(WHAL_CFG_STM32F0_SPI_DIRECT_API_MAPPING) || \
-    defined(WHAL_CFG_STM32F3_SPI_DIRECT_API_MAPPING)
+#ifdef WHAL_CFG_STM32WB_SPI_DIRECT_API_MAPPING
 #define whal_Stm32wb_Spi_Init     whal_Spi_Init
 #define whal_Stm32wb_Spi_Deinit   whal_Spi_Deinit
 #define whal_Stm32wb_Spi_StartCom whal_Spi_StartCom
@@ -98,10 +92,7 @@
 #define whal_Stm32wb_Spi_SendRecv whal_Spi_SendRecv
 #endif /* WHAL_CFG_SPI_API_MAPPING */
 
-#if defined(WHAL_CFG_STM32WB_SPI_SINGLE_INSTANCE) || \
-    defined(WHAL_CFG_STM32C0_SPI_SINGLE_INSTANCE) || \
-    defined(WHAL_CFG_STM32F0_SPI_SINGLE_INSTANCE) || \
-    defined(WHAL_CFG_STM32F3_SPI_SINGLE_INSTANCE)
+#ifdef WHAL_CFG_STM32WB_SPI_SINGLE_INSTANCE
 const whal_Spi whal_Stm32wb_Spi_Dev = WHAL_CFG_STM32WB_SPI_DEV;
 #endif
 
@@ -128,10 +119,7 @@ static uint32_t whal_Stm32wb_Spi_CalcBr(size_t pclk, uint32_t targetBaud)
 
 whal_Error whal_Stm32wb_Spi_Init(whal_Spi *spiDev)
 {
-#if defined(WHAL_CFG_STM32WB_SPI_SINGLE_INSTANCE) || \
-    defined(WHAL_CFG_STM32C0_SPI_SINGLE_INSTANCE) || \
-    defined(WHAL_CFG_STM32F0_SPI_SINGLE_INSTANCE) || \
-    defined(WHAL_CFG_STM32F3_SPI_SINGLE_INSTANCE)
+#ifdef WHAL_CFG_STM32WB_SPI_SINGLE_INSTANCE
     size_t base = whal_Stm32wb_Spi_Dev.base;
     (void)spiDev;
 #else
@@ -156,10 +144,7 @@ whal_Error whal_Stm32wb_Spi_Init(whal_Spi *spiDev)
 
 whal_Error whal_Stm32wb_Spi_Deinit(whal_Spi *spiDev)
 {
-#if defined(WHAL_CFG_STM32WB_SPI_SINGLE_INSTANCE) || \
-    defined(WHAL_CFG_STM32C0_SPI_SINGLE_INSTANCE) || \
-    defined(WHAL_CFG_STM32F0_SPI_SINGLE_INSTANCE) || \
-    defined(WHAL_CFG_STM32F3_SPI_SINGLE_INSTANCE)
+#ifdef WHAL_CFG_STM32WB_SPI_SINGLE_INSTANCE
     size_t base = whal_Stm32wb_Spi_Dev.base;
     (void)spiDev;
 #else
@@ -182,10 +167,7 @@ whal_Error whal_Stm32wb_Spi_Deinit(whal_Spi *spiDev)
 whal_Error whal_Stm32wb_Spi_StartCom(whal_Spi *spiDev, whal_Spi_ComCfg *comCfg)
 {
     uint32_t cpol, cpha, br, ds, frxth;
-#if defined(WHAL_CFG_STM32WB_SPI_SINGLE_INSTANCE) || \
-    defined(WHAL_CFG_STM32C0_SPI_SINGLE_INSTANCE) || \
-    defined(WHAL_CFG_STM32F0_SPI_SINGLE_INSTANCE) || \
-    defined(WHAL_CFG_STM32F3_SPI_SINGLE_INSTANCE)
+#ifdef WHAL_CFG_STM32WB_SPI_SINGLE_INSTANCE
     whal_Stm32wb_Spi_Cfg *cfg =
         (whal_Stm32wb_Spi_Cfg *)whal_Stm32wb_Spi_Dev.cfg;
     size_t base = whal_Stm32wb_Spi_Dev.base;
@@ -212,10 +194,7 @@ whal_Error whal_Stm32wb_Spi_StartCom(whal_Spi *spiDev, whal_Spi_ComCfg *comCfg)
         return WHAL_EINVAL;
     }
 
-#if !defined(WHAL_CFG_STM32WB_SPI_SINGLE_INSTANCE) && \
-    !defined(WHAL_CFG_STM32C0_SPI_SINGLE_INSTANCE) && \
-    !defined(WHAL_CFG_STM32F0_SPI_SINGLE_INSTANCE) && \
-    !defined(WHAL_CFG_STM32F3_SPI_SINGLE_INSTANCE)
+#ifndef WHAL_CFG_STM32WB_SPI_SINGLE_INSTANCE
     base = spiDev->base;
     cfg = (whal_Stm32wb_Spi_Cfg *)spiDev->cfg;
 #endif
@@ -253,10 +232,7 @@ whal_Error whal_Stm32wb_Spi_StartCom(whal_Spi *spiDev, whal_Spi_ComCfg *comCfg)
 
 whal_Error whal_Stm32wb_Spi_EndCom(whal_Spi *spiDev)
 {
-#if defined(WHAL_CFG_STM32WB_SPI_SINGLE_INSTANCE) || \
-    defined(WHAL_CFG_STM32C0_SPI_SINGLE_INSTANCE) || \
-    defined(WHAL_CFG_STM32F0_SPI_SINGLE_INSTANCE) || \
-    defined(WHAL_CFG_STM32F3_SPI_SINGLE_INSTANCE)
+#ifdef WHAL_CFG_STM32WB_SPI_SINGLE_INSTANCE
     size_t base = whal_Stm32wb_Spi_Dev.base;
     (void)spiDev;
 #else
@@ -285,10 +261,7 @@ whal_Error whal_Stm32wb_Spi_SendRecv(whal_Spi *spiDev,
     size_t totalLen;
     whal_Error err;
     uint8_t txByte;
-#if defined(WHAL_CFG_STM32WB_SPI_SINGLE_INSTANCE) || \
-    defined(WHAL_CFG_STM32C0_SPI_SINGLE_INSTANCE) || \
-    defined(WHAL_CFG_STM32F0_SPI_SINGLE_INSTANCE) || \
-    defined(WHAL_CFG_STM32F3_SPI_SINGLE_INSTANCE)
+#ifdef WHAL_CFG_STM32WB_SPI_SINGLE_INSTANCE
     whal_Stm32wb_Spi_Cfg *cfg =
         (whal_Stm32wb_Spi_Cfg *)whal_Stm32wb_Spi_Dev.cfg;
     size_t base = whal_Stm32wb_Spi_Dev.base;
@@ -341,10 +314,7 @@ whal_Error whal_Stm32wb_Spi_SendRecv(whal_Spi *spiDev,
                              cfg->timeout);
 }
 
-#if !defined(WHAL_CFG_STM32WB_SPI_DIRECT_API_MAPPING) && \
-    !defined(WHAL_CFG_STM32C0_SPI_DIRECT_API_MAPPING) && \
-    !defined(WHAL_CFG_STM32F0_SPI_DIRECT_API_MAPPING) && \
-    !defined(WHAL_CFG_STM32F3_SPI_DIRECT_API_MAPPING)
+#ifndef WHAL_CFG_STM32WB_SPI_DIRECT_API_MAPPING
 const whal_SpiDriver whal_Stm32wb_Spi_Driver = {
     .Init = whal_Stm32wb_Spi_Init,
     .Deinit = whal_Stm32wb_Spi_Deinit,

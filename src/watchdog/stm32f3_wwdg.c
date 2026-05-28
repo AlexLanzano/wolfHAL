@@ -19,4 +19,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA
  */
 
+#ifdef WHAL_CFG_STM32F3_WWDG_DIRECT_API_MAPPING
+#define WHAL_CFG_STM32F0_WWDG_DIRECT_API_MAPPING
+#endif
 #include "stm32f0_wwdg.c"

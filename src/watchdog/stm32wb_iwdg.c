@@ -58,11 +58,7 @@ const whal_Watchdog whal_Stm32wb_Iwdg_Dev = WHAL_CFG_STM32WB_IWDG_DEV;
 #define IWDG_SR_RVU_Pos 1       /* Reload value update */
 #define IWDG_SR_RVU_Msk (1UL << IWDG_SR_RVU_Pos)
 
-#if defined(WHAL_CFG_STM32WB_IWDG_DIRECT_API_MAPPING) || \
-    defined(WHAL_CFG_STM32F0_IWDG_DIRECT_API_MAPPING) || \
-    defined(WHAL_CFG_STM32F3_IWDG_DIRECT_API_MAPPING) || \
-    defined(WHAL_CFG_STM32L1_IWDG_DIRECT_API_MAPPING) || \
-    defined(WHAL_CFG_STM32N6_IWDG_DIRECT_API_MAPPING)
+#ifdef WHAL_CFG_STM32WB_IWDG_DIRECT_API_MAPPING
 #define whal_Stm32wb_Iwdg_Init    whal_Watchdog_Init
 #define whal_Stm32wb_Iwdg_Deinit  whal_Watchdog_Deinit
 #define whal_Stm32wb_Iwdg_Refresh whal_Watchdog_Refresh
@@ -119,11 +115,7 @@ whal_Error whal_Stm32wb_Iwdg_Refresh(whal_Watchdog *wdgDev)
     return WHAL_SUCCESS;
 }
 
-#if !defined(WHAL_CFG_STM32WB_IWDG_DIRECT_API_MAPPING) && \
-    !defined(WHAL_CFG_STM32F0_IWDG_DIRECT_API_MAPPING) && \
-    !defined(WHAL_CFG_STM32F3_IWDG_DIRECT_API_MAPPING) && \
-    !defined(WHAL_CFG_STM32L1_IWDG_DIRECT_API_MAPPING) && \
-    !defined(WHAL_CFG_STM32N6_IWDG_DIRECT_API_MAPPING)
+#ifndef WHAL_CFG_STM32WB_IWDG_DIRECT_API_MAPPING
 const whal_WatchdogDriver whal_Stm32wb_Iwdg_Driver = {
     .Init = whal_Stm32wb_Iwdg_Init,
     .Deinit = whal_Stm32wb_Iwdg_Deinit,

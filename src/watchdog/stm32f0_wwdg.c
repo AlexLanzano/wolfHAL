@@ -42,9 +42,7 @@ const whal_Watchdog whal_Stm32f0_Wwdg_Dev = WHAL_CFG_STM32F0_WWDG_DEV;
 #define CFR_EWI_Pos 9
 #define CFR_EWI_Msk (1UL << CFR_EWI_Pos)
 
-#if defined(WHAL_CFG_STM32F0_WWDG_DIRECT_API_MAPPING) || \
-    defined(WHAL_CFG_STM32F3_WWDG_DIRECT_API_MAPPING) || \
-    defined(WHAL_CFG_STM32L1_WWDG_DIRECT_API_MAPPING)
+#ifdef WHAL_CFG_STM32F0_WWDG_DIRECT_API_MAPPING
 #define whal_Stm32f0_Wwdg_Init    whal_Watchdog_Init
 #define whal_Stm32f0_Wwdg_Deinit  whal_Watchdog_Deinit
 #define whal_Stm32f0_Wwdg_Refresh whal_Watchdog_Refresh
@@ -87,9 +85,7 @@ whal_Error whal_Stm32f0_Wwdg_Refresh(whal_Watchdog *wdgDev)
     return WHAL_SUCCESS;
 }
 
-#if !defined(WHAL_CFG_STM32F0_WWDG_DIRECT_API_MAPPING) && \
-    !defined(WHAL_CFG_STM32F3_WWDG_DIRECT_API_MAPPING) && \
-    !defined(WHAL_CFG_STM32L1_WWDG_DIRECT_API_MAPPING)
+#ifndef WHAL_CFG_STM32F0_WWDG_DIRECT_API_MAPPING
 const whal_WatchdogDriver whal_Stm32f0_Wwdg_Driver = {
     .Init = whal_Stm32f0_Wwdg_Init,
     .Deinit = whal_Stm32f0_Wwdg_Deinit,
