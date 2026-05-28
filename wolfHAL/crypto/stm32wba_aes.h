@@ -55,5 +55,14 @@ typedef whal_Stm32wb_AesCcm_State whal_Stm32wba_AesCcm_State;
 #define whal_Stm32wba_Aes_GmacDriver whal_Stm32wb_Aes_GmacDriver
 #define whal_Stm32wba_Aes_CcmDriver  whal_Stm32wb_Aes_CcmDriver
 
+/* Config initializer macro aliases. The WBA board.h supplies the bodies
+ * under WBA-prefixed names; the WB driver source consumes the WB names. */
+#define WHAL_CFG_STM32WB_AES_DEV      WHAL_CFG_STM32WBA_AES_DEV
+#define WHAL_CFG_STM32WB_AES_ECB_DEV  WHAL_CFG_STM32WBA_AES_ECB_DEV
+#define WHAL_CFG_STM32WB_AES_CBC_DEV  WHAL_CFG_STM32WBA_AES_CBC_DEV
+#define WHAL_CFG_STM32WB_AES_CTR_DEV  WHAL_CFG_STM32WBA_AES_CTR_DEV
+#define WHAL_CFG_STM32WB_AES_GCM_DEV  WHAL_CFG_STM32WBA_AES_GCM_DEV
+#define WHAL_CFG_STM32WB_AES_GMAC_DEV WHAL_CFG_STM32WBA_AES_GMAC_DEV
+#define WHAL_CFG_STM32WB_AES_CCM_DEV  WHAL_CFG_STM32WBA_AES_CCM_DEV
 
 #endif /* WHAL_STM32WBA_AES_H */

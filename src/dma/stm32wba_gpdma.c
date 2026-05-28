@@ -21,8 +21,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#if defined(WHAL_CFG_STM32WBA_GPDMA_SINGLE_INSTANCE) || \
-    defined(WHAL_CFG_STM32N6_GPDMA_SINGLE_INSTANCE)
+#ifdef WHAL_CFG_STM32WBA_GPDMA_SINGLE_INSTANCE
 #include "board.h"  /* provides whal_Stm32wba_Gpdma_Dev singleton (possibly via platform alias macro) */
 #endif
 #include <wolfHAL/dma/stm32wba_gpdma.h>
@@ -129,8 +128,7 @@
 #define GPDMA_CxTR2_DREQ_Pos    10  /* Direction: 0=src periph, 1=dst periph */
 #define GPDMA_CxTR2_DREQ_Msk    (1UL << GPDMA_CxTR2_DREQ_Pos)
 
-#if defined(WHAL_CFG_STM32WBA_GPDMA_DIRECT_API_MAPPING) || \
-    defined(WHAL_CFG_STM32N6_GPDMA_DIRECT_API_MAPPING)
+#ifdef WHAL_CFG_STM32WBA_GPDMA_DIRECT_API_MAPPING
 #define whal_Stm32wba_Gpdma_Init      whal_Dma_Init
 #define whal_Stm32wba_Gpdma_Deinit    whal_Dma_Deinit
 #define whal_Stm32wba_Gpdma_Configure whal_Dma_Configure
@@ -138,15 +136,13 @@
 #define whal_Stm32wba_Gpdma_Stop      whal_Dma_Stop
 #endif
 
-#if defined(WHAL_CFG_STM32WBA_GPDMA_SINGLE_INSTANCE) || \
-    defined(WHAL_CFG_STM32N6_GPDMA_SINGLE_INSTANCE)
+#ifdef WHAL_CFG_STM32WBA_GPDMA_SINGLE_INSTANCE
 const whal_Dma whal_Stm32wba_Gpdma_Dev = WHAL_CFG_STM32WBA_GPDMA_DEV;
 #endif
 
 whal_Error whal_Stm32wba_Gpdma_Init(whal_Dma *dmaDev)
 {
-#if defined(WHAL_CFG_STM32WBA_GPDMA_SINGLE_INSTANCE) || \
-    defined(WHAL_CFG_STM32N6_GPDMA_SINGLE_INSTANCE)
+#ifdef WHAL_CFG_STM32WBA_GPDMA_SINGLE_INSTANCE
     (void)dmaDev;
 #else
     if (!dmaDev || !dmaDev->cfg)
@@ -158,8 +154,7 @@ whal_Error whal_Stm32wba_Gpdma_Init(whal_Dma *dmaDev)
 
 whal_Error whal_Stm32wba_Gpdma_Deinit(whal_Dma *dmaDev)
 {
-#if defined(WHAL_CFG_STM32WBA_GPDMA_SINGLE_INSTANCE) || \
-    defined(WHAL_CFG_STM32N6_GPDMA_SINGLE_INSTANCE)
+#ifdef WHAL_CFG_STM32WBA_GPDMA_SINGLE_INSTANCE
     const whal_Stm32wba_Gpdma_Cfg *cfg =
         (const whal_Stm32wba_Gpdma_Cfg *)whal_Stm32wba_Gpdma_Dev.cfg;
     size_t base = whal_Stm32wba_Gpdma_Dev.base;
@@ -190,8 +185,7 @@ whal_Error whal_Stm32wba_Gpdma_Configure(whal_Dma *dmaDev, size_t ch,
     const whal_Stm32wba_Gpdma_ChCfg *ccfg;
     size_t tr1, tr2;
     whal_Error err;
-#if defined(WHAL_CFG_STM32WBA_GPDMA_SINGLE_INSTANCE) || \
-    defined(WHAL_CFG_STM32N6_GPDMA_SINGLE_INSTANCE)
+#ifdef WHAL_CFG_STM32WBA_GPDMA_SINGLE_INSTANCE
     const whal_Stm32wba_Gpdma_Cfg *cfg =
         (const whal_Stm32wba_Gpdma_Cfg *)whal_Stm32wba_Gpdma_Dev.cfg;
     size_t base = whal_Stm32wba_Gpdma_Dev.base;
@@ -275,8 +269,7 @@ whal_Error whal_Stm32wba_Gpdma_Configure(whal_Dma *dmaDev, size_t ch,
 
 whal_Error whal_Stm32wba_Gpdma_Start(whal_Dma *dmaDev, size_t ch)
 {
-#if defined(WHAL_CFG_STM32WBA_GPDMA_SINGLE_INSTANCE) || \
-    defined(WHAL_CFG_STM32N6_GPDMA_SINGLE_INSTANCE)
+#ifdef WHAL_CFG_STM32WBA_GPDMA_SINGLE_INSTANCE
     const whal_Stm32wba_Gpdma_Cfg *cfg =
         (const whal_Stm32wba_Gpdma_Cfg *)whal_Stm32wba_Gpdma_Dev.cfg;
     size_t base = whal_Stm32wba_Gpdma_Dev.base;
@@ -307,8 +300,7 @@ whal_Error whal_Stm32wba_Gpdma_Start(whal_Dma *dmaDev, size_t ch)
 
 whal_Error whal_Stm32wba_Gpdma_Stop(whal_Dma *dmaDev, size_t ch)
 {
-#if defined(WHAL_CFG_STM32WBA_GPDMA_SINGLE_INSTANCE) || \
-    defined(WHAL_CFG_STM32N6_GPDMA_SINGLE_INSTANCE)
+#ifdef WHAL_CFG_STM32WBA_GPDMA_SINGLE_INSTANCE
     const whal_Stm32wba_Gpdma_Cfg *cfg =
         (const whal_Stm32wba_Gpdma_Cfg *)whal_Stm32wba_Gpdma_Dev.cfg;
     size_t base = whal_Stm32wba_Gpdma_Dev.base;
@@ -338,8 +330,7 @@ void whal_Stm32wba_Gpdma_IRQHandler(whal_Dma *dmaDev, size_t ch,
                                     whal_Stm32wba_Gpdma_Callback cb, void *ctx)
 {
     size_t sr;
-#if defined(WHAL_CFG_STM32WBA_GPDMA_SINGLE_INSTANCE) || \
-    defined(WHAL_CFG_STM32N6_GPDMA_SINGLE_INSTANCE)
+#ifdef WHAL_CFG_STM32WBA_GPDMA_SINGLE_INSTANCE
     size_t base = whal_Stm32wba_Gpdma_Dev.base;
     (void)dmaDev;
 #else
@@ -370,8 +361,7 @@ void whal_Stm32wba_Gpdma_IRQHandler(whal_Dma *dmaDev, size_t ch,
     }
 }
 
-#if !defined(WHAL_CFG_STM32WBA_GPDMA_DIRECT_API_MAPPING) && \
-    !defined(WHAL_CFG_STM32N6_GPDMA_DIRECT_API_MAPPING)
+#ifndef WHAL_CFG_STM32WBA_GPDMA_DIRECT_API_MAPPING
 const whal_DmaDriver whal_Stm32wba_Gpdma_Driver = {
     .Init = whal_Stm32wba_Gpdma_Init,
     .Deinit = whal_Stm32wba_Gpdma_Deinit,

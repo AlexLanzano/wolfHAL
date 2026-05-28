@@ -20,10 +20,7 @@
  */
 
 #include <stdint.h>
-#if defined(WHAL_CFG_STM32WB_I2C_SINGLE_INSTANCE) || \
-    defined(WHAL_CFG_STM32F0_I2C_SINGLE_INSTANCE) || \
-    defined(WHAL_CFG_STM32F3_I2C_SINGLE_INSTANCE) || \
-    defined(WHAL_CFG_STM32N6_I2C_SINGLE_INSTANCE)
+#ifdef WHAL_CFG_STM32WB_I2C_SINGLE_INSTANCE
 #include "board.h"  /* provides whal_Stm32wb_I2c_Dev singleton (possibly via platform alias macro) */
 #endif
 #include <wolfHAL/i2c/stm32wb_i2c.h>
@@ -148,10 +145,7 @@
 #define I2C_FMP_TLOW_NS    500   /* Fast mode plus tLOW min */
 #define I2C_FMP_THIGH_NS   260   /* Fast mode plus tHIGH min */
 
-#if defined(WHAL_CFG_STM32WB_I2C_DIRECT_API_MAPPING) || \
-    defined(WHAL_CFG_STM32F0_I2C_DIRECT_API_MAPPING) || \
-    defined(WHAL_CFG_STM32F3_I2C_DIRECT_API_MAPPING) || \
-    defined(WHAL_CFG_STM32N6_I2C_DIRECT_API_MAPPING)
+#ifdef WHAL_CFG_STM32WB_I2C_DIRECT_API_MAPPING
 #define whal_Stm32wb_I2c_Init     whal_I2c_Init
 #define whal_Stm32wb_I2c_Deinit   whal_I2c_Deinit
 #define whal_Stm32wb_I2c_StartCom whal_I2c_StartCom
@@ -159,10 +153,7 @@
 #define whal_Stm32wb_I2c_Transfer whal_I2c_Transfer
 #endif /* WHAL_CFG_I2C_API_MAPPING */
 
-#if defined(WHAL_CFG_STM32WB_I2C_SINGLE_INSTANCE) || \
-    defined(WHAL_CFG_STM32F0_I2C_SINGLE_INSTANCE) || \
-    defined(WHAL_CFG_STM32F3_I2C_SINGLE_INSTANCE) || \
-    defined(WHAL_CFG_STM32N6_I2C_SINGLE_INSTANCE)
+#ifdef WHAL_CFG_STM32WB_I2C_SINGLE_INSTANCE
 const whal_I2c whal_Stm32wb_I2c_Dev = WHAL_CFG_STM32WB_I2C_DEV;
 #endif
 
@@ -405,10 +396,7 @@ static whal_Error Stm32wb_I2c_TransferMsg(size_t base, whal_I2c_Msg *msg,
 
 whal_Error whal_Stm32wb_I2c_Init(whal_I2c *i2cDev)
 {
-#if defined(WHAL_CFG_STM32WB_I2C_SINGLE_INSTANCE) || \
-    defined(WHAL_CFG_STM32F0_I2C_SINGLE_INSTANCE) || \
-    defined(WHAL_CFG_STM32F3_I2C_SINGLE_INSTANCE) || \
-    defined(WHAL_CFG_STM32N6_I2C_SINGLE_INSTANCE)
+#ifdef WHAL_CFG_STM32WB_I2C_SINGLE_INSTANCE
     size_t base = whal_Stm32wb_I2c_Dev.base;
     (void)i2cDev;
 #else
@@ -440,10 +428,7 @@ whal_Error whal_Stm32wb_I2c_Init(whal_I2c *i2cDev)
 
 whal_Error whal_Stm32wb_I2c_Deinit(whal_I2c *i2cDev)
 {
-#if defined(WHAL_CFG_STM32WB_I2C_SINGLE_INSTANCE) || \
-    defined(WHAL_CFG_STM32F0_I2C_SINGLE_INSTANCE) || \
-    defined(WHAL_CFG_STM32F3_I2C_SINGLE_INSTANCE) || \
-    defined(WHAL_CFG_STM32N6_I2C_SINGLE_INSTANCE)
+#ifdef WHAL_CFG_STM32WB_I2C_SINGLE_INSTANCE
     size_t base = whal_Stm32wb_I2c_Dev.base;
     (void)i2cDev;
 #else
@@ -466,10 +451,7 @@ whal_Error whal_Stm32wb_I2c_Deinit(whal_I2c *i2cDev)
 whal_Error whal_Stm32wb_I2c_StartCom(whal_I2c *i2cDev, whal_I2c_ComCfg *comCfg)
 {
     uint32_t cr2 = 0;
-#if defined(WHAL_CFG_STM32WB_I2C_SINGLE_INSTANCE) || \
-    defined(WHAL_CFG_STM32F0_I2C_SINGLE_INSTANCE) || \
-    defined(WHAL_CFG_STM32F3_I2C_SINGLE_INSTANCE) || \
-    defined(WHAL_CFG_STM32N6_I2C_SINGLE_INSTANCE)
+#ifdef WHAL_CFG_STM32WB_I2C_SINGLE_INSTANCE
     whal_Stm32wb_I2c_Cfg *cfg =
         (whal_Stm32wb_I2c_Cfg *)whal_Stm32wb_I2c_Dev.cfg;
     size_t base = whal_Stm32wb_I2c_Dev.base;
@@ -491,10 +473,7 @@ whal_Error whal_Stm32wb_I2c_StartCom(whal_I2c *i2cDev, whal_I2c_ComCfg *comCfg)
         return WHAL_EINVAL;
     }
 
-#if !defined(WHAL_CFG_STM32WB_I2C_SINGLE_INSTANCE) && \
-    !defined(WHAL_CFG_STM32F0_I2C_SINGLE_INSTANCE) && \
-    !defined(WHAL_CFG_STM32F3_I2C_SINGLE_INSTANCE) && \
-    !defined(WHAL_CFG_STM32N6_I2C_SINGLE_INSTANCE)
+#ifndef WHAL_CFG_STM32WB_I2C_SINGLE_INSTANCE
     base = i2cDev->base;
     cfg = (whal_Stm32wb_I2c_Cfg *)i2cDev->cfg;
 #endif
@@ -529,10 +508,7 @@ whal_Error whal_Stm32wb_I2c_StartCom(whal_I2c *i2cDev, whal_I2c_ComCfg *comCfg)
 
 whal_Error whal_Stm32wb_I2c_EndCom(whal_I2c *i2cDev)
 {
-#if defined(WHAL_CFG_STM32WB_I2C_SINGLE_INSTANCE) || \
-    defined(WHAL_CFG_STM32F0_I2C_SINGLE_INSTANCE) || \
-    defined(WHAL_CFG_STM32F3_I2C_SINGLE_INSTANCE) || \
-    defined(WHAL_CFG_STM32N6_I2C_SINGLE_INSTANCE)
+#ifdef WHAL_CFG_STM32WB_I2C_SINGLE_INSTANCE
     size_t base = whal_Stm32wb_I2c_Dev.base;
     (void)i2cDev;
 #else
@@ -556,10 +532,7 @@ whal_Error whal_Stm32wb_I2c_Transfer(whal_I2c *i2cDev, whal_I2c_Msg *msgs,
                                      size_t numMsgs)
 {
     whal_Error err;
-#if defined(WHAL_CFG_STM32WB_I2C_SINGLE_INSTANCE) || \
-    defined(WHAL_CFG_STM32F0_I2C_SINGLE_INSTANCE) || \
-    defined(WHAL_CFG_STM32F3_I2C_SINGLE_INSTANCE) || \
-    defined(WHAL_CFG_STM32N6_I2C_SINGLE_INSTANCE)
+#ifdef WHAL_CFG_STM32WB_I2C_SINGLE_INSTANCE
     whal_Stm32wb_I2c_Cfg *cfg =
         (whal_Stm32wb_I2c_Cfg *)whal_Stm32wb_I2c_Dev.cfg;
     size_t base = whal_Stm32wb_I2c_Dev.base;
@@ -602,10 +575,7 @@ whal_Error whal_Stm32wb_I2c_Transfer(whal_I2c *i2cDev, whal_I2c_Msg *msgs,
     return WHAL_SUCCESS;
 }
 
-#if !defined(WHAL_CFG_STM32WB_I2C_DIRECT_API_MAPPING) && \
-    !defined(WHAL_CFG_STM32F0_I2C_DIRECT_API_MAPPING) && \
-    !defined(WHAL_CFG_STM32F3_I2C_DIRECT_API_MAPPING) && \
-    !defined(WHAL_CFG_STM32N6_I2C_DIRECT_API_MAPPING)
+#ifndef WHAL_CFG_STM32WB_I2C_DIRECT_API_MAPPING
 const whal_I2cDriver whal_Stm32wb_I2c_Driver = {
     .Init = whal_Stm32wb_I2c_Init,
     .Deinit = whal_Stm32wb_I2c_Deinit,

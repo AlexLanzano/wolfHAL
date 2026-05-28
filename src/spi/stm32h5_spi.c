@@ -20,9 +20,7 @@
  */
 
 #include <stdint.h>
-#if defined(WHAL_CFG_STM32H5_SPI_SINGLE_INSTANCE) || \
-    defined(WHAL_CFG_STM32N6_SPI_SINGLE_INSTANCE) || \
-    defined(WHAL_CFG_STM32WBA_SPI_SINGLE_INSTANCE)
+#ifdef WHAL_CFG_STM32H5_SPI_SINGLE_INSTANCE
 #include "board.h"  /* provides whal_Stm32h5_Spi_Dev singleton (possibly via platform alias macro) */
 #endif
 #include <wolfHAL/spi/stm32h5_spi.h>
@@ -115,8 +113,7 @@
 #define SPI_TXDR_REG 0x020
 #define SPI_RXDR_REG 0x030
 
-#if defined(WHAL_CFG_STM32H5_SPI_DIRECT_API_MAPPING) || \
-    defined(WHAL_CFG_STM32N6_SPI_DIRECT_API_MAPPING)
+#ifdef WHAL_CFG_STM32H5_SPI_DIRECT_API_MAPPING
 #define whal_Stm32h5_Spi_Init     whal_Spi_Init
 #define whal_Stm32h5_Spi_Deinit   whal_Spi_Deinit
 #define whal_Stm32h5_Spi_StartCom whal_Spi_StartCom
@@ -124,9 +121,7 @@
 #define whal_Stm32h5_Spi_SendRecv whal_Spi_SendRecv
 #endif /* WHAL_CFG_STM32H5_SPI_DIRECT_API_MAPPING */
 
-#if defined(WHAL_CFG_STM32H5_SPI_SINGLE_INSTANCE) || \
-    defined(WHAL_CFG_STM32N6_SPI_SINGLE_INSTANCE) || \
-    defined(WHAL_CFG_STM32WBA_SPI_SINGLE_INSTANCE)
+#ifdef WHAL_CFG_STM32H5_SPI_SINGLE_INSTANCE
 const whal_Spi whal_Stm32h5_Spi_Dev = WHAL_CFG_STM32H5_SPI_DEV;
 #endif
 
@@ -149,9 +144,7 @@ static uint32_t Stm32h5_Spi_CalcMbr(size_t pclk, uint32_t targetBaud)
 
 whal_Error whal_Stm32h5_Spi_Init(whal_Spi *spiDev)
 {
-#if defined(WHAL_CFG_STM32H5_SPI_SINGLE_INSTANCE) || \
-    defined(WHAL_CFG_STM32N6_SPI_SINGLE_INSTANCE) || \
-    defined(WHAL_CFG_STM32WBA_SPI_SINGLE_INSTANCE)
+#ifdef WHAL_CFG_STM32H5_SPI_SINGLE_INSTANCE
     size_t base = whal_Stm32h5_Spi_Dev.base;
     (void)spiDev;
 #else
@@ -181,9 +174,7 @@ whal_Error whal_Stm32h5_Spi_Init(whal_Spi *spiDev)
 
 whal_Error whal_Stm32h5_Spi_Deinit(whal_Spi *spiDev)
 {
-#if defined(WHAL_CFG_STM32H5_SPI_SINGLE_INSTANCE) || \
-    defined(WHAL_CFG_STM32N6_SPI_SINGLE_INSTANCE) || \
-    defined(WHAL_CFG_STM32WBA_SPI_SINGLE_INSTANCE)
+#ifdef WHAL_CFG_STM32H5_SPI_SINGLE_INSTANCE
     size_t base = whal_Stm32h5_Spi_Dev.base;
     (void)spiDev;
 #else
@@ -204,9 +195,7 @@ whal_Error whal_Stm32h5_Spi_Deinit(whal_Spi *spiDev)
 whal_Error whal_Stm32h5_Spi_StartCom(whal_Spi *spiDev, whal_Spi_ComCfg *comCfg)
 {
     uint32_t cpol, cpha, mbr, dsize, fthlv;
-#if defined(WHAL_CFG_STM32H5_SPI_SINGLE_INSTANCE) || \
-    defined(WHAL_CFG_STM32N6_SPI_SINGLE_INSTANCE) || \
-    defined(WHAL_CFG_STM32WBA_SPI_SINGLE_INSTANCE)
+#ifdef WHAL_CFG_STM32H5_SPI_SINGLE_INSTANCE
     whal_Stm32h5_Spi_Cfg *cfg =
         (whal_Stm32h5_Spi_Cfg *)whal_Stm32h5_Spi_Dev.cfg;
     size_t base = whal_Stm32h5_Spi_Dev.base;
@@ -228,9 +217,7 @@ whal_Error whal_Stm32h5_Spi_StartCom(whal_Spi *spiDev, whal_Spi_ComCfg *comCfg)
     if (comCfg->mode > 3 || comCfg->dataLines != 1 || comCfg->freq == 0)
         return WHAL_EINVAL;
 
-#if !defined(WHAL_CFG_STM32H5_SPI_SINGLE_INSTANCE) && \
-    !defined(WHAL_CFG_STM32N6_SPI_SINGLE_INSTANCE) && \
-    !defined(WHAL_CFG_STM32WBA_SPI_SINGLE_INSTANCE)
+#ifndef WHAL_CFG_STM32H5_SPI_SINGLE_INSTANCE
     base = spiDev->base;
     cfg = (whal_Stm32h5_Spi_Cfg *)spiDev->cfg;
 #endif
@@ -274,9 +261,7 @@ whal_Error whal_Stm32h5_Spi_StartCom(whal_Spi *spiDev, whal_Spi_ComCfg *comCfg)
 
 whal_Error whal_Stm32h5_Spi_EndCom(whal_Spi *spiDev)
 {
-#if defined(WHAL_CFG_STM32H5_SPI_SINGLE_INSTANCE) || \
-    defined(WHAL_CFG_STM32N6_SPI_SINGLE_INSTANCE) || \
-    defined(WHAL_CFG_STM32WBA_SPI_SINGLE_INSTANCE)
+#ifdef WHAL_CFG_STM32H5_SPI_SINGLE_INSTANCE
     size_t base = whal_Stm32h5_Spi_Dev.base;
     (void)spiDev;
 #else
@@ -308,9 +293,7 @@ whal_Error whal_Stm32h5_Spi_SendRecv(whal_Spi *spiDev,
     size_t totalLen;
     whal_Error err;
     uint8_t txByte;
-#if defined(WHAL_CFG_STM32H5_SPI_SINGLE_INSTANCE) || \
-    defined(WHAL_CFG_STM32N6_SPI_SINGLE_INSTANCE) || \
-    defined(WHAL_CFG_STM32WBA_SPI_SINGLE_INSTANCE)
+#ifdef WHAL_CFG_STM32H5_SPI_SINGLE_INSTANCE
     whal_Stm32h5_Spi_Cfg *cfg =
         (whal_Stm32h5_Spi_Cfg *)whal_Stm32h5_Spi_Dev.cfg;
     size_t base = whal_Stm32h5_Spi_Dev.base;
@@ -359,8 +342,7 @@ whal_Error whal_Stm32h5_Spi_SendRecv(whal_Spi *spiDev,
     return WHAL_SUCCESS;
 }
 
-#if !defined(WHAL_CFG_STM32H5_SPI_DIRECT_API_MAPPING) && \
-    !defined(WHAL_CFG_STM32N6_SPI_DIRECT_API_MAPPING)
+#ifndef WHAL_CFG_STM32H5_SPI_DIRECT_API_MAPPING
 const whal_SpiDriver whal_Stm32h5_Spi_Driver = {
     .Init = whal_Stm32h5_Spi_Init,
     .Deinit = whal_Stm32h5_Spi_Deinit,

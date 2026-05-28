@@ -68,7 +68,7 @@ enum {
 }
 
 /* GPIO dev initializer — singleton defined in stm32wb_gpio.c (shared driver). */
-#define WHAL_CFG_STM32WB_GPIO_DEV { \
+#define WHAL_CFG_STM32C0_GPIO_DEV { \
     .base = WHAL_STM32C031_GPIO_BASE, \
     .cfg = (void *)&(const whal_Stm32c0_Gpio_Cfg){ \
         .pinCfg = (const whal_Stm32c0_Gpio_PinCfg[PIN_COUNT]){ \

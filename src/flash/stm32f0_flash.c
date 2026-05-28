@@ -61,8 +61,7 @@ const whal_Flash whal_Stm32f0_Flash_Dev = WHAL_CFG_STM32F0_FLASH_DEV;
 
 #define FLASH_AR_REG 0x14
 
-#if defined(WHAL_CFG_STM32F0_FLASH_DIRECT_API_MAPPING) || \
-    defined(WHAL_CFG_STM32F3_FLASH_DIRECT_API_MAPPING)
+#ifdef WHAL_CFG_STM32F0_FLASH_DIRECT_API_MAPPING
 #define whal_Stm32f0_Flash_Init   whal_Flash_Init
 #define whal_Stm32f0_Flash_Deinit whal_Flash_Deinit
 #define whal_Stm32f0_Flash_Lock   whal_Flash_Lock
@@ -244,8 +243,7 @@ whal_Error whal_Stm32f0_Flash_Ext_SetLatency(whal_Flash *flashDev,
     return WHAL_SUCCESS;
 }
 
-#if !defined(WHAL_CFG_STM32F0_FLASH_DIRECT_API_MAPPING) && \
-    !defined(WHAL_CFG_STM32F3_FLASH_DIRECT_API_MAPPING)
+#ifndef WHAL_CFG_STM32F0_FLASH_DIRECT_API_MAPPING
 const whal_FlashDriver whal_Stm32f0_Flash_Driver = {
     .Init = whal_Stm32f0_Flash_Init,
     .Deinit = whal_Stm32f0_Flash_Deinit,

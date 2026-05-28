@@ -19,4 +19,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA
  */
 
+#ifdef WHAL_CFG_STM32N6_RNG_DIRECT_API_MAPPING
+#define WHAL_CFG_STM32WBA_RNG_DIRECT_API_MAPPING
+#endif
 #include "stm32wba_rng.c"

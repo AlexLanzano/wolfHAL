@@ -97,7 +97,7 @@ enum {
 
 /* IWDG/WWDG dev initializers — singletons defined in stm32wb_iwdg.c /
  * stm32wb_wwdg.c (stm32n6 is an include alias). */
-#define WHAL_CFG_STM32WB_IWDG_DEV { \
+#define WHAL_CFG_STM32N6_IWDG_DEV { \
     .base = WHAL_STM32N657_IWDG_BASE, \
     .cfg  = (void *)&(const whal_Stm32n6_Iwdg_Cfg){ \
         .prescaler = WHAL_STM32N6_IWDG_PR_32, \
@@ -106,7 +106,7 @@ enum {
     }, \
 }
 
-#define WHAL_CFG_STM32WB_WWDG_DEV { \
+#define WHAL_CFG_STM32N6_WWDG_DEV { \
     .base = WHAL_STM32N657_WWDG_BASE, \
     .cfg  = (void *)&(const whal_Stm32n6_Wwdg_Cfg){ \
         .prescaler = WHAL_STM32N6_WWDG_TB_128, \
@@ -116,7 +116,7 @@ enum {
 }
 
 /* GPIO dev initializer — singleton defined in driver TU. */
-#define WHAL_CFG_STM32WB_GPIO_DEV { \
+#define WHAL_CFG_STM32N6_GPIO_DEV { \
     .base = WHAL_STM32N657_GPIO_BASE, \
     .cfg = (void *)&(const whal_Stm32n6_Gpio_Cfg){ \
         .pinCfg = (const whal_Stm32n6_Gpio_PinCfg[PIN_COUNT]){ \
@@ -217,7 +217,7 @@ enum {
 
 /* RNG dev initializer — singleton defined in stm32wba_rng.c (stm32n6 is
  * an include alias). */
-#define WHAL_CFG_STM32WBA_RNG_DEV { \
+#define WHAL_CFG_STM32N6_RNG_DEV { \
     .base = WHAL_STM32N657_RNG_BASE, \
     .cfg  = (void *)&(const whal_Stm32n6_Rng_Cfg){ \
         .timeout = &g_whalTimeout, \
@@ -258,34 +258,34 @@ enum {
 
 /* HASH + algorithm dev initializers — singletons defined in stm32wba_hash.c
  * (stm32n6 is an include alias). */
-#define WHAL_CFG_STM32WBA_HASH_DEV { \
+#define WHAL_CFG_STM32N6_HASH_DEV { \
     .base = WHAL_STM32N657_HASH_BASE, \
     .cfg  = (void *)&(const whal_Stm32n6_Hash_Cfg){ \
         .timeout = &g_whalTimeout, \
     }, \
 }
 
-#define WHAL_CFG_STM32WBA_HASH_SHA1_DEV { \
+#define WHAL_CFG_STM32N6_HASH_SHA1_DEV { \
     .crypto = (whal_Crypto *)&whal_Stm32wba_Hash_Dev, \
 }
 
-#define WHAL_CFG_STM32WBA_HASH_SHA224_DEV { \
+#define WHAL_CFG_STM32N6_HASH_SHA224_DEV { \
     .crypto = (whal_Crypto *)&whal_Stm32wba_Hash_Dev, \
 }
 
-#define WHAL_CFG_STM32WBA_HASH_SHA256_DEV { \
+#define WHAL_CFG_STM32N6_HASH_SHA256_DEV { \
     .crypto = (whal_Crypto *)&whal_Stm32wba_Hash_Dev, \
 }
 
-#define WHAL_CFG_STM32WBA_HASH_HMAC_SHA1_DEV { \
+#define WHAL_CFG_STM32N6_HASH_HMAC_SHA1_DEV { \
     .crypto = (whal_Crypto *)&whal_Stm32wba_Hash_Dev, \
 }
 
-#define WHAL_CFG_STM32WBA_HASH_HMAC_SHA224_DEV { \
+#define WHAL_CFG_STM32N6_HASH_HMAC_SHA224_DEV { \
     .crypto = (whal_Crypto *)&whal_Stm32wba_Hash_Dev, \
 }
 
-#define WHAL_CFG_STM32WBA_HASH_HMAC_SHA256_DEV { \
+#define WHAL_CFG_STM32N6_HASH_HMAC_SHA256_DEV { \
     .crypto = (whal_Crypto *)&whal_Stm32wba_Hash_Dev, \
 }
 

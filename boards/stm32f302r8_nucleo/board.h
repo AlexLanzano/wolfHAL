@@ -66,7 +66,7 @@ enum {
 /* WWDG dev initializer — singleton defined in stm32f0_wwdg.c (stm32f3
  * is an include alias). Compiled unconditionally because the .c always
  * references it. */
-#define WHAL_CFG_STM32F0_WWDG_DEV { \
+#define WHAL_CFG_STM32F3_WWDG_DEV { \
     .base = WHAL_STM32F302_WWDG_BASE, \
     .cfg  = (void *)&(const whal_Stm32f3_Wwdg_Cfg){ \
         .prescaler = 3, \
@@ -77,7 +77,7 @@ enum {
 
 /* IWDG dev initializer — singleton defined in stm32wb_iwdg.c (stm32f3 is
  * an include alias). */
-#define WHAL_CFG_STM32WB_IWDG_DEV { \
+#define WHAL_CFG_STM32F3_IWDG_DEV { \
     .base = WHAL_STM32F302_IWDG_BASE, \
     .cfg  = (void *)&(const whal_Stm32f3_Iwdg_Cfg){ \
         .prescaler = WHAL_STM32F3_IWDG_PR_64, \
@@ -88,7 +88,7 @@ enum {
 
 /* Flash dev initializer — singleton defined in stm32f0_flash.c (stm32f3 is
  * an include alias). */
-#define WHAL_CFG_STM32F0_FLASH_DEV { \
+#define WHAL_CFG_STM32F3_FLASH_DEV { \
     .driver = WHAL_STM32F302_FLASH_DRIVER, \
     .base   = WHAL_STM32F302_FLASH_BASE, \
     .cfg    = (void *)&(const whal_Stm32f3_Flash_Cfg){ \
@@ -99,7 +99,7 @@ enum {
 }
 
 /* GPIO dev initializer — singleton defined in driver TU. */
-#define WHAL_CFG_STM32WB_GPIO_DEV { \
+#define WHAL_CFG_STM32F3_GPIO_DEV { \
     .base = WHAL_STM32F302_GPIO_BASE, \
     .cfg = (void *)&(const whal_Stm32f3_Gpio_Cfg){ \
         .pinCfg = (const whal_Stm32f3_Gpio_PinCfg[PIN_COUNT]){ \
