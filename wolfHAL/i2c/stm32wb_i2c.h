@@ -55,7 +55,8 @@ typedef struct whal_Stm32wb_I2c_Cfg {
 #if defined(WHAL_CFG_STM32WB_I2C_SINGLE_INSTANCE) || \
     defined(WHAL_CFG_STM32F0_I2C_SINGLE_INSTANCE) || \
     defined(WHAL_CFG_STM32F3_I2C_SINGLE_INSTANCE) || \
-    defined(WHAL_CFG_STM32N6_I2C_SINGLE_INSTANCE)
+    defined(WHAL_CFG_STM32N6_I2C_SINGLE_INSTANCE) || \
+    defined(WHAL_CFG_STM32WB0_I2C_SINGLE_INSTANCE)
 extern const whal_I2c whal_Stm32wb_I2c_Dev;
 #endif
 
