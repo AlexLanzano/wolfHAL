@@ -55,12 +55,14 @@ typedef struct whal_Stm32wb_Spi_Cfg {
 #if defined(WHAL_CFG_STM32WB_SPI_SINGLE_INSTANCE) || \
     defined(WHAL_CFG_STM32C0_SPI_SINGLE_INSTANCE) || \
     defined(WHAL_CFG_STM32F0_SPI_SINGLE_INSTANCE) || \
-    defined(WHAL_CFG_STM32F3_SPI_SINGLE_INSTANCE)
+    defined(WHAL_CFG_STM32F3_SPI_SINGLE_INSTANCE) || \
+    defined(WHAL_CFG_STM32WB0_SPI_SINGLE_INSTANCE)
 extern const whal_Spi whal_Stm32wb_Spi_Dev;
 #endif
 
 #if !defined(WHAL_CFG_STM32WB_SPI_DIRECT_API_MAPPING) && \
-    !defined(WHAL_CFG_STM32C0_SPI_DIRECT_API_MAPPING)
+    !defined(WHAL_CFG_STM32C0_SPI_DIRECT_API_MAPPING) && \
+    !defined(WHAL_CFG_STM32WB0_SPI_DIRECT_API_MAPPING)
 /*
  * @brief Driver instance for STM32 SPI peripheral.
  */
