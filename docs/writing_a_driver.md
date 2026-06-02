@@ -2,6 +2,42 @@
 
 This guide covers how to implement wolfHAL drivers.
 
+## Generating the Driver Boilerplate
+
+Before writing a driver by hand, you can generate the boilerplate with the
+`generate-driver-template` Claude Code skill, then fill in the register
+definitions and function bodies following the rest of this guide:
+
+```
+/generate-driver-template <device_type> <device_name> [single|multi]
+```
+
+The skill reads the device type's generic vtable (or recognizes board-level
+types like clock/power) and emits idiomatic, compiling stubs:
+
+- **vtable device types** (spi, i2c, uart, rng, gpio, dma, eth, …) — the
+  `wolfHAL/<type>/<name>_<type>.h` + `src/<type>/<name>_<type>.c` pair with the
+  direct-API-mapping `#define` block, every vtable function stubbed
+  (argument-validate → `TODO` → `return WHAL_SUCCESS`), and the driver vtable
+  at the bottom of the `.c`. Pass `single` or `multi` to choose the instance
+  model (see "Single-instance" / "multi-instance" conventions below).
+- **board-level types** (clock, power, …) — a single header-only
+  `wolfHAL/<type>/<name>_<type>.h` with the fixed `_BASE` macro and stubbed
+  `static inline` helpers; no `.c`, no vtable, no device handle.
+
+It leaves register layouts, config-struct fields, descriptor structs, and enums
+as `TODO`s — those come from the TRM and are yours to fill in. The skill
+scaffolds a single driver; for an entire chip-family port (platform header,
+reused-driver aliases, and a first board) use the `port-stm32-platform` skill
+instead.
+
+For example, to scaffold a multi-instance SPI driver for a new `stm32g4`
+platform:
+
+```
+/generate-driver-template spi stm32g4 multi
+```
+
 ## Driver Categories
 
 wolfHAL has three categories of drivers:
