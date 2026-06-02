@@ -19,6 +19,7 @@ build configuration.
 | ST NUCLEO-F091RC | STM32F0 | Cortex-M0 | `stm32f091rc_nucleo/` |
 | ST NUCLEO-F302R8 | STM32F3 | Cortex-M4 | `stm32f302r8_nucleo/` |
 | WeAct BlackPill STM32F411 | STM32F4 | Cortex-M4 | `stm32f411_blackpill/` |
+| ST NUCLEO-F439ZI | STM32F4 | Cortex-M4 | `stm32f439zi_nucleo/` |
 | ST NUCLEO-H563ZI | STM32H5 | Cortex-M33 | `stm32h563zi_nucleo/` |
 | ST NUCLEO-WB05KZ | STM32WB0 | Cortex-M0+ | `stm32wb05kz_nucleo/` |
 | ST NUCLEO-WB55RG | STM32WB | Cortex-M4 | `stm32wb55xx_nucleo/` |
