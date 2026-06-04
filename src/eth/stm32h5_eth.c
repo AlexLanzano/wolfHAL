@@ -152,14 +152,6 @@ static struct {
 /* Max TX frame size */
 #define ETH_MAX_FRAME_SIZE 1536
 
-/* MDIO clock range select (CR field in MACMDIOAR). The MAC uses this to
- * pick the AHB->MDC divider. Values map to AHB freq bands:
- *   CR=0: 60-100 MHz   CR=1: 100-150 MHz
- *   CR=2: 20-35  MHz   CR=3: 35-60   MHz
- *   CR=4: 150-250MHz   CR=5: 250-300 MHz
- * HSI default (32 MHz HCLK) -> CR=2. */
-#define ETH_MDIO_CR 2
-
 #ifdef WHAL_CFG_STM32H5_ETH_DIRECT_API_MAPPING
 #define whal_Stm32h5_Eth_Init      whal_Eth_Init
 #define whal_Stm32h5_Eth_Deinit    whal_Eth_Deinit
@@ -447,7 +439,7 @@ whal_Error whal_Stm32h5_Eth_MdioRead(whal_Eth *ethDev, uint8_t phyAddr,
                    whal_SetBits(ETH_MACMDIOAR_RDA_Msk, ETH_MACMDIOAR_RDA_Pos,
                                 reg) |
                    whal_SetBits(ETH_MACMDIOAR_CR_Msk, ETH_MACMDIOAR_CR_Pos,
-                                ETH_MDIO_CR) |
+                                cfg->mdioCr) |
                    whal_SetBits(ETH_MACMDIOAR_GOC_Msk, ETH_MACMDIOAR_GOC_Pos,
                                 ETH_MDIO_GOC_READ) |
                    ETH_MACMDIOAR_MB_Msk);
@@ -483,7 +475,7 @@ whal_Error whal_Stm32h5_Eth_MdioWrite(whal_Eth *ethDev, uint8_t phyAddr,
                    whal_SetBits(ETH_MACMDIOAR_RDA_Msk, ETH_MACMDIOAR_RDA_Pos,
                                 reg) |
                    whal_SetBits(ETH_MACMDIOAR_CR_Msk, ETH_MACMDIOAR_CR_Pos,
-                                ETH_MDIO_CR) |
+                                cfg->mdioCr) |
                    whal_SetBits(ETH_MACMDIOAR_GOC_Msk, ETH_MACMDIOAR_GOC_Pos,
                                 ETH_MDIO_GOC_WRITE) |
                    ETH_MACMDIOAR_MB_Msk);

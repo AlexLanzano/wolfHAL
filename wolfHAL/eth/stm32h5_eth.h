@@ -61,6 +61,12 @@ typedef struct whal_Stm32h5_Eth_Cfg {
     uint8_t *rxBufs;                      /* RX frame buffers (pre-allocated) */
     size_t rxDescCount;                   /* Number of RX descriptors */
     size_t rxBufSize;                     /* Size of each RX buffer in bytes */
+    /* MDIO clock range select (CR field in MACMDIOAR). Picks the AHB->MDC
+     * divider for the board's HCLK; MDC must stay <= 2.5 MHz (IEEE 802.3).
+     *   0: 60-100 MHz (/42)   1: 100-150 MHz (/62)
+     *   2: 20-35  MHz (/16)   3: 35-60   MHz (/26)
+     *   4: 150-250MHz (/102)  5: 250-300 MHz (/124) */
+    uint8_t mdioCr;
     whal_Timeout *timeout;
 } whal_Stm32h5_Eth_Cfg;
 

@@ -196,6 +196,7 @@ extern uint8_t ethRxBufs[BOARD_ETH_RX_DESC_COUNT * BOARD_ETH_RX_BUF_SIZE];
         .rxBufs      = ethRxBufs, \
         .rxDescCount = BOARD_ETH_RX_DESC_COUNT, \
         .rxBufSize   = BOARD_ETH_RX_BUF_SIZE, \
+        .mdioCr      = 4, /* HCLK 168 MHz -> MDC = 168/102 ~= 1.6 MHz */ \
         .timeout     = &g_whalTimeout, \
     }, \
 }
