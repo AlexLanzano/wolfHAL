@@ -161,9 +161,6 @@ static struct {
 /* Default burst length */
 #define ETH_PBL    32
 
-/* MDIO clock range for AXI bus */
-#define ETH_MDIO_CR 4
-
 #ifdef WHAL_CFG_STM32N6_ETH_DIRECT_API_MAPPING
 #define whal_Stm32n6_Eth_Init      whal_Eth_Init
 #define whal_Stm32n6_Eth_Deinit    whal_Eth_Deinit
@@ -487,7 +484,7 @@ whal_Error whal_Stm32n6_Eth_MdioRead(whal_Eth *ethDev, uint8_t phyAddr,
                    whal_SetBits(ETH_MACMDIOAR_RDA_Msk, ETH_MACMDIOAR_RDA_Pos,
                                 reg) |
                    whal_SetBits(ETH_MACMDIOAR_CR_Msk, ETH_MACMDIOAR_CR_Pos,
-                                ETH_MDIO_CR) |
+                                cfg->mdioCr) |
                    whal_SetBits(ETH_MACMDIOAR_GOC_Msk, ETH_MACMDIOAR_GOC_Pos,
                                 ETH_MDIO_GOC_READ) |
                    ETH_MACMDIOAR_MB_Msk);
@@ -523,7 +520,7 @@ whal_Error whal_Stm32n6_Eth_MdioWrite(whal_Eth *ethDev, uint8_t phyAddr,
                    whal_SetBits(ETH_MACMDIOAR_RDA_Msk, ETH_MACMDIOAR_RDA_Pos,
                                 reg) |
                    whal_SetBits(ETH_MACMDIOAR_CR_Msk, ETH_MACMDIOAR_CR_Pos,
-                                ETH_MDIO_CR) |
+                                cfg->mdioCr) |
                    whal_SetBits(ETH_MACMDIOAR_GOC_Msk, ETH_MACMDIOAR_GOC_Pos,
                                 ETH_MDIO_GOC_WRITE) |
                    ETH_MACMDIOAR_MB_Msk);
