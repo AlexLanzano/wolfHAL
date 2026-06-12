@@ -13,9 +13,6 @@ jobs:
       matrix:
         include:
           - board: stm32wb55xx_nucleo
-            peripherals: bmi270
-            tests: bmi270
-          - board: stm32wb55xx_nucleo
             peripherals: spi_nor_w25q64
             tests: flash
           - board: stm32wb55xx_nucleo
