@@ -39,5 +39,4 @@ ifneq ($(filter bmi270,$(PERIPHERALS)),)
 CFLAGS += -DPERIPHERAL_BMI270
 BOARD_SOURCE += $(_PERIPHERAL_DIR)/sensor/imu/bmi270.c
 BOARD_SOURCE += $(WHAL_DIR)/src/sensor/imu/bmi270_sensor.c
-BOARD_SOURCE += $(WHAL_DIR)/src/sensor/imu/bmi270_config_data.c
 endif

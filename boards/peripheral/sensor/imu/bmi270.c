@@ -21,7 +21,6 @@
 
 #include "bmi270.h"
 #include <wolfHAL/sensor/imu/bmi270_sensor.h>
-#include <wolfHAL/sensor/imu/bmi270_config_data.h>
 #include "board.h"
 
 /*
@@ -30,6 +29,14 @@
  * - I2C address: 0x68 (SDO low)
  * - Standard mode (100 kHz) or Fast mode (400 kHz)
  * - Requires 8192-byte config blob upload during init
+ *
+ * The config blob is not bundled with wolfHAL. Obtain it from the Bosch
+ * Sensortec BMI270_SensorAPI repository and provide it from your board.h:
+ *
+ *     extern const uint8_t whal_bmi270_config_data[];
+ *     #define WHAL_BMI270_CONFIG_DATA_SZ 8192
+ *
+ * with a matching definition compiled into your application.
  */
 
 whal_I2c_ComCfg g_bmi270ComCfg = {
