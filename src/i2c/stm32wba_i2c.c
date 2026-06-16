@@ -19,4 +19,12 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA
  */
 
+/* Forward STM32WBA I2C config flags to STM32WB */
+#ifdef WHAL_CFG_STM32WBA_I2C_DIRECT_API_MAPPING
+#define WHAL_CFG_STM32WB_I2C_DIRECT_API_MAPPING
+#endif
+#ifdef WHAL_CFG_STM32WBA_I2C_SINGLE_INSTANCE
+#define WHAL_CFG_STM32WB_I2C_SINGLE_INSTANCE
+#endif
+
 #include "stm32wb_i2c.c"

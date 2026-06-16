@@ -19,4 +19,9 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1335, USA
  */
 
+/* Forward STM32WBA WWDG direct API mapping flag to STM32WB */
+#ifdef WHAL_CFG_STM32WBA_WWDG_DIRECT_API_MAPPING
+#define WHAL_CFG_STM32WB_WWDG_DIRECT_API_MAPPING
+#endif
+
 #include "stm32wb_wwdg.c"

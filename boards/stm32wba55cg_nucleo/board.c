@@ -437,12 +437,7 @@ whal_Error Board_Deinit(void)
     if (err)
         return err;
 
-    /* Reduce flash latency then disable flash clock */
-    err = whal_Stm32wba_Flash_Ext_SetLatency(BOARD_FLASH_DEV, 0);
-    if (err)
-        return err;
-
-    err = whal_Stm32wba_Rcc_DisablePeriphClk(&g_flashClock);
+    err = whal_Stm32wba_Flash_Ext_SetLatency(BOARD_FLASH_DEV, 1);
     if (err)
         return err;
 

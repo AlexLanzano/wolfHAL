@@ -192,7 +192,6 @@ enum {
 /* GPIO dev initializer — singleton defined in driver TU. */
 #define WHAL_CFG_STM32WBA_GPIO_DEV { \
     .base = WHAL_STM32WBA55_GPIO_BASE, \
-    .driver = WHAL_STM32WBA55_GPIO_DRIVER, \
     .cfg = (void *)&(const whal_Stm32wba_Gpio_Cfg){ \
         .pinCfg = (const whal_Stm32wba_Gpio_PinCfg[PIN_COUNT]){ \
             /* LED: PA9 (LD2, Green), output, push-pull, low speed, pull-up */ \

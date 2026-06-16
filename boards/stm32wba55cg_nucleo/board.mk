@@ -44,6 +44,8 @@ CFLAGS += -Wall -Werror $(INCLUDE) -g3 -Os -ffunction-sections -fdata-sections \
  -DWHAL_CFG_STM32WBA_HASH_HMAC_SHA1_DIRECT_API_MAPPING \
  -DWHAL_CFG_STM32WBA_HASH_HMAC_SHA224_DIRECT_API_MAPPING \
  -DWHAL_CFG_STM32WBA_HASH_HMAC_SHA256_DIRECT_API_MAPPING \
+ -DWHAL_CFG_STM32WBA_GPIO_DIRECT_API_MAPPING \
+ -DWHAL_CFG_STM32WBA_RNG_DIRECT_API_MAPPING \
  $(if $(DMA),-DBOARD_DMA) \
  $(if $(filter iwdg,$(WATCHDOG)),-DBOARD_WATCHDOG_IWDG) \
  $(if $(filter wwdg,$(WATCHDOG)),-DBOARD_WATCHDOG_WWDG) \
@@ -58,7 +60,6 @@ INCLUDE += -I$(_BOARD_DIR) -I$(WHAL_DIR)/boards/peripheral
 BOARD_SOURCE = $(_BOARD_DIR)/ivt.c
 BOARD_SOURCE += $(_BOARD_DIR)/board.c
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*.c)
-BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/gpio.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/clock.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/uart.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/flash.c)
@@ -66,7 +67,6 @@ BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/spi.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/i2c.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/sensor.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/watchdog.c)
-BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/rng.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/crypto.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/block.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/dma.c)
