@@ -150,6 +150,24 @@ static void WriteIv(size_t base, const uint8_t *iv)
     whal_Reg_Write(base, AES_IVR0_REG, whal_LoadBe32(iv + 12));
 }
 
+/* Wipe key and IV/counter material from the peripheral registers. Callers must
+ * clear EN first (key registers are only writable while disabled). */
+static void ZeroKeyIv(size_t base)
+{
+    whal_Reg_Write(base, AES_KEYR7_REG, 0);
+    whal_Reg_Write(base, AES_KEYR6_REG, 0);
+    whal_Reg_Write(base, AES_KEYR5_REG, 0);
+    whal_Reg_Write(base, AES_KEYR4_REG, 0);
+    whal_Reg_Write(base, AES_KEYR3_REG, 0);
+    whal_Reg_Write(base, AES_KEYR2_REG, 0);
+    whal_Reg_Write(base, AES_KEYR1_REG, 0);
+    whal_Reg_Write(base, AES_KEYR0_REG, 0);
+    whal_Reg_Write(base, AES_IVR3_REG, 0);
+    whal_Reg_Write(base, AES_IVR2_REG, 0);
+    whal_Reg_Write(base, AES_IVR1_REG, 0);
+    whal_Reg_Write(base, AES_IVR0_REG, 0);
+}
+
 static void WriteBlock(size_t base, const uint8_t *in)
 {
     whal_Reg_Write(base, AES_DINR_REG, whal_LoadBe32(in));
@@ -265,6 +283,7 @@ whal_Error whal_Stm32wb_Aes_Deinit(whal_Crypto *dev)
 {
     (void)dev;
     DisableAes((whal_Crypto *)&whal_Stm32wb_Aes_Dev);
+    ZeroKeyIv(whal_Stm32wb_Aes_Dev.base);
     return WHAL_SUCCESS;
 }
 
@@ -317,6 +336,7 @@ whal_Error whal_Stm32wb_AesEcb_Oneshot(whal_AesEcb *dev, whal_Crypto_Dir dir,
 
     err = ProcessBlockCipher(crypto, in, out, sz);
     DisableAes(crypto);
+    ZeroKeyIv(base);
     return err;
 }
 
@@ -419,6 +439,7 @@ whal_Error whal_Stm32wb_AesCbc_Oneshot(whal_AesCbc *dev, whal_Crypto_Dir dir,
 
     err = ProcessBlockCipher(crypto, in, out, sz);
     DisableAes(crypto);
+    ZeroKeyIv(base);
     return err;
 }
 
@@ -521,6 +542,7 @@ whal_Error whal_Stm32wb_AesCtr_Oneshot(whal_AesCtr *dev, whal_Crypto_Dir dir,
 
     err = ProcessBlockCipher(crypto, in, out, sz);
     DisableAes(crypto);
+    ZeroKeyIv(base);
     return err;
 }
 
@@ -760,6 +782,7 @@ whal_Error whal_Stm32wb_AesGcm_Oneshot(whal_AesGcm *dev, whal_Crypto_Dir dir,
 
 cleanup:
     whal_Reg_Update(base, AES_CR_REG, AES_CR_EN_Msk, 0);
+    ZeroKeyIv(base);
     return err;
 }
 
@@ -986,6 +1009,7 @@ whal_Error whal_Stm32wb_AesGcm_Finalize(whal_AesGcm *dev,
     err = WaitForCCF(base, cfg->timeout);
     if (err) {
         whal_Reg_Update(base, AES_CR_REG, AES_CR_EN_Msk, 0);
+        ZeroKeyIv(base);
         return err;
     }
 
@@ -995,6 +1019,7 @@ whal_Error whal_Stm32wb_AesGcm_Finalize(whal_AesGcm *dev,
         ((uint8_t *)tag)[i] = tagBuf[i];
 
     whal_Reg_Update(base, AES_CR_REG, AES_CR_EN_Msk, 0);
+    ZeroKeyIv(base);
     return WHAL_SUCCESS;
 }
 
@@ -1133,6 +1158,7 @@ whal_Error whal_Stm32wb_AesGmac_Oneshot(whal_AesGmac *dev,
 
 cleanup:
     whal_Reg_Update(base, AES_CR_REG, AES_CR_EN_Msk, 0);
+    ZeroKeyIv(base);
     return err;
 }
 
@@ -1354,6 +1380,7 @@ whal_Error whal_Stm32wb_AesCcm_Oneshot(whal_AesCcm *dev, whal_Crypto_Dir dir,
 
 cleanup:
     whal_Reg_Update(base, AES_CR_REG, AES_CR_EN_Msk, 0);
+    ZeroKeyIv(base);
     return err;
 }
 
@@ -1615,6 +1642,7 @@ whal_Error whal_Stm32wb_AesCcm_Finalize(whal_AesCcm *dev,
     err = WaitForCCF(base, cfg->timeout);
     if (err) {
         whal_Reg_Update(base, AES_CR_REG, AES_CR_EN_Msk, 0);
+        ZeroKeyIv(base);
         return err;
     }
 
@@ -1624,6 +1652,7 @@ whal_Error whal_Stm32wb_AesCcm_Finalize(whal_AesCcm *dev,
         ((uint8_t *)tag)[i] = tagBuf[i];
 
     whal_Reg_Update(base, AES_CR_REG, AES_CR_EN_Msk, 0);
+    ZeroKeyIv(base);
     return WHAL_SUCCESS;
 }
 
