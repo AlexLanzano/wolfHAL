@@ -195,6 +195,22 @@ static void WriteIv16(size_t base, const uint8_t *iv)
     whal_Reg_Write(base, CRYP_IV1RR_REG, whal_LoadBe32(iv + 12));
 }
 
+static void ZeroKeyIv(size_t base)
+{
+    whal_Reg_Write(base, CRYP_K0LR_REG, 0);
+    whal_Reg_Write(base, CRYP_K0RR_REG, 0);
+    whal_Reg_Write(base, CRYP_K1LR_REG, 0);
+    whal_Reg_Write(base, CRYP_K1RR_REG, 0);
+    whal_Reg_Write(base, CRYP_K2LR_REG, 0);
+    whal_Reg_Write(base, CRYP_K2RR_REG, 0);
+    whal_Reg_Write(base, CRYP_K3LR_REG, 0);
+    whal_Reg_Write(base, CRYP_K3RR_REG, 0);
+    whal_Reg_Write(base, CRYP_IV0LR_REG, 0);
+    whal_Reg_Write(base, CRYP_IV0RR_REG, 0);
+    whal_Reg_Write(base, CRYP_IV1LR_REG, 0);
+    whal_Reg_Write(base, CRYP_IV1RR_REG, 0);
+}
+
 static void WriteBlock(size_t base, const uint8_t *in)
 {
     whal_Reg_Write(base, CRYP_DINR_REG, whal_LoadBe32(in));
@@ -351,6 +367,7 @@ whal_Error whal_Stm32n6_Cryp_Deinit(whal_Crypto *dev)
 {
     (void)dev;
     Disable(whal_Stm32n6_Cryp_Dev.base);
+    ZeroKeyIv(whal_Stm32n6_Cryp_Dev.base);
     return WHAL_SUCCESS;
 }
 
@@ -386,7 +403,7 @@ whal_Error whal_Stm32n6_CrypAesEcb_Oneshot(whal_AesEcb *dev,
         err = PrepareDecryptionKey(base, key, keySz, keySizeBits,
                                    cfg->timeout);
         if (err)
-            return err;
+            goto cleanup;
         ConfigureMode(base, CRYP_ALGOMODE_AES_ECB, CRYP_ALGODIR_DECRYPT,
                       keySizeBits, 0, 0, 0);
         Enable(base);
@@ -397,12 +414,14 @@ whal_Error whal_Stm32n6_CrypAesEcb_Oneshot(whal_AesEcb *dev,
         WriteKey(base, key, keySz);
         err = WaitKeyValid(base, cfg->timeout);
         if (err)
-            return err;
+            goto cleanup;
         Enable(base);
     }
 
     err = Process_BlockCipher(in, out, sz);
+cleanup:
     Disable(base);
+    ZeroKeyIv(base);
     return err;
 }
 
@@ -488,7 +507,7 @@ whal_Error whal_Stm32n6_CrypAesCbc_Oneshot(whal_AesCbc *dev,
         err = PrepareDecryptionKey(base, key, keySz, keySizeBits,
                                    cfg->timeout);
         if (err)
-            return err;
+            goto cleanup;
         ConfigureMode(base, CRYP_ALGOMODE_AES_CBC, CRYP_ALGODIR_DECRYPT,
                       keySizeBits, 0, 0, 0);
         WriteIv16(base, (const uint8_t *)iv);
@@ -501,12 +520,14 @@ whal_Error whal_Stm32n6_CrypAesCbc_Oneshot(whal_AesCbc *dev,
         WriteKey(base, key, keySz);
         err = WaitKeyValid(base, cfg->timeout);
         if (err)
-            return err;
+            goto cleanup;
         Enable(base);
     }
 
     err = Process_BlockCipher(in, out, sz);
+cleanup:
     Disable(base);
+    ZeroKeyIv(base);
     return err;
 }
 
@@ -601,11 +622,13 @@ whal_Error whal_Stm32n6_CrypAesCtr_Oneshot(whal_AesCtr *dev,
     WriteKey(base, key, keySz);
     err = WaitKeyValid(base, cfg->timeout);
     if (err)
-        return err;
+        goto cleanup;
     Enable(base);
 
     err = Process_BlockCipher(in, out, sz);
+cleanup:
     Disable(base);
+    ZeroKeyIv(base);
     return err;
 }
 
@@ -776,12 +799,12 @@ whal_Error whal_Stm32n6_CrypAesGcm_Oneshot(whal_AesGcm *dev,
     err = GcmInit((const uint8_t *)key, keySz,
                   keySizeBits, algoDir, (const uint8_t *)iv);
     if (err)
-        return err;
+        goto cleanup;
 
     /* Header phase */
     err = GcmHeaderPhase((const uint8_t *)aad, aadSz);
     if (err)
-        return err;
+        goto cleanup;
 
     /* Payload phase */
     if (sz > 0) {
@@ -815,10 +838,8 @@ whal_Error whal_Stm32n6_CrypAesGcm_Oneshot(whal_AesGcm *dev,
             }
 
             err = WaitOutputReady(base, cfg->timeout);
-            if (err) {
-                Disable(base);
-                return err;
-            }
+            if (err)
+                goto cleanup;
 
             if (remain >= 16) {
                 ReadBlock(base, outPtr);
@@ -847,17 +868,17 @@ whal_Error whal_Stm32n6_CrypAesGcm_Oneshot(whal_AesGcm *dev,
     whal_Reg_Write(base, CRYP_DINR_REG, (uint32_t)payloadBits);
 
     err = WaitOutputReady(base, cfg->timeout);
-    if (err) {
-        Disable(base);
-        return err;
-    }
+    if (err)
+        goto cleanup;
 
     ReadBlock(base, tagBuf);
     for (i = 0; i < tagSz; i++)
         ((uint8_t *)tag)[i] = tagBuf[i];
 
+cleanup:
     Disable(base);
-    return WHAL_SUCCESS;
+    ZeroKeyIv(base);
+    return err;
 }
 
 whal_Error whal_Stm32n6_CrypAesGcm_Start(whal_AesGcm *dev,
@@ -998,6 +1019,7 @@ whal_Error whal_Stm32n6_CrypAesGcm_Finalize(whal_AesGcm *dev,
     err = WaitOutputReady(base, cfg->timeout);
     if (err) {
         Disable(base);
+        ZeroKeyIv(base);
         return err;
     }
 
@@ -1006,6 +1028,7 @@ whal_Error whal_Stm32n6_CrypAesGcm_Finalize(whal_AesGcm *dev,
         ((uint8_t *)tag)[i] = tagBuf[i];
 
     Disable(base);
+    ZeroKeyIv(base);
     return WHAL_SUCCESS;
 }
 
@@ -1053,12 +1076,12 @@ whal_Error whal_Stm32n6_CrypAesGmac_Oneshot(whal_AesGmac *dev,
                   keySizeBits, CRYP_ALGODIR_ENCRYPT,
                   (const uint8_t *)iv);
     if (err)
-        return err;
+        goto cleanup;
 
     /* Header phase */
     err = GcmHeaderPhase((const uint8_t *)aad, aadSz);
     if (err)
-        return err;
+        goto cleanup;
 
     /* Final phase */
     Disable(base);
@@ -1076,17 +1099,17 @@ whal_Error whal_Stm32n6_CrypAesGmac_Oneshot(whal_AesGmac *dev,
     whal_Reg_Write(base, CRYP_DINR_REG, 0);
 
     err = WaitOutputReady(base, cfg->timeout);
-    if (err) {
-        Disable(base);
-        return err;
-    }
+    if (err)
+        goto cleanup;
 
     ReadBlock(base, tagBuf);
     for (i = 0; i < tagSz; i++)
         ((uint8_t *)tag)[i] = tagBuf[i];
 
+cleanup:
     Disable(base);
-    return WHAL_SUCCESS;
+    ZeroKeyIv(base);
+    return err;
 }
 
 const whal_AesGmacDriver whal_Stm32n6_Cryp_GmacDriver = {
@@ -1187,14 +1210,14 @@ whal_Error whal_Stm32n6_CrypAesCcm_Oneshot(whal_AesCcm *dev,
     WriteKey(base, key, keySz);
     err = WaitKeyValid(base, cfg->timeout);
     if (err)
-        return err;
+        goto cleanup;
     Enable(base);
 
     /* Feed B0 to start the CBC-MAC; CRYPEN auto-clears when init completes. */
     WriteBlock(base, b0);
     err = WaitCrypEnClear(base, cfg->timeout);
     if (err)
-        return err;
+        goto cleanup;
 
     /* Header phase (AAD) */
     if (aadSz > 0) {
@@ -1226,7 +1249,7 @@ whal_Error whal_Stm32n6_CrypAesCcm_Oneshot(whal_AesCcm *dev,
 
         err = WaitBusyClear(base, cfg->timeout);
         if (err)
-            return err;
+            goto cleanup;
     }
 
     /* Payload phase */
@@ -1261,10 +1284,8 @@ whal_Error whal_Stm32n6_CrypAesCcm_Oneshot(whal_AesCcm *dev,
             }
 
             err = WaitOutputReady(base, cfg->timeout);
-            if (err) {
-                Disable(base);
-                return err;
-            }
+            if (err)
+                goto cleanup;
 
             if (remain >= 16) {
                 ReadBlock(base, outPtr);
@@ -1288,17 +1309,17 @@ whal_Error whal_Stm32n6_CrypAesCcm_Oneshot(whal_AesCcm *dev,
     WriteBlock(base, ctr0);
 
     err = WaitOutputReady(base, cfg->timeout);
-    if (err) {
-        Disable(base);
-        return err;
-    }
+    if (err)
+        goto cleanup;
 
     ReadBlock(base, tagBuf);
     for (i = 0; i < tagSz; i++)
         ((uint8_t *)tag)[i] = tagBuf[i];
 
+cleanup:
     Disable(base);
-    return WHAL_SUCCESS;
+    ZeroKeyIv(base);
+    return err;
 }
 
 whal_Error whal_Stm32n6_CrypAesCcm_Start(whal_AesCcm *dev,
@@ -1504,6 +1525,7 @@ whal_Error whal_Stm32n6_CrypAesCcm_Finalize(whal_AesCcm *dev,
     err = WaitOutputReady(base, cfg->timeout);
     if (err) {
         Disable(base);
+        ZeroKeyIv(base);
         return err;
     }
 
@@ -1512,6 +1534,7 @@ whal_Error whal_Stm32n6_CrypAesCcm_Finalize(whal_AesCcm *dev,
         ((uint8_t *)tag)[i] = tagBuf[i];
 
     Disable(base);
+    ZeroKeyIv(base);
     return WHAL_SUCCESS;
 }
 
