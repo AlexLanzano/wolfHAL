@@ -30,4 +30,7 @@ tests/                      Test framework and test suites
 
 ## License
 
-GPLv3 -- see [LICENSE](LICENSE) for details.
+wolfHAL is dual-licensed:
+- GPLv3 -- see [LICENSE](LICENSE) for details.
+- Commercial -- proprietary licenses are available from wolfSSL. Please contact
+licensing@wolfssl.com for more details.
