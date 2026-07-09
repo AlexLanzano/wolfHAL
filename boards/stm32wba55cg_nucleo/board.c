@@ -253,7 +253,10 @@ whal_Error Board_Init(void)
     if (err)
         return err;
 
-    /* HSE32 -> PLL1 (M=1, N=25, R=3 -> 100 MHz) -> SYSCLK = PLL1 */
+    /* M/N/R are (value-1) encoded per RM0493 (divide/multiply = field + 1):
+     *   f_ref  = HSE32 / (M+1) = 32 / 2  = 16 MHz  (PLL1RGE 8-16)
+     *   f_vco  = f_ref * (N+1) = 16 * 25 = 400 MHz (VCO 128-544)
+     *   SYSCLK = f_vco / (R+1) = 400 / 4 = 100 MHz (part max) */
     err = whal_Stm32wba_Rcc_EnableOsc(
         &(whal_Stm32wba_Rcc_OscCfg){WHAL_STM32WBA_RCC_HSE32_CFG});
     if (err)
@@ -261,7 +264,7 @@ whal_Error Board_Init(void)
     err = whal_Stm32wba_Rcc_EnablePll1(&(whal_Stm32wba_Rcc_Pll1Cfg){
         .clkSrc = WHAL_STM32WBA_RCC_PLL1SRC_HSE32,
         .rge = WHAL_STM32WBA_RCC_PLL1RGE_8_16,
-        .m = 1, .n = 25, .r = 3, .q = 0, .p = 0,
+        .m = 1, .n = 24, .r = 3, .q = 0, .p = 0,
     });
     if (err)
         return err;
