@@ -208,17 +208,18 @@ static whal_Error ProcessBlockCipher(whal_Crypto *cryptoDev,
     if (sz == 0)
         return WHAL_SUCCESS;
 
-    if (!in || !out)
+    if (!in || !out || (sz & 0xF) != 0) {
+        whal_Reg_Update(base, AES_CR_REG, AES_CR_EN_Msk, 0);
+        ZeroKeyIv(base);
         return WHAL_EINVAL;
-
-    if ((sz & 0xF) != 0)
-        return WHAL_EINVAL;
+    }
 
     for (i = 0; i < sz; i += 16) {
         WriteBlock(base, in + i);
         err = WaitForCCF(base, cfg->timeout);
         if (err) {
             whal_Reg_Update(base, AES_CR_REG, AES_CR_EN_Msk, 0);
+            ZeroKeyIv(base);
             return err;
         }
         ReadBlock(base, out + i);
@@ -904,6 +905,7 @@ whal_Error whal_Stm32wb_AesGcm_Start(whal_AesGcm *dev, whal_Crypto_Dir dir,
 
 cleanup:
     whal_Reg_Update(base, AES_CR_REG, AES_CR_EN_Msk, 0);
+    ZeroKeyIv(base);
     return err;
 }
 
@@ -925,8 +927,11 @@ whal_Error whal_Stm32wb_AesGcm_Process(whal_AesGcm *dev,
     if (sz == 0)
         return WHAL_SUCCESS;
 
-    if (!in || !out)
+    if (!in || !out) {
+        whal_Reg_Update(base, AES_CR_REG, AES_CR_EN_Msk, 0);
+        ZeroKeyIv(base);
         return WHAL_EINVAL;
+    }
 
     mode = whal_GetBits(AES_CR_MODE_Msk, AES_CR_MODE_Pos,
                         whal_Reg_Read(base, AES_CR_REG));
@@ -955,6 +960,7 @@ whal_Error whal_Stm32wb_AesGcm_Process(whal_AesGcm *dev,
         err = WaitForCCF(base, cfg->timeout);
         if (err) {
             whal_Reg_Update(base, AES_CR_REG, AES_CR_EN_Msk, 0);
+            ZeroKeyIv(base);
             return err;
         }
 
@@ -987,8 +993,11 @@ whal_Error whal_Stm32wb_AesGcm_Finalize(whal_AesGcm *dev,
 
     (void)dev;
 
-    if (!tag || tagSz == 0 || tagSz > 16)
+    if (!tag || tagSz == 0 || tagSz > 16) {
+        whal_Reg_Update(base, AES_CR_REG, AES_CR_EN_Msk, 0);
+        ZeroKeyIv(base);
         return WHAL_EINVAL;
+    }
 
     /* Final phase (tag) */
     whal_Reg_Update(base, AES_CR_REG,
@@ -1537,6 +1546,7 @@ whal_Error whal_Stm32wb_AesCcm_Start(whal_AesCcm *dev, whal_Crypto_Dir dir,
 
 cleanup:
     whal_Reg_Update(base, AES_CR_REG, AES_CR_EN_Msk, 0);
+    ZeroKeyIv(base);
     return err;
 }
 
@@ -1558,8 +1568,11 @@ whal_Error whal_Stm32wb_AesCcm_Process(whal_AesCcm *dev,
     if (sz == 0)
         return WHAL_SUCCESS;
 
-    if (!in || !out)
+    if (!in || !out) {
+        whal_Reg_Update(base, AES_CR_REG, AES_CR_EN_Msk, 0);
+        ZeroKeyIv(base);
         return WHAL_EINVAL;
+    }
 
     mode = whal_GetBits(AES_CR_MODE_Msk, AES_CR_MODE_Pos,
                         whal_Reg_Read(base, AES_CR_REG));
@@ -1588,6 +1601,7 @@ whal_Error whal_Stm32wb_AesCcm_Process(whal_AesCcm *dev,
         err = WaitForCCF(base, cfg->timeout);
         if (err) {
             whal_Reg_Update(base, AES_CR_REG, AES_CR_EN_Msk, 0);
+            ZeroKeyIv(base);
             return err;
         }
 
@@ -1620,8 +1634,11 @@ whal_Error whal_Stm32wb_AesCcm_Finalize(whal_AesCcm *dev,
 
     (void)dev;
 
-    if (!tag || tagSz < 4 || tagSz > 16 || (tagSz & 1) != 0)
+    if (!tag || tagSz < 4 || tagSz > 16 || (tagSz & 1) != 0) {
+        whal_Reg_Update(base, AES_CR_REG, AES_CR_EN_Msk, 0);
+        ZeroKeyIv(base);
         return WHAL_EINVAL;
+    }
 
     /* Final phase (tag) */
     whal_Reg_Update(base, AES_CR_REG,
