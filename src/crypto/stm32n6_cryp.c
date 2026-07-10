@@ -300,8 +300,11 @@ static whal_Error Process_BlockCipher(const uint8_t *in, uint8_t *out, size_t sz
     if (sz == 0)
         return WHAL_SUCCESS;
 
-    if (!in || !out || (sz & 0xF) != 0)
+    if (!in || !out || (sz & 0xF) != 0) {
+        Disable(base);
+        ZeroKeyIv(base);
         return WHAL_EINVAL;
+    }
 
     for (i = 0; i < sz; i += 16) {
         WriteBlock(base, in + i);
@@ -967,8 +970,11 @@ whal_Error whal_Stm32n6_CrypAesGcm_Process(whal_AesGcm *dev,
     if (sz == 0)
         return WHAL_SUCCESS;
 
-    if (!in || !out)
+    if (!in || !out) {
+        Disable(base);
+        ZeroKeyIv(base);
         return WHAL_EINVAL;
+    }
 
     for (i = 0; i < sz; i += 16) {
         const uint8_t *inPtr = (const uint8_t *)in + i;
@@ -1019,8 +1025,11 @@ whal_Error whal_Stm32n6_CrypAesGcm_Finalize(whal_AesGcm *dev,
     whal_Error err;
     (void)dev;
 
-    if (!tag || tagSz == 0 || tagSz > 16)
+    if (!tag || tagSz == 0 || tagSz > 16) {
+        Disable(base);
+        ZeroKeyIv(base);
         return WHAL_EINVAL;
+    }
 
     /* Final phase */
     Disable(base);
@@ -1476,8 +1485,11 @@ whal_Error whal_Stm32n6_CrypAesCcm_Process(whal_AesCcm *dev,
     if (sz == 0)
         return WHAL_SUCCESS;
 
-    if (!in || !out)
+    if (!in || !out) {
+        Disable(base);
+        ZeroKeyIv(base);
         return WHAL_EINVAL;
+    }
 
     algoDir = whal_GetBits(CRYP_CR_ALGODIR_Msk, CRYP_CR_ALGODIR_Pos,
                            whal_Reg_Read(base, CRYP_CR_REG));
@@ -1536,8 +1548,11 @@ whal_Error whal_Stm32n6_CrypAesCcm_Finalize(whal_AesCcm *dev,
     whal_Error err;
     (void)dev;
 
-    if (!tag || tagSz < 4 || tagSz > 16 || (tagSz & 1) != 0)
+    if (!tag || tagSz < 4 || tagSz > 16 || (tagSz & 1) != 0) {
+        Disable(base);
+        ZeroKeyIv(base);
         return WHAL_EINVAL;
+    }
 
     /* Final phase */
     Disable(base);
