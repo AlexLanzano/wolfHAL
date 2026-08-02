@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        extra_cflags: ["", "-DWHAL_CFG_NO_TIMEOUT"]
+        extra_cflags: ["", "-DWHAL_CFG_NO_TIMEOUT", "-DWHAL_CFG_64BIT_TICK"]
     steps:
       - uses: actions/checkout@v4
 

@@ -267,6 +267,9 @@ The tick units are determined by the board's `GetTick` implementation. A 1 kHz
 SysTick gives millisecond ticks; a 1 MHz timer gives microsecond ticks. Drivers
 do not need to know the tick rate.
 
+The tick fields are 32-bit by default; define `WHAL_CFG_64BIT_TICK` to widen
+them to 64-bit (see "64-bit Ticks" below).
+
 #### whal_Reg_ReadPoll
 
 For the common case of polling a register bit, use `whal_Reg_ReadPoll` from
@@ -324,6 +327,27 @@ Define `WHAL_CFG_NO_TIMEOUT` to remove all timeout logic from the binary.
 When defined, `WHAL_TIMEOUT_START` becomes a no-op and `WHAL_TIMEOUT_EXPIRED`
 always evaluates to `0`, so polling loops run until the hardware condition is
 met with no overhead.
+
+#### 64-bit Ticks
+
+By default the tick fields (`timeoutTicks`, `startTick`, and the `GetTick`
+return value) are 32-bit, which wraps in about 49 days at millisecond
+resolution. Define `WHAL_CFG_64BIT_TICK` to widen them to `uint64_t` for
+systems that need a longer monotonic range. The elapsed-time comparison in
+`WHAL_TIMEOUT_EXPIRED` uses unsigned wraparound arithmetic that adjusts to the
+configured width, so both settings handle a tick-counter wrap correctly.
+
+When the macro is defined, the board's tick source must match the width: its
+`g_tick` counter and `GetTick` callback (typically `Board_GetTick`) must be
+`uint64_t`, since `whal_Timeout.GetTick` becomes `uint64_t (*)(void)`. The
+`WHAL_TICK_MAX` macro in `wolfHAL/timeout.h` evaluates to the maximum tick
+value at the configured width (`UINT32_MAX` or `UINT64_MAX`) for wrap-handling
+logic.
+
+A 64-bit `GetTick` must return a coherent snapshot. On a 32-bit MCU a 64-bit
+read is two loads, so a tick interrupt landing between them returns a torn value
+and `WHAL_TIMEOUT_EXPIRED` reports a spurious timeout. Read with interrupts
+masked, or retry until the halves agree.
 
 #### Adding Timeout to a Config Struct
 
