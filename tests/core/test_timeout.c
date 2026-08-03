@@ -24,12 +24,21 @@
 
 #ifndef WHAL_CFG_NO_TIMEOUT
 
+#ifdef WHAL_CFG_64BIT_TICK
+static uint64_t g_fakeTick;
+
+static uint64_t FakeTick(void)
+{
+    return g_fakeTick;
+}
+#else
 static uint32_t g_fakeTick;
 
 static uint32_t FakeTick(void)
 {
     return g_fakeTick;
 }
+#endif
 
 static whal_Timeout g_timeout = {
     .timeoutTicks = 10,
@@ -134,12 +143,12 @@ static void Test_Timeout_TickWrap(void)
 {
     int expired;
 
-    g_fakeTick = UINT32_MAX - 3;
+    g_fakeTick = WHAL_TICK_MAX - 3;
     WHAL_TIMEOUT_START(timeout());
-    g_fakeTick = UINT32_MAX;
+    g_fakeTick = WHAL_TICK_MAX;
     expired = WHAL_TIMEOUT_EXPIRED(timeout());
     WHAL_ASSERT_EQ(expired, 0);
-    g_fakeTick = UINT32_MAX - 3 + 10;
+    g_fakeTick = WHAL_TICK_MAX - 3 + 10;
     expired = WHAL_TIMEOUT_EXPIRED(timeout());
     WHAL_ASSERT_NEQ(expired, 0);
 }

@@ -36,10 +36,24 @@
  * defined, all timeout operations compile away completely.
  */
 
+/* Tick width. Define WHAL_CFG_64BIT_TICK to widen ticks to 64-bit; the default
+ * is 32-bit. A board's g_tick / GetTick source must match this width. */
+#ifdef WHAL_CFG_64BIT_TICK
+#define WHAL_TICK_MAX UINT64_MAX
+#else
+#define WHAL_TICK_MAX UINT32_MAX
+#endif
+
 typedef struct {
+#ifdef WHAL_CFG_64BIT_TICK
+    uint64_t timeoutTicks;
+    uint64_t startTick;
+    uint64_t (*GetTick)(void);
+#else
     uint32_t timeoutTicks;
     uint32_t startTick;
     uint32_t (*GetTick)(void);
+#endif
 } whal_Timeout;
 
 #ifdef WHAL_CFG_NO_TIMEOUT
@@ -66,8 +80,13 @@ typedef struct {
  *
  * Safe to call with a NULL pointer — returns 0 (not expired).
  */
+#ifdef WHAL_CFG_64BIT_TICK
+#define WHAL_TIMEOUT_EXPIRED(t) \
+    ((t) && ((uint64_t)((t)->GetTick() - (t)->startTick) >= (t)->timeoutTicks))
+#else
 #define WHAL_TIMEOUT_EXPIRED(t) \
     ((t) && ((uint32_t)((t)->GetTick() - (t)->startTick) >= (t)->timeoutTicks))
+#endif
 
 #endif /* WHAL_CFG_NO_TIMEOUT */
 
