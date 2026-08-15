@@ -101,10 +101,55 @@ static void Test_HmacSha1_Streaming(void)
     WHAL_ASSERT_MEM_EQ(digest, hmacSha1StreamMac, sizeof(hmacSha1StreamMac));
 }
 
+static const uint8_t hmacUnalignedKey[21] = {
+    0x01, 0x0A, 0x13, 0x1C, 0x25, 0x2E, 0x37, 0x40,
+    0x49, 0x52, 0x5B, 0x64, 0x6D, 0x76, 0x7F, 0x88,
+    0x91, 0x9A, 0xA3, 0xAC, 0xB5,
+};
+
+static const uint8_t hmacSha1UnalignedMac[20] = {
+    0xC8, 0x44, 0xBC, 0x2F, 0x83, 0xB6, 0xC8, 0xFF,
+    0x28, 0x57, 0xB3, 0xED, 0xC3, 0xA5, 0x82, 0xC6,
+    0x65, 0xA4, 0xED, 0x3C,
+};
+
+static void Test_HmacSha1_UnalignedKey(void)
+{
+    uint8_t digest[20] = {0};
+    const size_t split = 3;
+
+    WHAL_ASSERT_EQ(whal_HmacSha1_Oneshot(BOARD_HMAC_SHA1_DEV,
+                                         hmacUnalignedKey,
+                                         sizeof(hmacUnalignedKey),
+                                         hmacInput, sizeof(hmacInput),
+                                         digest, sizeof(digest)),
+                   WHAL_SUCCESS);
+    WHAL_ASSERT_MEM_EQ(digest, hmacSha1UnalignedMac,
+                       sizeof(hmacSha1UnalignedMac));
+
+    WHAL_ASSERT_EQ(whal_HmacSha1_Start(BOARD_HMAC_SHA1_DEV,
+                                       hmacUnalignedKey,
+                                       sizeof(hmacUnalignedKey)),
+                   WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_HmacSha1_Process(BOARD_HMAC_SHA1_DEV,
+                                         hmacInput, split),
+                   WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_HmacSha1_Process(BOARD_HMAC_SHA1_DEV,
+                                         hmacInput + split,
+                                         sizeof(hmacInput) - split),
+                   WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_HmacSha1_Finalize(BOARD_HMAC_SHA1_DEV,
+                                          digest, sizeof(digest)),
+                   WHAL_SUCCESS);
+    WHAL_ASSERT_MEM_EQ(digest, hmacSha1UnalignedMac,
+                       sizeof(hmacSha1UnalignedMac));
+}
+
 void whal_Test_HmacSha1(void)
 {
     WHAL_TEST_SUITE_START("hmac_sha1");
     WHAL_TEST(Test_HmacSha1_KnownAnswer);
     WHAL_TEST(Test_HmacSha1_Streaming);
+    WHAL_TEST(Test_HmacSha1_UnalignedKey);
     WHAL_TEST_SUITE_END();
 }

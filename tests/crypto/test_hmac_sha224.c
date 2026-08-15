@@ -103,10 +103,56 @@ static void Test_HmacSha224_Streaming(void)
     WHAL_ASSERT_MEM_EQ(digest, hmacSha224StreamMac, sizeof(hmacSha224StreamMac));
 }
 
+static const uint8_t hmacUnalignedKey[21] = {
+    0x01, 0x0A, 0x13, 0x1C, 0x25, 0x2E, 0x37, 0x40,
+    0x49, 0x52, 0x5B, 0x64, 0x6D, 0x76, 0x7F, 0x88,
+    0x91, 0x9A, 0xA3, 0xAC, 0xB5,
+};
+
+static const uint8_t hmacSha224UnalignedMac[28] = {
+    0xDB, 0x52, 0x02, 0xDA, 0xE1, 0x60, 0x9A, 0xED,
+    0xF7, 0x28, 0x13, 0x7A, 0x0B, 0x5A, 0xE4, 0x80,
+    0x69, 0x08, 0xA5, 0xF7, 0x5B, 0x6A, 0xAB, 0xC4,
+    0xA4, 0x22, 0xC0, 0x1D,
+};
+
+static void Test_HmacSha224_UnalignedKey(void)
+{
+    uint8_t digest[28] = {0};
+    const size_t split = 3;
+
+    WHAL_ASSERT_EQ(whal_HmacSha224_Oneshot(BOARD_HMAC_SHA224_DEV,
+                                           hmacUnalignedKey,
+                                           sizeof(hmacUnalignedKey),
+                                           hmacInput, sizeof(hmacInput),
+                                           digest, sizeof(digest)),
+                   WHAL_SUCCESS);
+    WHAL_ASSERT_MEM_EQ(digest, hmacSha224UnalignedMac,
+                       sizeof(hmacSha224UnalignedMac));
+
+    WHAL_ASSERT_EQ(whal_HmacSha224_Start(BOARD_HMAC_SHA224_DEV,
+                                         hmacUnalignedKey,
+                                         sizeof(hmacUnalignedKey)),
+                   WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_HmacSha224_Process(BOARD_HMAC_SHA224_DEV,
+                                           hmacInput, split),
+                   WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_HmacSha224_Process(BOARD_HMAC_SHA224_DEV,
+                                           hmacInput + split,
+                                           sizeof(hmacInput) - split),
+                   WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_HmacSha224_Finalize(BOARD_HMAC_SHA224_DEV,
+                                            digest, sizeof(digest)),
+                   WHAL_SUCCESS);
+    WHAL_ASSERT_MEM_EQ(digest, hmacSha224UnalignedMac,
+                       sizeof(hmacSha224UnalignedMac));
+}
+
 void whal_Test_HmacSha224(void)
 {
     WHAL_TEST_SUITE_START("hmac_sha224");
     WHAL_TEST(Test_HmacSha224_KnownAnswer);
     WHAL_TEST(Test_HmacSha224_Streaming);
+    WHAL_TEST(Test_HmacSha224_UnalignedKey);
     WHAL_TEST_SUITE_END();
 }
