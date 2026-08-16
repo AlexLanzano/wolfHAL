@@ -109,7 +109,7 @@
 #define SPI_IFCR_TXTFC_Pos 4
 #define SPI_IFCR_TXTFC_Msk (1UL << SPI_IFCR_TXTFC_Pos)
 
-/* Data Registers - byte accessible */
+/* Data Registers - 8/16/32-bit accessible */
 #define SPI_TXDR_REG 0x020
 #define SPI_RXDR_REG 0x030
 
@@ -292,7 +292,8 @@ whal_Error whal_Stm32h5_Spi_SendRecv(whal_Spi *spiDev,
     uint8_t *rxBuf = (uint8_t *)rx;
     size_t totalLen;
     whal_Error err;
-    uint8_t txByte;
+    uint8_t wordSz;
+    uint8_t frameBytes;
 #ifdef WHAL_CFG_STM32H5_SPI_SINGLE_INSTANCE
     whal_Stm32h5_Spi_Cfg *cfg =
         (whal_Stm32h5_Spi_Cfg *)whal_Stm32h5_Spi_Dev.cfg;
@@ -311,9 +312,24 @@ whal_Error whal_Stm32h5_Spi_SendRecv(whal_Spi *spiDev,
     base = spiDev->base;
     cfg = (whal_Stm32h5_Spi_Cfg *)spiDev->cfg;
 #endif
+    /* Frame width drives the data-register access width. DSIZE holds
+     * wordSz-1; frames occupy 1/2/4 buffer bytes held native-endian
+     * (little-endian on these targets). */
+    wordSz = whal_GetBits(SPI_CFG1_DSIZE_Msk, SPI_CFG1_DSIZE_Pos,
+                          whal_Reg_Read(base, SPI_CFG1_REG)) + 1;
+    frameBytes = (wordSz > 16) ? 4 : (wordSz > 8) ? 2 : 1;
+
+    /* A multi-byte frame spans several buffer bytes, so each buffer must
+     * hold a whole number of frames. */
+    if ((txLen % frameBytes) || (rxLen % frameBytes))
+        return WHAL_EINVAL;
+
     totalLen = txLen > rxLen ? txLen : rxLen;
 
-    for (size_t i = 0; i < totalLen; i++) {
+    for (size_t i = 0; i < totalLen; i += frameBytes) {
+        uint32_t frame = 0;
+        size_t b;
+
         /* Wait for TXP (TX FIFO has space) */
         err = whal_Reg_ReadPoll(base, SPI_SR_REG,
                                 SPI_SR_TXP_Msk, SPI_SR_TXP_Msk,
@@ -321,9 +337,20 @@ whal_Error whal_Stm32h5_Spi_SendRecv(whal_Spi *spiDev,
         if (err)
             return err;
 
-        /* Write TX data, pad with 0xFF when exhausted */
-        txByte = (txBuf && i < txLen) ? txBuf[i] : 0xFF;
-        *(volatile uint8_t *)(base + SPI_TXDR_REG) = txByte;
+        /* Assemble the frame from the byte buffer (native little-endian),
+         * padding with 0xFF past the end of tx. */
+        for (b = 0; b < frameBytes; b++) {
+            uint8_t val = (txBuf && (i + b) < txLen) ? txBuf[i + b] : 0xFF;
+            frame |= (uint32_t)val << (8 * b);
+        }
+
+        /* Write with the access width matching the frame size */
+        if (frameBytes == 1)
+            *(volatile uint8_t *)(base + SPI_TXDR_REG) = (uint8_t)frame;
+        else if (frameBytes == 2)
+            *(volatile uint16_t *)(base + SPI_TXDR_REG) = (uint16_t)frame;
+        else
+            *(volatile uint32_t *)(base + SPI_TXDR_REG) = frame;
 
         /* Wait for RXP (RX FIFO has data) */
         err = whal_Reg_ReadPoll(base, SPI_SR_REG,
@@ -332,11 +359,19 @@ whal_Error whal_Stm32h5_Spi_SendRecv(whal_Spi *spiDev,
         if (err)
             return err;
 
-        /* Read RX byte */
-        if (rxBuf && i < rxLen)
-            rxBuf[i] = *(volatile uint8_t *)(base + SPI_RXDR_REG);
+        /* Drain at the matching width */
+        if (frameBytes == 1)
+            frame = *(volatile uint8_t *)(base + SPI_RXDR_REG);
+        else if (frameBytes == 2)
+            frame = *(volatile uint16_t *)(base + SPI_RXDR_REG);
         else
-            (void)*(volatile uint8_t *)(base + SPI_RXDR_REG);
+            frame = *(volatile uint32_t *)(base + SPI_RXDR_REG);
+
+        /* Split into the byte buffer native little-endian, or discard */
+        if (rxBuf && i < rxLen) {
+            for (b = 0; b < frameBytes; b++)
+                rxBuf[i + b] = (uint8_t)(frame >> (8 * b));
+        }
     }
 
     return WHAL_SUCCESS;

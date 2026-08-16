@@ -34,7 +34,7 @@
  *
  * The SPI peripheral provides full-duplex synchronous serial communication.
  * This driver configures it in master mode with software slave management
- * and 8-bit data frames.
+ * and 4- to 16-bit data frames.
  */
 
 /* Control Register 1 - master config, clock, enable */
@@ -260,7 +260,8 @@ whal_Error whal_Stm32wb_Spi_SendRecv(whal_Spi *spiDev,
     uint8_t *rxBuf = (uint8_t *)rx;
     size_t totalLen;
     whal_Error err;
-    uint8_t txByte;
+    uint8_t wordSz;
+    uint8_t frameBytes;
 #ifdef WHAL_CFG_STM32WB_SPI_SINGLE_INSTANCE
     whal_Stm32wb_Spi_Cfg *cfg =
         (whal_Stm32wb_Spi_Cfg *)whal_Stm32wb_Spi_Dev.cfg;
@@ -281,9 +282,18 @@ whal_Error whal_Stm32wb_Spi_SendRecv(whal_Spi *spiDev,
     base = spiDev->base;
     cfg = (whal_Stm32wb_Spi_Cfg *)spiDev->cfg;
 #endif
+    wordSz = whal_GetBits(SPI_CR2_DS_Msk, SPI_CR2_DS_Pos,
+                          whal_Reg_Read(base, SPI_CR2_REG)) + 1;
+    frameBytes = (wordSz > 8) ? 2 : 1;
     totalLen = txLen > rxLen ? txLen : rxLen;
 
-    for (size_t i = 0; i < totalLen; i++) {
+    /* A 16-bit frame spans two buffer bytes, so each buffer must hold a
+     * whole number of frames. */
+    if (frameBytes == 2 && ((txLen & 1) || (rxLen & 1))) {
+        return WHAL_EINVAL;
+    }
+
+    for (size_t i = 0; i < totalLen; i += frameBytes) {
         /* Wait for TX buffer empty */
         err = whal_Reg_ReadPoll(base, SPI_SR_REG,
                                 SPI_SR_TXE_Msk, SPI_SR_TXE_Msk,
@@ -291,9 +301,16 @@ whal_Error whal_Stm32wb_Spi_SendRecv(whal_Spi *spiDev,
         if (err)
             return err;
 
-        /* Write TX data, pad with 0xFF when tx is exhausted or NULL */
-        txByte = (txBuf && i < txLen) ? txBuf[i] : 0xFF;
-        *(volatile uint8_t *)(base + SPI_DR_REG) = txByte;
+        if (frameBytes == 2) {
+            uint8_t lo = (txBuf && i < txLen) ? txBuf[i] : 0xFF;
+            uint8_t hi = (txBuf && (i + 1) < txLen) ? txBuf[i + 1] : 0xFF;
+            *(volatile uint16_t *)(base + SPI_DR_REG) = (uint16_t) hi << 8 | (uint16_t) lo;
+
+        } else {
+            uint8_t txByte;
+            txByte = (txBuf && i < txLen) ? txBuf[i] : 0xFF;
+            *(volatile uint8_t *)(base + SPI_DR_REG) = txByte;
+        }
 
         /* Wait for RX byte */
         err = whal_Reg_ReadPoll(base, SPI_SR_REG,
@@ -303,10 +320,23 @@ whal_Error whal_Stm32wb_Spi_SendRecv(whal_Spi *spiDev,
             return err;
 
         /* Store or discard received byte */
-        if (rxBuf && i < rxLen)
-            rxBuf[i] = *(volatile uint8_t *)(base + SPI_DR_REG);
-        else
-            (void)*(volatile uint8_t *)(base + SPI_DR_REG);
+        if (rxBuf && i < rxLen) {
+            if (frameBytes == 2) {
+                uint16_t rxData = *(volatile uint16_t *)(base + SPI_DR_REG);
+                rxBuf[i] = (uint8_t)rxData;
+                rxBuf[i + 1] = (uint8_t)(rxData >> 8);
+            } else {
+                rxBuf[i] = *(volatile uint8_t *)(base + SPI_DR_REG);
+            }
+        }
+        else {
+            if (frameBytes == 2) {
+                (void)*(volatile uint16_t *)(base + SPI_DR_REG);
+
+            } else {
+                (void)*(volatile uint8_t *)(base + SPI_DR_REG);
+            }
+        }
     }
 
     /* Wait for not busy */
