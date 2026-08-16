@@ -111,7 +111,7 @@ static void Test_Eth_UndersizedRecv(void)
     } while (err == WHAL_ENOTREADY && (g_tick - start) < 100);
 
     WHAL_ASSERT_EQ(err, WHAL_EINVAL);
-    WHAL_ASSERT_NEQ(smallLen, sizeof(smallBuf));
+    WHAL_ASSERT_EQ(smallLen > sizeof(smallBuf), 1);
 
     err = whal_Eth_Recv(BOARD_ETH_DEV, rxFrame, &rxLen);
     WHAL_ASSERT_EQ(err, WHAL_SUCCESS);

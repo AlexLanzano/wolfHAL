@@ -287,8 +287,8 @@ whal_Error whal_Stm32wb_Spi_SendRecv(whal_Spi *spiDev,
     frameBytes = (wordSz > 8) ? 2 : 1;
     totalLen = txLen > rxLen ? txLen : rxLen;
 
-    /* A 16-bit frame spans two buffer bytes, so each buffer must hold a
-     * whole number of frames. */
+    /* A frame wider than 8 bits (9-16 bit) spans two buffer bytes, so each
+     * buffer must hold a whole number of frames. */
     if (frameBytes == 2 && ((txLen & 1) || (rxLen & 1))) {
         return WHAL_EINVAL;
     }
