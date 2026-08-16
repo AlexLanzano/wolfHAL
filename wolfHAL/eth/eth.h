@@ -139,10 +139,12 @@ whal_Error whal_Eth_Send(whal_Eth *ethDev, const void *frame, size_t len);
  *
  * @param ethDev Ethernet device instance.
  * @param frame  Buffer to receive frame data into.
- * @param len    On entry, size of the buffer. On exit, length of received frame.
+ * @param len    On entry, buffer size. On exit, the frame length (its full
+ *               length even if it did not fit).
  *
  * @retval WHAL_SUCCESS   Frame received.
- * @retval WHAL_EINVAL    Invalid arguments.
+ * @retval WHAL_EINVAL    Invalid arguments, or buffer too small (@p len set to
+ *                        the required size; frame kept for retry).
  * @retval WHAL_ENOTREADY No frame available.
  */
 whal_Error whal_Eth_Recv(whal_Eth *ethDev, void *frame, size_t *len);
