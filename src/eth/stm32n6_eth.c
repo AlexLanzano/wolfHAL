@@ -434,8 +434,10 @@ whal_Error whal_Stm32n6_Eth_Recv(whal_Eth *ethDev, void *frame,
 
     /* Extract packet length */
     pktLen = rdes3 & RDES3_PL_Msk;
-    if (pktLen > *len)
-        pktLen = *len;
+    if (pktLen > *len) {
+        *len = pktLen;
+        return WHAL_EINVAL;
+    }
 
     /* Copy frame data */
     uint8_t *rxBuf = (uint8_t *)(cfg->rxBufs + idx * cfg->rxBufSize);

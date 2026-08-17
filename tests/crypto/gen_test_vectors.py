@@ -166,6 +166,21 @@ emit("hmacSha224StreamMac", hmac_mac(hashes.SHA224(), hmac_key, LONG_BUF))
 emit("hmacSha256StreamMac", hmac_mac(hashes.SHA256(), hmac_key, LONG_BUF))
 
 
+# ---- HMAC with a non-word-aligned (21-byte) key ----
+# Reuses the RFC TC1 "Hi There" message (word-aligned) with a 21-byte key.
+hmac_unaligned_key = bytes((i * 9 + 1) & 0xFF for i in range(21))
+hmac_unaligned_msg = b"Hi There"
+
+banner("test_hmac_sha*.c — non-word-aligned (21-byte) key vectors")
+emit("hmacUnalignedKey", hmac_unaligned_key)
+emit("hmacSha1UnalignedMac",
+     hmac_mac(hashes.SHA1(), hmac_unaligned_key, hmac_unaligned_msg))
+emit("hmacSha224UnalignedMac",
+     hmac_mac(hashes.SHA224(), hmac_unaligned_key, hmac_unaligned_msg))
+emit("hmacSha256UnalignedMac",
+     hmac_mac(hashes.SHA256(), hmac_unaligned_key, hmac_unaligned_msg))
+
+
 # ---- RSA-1024 raw primitive KAT ----
 # Fixed key matches the rsaN / rsaE / rsaD / ... arrays in test_pka.c.
 # Test plaintext is 0x00..0x7F (128 bytes), guaranteed < n (which starts

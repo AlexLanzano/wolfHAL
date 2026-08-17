@@ -30,10 +30,7 @@ static void Test_Timer_TicksAdvance(void)
     size_t before = g_tick;
 
     /* Spin for ~100ms worth of ticks. At 1ms/tick this should yield ~100. */
-    volatile size_t spin = 0;
-    while (g_tick - before < 100) {
-        spin++;
-    }
+    while (g_tick - before < 100) {}
 
     size_t elapsed = g_tick - before;
 

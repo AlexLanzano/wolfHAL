@@ -589,6 +589,7 @@ whal_Error whal_Stm32wba_HmacSha1_Oneshot(whal_HmacSha1 *dev,
         return err;
 
     /* Message */
+    whal_Reg_Update(base, HASH_STR_REG, HASH_STR_NBLW_Msk, 0);
     if (inSz > 0) {
         if (!in)
             return WHAL_EINVAL;
@@ -686,6 +687,7 @@ whal_Error whal_Stm32wba_HmacSha1_Finalize(whal_HmacSha1 *dev,
         return WHAL_EINVAL;
 
     /* Drain any buffered tail bytes, then DCAL to close message phase. */
+    whal_Reg_Update(base, HASH_STR_REG, HASH_STR_NBLW_Msk, 0);
     StreamDrain(base);
 
     whal_Reg_Update(base, HASH_STR_REG, HASH_STR_DCAL_Msk,
@@ -759,6 +761,7 @@ whal_Error whal_Stm32wba_HmacSha224_Oneshot(whal_HmacSha224 *dev,
         return err;
 
     /* Message */
+    whal_Reg_Update(base, HASH_STR_REG, HASH_STR_NBLW_Msk, 0);
     if (inSz > 0) {
         if (!in)
             return WHAL_EINVAL;
@@ -856,6 +859,7 @@ whal_Error whal_Stm32wba_HmacSha224_Finalize(whal_HmacSha224 *dev,
         return WHAL_EINVAL;
 
     /* Drain any buffered tail bytes, then DCAL to close message phase. */
+    whal_Reg_Update(base, HASH_STR_REG, HASH_STR_NBLW_Msk, 0);
     StreamDrain(base);
 
     whal_Reg_Update(base, HASH_STR_REG, HASH_STR_DCAL_Msk,
@@ -929,6 +933,7 @@ whal_Error whal_Stm32wba_HmacSha256_Oneshot(whal_HmacSha256 *dev,
         return err;
 
     /* Message */
+    whal_Reg_Update(base, HASH_STR_REG, HASH_STR_NBLW_Msk, 0);
     if (inSz > 0) {
         if (!in)
             return WHAL_EINVAL;
@@ -1026,6 +1031,7 @@ whal_Error whal_Stm32wba_HmacSha256_Finalize(whal_HmacSha256 *dev,
         return WHAL_EINVAL;
 
     /* Drain any buffered tail bytes, then DCAL to close message phase. */
+    whal_Reg_Update(base, HASH_STR_REG, HASH_STR_NBLW_Msk, 0);
     StreamDrain(base);
 
     whal_Reg_Update(base, HASH_STR_REG, HASH_STR_DCAL_Msk,

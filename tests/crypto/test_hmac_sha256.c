@@ -103,10 +103,56 @@ static void Test_HmacSha256_Streaming(void)
     WHAL_ASSERT_MEM_EQ(digest, hmacSha256StreamMac, sizeof(hmacSha256StreamMac));
 }
 
+static const uint8_t hmacUnalignedKey[21] = {
+    0x01, 0x0A, 0x13, 0x1C, 0x25, 0x2E, 0x37, 0x40,
+    0x49, 0x52, 0x5B, 0x64, 0x6D, 0x76, 0x7F, 0x88,
+    0x91, 0x9A, 0xA3, 0xAC, 0xB5,
+};
+
+static const uint8_t hmacSha256UnalignedMac[32] = {
+    0x88, 0xE4, 0xD1, 0xEB, 0x73, 0xB6, 0xF8, 0x90,
+    0x54, 0xA5, 0x19, 0x7F, 0x71, 0xF3, 0x11, 0x6F,
+    0xC5, 0x2D, 0x73, 0xA4, 0x2B, 0xED, 0x00, 0xA8,
+    0xC4, 0xFF, 0xF9, 0x36, 0xF2, 0x99, 0x22, 0x97,
+};
+
+static void Test_HmacSha256_UnalignedKey(void)
+{
+    uint8_t digest[32] = {0};
+    const size_t split = 3;
+
+    WHAL_ASSERT_EQ(whal_HmacSha256_Oneshot(BOARD_HMAC_SHA256_DEV,
+                                           hmacUnalignedKey,
+                                           sizeof(hmacUnalignedKey),
+                                           hmacInput, sizeof(hmacInput),
+                                           digest, sizeof(digest)),
+                   WHAL_SUCCESS);
+    WHAL_ASSERT_MEM_EQ(digest, hmacSha256UnalignedMac,
+                       sizeof(hmacSha256UnalignedMac));
+
+    WHAL_ASSERT_EQ(whal_HmacSha256_Start(BOARD_HMAC_SHA256_DEV,
+                                         hmacUnalignedKey,
+                                         sizeof(hmacUnalignedKey)),
+                   WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_HmacSha256_Process(BOARD_HMAC_SHA256_DEV,
+                                           hmacInput, split),
+                   WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_HmacSha256_Process(BOARD_HMAC_SHA256_DEV,
+                                           hmacInput + split,
+                                           sizeof(hmacInput) - split),
+                   WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_HmacSha256_Finalize(BOARD_HMAC_SHA256_DEV,
+                                            digest, sizeof(digest)),
+                   WHAL_SUCCESS);
+    WHAL_ASSERT_MEM_EQ(digest, hmacSha256UnalignedMac,
+                       sizeof(hmacSha256UnalignedMac));
+}
+
 void whal_Test_HmacSha256(void)
 {
     WHAL_TEST_SUITE_START("hmac_sha256");
     WHAL_TEST(Test_HmacSha256_KnownAnswer);
     WHAL_TEST(Test_HmacSha256_Streaming);
+    WHAL_TEST(Test_HmacSha256_UnalignedKey);
     WHAL_TEST_SUITE_END();
 }

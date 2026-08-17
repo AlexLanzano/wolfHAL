@@ -963,6 +963,7 @@ whal_Error whal_Stm32n6_CrypAesGcm_Process(whal_AesGcm *dev,
     const whal_Stm32n6_Cryp_Cfg *cfg =
         (const whal_Stm32n6_Cryp_Cfg *)whal_Stm32n6_Cryp_Dev.cfg;
     size_t base = whal_Stm32n6_Cryp_Dev.base;
+    uint32_t algoDir;
     size_t i;
     whal_Error err;
     (void)dev;
@@ -976,6 +977,9 @@ whal_Error whal_Stm32n6_CrypAesGcm_Process(whal_AesGcm *dev,
         return WHAL_EINVAL;
     }
 
+    algoDir = whal_GetBits(CRYP_CR_ALGODIR_Msk, CRYP_CR_ALGODIR_Pos,
+                           whal_Reg_Read(base, CRYP_CR_REG));
+
     for (i = 0; i < sz; i += 16) {
         const uint8_t *inPtr = (const uint8_t *)in + i;
         uint8_t *outPtr = (uint8_t *)out + i;
@@ -986,6 +990,12 @@ whal_Error whal_Stm32n6_CrypAesGcm_Process(whal_AesGcm *dev,
         if (remain >= 16) {
             WriteBlock(base, inPtr);
         } else {
+            if (algoDir == CRYP_ALGODIR_ENCRYPT) {
+                whal_Reg_Update(base, CRYP_CR_REG, CRYP_CR_NPBLB_Msk,
+                                whal_SetBits(CRYP_CR_NPBLB_Msk,
+                                             CRYP_CR_NPBLB_Pos,
+                                             16 - remain));
+            }
             for (j = 0; j < remain; j++)
                 block[j] = inPtr[j];
             WriteBlock(base, block);
