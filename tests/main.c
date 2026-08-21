@@ -141,6 +141,10 @@ void whal_Test_Eth_Platform(void);
 void whal_Test_Bmi270_Sensor(void);
 #endif
 
+#ifdef WHAL_TEST_ENABLE_SHARP_MEMORY_DISPLAY
+void whal_Test_SharpMemoryDisplay(void);
+#endif
+
 #ifdef WHAL_TEST_ENABLE_WATCHDOG
 void whal_Test_Watchdog(void);
 #ifdef WHAL_TEST_ENABLE_WATCHDOG_PLATFORM
@@ -331,6 +335,10 @@ void main(void)
 
 #ifdef WHAL_TEST_ENABLE_BMI270_SENSOR
     whal_Test_Bmi270_Sensor();
+#endif
+
+#ifdef WHAL_TEST_ENABLE_SHARP_MEMORY_DISPLAY
+    whal_Test_SharpMemoryDisplay();
 #endif
 
 #ifdef WHAL_TEST_ENABLE_WATCHDOG

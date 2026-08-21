@@ -40,3 +40,9 @@ CFLAGS += -DPERIPHERAL_BMI270
 BOARD_SOURCE += $(_PERIPHERAL_DIR)/sensor/imu/bmi270.c
 BOARD_SOURCE += $(WHAL_DIR)/src/sensor/imu/bmi270_sensor.c
 endif
+
+ifneq ($(filter sharp_ls013b7dh03,$(PERIPHERALS)),)
+CFLAGS += -DPERIPHERAL_SHARP_LS013B7DH03
+BOARD_SOURCE += $(_PERIPHERAL_DIR)/display/sharp_ls013b7dh03.c
+BOARD_SOURCE += $(WHAL_DIR)/src/display/sharp_memory_display.c
+endif

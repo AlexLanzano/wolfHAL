@@ -61,5 +61,6 @@
 #include <wolfHAL/eth_phy/eth_phy.h>
 #include <wolfHAL/sensor/sensor.h>
 #include <wolfHAL/pwm/pwm.h>
+#include <wolfHAL/display/display.h>
 
 #endif /* WOLFHAL_H */
