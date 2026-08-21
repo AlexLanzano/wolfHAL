@@ -30,11 +30,37 @@
 #include <wolfHAL/bitops.h>
 #include <wolfHAL/timeout.h>
 
-/*
- * LPC55S6x FLEXCOMM USART Register Definitions
- *
- * TODO: add register offsets, bit positions, and masks from the TRM.
- */
+/* FLEXCOMM peripheral-select register (selects USART/SPI/I2C for this instance). */
+#define FLEXCOMM_PSELID_REG          0xFF8
+#define FLEXCOMM_PSELID_PERSEL_Pos   0
+#define FLEXCOMM_PSELID_PERSEL_Msk   (WHAL_BITMASK(3) << FLEXCOMM_PSELID_PERSEL_Pos)
+#define FLEXCOMM_PSELID_PERSEL_USART 0x1
+
+/* USART registers (offsets within the FLEXCOMM address space). */
+#define USART_CFG_REG 0x000
+#define USART_CTL_REG 0x004
+
+#define USART_BRG_REG        0x020
+#define USART_BRG_BRGVAL_Pos 0
+#define USART_BRG_BRGVAL_Msk (WHAL_BITMASK(16) << USART_BRG_BRGVAL_Pos)
+
+#define USART_OSR_REG        0x028
+#define USART_OSR_OSRVAL_Pos 0
+#define USART_OSR_OSRVAL_Msk (WHAL_BITMASK(4) << USART_OSR_OSRVAL_Pos)
+
+#define USART_FIFOCFG_REG          0xE00
+#define USART_FIFOCFG_ENABLETX_Msk (1UL << 0)
+#define USART_FIFOCFG_ENABLERX_Msk (1UL << 1)
+
+#define USART_FIFOSTAT_REG            0xE04
+#define USART_FIFOSTAT_TXNOTFULL_Msk  (1UL << 5)
+#define USART_FIFOSTAT_RXNOTEMPTY_Msk (1UL << 6)
+
+#define USART_FIFOWR_REG 0xE20
+#define USART_FIFORD_REG 0xE30
+
+/* Baud generator oversampling (OSRVAL = 15 -> 16x). */
+#define USART_OVERSAMPLE 16
 
 #ifdef WHAL_CFG_LPC55S6X_UART_DIRECT_API_MAPPING
 #define whal_Lpc55s6x_Uart_Init      whal_Uart_Init
@@ -51,6 +77,7 @@ const whal_Uart whal_Lpc55s6x_Uart_Dev = WHAL_CFG_LPC55S6X_UART_DEV;
 
 whal_Error whal_Lpc55s6x_Uart_Init(whal_Uart *uartDev)
 {
+    uint32_t brg;
 #ifdef WHAL_CFG_LPC55S6X_UART_SINGLE_INSTANCE
     const whal_Lpc55s6x_Uart_Cfg *cfg =
         (const whal_Lpc55s6x_Uart_Cfg *)whal_Lpc55s6x_Uart_Dev.cfg;
@@ -67,10 +94,31 @@ whal_Error whal_Lpc55s6x_Uart_Init(whal_Uart *uartDev)
     base = uartDev->base;
     cfg = (whal_Lpc55s6x_Uart_Cfg *)uartDev->cfg;
 #endif
-    (void)base;
-    (void)cfg;
 
-    /* TODO: implement — program the baud rate generator and enable TX/RX. */
+    /* Route this FLEXCOMM instance to its USART function. */
+    whal_Reg_Update(base, FLEXCOMM_PSELID_REG, FLEXCOMM_PSELID_PERSEL_Msk,
+                    whal_SetBits(FLEXCOMM_PSELID_PERSEL_Msk,
+                                 FLEXCOMM_PSELID_PERSEL_Pos,
+                                 FLEXCOMM_PSELID_PERSEL_USART));
+
+    /* Only CFG is writable while disabled; enabling here (CFG carries ENABLE)
+     * lets the remaining registers be configured. */
+    whal_Reg_Write(base, USART_CFG_REG, cfg->cfgReg);
+    whal_Reg_Write(base, USART_CTL_REG, cfg->ctlReg);
+
+    /* Baud rate: BRGVAL = FCLK / (oversample * baud) - 1. */
+    brg = (cfg->fclkHz / (USART_OVERSAMPLE * cfg->baud)) - 1;
+    whal_Reg_Update(base, USART_OSR_REG, USART_OSR_OSRVAL_Msk,
+                    whal_SetBits(USART_OSR_OSRVAL_Msk, USART_OSR_OSRVAL_Pos,
+                                 USART_OVERSAMPLE - 1));
+    whal_Reg_Update(base, USART_BRG_REG, USART_BRG_BRGVAL_Msk,
+                    whal_SetBits(USART_BRG_BRGVAL_Msk, USART_BRG_BRGVAL_Pos, brg));
+
+    /* Enable the transmit and receive FIFOs. */
+    whal_Reg_Update(base, USART_FIFOCFG_REG,
+                    USART_FIFOCFG_ENABLETX_Msk | USART_FIFOCFG_ENABLERX_Msk,
+                    USART_FIFOCFG_ENABLETX_Msk | USART_FIFOCFG_ENABLERX_Msk);
+
     return WHAL_SUCCESS;
 }
 
@@ -88,9 +136,10 @@ whal_Error whal_Lpc55s6x_Uart_Deinit(whal_Uart *uartDev)
 
     base = uartDev->base;
 #endif
-    (void)base;
 
-    /* TODO: implement — disable the USART. */
+    /* Writing 0 to CFG clears ENABLE and resets the USART state machine. */
+    whal_Reg_Write(base, USART_CFG_REG, 0);
+
     return WHAL_SUCCESS;
 }
 
@@ -117,13 +166,18 @@ whal_Error whal_Lpc55s6x_Uart_Send(whal_Uart *uartDev, const void *data, size_t 
     base = uartDev->base;
     cfg = (whal_Lpc55s6x_Uart_Cfg *)uartDev->cfg;
 #endif
-    (void)base;
-    (void)cfg;
-    (void)buf;
-    (void)dataSz;
 
-    /* TODO: implement — poll the TX FIFO/ready flag (via whal_Reg_ReadPoll with
-     * cfg->timeout) and write each byte. */
+    for (size_t i = 0; i < dataSz; ++i) {
+        whal_Error err = whal_Reg_ReadPoll(base, USART_FIFOSTAT_REG,
+                                           USART_FIFOSTAT_TXNOTFULL_Msk,
+                                           USART_FIFOSTAT_TXNOTFULL_Msk,
+                                           cfg->timeout);
+        if (err)
+            return err;
+
+        whal_Reg_Write(base, USART_FIFOWR_REG, buf[i]);
+    }
+
     return WHAL_SUCCESS;
 }
 
@@ -150,13 +204,18 @@ whal_Error whal_Lpc55s6x_Uart_Recv(whal_Uart *uartDev, void *data, size_t dataSz
     base = uartDev->base;
     cfg = (whal_Lpc55s6x_Uart_Cfg *)uartDev->cfg;
 #endif
-    (void)base;
-    (void)cfg;
-    (void)buf;
-    (void)dataSz;
 
-    /* TODO: implement — poll the RX ready flag (via whal_Reg_ReadPoll with
-     * cfg->timeout) and read each byte. */
+    for (size_t i = 0; i < dataSz; ++i) {
+        whal_Error err = whal_Reg_ReadPoll(base, USART_FIFOSTAT_REG,
+                                           USART_FIFOSTAT_RXNOTEMPTY_Msk,
+                                           USART_FIFOSTAT_RXNOTEMPTY_Msk,
+                                           cfg->timeout);
+        if (err)
+            return err;
+
+        buf[i] = (uint8_t)whal_Reg_Read(base, USART_FIFORD_REG);
+    }
+
     return WHAL_SUCCESS;
 }
 

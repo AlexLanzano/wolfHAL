@@ -91,11 +91,20 @@ whal_Error Board_Init(void)
     if (err)
         return err;
 
+    err = whal_Lpc55s6x_Anactrl_EnableFroHf();
+    if (err)
+        return err;
+
     for (size_t i = 0; i < PERIPH_CLK_COUNT; ++i) {
         err = whal_Lpc55s6x_Syscon_EnablePeriphClk(&g_periphClks[i]);
         if (err)
             return err;
     }
+
+    err = whal_Lpc55s6x_Syscon_SetFlexcommClk(
+            0, WHAL_LPC55S6X_SYSCON_FCCLKSEL_FROHF, 0);
+    if (err)
+        return err;
 
     err = whal_Gpio_Init(BOARD_GPIO_DEV);
     if (err)

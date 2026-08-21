@@ -23,6 +23,7 @@
 #define WHAL_LPC55S6X_H
 
 #include <wolfHAL/clock/lpc55s6x_syscon.h>
+#include <wolfHAL/clock/lpc55s6x_anactrl.h>
 #include <wolfHAL/gpio/lpc55s6x_gpio.h>
 #include <wolfHAL/uart/lpc55s6x_uart.h>
 #include <wolfHAL/platform/arm/cortex_m33.h>
@@ -39,7 +40,7 @@
 #define WHAL_LPC55S6X_GPIO_BASE   0x4008C000
 #define WHAL_LPC55S6X_GPIO_DRIVER &whal_Lpc55s6x_Gpio_Driver
 
-#define WHAL_LPC55S6X_UART_BASE   0x00000000 /* TODO: FLEXCOMM USART base address */
+#define WHAL_LPC55S6X_UART_BASE   0x40086000
 #define WHAL_LPC55S6X_UART_DRIVER &whal_Lpc55s6x_Uart_Driver
 
 /* Peripheral clock gate descriptors (AHBCLKCTRLn register + enable bit). */

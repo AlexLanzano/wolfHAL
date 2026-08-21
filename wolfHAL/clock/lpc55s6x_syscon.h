@@ -47,6 +47,23 @@
 #define WHAL_LPC55S6X_SYSCON_AHBCLKCTRL1 0x204
 #define WHAL_LPC55S6X_SYSCON_AHBCLKCTRL2 0x208
 
+/* Flexcomm function-clock source select (FCCLKSELn, +4 per instance). */
+#define WHAL_LPC55S6X_SYSCON_FCCLKSEL0        0x2B0
+#define WHAL_LPC55S6X_SYSCON_FCCLKSEL_SEL_Pos 0
+#define WHAL_LPC55S6X_SYSCON_FCCLKSEL_SEL_Msk (WHAL_BITMASK(3) << WHAL_LPC55S6X_SYSCON_FCCLKSEL_SEL_Pos)
+
+/* FCCLKSEL SEL values. */
+#define WHAL_LPC55S6X_SYSCON_FCCLKSEL_MAINCLK 0
+#define WHAL_LPC55S6X_SYSCON_FCCLKSEL_FRO12M  2
+#define WHAL_LPC55S6X_SYSCON_FCCLKSEL_FROHF   3
+
+/* Flexcomm fractional rate generator (FLEXFRGnCTRL, +4 per instance). */
+#define WHAL_LPC55S6X_SYSCON_FLEXFRGCTRL0     0x320
+#define WHAL_LPC55S6X_SYSCON_FLEXFRG_DIV_Pos  0
+#define WHAL_LPC55S6X_SYSCON_FLEXFRG_DIV_Msk  (WHAL_BITMASK(8) << WHAL_LPC55S6X_SYSCON_FLEXFRG_DIV_Pos)
+#define WHAL_LPC55S6X_SYSCON_FLEXFRG_MULT_Pos 8
+#define WHAL_LPC55S6X_SYSCON_FLEXFRG_MULT_Msk (WHAL_BITMASK(8) << WHAL_LPC55S6X_SYSCON_FLEXFRG_MULT_Pos)
+
 /*
  * TODO: add the remaining register offsets/masks from the TRM (MAINCLKSELA/B
  * main clock mux, PLL0/PLL1 control/status, flash access-cycle config).
@@ -81,6 +98,34 @@ static inline whal_Error whal_Lpc55s6x_Syscon_EnablePll(void)
 static inline whal_Error whal_Lpc55s6x_Syscon_SetMainClock(void)
 {
     /* TODO: implement — program MAINCLKSELA/B and the AHB clock divider. */
+    return WHAL_SUCCESS;
+}
+
+/*
+ * @brief Select a Flexcomm instance's function clock (FCCLKSEL + FRG).
+ *
+ * @param instance Flexcomm interface index.
+ * @param sel      Clock source (WHAL_LPC55S6X_SYSCON_FCCLKSEL_*).
+ * @param mult     FRG numerator (0 = passthrough); denominator fixed at 256.
+ *
+ * @retval WHAL_SUCCESS Always.
+ */
+static inline whal_Error whal_Lpc55s6x_Syscon_SetFlexcommClk(
+    size_t instance, size_t sel, size_t mult)
+{
+    whal_Reg_Update(WHAL_LPC55S6X_SYSCON_BASE,
+                    WHAL_LPC55S6X_SYSCON_FCCLKSEL0 + instance * 4,
+                    WHAL_LPC55S6X_SYSCON_FCCLKSEL_SEL_Msk,
+                    whal_SetBits(WHAL_LPC55S6X_SYSCON_FCCLKSEL_SEL_Msk,
+                                 WHAL_LPC55S6X_SYSCON_FCCLKSEL_SEL_Pos, sel));
+    whal_Reg_Update(WHAL_LPC55S6X_SYSCON_BASE,
+                    WHAL_LPC55S6X_SYSCON_FLEXFRGCTRL0 + instance * 4,
+                    WHAL_LPC55S6X_SYSCON_FLEXFRG_DIV_Msk |
+                    WHAL_LPC55S6X_SYSCON_FLEXFRG_MULT_Msk,
+                    whal_SetBits(WHAL_LPC55S6X_SYSCON_FLEXFRG_DIV_Msk,
+                                 WHAL_LPC55S6X_SYSCON_FLEXFRG_DIV_Pos, 0xFF) |
+                    whal_SetBits(WHAL_LPC55S6X_SYSCON_FLEXFRG_MULT_Msk,
+                                 WHAL_LPC55S6X_SYSCON_FLEXFRG_MULT_Pos, mult));
     return WHAL_SUCCESS;
 }
 

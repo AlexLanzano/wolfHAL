@@ -52,16 +52,22 @@ enum {
         .pinCfg = (whal_Lpc55s6x_Gpio_PinCfg[PIN_COUNT]){ \
             [LED_PIN] = { \
                 .port = 1, \
-                .pin  = 9, \
+                .pin  = 4, \
                 .dir  = WHAL_LPC55S6X_GPIO_DIR_OUTPUT, \
+                .ioconCfg = WHAL_LPC55S6X_IOCON_TYPE_D(0, \
+                    WHAL_LPC55S6X_IOCON_MODE_INACTIVE, 0, 0, 1, 0), \
             }, \
             [UART_TX_PIN] = { \
                 .port = 0, \
                 .pin  = 30, \
+                .ioconCfg = WHAL_LPC55S6X_IOCON_TYPE_D(1, \
+                    WHAL_LPC55S6X_IOCON_MODE_INACTIVE, 0, 0, 1, 0), \
             }, \
             [UART_RX_PIN] = { \
                 .port = 0, \
                 .pin  = 29, \
+                .ioconCfg = WHAL_LPC55S6X_IOCON_TYPE_D(1, \
+                    WHAL_LPC55S6X_IOCON_MODE_PULLUP, 0, 0, 1, 0), \
             }, \
         }, \
     }, \
@@ -72,7 +78,11 @@ enum {
     .base = WHAL_LPC55S6X_UART_BASE, \
     /* .driver: direct API mapping */ \
     .cfg  = (void *)&(const whal_Lpc55s6x_Uart_Cfg){ \
+        .fclkHz  = 96000000, \
         .baud    = 115200, \
+        .cfgReg  = WHAL_LPC55S6X_USART_CFG(1, WHAL_LPC55S6X_USART_DATALEN_8BIT, \
+                       WHAL_LPC55S6X_USART_PARITY_NONE, WHAL_LPC55S6X_USART_STOP_1), \
+        .ctlReg  = WHAL_LPC55S6X_USART_CTL(0, 0, 0, 0, 0, 0), \
         .timeout = &g_whalTimeout, \
     }, \
 }
@@ -82,7 +92,7 @@ enum {
     .base = WHAL_CORTEX_M33_SYSTICK_BASE, \
     /* .driver: direct API mapping */ \
     .cfg  = (void *)&(const whal_SysTick_Cfg){ \
-        .cyclesPerTick = 12000000 / 1000, \
+        .cyclesPerTick = 48000000 / 1000, \
         .clkSrc  = WHAL_SYSTICK_CLKSRC_SYSCLK, \
         .tickInt = WHAL_SYSTICK_TICKINT_ENABLED, \
     }, \

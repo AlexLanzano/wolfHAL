@@ -26,6 +26,7 @@
 #include <stddef.h>
 #include <wolfHAL/uart/uart.h>
 #include <wolfHAL/timeout.h>
+#include <wolfHAL/bitops.h>
 
 /*
  * @file lpc55s6x_uart.h
@@ -33,13 +34,87 @@
  */
 
 /*
- * @brief LPC55S6x USART configuration parameters.
+ * USART CFG register (offset 0x000) bit fields.
+ */
+#define WHAL_LPC55S6X_USART_CFG_ENABLE_Pos    0
+#define WHAL_LPC55S6X_USART_CFG_ENABLE_Msk    (1UL << WHAL_LPC55S6X_USART_CFG_ENABLE_Pos)
+#define WHAL_LPC55S6X_USART_CFG_DATALEN_Pos   2
+#define WHAL_LPC55S6X_USART_CFG_DATALEN_Msk   (WHAL_BITMASK(2) << WHAL_LPC55S6X_USART_CFG_DATALEN_Pos)
+#define WHAL_LPC55S6X_USART_CFG_PARITYSEL_Pos 4
+#define WHAL_LPC55S6X_USART_CFG_PARITYSEL_Msk (WHAL_BITMASK(2) << WHAL_LPC55S6X_USART_CFG_PARITYSEL_Pos)
+#define WHAL_LPC55S6X_USART_CFG_STOPLEN_Pos   6
+#define WHAL_LPC55S6X_USART_CFG_STOPLEN_Msk   (1UL << WHAL_LPC55S6X_USART_CFG_STOPLEN_Pos)
+
+/* CFG DATALEN field values. */
+#define WHAL_LPC55S6X_USART_DATALEN_7BIT 0x0
+#define WHAL_LPC55S6X_USART_DATALEN_8BIT 0x1
+#define WHAL_LPC55S6X_USART_DATALEN_9BIT 0x2
+
+/* CFG PARITYSEL field values. */
+#define WHAL_LPC55S6X_USART_PARITY_NONE 0x0
+#define WHAL_LPC55S6X_USART_PARITY_EVEN 0x2
+#define WHAL_LPC55S6X_USART_PARITY_ODD  0x3
+
+/* CFG STOPLEN field values. */
+#define WHAL_LPC55S6X_USART_STOP_1 0x0
+#define WHAL_LPC55S6X_USART_STOP_2 0x1
+
+/*
+ * USART CTL register (offset 0x004) bit fields.
+ */
+#define WHAL_LPC55S6X_USART_CTL_TXBRKEN_Pos   1
+#define WHAL_LPC55S6X_USART_CTL_TXBRKEN_Msk   (1UL << WHAL_LPC55S6X_USART_CTL_TXBRKEN_Pos)
+#define WHAL_LPC55S6X_USART_CTL_ADDRDET_Pos   2
+#define WHAL_LPC55S6X_USART_CTL_ADDRDET_Msk   (1UL << WHAL_LPC55S6X_USART_CTL_ADDRDET_Pos)
+#define WHAL_LPC55S6X_USART_CTL_TXDIS_Pos     6
+#define WHAL_LPC55S6X_USART_CTL_TXDIS_Msk     (1UL << WHAL_LPC55S6X_USART_CTL_TXDIS_Pos)
+#define WHAL_LPC55S6X_USART_CTL_CC_Pos        8
+#define WHAL_LPC55S6X_USART_CTL_CC_Msk        (1UL << WHAL_LPC55S6X_USART_CTL_CC_Pos)
+#define WHAL_LPC55S6X_USART_CTL_CLRCCRX_Pos   9
+#define WHAL_LPC55S6X_USART_CTL_CLRCCRX_Msk   (1UL << WHAL_LPC55S6X_USART_CTL_CLRCCRX_Pos)
+#define WHAL_LPC55S6X_USART_CTL_AUTOBAUD_Pos  16
+#define WHAL_LPC55S6X_USART_CTL_AUTOBAUD_Msk  (1UL << WHAL_LPC55S6X_USART_CTL_AUTOBAUD_Pos)
+
+/*
+ * @brief Build a USART CFG register word.
  *
- * TODO: add the fields the driver needs to program the baud rate generator
- * (e.g. the source clock frequency and BRG/OSR divider values from the TRM).
+ * @param enable    USART enable: 0 disabled, 1 enabled.
+ * @param datalen   Data length (WHAL_LPC55S6X_USART_DATALEN_*).
+ * @param paritysel Parity (WHAL_LPC55S6X_USART_PARITY_*).
+ * @param stoplen   Stop bits (WHAL_LPC55S6X_USART_STOP_*).
+ */
+#define WHAL_LPC55S6X_USART_CFG(enable, datalen, paritysel, stoplen) ( \
+    whal_SetBits(WHAL_LPC55S6X_USART_CFG_ENABLE_Msk,    WHAL_LPC55S6X_USART_CFG_ENABLE_Pos,    (enable))    | \
+    whal_SetBits(WHAL_LPC55S6X_USART_CFG_DATALEN_Msk,   WHAL_LPC55S6X_USART_CFG_DATALEN_Pos,   (datalen))   | \
+    whal_SetBits(WHAL_LPC55S6X_USART_CFG_PARITYSEL_Msk, WHAL_LPC55S6X_USART_CFG_PARITYSEL_Pos, (paritysel)) | \
+    whal_SetBits(WHAL_LPC55S6X_USART_CFG_STOPLEN_Msk,   WHAL_LPC55S6X_USART_CFG_STOPLEN_Pos,   (stoplen)))
+
+/*
+ * @brief Build a USART CTL register word.
+ *
+ * @param txbrken  Continuous break enable.
+ * @param addrdet  Address detect mode.
+ * @param txdis    Transmit disable.
+ * @param cc       Continuous clock (synchronous mode).
+ * @param clrccrx  Clear continuous clock on received character.
+ * @param autobaud Autobaud enable.
+ */
+#define WHAL_LPC55S6X_USART_CTL(txbrken, addrdet, txdis, cc, clrccrx, autobaud) ( \
+    whal_SetBits(WHAL_LPC55S6X_USART_CTL_TXBRKEN_Msk,  WHAL_LPC55S6X_USART_CTL_TXBRKEN_Pos,  (txbrken))  | \
+    whal_SetBits(WHAL_LPC55S6X_USART_CTL_ADDRDET_Msk,  WHAL_LPC55S6X_USART_CTL_ADDRDET_Pos,  (addrdet))  | \
+    whal_SetBits(WHAL_LPC55S6X_USART_CTL_TXDIS_Msk,    WHAL_LPC55S6X_USART_CTL_TXDIS_Pos,    (txdis))    | \
+    whal_SetBits(WHAL_LPC55S6X_USART_CTL_CC_Msk,       WHAL_LPC55S6X_USART_CTL_CC_Pos,       (cc))       | \
+    whal_SetBits(WHAL_LPC55S6X_USART_CTL_CLRCCRX_Msk,  WHAL_LPC55S6X_USART_CTL_CLRCCRX_Pos,  (clrccrx))  | \
+    whal_SetBits(WHAL_LPC55S6X_USART_CTL_AUTOBAUD_Msk, WHAL_LPC55S6X_USART_CTL_AUTOBAUD_Pos, (autobaud)))
+
+/*
+ * @brief LPC55S6x USART configuration parameters.
  */
 typedef struct whal_Lpc55s6x_Uart_Cfg {
-    uint32_t baud;
+    uint32_t fclkHz;      /* FLEXCOMM function clock (FCLK) frequency, for BRG */
+    uint32_t baud;        /* Target baud rate */
+    uint32_t cfgReg;      /* Packed CFG register word (WHAL_LPC55S6X_USART_CFG) */
+    uint32_t ctlReg;      /* Packed CTL register word (WHAL_LPC55S6X_USART_CTL) */
     whal_Timeout *timeout;
 } whal_Lpc55s6x_Uart_Cfg;
 
