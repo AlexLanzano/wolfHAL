@@ -55,6 +55,7 @@ static const whal_Stm32wb_Rcc_PeriphClk g_periphClks[] = {
     {WHAL_STM32WB55_AES1_GATE},
     {WHAL_STM32WB55_PKA_GATE},
     {WHAL_STM32WB55_I2C1_GATE},
+    {WHAL_STM32WB55_LPTIM1_GATE},
 #ifdef BOARD_WATCHDOG_WWDG
     {WHAL_STM32WB55_WWDG_GATE},
 #endif
@@ -68,6 +69,19 @@ whal_I2c g_whalI2c = {
 
     .cfg = &(whal_Stm32wb_I2c_Cfg) {
         .pclk = 64000000,
+        .timeout = &g_whalTimeout,
+    },
+};
+
+/* PWM (LPTIM1). Vtable dispatch, so .driver is set. Kernel clock defaults to
+ * PCLK1 (64 MHz). Prescaler /128 makes one PWM tick = 2 us, so the 16-bit ARR
+ * spans a wide range and can reach low output frequencies (down to ~7.6 Hz). */
+whal_Pwm g_whalPwm = {
+    .base = WHAL_STM32WB55_LPTIM1_BASE,
+    .driver = WHAL_STM32WB55_LPTIM1_PWM_DRIVER,
+    .cfg = &(whal_Stm32wb_Lptim_Pwm_Cfg) {
+        .prescaler = 7, /* /128 */
+        .clkSel = WHAL_STM32WB_LPTIM_PWM_CLKSEL_INTERNAL,
         .timeout = &g_whalTimeout,
     },
 };
@@ -242,6 +256,11 @@ whal_Error Board_Init(void)
         return err;
     }
 
+    err = whal_Pwm_Init(&g_whalPwm);
+    if (err) {
+        return err;
+    }
+
     err = whal_Flash_Init(BOARD_FLASH_DEV);
     if (err) {
         return err;
@@ -318,6 +337,11 @@ whal_Error Board_Deinit(void)
     }
 
     err = whal_Flash_Deinit(BOARD_FLASH_DEV);
+    if (err) {
+        return err;
+    }
+
+    err = whal_Pwm_Deinit(&g_whalPwm);
     if (err) {
         return err;
     }

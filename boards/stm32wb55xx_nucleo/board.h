@@ -31,6 +31,7 @@ extern whal_Uart g_whalUart;
 extern whal_Spi g_whalSpi;
 extern whal_Crypto g_whalCrypto;
 extern whal_I2c g_whalI2c;
+extern whal_Pwm g_whalPwm;
 
 extern whal_Timeout g_whalTimeout;
 extern volatile uint32_t g_tick;
@@ -45,6 +46,7 @@ enum {
     SPI_CS_PIN,
     I2C_SCL_PIN,
     I2C_SDA_PIN,
+    LPTIM1_OUT_PIN,
     PIN_COUNT,
 };
 
@@ -61,6 +63,7 @@ enum {
 #define BOARD_UART_DEV       (&g_whalUart)
 #define BOARD_SPI_DEV        (&g_whalSpi)
 #define BOARD_I2C_DEV        (&g_whalI2c)
+#define BOARD_PWM_DEV        (&g_whalPwm)
 #define BOARD_FLASH_DEV      ((whal_Flash *)&whal_Stm32wb_Flash_Dev)
 #define BOARD_WATCHDOG_DEV   WHAL_INTERNAL_DEV
 #define BOARD_RNG_DEV        WHAL_INTERNAL_DEV
@@ -112,6 +115,10 @@ enum {
                 WHAL_STM32WB_GPIO_PORT_B, 9, WHAL_STM32WB_GPIO_MODE_ALTFN, \
                 WHAL_STM32WB_GPIO_OUTTYPE_OPENDRAIN, WHAL_STM32WB_GPIO_SPEED_FAST, \
                 WHAL_STM32WB_GPIO_PULL_UP, 4), \
+            [LPTIM1_OUT_PIN] = WHAL_STM32WB_GPIO_PIN( \
+                WHAL_STM32WB_GPIO_PORT_B, 2, WHAL_STM32WB_GPIO_MODE_ALTFN, \
+                WHAL_STM32WB_GPIO_OUTTYPE_PUSHPULL, WHAL_STM32WB_GPIO_SPEED_LOW, \
+                WHAL_STM32WB_GPIO_PULL_NONE, 1), \
         }, \
         .pinCount = PIN_COUNT, \
     }, \

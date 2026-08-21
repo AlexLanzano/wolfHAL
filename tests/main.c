@@ -162,6 +162,17 @@ void whal_Test_I2c_Platform(void);
 #endif
 #endif
 
+#ifdef WHAL_TEST_ENABLE_PWM
+void whal_Test_Pwm(void);
+#ifdef WHAL_TEST_ENABLE_PWM_PLATFORM
+void whal_Test_Pwm_Platform(void);
+#endif
+#endif
+
+#ifdef WHAL_TEST_ENABLE_PWM_PULSE
+void whal_Test_Pwm_Pulse(void);
+#endif
+
 #ifdef WHAL_TEST_ENABLE_DMA_PLATFORM
 void whal_Test_Dma_Platform(void);
 #endif
@@ -341,6 +352,17 @@ void main(void)
 #ifdef WHAL_TEST_ENABLE_I2C_PLATFORM
     whal_Test_I2c_Platform();
 #endif
+#endif
+
+#ifdef WHAL_TEST_ENABLE_PWM
+    whal_Test_Pwm();
+#ifdef WHAL_TEST_ENABLE_PWM_PLATFORM
+    whal_Test_Pwm_Platform();
+#endif
+#endif
+
+#ifdef WHAL_TEST_ENABLE_PWM_PULSE
+    whal_Test_Pwm_Pulse();
 #endif
 
 #ifdef WHAL_TEST_ENABLE_DMA_PLATFORM
