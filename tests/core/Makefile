@@ -32,7 +32,9 @@ WHAL_SRC = $(WHAL_DIR)/src/gpio/gpio.c \
            $(WHAL_DIR)/src/timer/timer.c \
            $(WHAL_DIR)/src/spi/spi.c \
            $(WHAL_DIR)/src/rng/rng.c \
-           $(WHAL_DIR)/src/block/block.c
+           $(WHAL_DIR)/src/block/block.c \
+           $(WHAL_DIR)/src/pwm/pwm.c \
+           $(WHAL_DIR)/src/display/display.c
 
 SOURCE = $(TEST_SRC) $(WHAL_SRC)
 OBJECTS = $(patsubst %.c,%.o,$(SOURCE))

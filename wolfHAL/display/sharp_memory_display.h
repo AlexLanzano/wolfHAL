@@ -28,7 +28,6 @@
 #include <wolfHAL/spi/spi.h>
 #include <wolfHAL/gpio/gpio.h>
 #include <wolfHAL/pwm/pwm.h>
-#include <wolfHAL/timeout.h>
 
 /**
  * @file sharp_memory_display.h
@@ -72,7 +71,6 @@ typedef struct whal_SharpMemory_Display_Cfg {
     whal_Pwm_ChannelCfg *vcomCfg;/**< EXTCOMIN waveform; required when pwm != NULL */
     uint16_t width;              /**< Panel width in pixels (128) */
     uint16_t height;             /**< Panel height in pixels (128) */
-    whal_Timeout *timeout;       /**< Optional timeout for bus poll loops */
 } whal_SharpMemory_Display_Cfg;
 
 #ifdef WHAL_CFG_SHARPMEMORY_DISPLAY_SINGLE_INSTANCE
@@ -106,6 +104,9 @@ extern const whal_DisplayDriver whal_SharpMemory_Display_Driver;
 whal_Error whal_SharpMemory_Display_Init(whal_Display *dev);
 /**
  * @brief Deinitialize the SharpMemory display hardware.
+ *
+ * Blanks the panel (clears pixel memory to white) and then stops the EXTCOMIN
+ * source, so no static image is left latched without COM inversion.
  *
  * @param dev Pointer to the display instance to deinitialize.
  *

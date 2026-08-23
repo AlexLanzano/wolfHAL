@@ -25,9 +25,7 @@
 
 static void Test_Pwm_Api(void)
 {
-    /* A waveform every PWM driver can represent: channel 0, continuous, a
-     * small period with a 25% duty. The counts are in the driver's tick
-     * units; the exact frequency is irrelevant to these contract checks. */
+    /* A waveform every driver can represent: channel 0, continuous, 25% duty. */
     whal_Pwm_ChannelCfg wave = {
         .periodCycles = 1000,
         .pulseCycles  = 250,
@@ -35,16 +33,13 @@ static void Test_Pwm_Api(void)
         .polarity     = WHAL_PWM_POLARITY_NORMAL,
     };
 
-    /* Init ran in Board_Init. Start programs the waveform and runs; Stop
-     * halts. Start/Stop is a repeatable toggle, so a second cycle reprograms
-     * cleanly without re-Init. */
+    /* Init ran in Board_Init; Start/Stop is a repeatable toggle, so run two cycles. */
     WHAL_ASSERT_EQ(whal_Pwm_Start(BOARD_PWM_DEV, 0, &wave), WHAL_SUCCESS);
     WHAL_ASSERT_EQ(whal_Pwm_Stop(BOARD_PWM_DEV, 0), WHAL_SUCCESS);
     WHAL_ASSERT_EQ(whal_Pwm_Start(BOARD_PWM_DEV, 0, &wave), WHAL_SUCCESS);
     WHAL_ASSERT_EQ(whal_Pwm_Stop(BOARD_PWM_DEV, 0), WHAL_SUCCESS);
 
-    /* Structural violations the generic dispatch rejects for any driver:
-     * a pulse wider than the period, and null pointers. */
+    /* Structural violations the generic dispatch rejects: pulse > period, and null pointers. */
     wave.pulseCycles = wave.periodCycles + 1;
     WHAL_ASSERT_EQ(whal_Pwm_Start(BOARD_PWM_DEV, 0, &wave), WHAL_EINVAL);
     wave.pulseCycles = 250;

@@ -25,16 +25,13 @@
 #include "board.h"
 #include "test.h"
 
-/* Period in PWM ticks. The resulting frequency depends on the board's
- * configured PWM clock and prescaler. */
+/* Period in PWM ticks; the frequency depends on the board's PWM clock and prescaler. */
 #define TEST_PWM_PULSE_PERIOD  64000
 
 /* Hold each duty long enough to capture on a logic analyzer. */
 #define TEST_PWM_PULSE_HOLD_MS  1000
 
-/* Drive the wired PWM output across 25/50/75% duty so the waveform can be
- * observed on a logic analyzer. Each Start reprograms the running channel,
- * so the output steps between duties live. */
+/* Drive 25/50/75% duty on the wired output so the steps are visible on a logic analyzer. */
 static void Test_Pwm_Pulse(void)
 {
     const uint8_t duty[] = {25, 50, 75};

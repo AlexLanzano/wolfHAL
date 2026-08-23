@@ -68,7 +68,8 @@ struct whal_Display {
  * @param dev Pointer to the display instance to initialize.
  *
  * @retval WHAL_SUCCESS Driver-specific init completed.
- * @retval WHAL_EINVAL  Null pointer or driver rejected configuration.
+ * @retval WHAL_EINVAL  Null pointer.
+ * @retval WHAL_ENOTSUP No driver bound or operation unsupported.
  */
 whal_Error whal_Display_Init(whal_Display *dev);
 /*
@@ -77,7 +78,8 @@ whal_Error whal_Display_Init(whal_Display *dev);
  * @param dev Pointer to the display instance to deinitialize.
  *
  * @retval WHAL_SUCCESS Driver-specific deinit completed.
- * @retval WHAL_EINVAL  Null pointer or driver refused to deinit.
+ * @retval WHAL_EINVAL  Null pointer.
+ * @retval WHAL_ENOTSUP No driver bound or operation unsupported.
  */
 whal_Error whal_Display_Deinit(whal_Display *dev);
 /*
@@ -98,7 +100,7 @@ whal_Error whal_Display_Deinit(whal_Display *dev);
  *
  * @retval WHAL_SUCCESS Region updated successfully.
  * @retval WHAL_EINVAL  Null pointer or malformed region request.
- * @retval WHAL_ENOTSUP Region or data size not supported by the hardware.
+ * @retval WHAL_ENOTSUP No driver bound, or region/data size unsupported.
  */
 whal_Error whal_Display_Update(whal_Display *dev, uint16_t x, uint16_t y,
                                uint16_t w, uint16_t h,

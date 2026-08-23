@@ -26,9 +26,7 @@
 #include <wolfHAL/reg.h>
 #include <wolfHAL/bitops.h>
 
-/*
- * STM32WB LPTIM Register Definitions (RM0434 Rev 14, Section 27.7)
- */
+/* STM32WB LPTIM registers (RM0434 Rev 14, Section 27.7). */
 #define LPTIM_ISR_REG   0x00
 #define LPTIM_ISR_CMPOK_Pos  3                                  /* Compare register update OK */
 #define LPTIM_ISR_CMPOK_Msk  (1UL << LPTIM_ISR_CMPOK_Pos)
@@ -44,7 +42,6 @@
 #define LPTIM_CFGR_CKSEL_Msk   (1UL << LPTIM_CFGR_CKSEL_Pos)
 #define LPTIM_CFGR_PRESC_Pos   9                                /* Clock prescaler */
 #define LPTIM_CFGR_PRESC_Msk   (WHAL_BITMASK(3) << LPTIM_CFGR_PRESC_Pos)
-#define LPTIM_CFGR_WAVE_Msk    (1UL << 20)                      /* Waveform shape (0 = PWM) */
 #define LPTIM_CFGR_WAVPOL_Msk  (1UL << 21)                      /* Waveform polarity */
 
 #define LPTIM_CR_REG    0x10
@@ -54,8 +51,7 @@
 #define LPTIM_CMP_REG   0x14                                    /* Compare register (16-bit) */
 #define LPTIM_ARR_REG   0x18                                    /* Autoreload register (16-bit) */
 
-/* The autoreload and compare registers are 16-bit, so the period
- * (ARR + 1) can be at most 65536 ticks. */
+/* ARR/CMP are 16-bit, so the period (ARR + 1) tops out at 65536 ticks. */
 #define LPTIM_PERIOD_MAX  0x10000UL
 
 whal_Error whal_Stm32wb_Lptim_Pwm_Init(whal_Pwm *dev)
@@ -71,10 +67,11 @@ whal_Error whal_Stm32wb_Lptim_Pwm_Init(whal_Pwm *dev)
     base = dev->base;
     cfg = (whal_Stm32wb_Lptim_Pwm_Cfg *)dev->cfg;
 
-    /* LPTIM_CFGR is writable only while the timer is disabled. Apply the
-     * instance-static settings here: clock source (CKSEL), prescaler, and
-     * PWM waveform (WAVE = 0). The per-call polarity and the ARR/CMP waveform
-     * are programmed by Start. The board owns the LPTIM kernel clock. */
+    if (cfg->prescaler > 7 || cfg->clkSel > 1) {
+        return WHAL_ENOTSUP;
+    }
+
+    /* CFGR is writable only while disabled: set clock source, prescaler, and PWM waveform here. */
     whal_Reg_Write(base, LPTIM_CR_REG, 0);
     cfgr = whal_SetBits(LPTIM_CFGR_PRESC_Msk, LPTIM_CFGR_PRESC_Pos,
                         cfg->prescaler) |
@@ -91,8 +88,7 @@ whal_Error whal_Stm32wb_Lptim_Pwm_Deinit(whal_Pwm *dev)
         return WHAL_EINVAL;
     }
 
-    /* Disable the timer and clear its configuration. The board owns the
-     * LPTIM kernel clock, so clock gating is left to it. */
+    /* Disable the timer and clear its configuration; the board owns clock gating. */
     whal_Reg_Write(dev->base, LPTIM_CR_REG, 0);
     whal_Reg_Write(dev->base, LPTIM_CFGR_REG, 0);
 
@@ -107,7 +103,9 @@ whal_Error whal_Stm32wb_Lptim_Pwm_Start(whal_Pwm *dev, uint8_t channel,
     uint32_t arr, cmp;
     whal_Error err;
 
-    if (!dev || !dev->cfg || !channelCfg) {
+    if (!dev || !dev->cfg || !channelCfg ||
+        channelCfg->periodCycles == 0 ||
+        channelCfg->pulseCycles > channelCfg->periodCycles) {
         return WHAL_EINVAL;
     }
     if (channel != WHAL_STM32WB_LPTIM_PWM_CHANNEL) {
@@ -117,20 +115,13 @@ whal_Error whal_Stm32wb_Lptim_Pwm_Start(whal_Pwm *dev, uint8_t channel,
     base = dev->base;
     cfg = (whal_Stm32wb_Lptim_Pwm_Cfg *)dev->cfg;
 
-    /* The LPTIM has no pulse counter, so only continuous output is
-     * supported; reject any finite pulse count. The 16-bit ARR also bounds
-     * the period. */
-    if (channelCfg->periodCycles == 0 ||
-        channelCfg->periodCycles > LPTIM_PERIOD_MAX ||
+    /* No pulse counter: only continuous output, and the 16-bit ARR bounds the period. */
+    if (channelCfg->periodCycles > LPTIM_PERIOD_MAX ||
         channelCfg->pulseCount != WHAL_PWM_PULSE_COUNT_CONTINUOUS) {
         return WHAL_ENOTSUP;
     }
 
-    /* Counter runs 0..ARR, so a period of N ticks needs ARR = N - 1. The
-     * LPTIM output is high while CNT > CMP and is cleared on the ARR match,
-     * so the high time is (ARR - CMP) ticks; invert the pulse width into a
-     * compare value, clamping the full-on case (where pulseCycles equals
-     * periodCycles would underflow) to CMP = 0. */
+    /* ARR = period - 1; output is high while CNT > CMP, so CMP = ARR - pulse (0 when full-on). */
     arr = channelCfg->periodCycles - 1;
     if (channelCfg->pulseCycles >= channelCfg->periodCycles) {
         cmp = 0;
@@ -138,17 +129,13 @@ whal_Error whal_Stm32wb_Lptim_Pwm_Start(whal_Pwm *dev, uint8_t channel,
         cmp = arr - channelCfg->pulseCycles;
     }
 
-    /* Disable the timer so CFGR/ARR/CMP are writable, then set this call's
-     * output polarity. The clock source, prescaler, and waveform mode were
-     * set by Init; WAVPOL is updated in place to preserve them. */
+    /* Disable so CFGR/ARR/CMP are writable, then set this call's polarity via WAVPOL. */
     whal_Reg_Write(base, LPTIM_CR_REG, 0);
     whal_Reg_Update(base, LPTIM_CFGR_REG, LPTIM_CFGR_WAVPOL_Msk,
                     channelCfg->polarity != WHAL_PWM_POLARITY_NORMAL ?
                         LPTIM_CFGR_WAVPOL_Msk : 0);
 
-    /* ARR and CMP are only writable once the timer is enabled, and each
-     * write crosses into the LPTIM clock domain and must be acknowledged by
-     * ARROK/CMPOK before the next access. Clear any stale flags first. */
+    /* ARR/CMP are writable only once enabled; clear stale ARROK/CMPOK before writing. */
     whal_Reg_Update(base, LPTIM_CR_REG, LPTIM_CR_ENABLE_Msk,
                     LPTIM_CR_ENABLE_Msk);
     whal_Reg_Write(base, LPTIM_ICR_REG,
@@ -158,6 +145,7 @@ whal_Error whal_Stm32wb_Lptim_Pwm_Start(whal_Pwm *dev, uint8_t channel,
     err = whal_Reg_ReadPoll(base, LPTIM_ISR_REG, LPTIM_ISR_ARROK_Msk,
                             LPTIM_ISR_ARROK_Msk, cfg->timeout);
     if (err != WHAL_SUCCESS) {
+        whal_Reg_Write(base, LPTIM_CR_REG, 0);
         return err;
     }
 
@@ -165,6 +153,7 @@ whal_Error whal_Stm32wb_Lptim_Pwm_Start(whal_Pwm *dev, uint8_t channel,
     err = whal_Reg_ReadPoll(base, LPTIM_ISR_REG, LPTIM_ISR_CMPOK_Msk,
                             LPTIM_ISR_CMPOK_Msk, cfg->timeout);
     if (err != WHAL_SUCCESS) {
+        whal_Reg_Write(base, LPTIM_CR_REG, 0);
         return err;
     }
 
@@ -184,8 +173,7 @@ whal_Error whal_Stm32wb_Lptim_Pwm_Stop(whal_Pwm *dev, uint8_t channel)
         return WHAL_ENOTSUP;
     }
 
-    /* Clearing ENABLE stops the counter and parks the output; Start
-     * reprograms the waveform and resumes. */
+    /* Clearing ENABLE stops the counter and parks the output; Start resumes. */
     whal_Reg_Update(dev->base, LPTIM_CR_REG, LPTIM_CR_ENABLE_Msk, 0);
 
     return WHAL_SUCCESS;

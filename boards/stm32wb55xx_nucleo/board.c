@@ -73,9 +73,7 @@ whal_I2c g_whalI2c = {
     },
 };
 
-/* PWM (LPTIM1). Vtable dispatch, so .driver is set. Kernel clock defaults to
- * PCLK1 (64 MHz). Prescaler /128 makes one PWM tick = 2 us, so the 16-bit ARR
- * spans a wide range and can reach low output frequencies (down to ~7.6 Hz). */
+/* PWM (LPTIM1): vtable dispatch; /128 prescaler makes one PWM tick = 2 us. */
 whal_Pwm g_whalPwm = {
     .base = WHAL_STM32WB55_LPTIM1_BASE,
     .driver = WHAL_STM32WB55_LPTIM1_PWM_DRIVER,

@@ -44,7 +44,7 @@
 #define WHAL_PWM_POLARITY_NORMAL    0  /* pulse drives the active-high level */
 #define WHAL_PWM_POLARITY_INVERTED  1  /* pulse drives the active-low level */
 
-/* Run the channel continuously with no automatic stop — value for
+/* Run the channel continuously with no automatic stop; value for
  * whal_Pwm_ChannelCfg.pulseCount. Any nonzero value requests exactly that
  * many pulses; drivers that cannot count pulses reject it with WHAL_ENOTSUP. */
 #define WHAL_PWM_PULSE_COUNT_CONTINUOUS  0
@@ -59,8 +59,13 @@
  * channels, every channel of an instance must use the same periodCycles.
  */
 typedef struct whal_Pwm_ChannelCfg {
+#ifdef WHAL_CFG_64BIT_TICK
+    uint64_t periodCycles;  /* full cycle length in timer ticks (1..) */
+    uint64_t pulseCycles;   /* asserted width in ticks; must be <= periodCycles */
+#else
     uint32_t periodCycles;  /* full cycle length in timer ticks (1..) */
     uint32_t pulseCycles;   /* asserted width in ticks; must be <= periodCycles */
+#endif
     uint32_t pulseCount;    /* WHAL_PWM_PULSE_COUNT_CONTINUOUS or number of pulses */
     uint8_t  polarity;      /* WHAL_PWM_POLARITY_NORMAL or _INVERTED */
 } whal_Pwm_ChannelCfg;
@@ -97,7 +102,8 @@ struct whal_Pwm {
  * @param dev Pointer to the PWM instance to initialize.
  *
  * @retval WHAL_SUCCESS Driver-specific init completed.
- * @retval WHAL_EINVAL  Null pointer or driver rejected configuration.
+ * @retval WHAL_EINVAL  Null pointer.
+ * @retval WHAL_ENOTSUP No driver bound or operation unsupported.
  */
 whal_Error whal_Pwm_Init(whal_Pwm *dev);
 /*
@@ -106,7 +112,8 @@ whal_Error whal_Pwm_Init(whal_Pwm *dev);
  * @param dev Pointer to the PWM instance to deinitialize.
  *
  * @retval WHAL_SUCCESS Driver-specific deinit completed.
- * @retval WHAL_EINVAL  Null pointer or driver refused to deinit.
+ * @retval WHAL_EINVAL  Null pointer.
+ * @retval WHAL_ENOTSUP No driver bound or operation unsupported.
  */
 whal_Error whal_Pwm_Deinit(whal_Pwm *dev);
 /*
@@ -117,8 +124,8 @@ whal_Error whal_Pwm_Deinit(whal_Pwm *dev);
  * @param cfg     Waveform (period, pulse, polarity) to apply.
  *
  * @retval WHAL_SUCCESS Output started.
- * @retval WHAL_EINVAL  Null pointer or pulse exceeds period.
- * @retval WHAL_ENOTSUP Channel or waveform not supported by the hardware.
+ * @retval WHAL_EINVAL  Null pointer, zero period, or pulse exceeds period.
+ * @retval WHAL_ENOTSUP No driver bound, or channel/waveform unsupported.
  */
 whal_Error whal_Pwm_Start(whal_Pwm *dev, uint8_t channel,
                           const whal_Pwm_ChannelCfg *cfg);
@@ -130,7 +137,7 @@ whal_Error whal_Pwm_Start(whal_Pwm *dev, uint8_t channel,
  *
  * @retval WHAL_SUCCESS Output stopped.
  * @retval WHAL_EINVAL  Null pointer.
- * @retval WHAL_ENOTSUP Channel not supported by the hardware.
+ * @retval WHAL_ENOTSUP No driver bound, or channel unsupported.
  */
 whal_Error whal_Pwm_Stop(whal_Pwm *dev, uint8_t channel);
 

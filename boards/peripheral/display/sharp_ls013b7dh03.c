@@ -24,7 +24,7 @@
 #include "board.h"
 
 /*
- * Sharp LS013B7DH03 — 128x128 monochrome memory LCD
+ * Sharp LS013B7DH03 - 128x128 monochrome memory LCD
  *
  * - 3-wire SPI (SCLK, SI, SCS), mode 0, up to 1.1 MHz
  * - SCS is active high and driven as a plain GPIO (board chip-select pin)
@@ -43,7 +43,7 @@ static whal_Spi_ComCfg g_ls013ComCfg = {
 
 /*
  * EXTCOMIN waveform: 60 Hz, 50% duty. The counts are in the board PWM's
- * (prescaled) tick units — on the STM32WB55 Nucleo LPTIM1 runs at /128 (2 us
+ * (prescaled) tick units. On the STM32WB55 Nucleo, LPTIM1 runs at /128 (2 us
  * per tick), so 8333 ticks is ~60 Hz. A board whose PWM ticks differently must
  * scale these to keep EXTCOMIN within the panel's 54-65 Hz range.
  */
@@ -66,6 +66,5 @@ whal_Display g_whalSharpLs013b7dh03 = {
         .vcomCfg    = &g_ls013VcomCfg,
         .width      = 128,
         .height     = 128,
-        .timeout    = &g_whalTimeout,
     },
 };

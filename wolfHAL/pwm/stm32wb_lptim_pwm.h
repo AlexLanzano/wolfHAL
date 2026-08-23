@@ -35,8 +35,8 @@
  * low-power timer (LPTIM). The LPTIM has a single PWM output, so the only
  * valid channel is WHAL_STM32WB_LPTIM_PWM_CHANNEL (0). The waveform is
  * passed to Start as a whal_Pwm_ChannelCfg, which programs it and begins
- * output; Stop halts it. The driver configuration holds only the prescaler
- * and polling timeout.
+ * output; Stop halts it. The driver configuration holds the prescaler, clock
+ * source, and polling timeout.
  *
  * The LPTIM has no pulse counter, so only continuous output is supported:
  * the waveform's pulseCount must be WHAL_PWM_PULSE_COUNT_CONTINUOUS, and any
@@ -90,6 +90,7 @@ extern const whal_PwmDriver whal_Stm32wb_Lptim_Pwm_Driver;
  *
  * @retval WHAL_SUCCESS Initialization completed.
  * @retval WHAL_EINVAL  Null pointer or missing configuration.
+ * @retval WHAL_ENOTSUP Prescaler or clock source out of range.
  */
 whal_Error whal_Stm32wb_Lptim_Pwm_Init(whal_Pwm *dev);
 /*
@@ -118,7 +119,8 @@ whal_Error whal_Stm32wb_Lptim_Pwm_Deinit(whal_Pwm *dev);
  * @param cfg     Waveform (period, pulse, polarity) to apply.
  *
  * @retval WHAL_SUCCESS Output started.
- * @retval WHAL_EINVAL  Null pointer or missing configuration.
+ * @retval WHAL_EINVAL  Null pointer, missing configuration, zero period, or
+ *                      pulse exceeding period.
  * @retval WHAL_ENOTSUP Unsupported channel, period out of the 16-bit range,
  *                      or a non-continuous pulse count.
  * @retval WHAL_ETIMEOUT ARR/CMP update did not synchronize before timeout.
@@ -129,7 +131,8 @@ whal_Error whal_Stm32wb_Lptim_Pwm_Start(whal_Pwm *dev, uint8_t channel,
  * @brief Stop the PWM output.
  *
  * Clears LPTIM_CR.ENABLE, which halts the counter and parks the output.
- * Re-arm by calling Init again, then whal_Pwm_Start.
+ * whal_Pwm_Start resumes output without a re-Init; the Init-configured
+ * clock source, prescaler, and waveform mode are retained.
  *
  * @param dev     Pointer to the PWM instance.
  * @param channel Must be WHAL_STM32WB_LPTIM_PWM_CHANNEL (0).

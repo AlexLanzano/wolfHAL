@@ -41,7 +41,6 @@
  * M2 -> bit 5).
  */
 #define MODE_WRITE 0x80 /* M0=H: data update mode (write line memory)   */
-#define MODE_VCOM  0x40 /* M1:   serial COM inversion flag (HW VCOM: 0) */
 #define MODE_CLEAR 0x20 /* M2=H: clear all pixel memory to white        */
 
 #define DUMMY 0x00 /* trailing / don't-care byte ("L" recommended) */
@@ -101,6 +100,7 @@ whal_Error whal_SharpMemory_Display_Init(whal_Display *dev)
 {
     whal_SharpMemory_Display_Cfg *cfg;
     whal_Error err;
+    int pwmStarted = 0;
 
 #ifdef WHAL_CFG_SHARPMEMORY_DISPLAY_SINGLE_INSTANCE
     cfg = (whal_SharpMemory_Display_Cfg *)whal_SharpMemory_Display_Dev.cfg;
@@ -141,12 +141,15 @@ whal_Error whal_SharpMemory_Display_Init(whal_Display *dev)
         err = whal_Pwm_Start(cfg->pwm, cfg->pwmChannel, cfg->vcomCfg);
         if (err)
             goto cleanup;
+        pwmStarted = 1;
     }
 
     /* Power-on requires initializing pixel memory at least once. */
     err = SharpMem_Clear(cfg);
 
 cleanup:
+    if (err && pwmStarted)
+        whal_Pwm_Stop(cfg->pwm, cfg->pwmChannel);
     whal_Spi_EndCom(cfg->spiDev);
     return err;
 }
@@ -154,6 +157,7 @@ cleanup:
 whal_Error whal_SharpMemory_Display_Deinit(whal_Display *dev)
 {
     whal_SharpMemory_Display_Cfg *cfg;
+    whal_Error err = WHAL_SUCCESS;
 
 #ifdef WHAL_CFG_SHARPMEMORY_DISPLAY_SINGLE_INSTANCE
     cfg = (whal_SharpMemory_Display_Cfg *)whal_SharpMemory_Display_Dev.cfg;
@@ -167,10 +171,24 @@ whal_Error whal_SharpMemory_Display_Deinit(whal_Display *dev)
     if (!cfg)
         return WHAL_EINVAL;
 
+    /* Blank the panel before halting COM inversion so no static image is left
+     * latched without EXTCOMIN toggling (DC bias). */
+    if (cfg->spiDev && cfg->spiComCfg) {
+        err = whal_Spi_StartCom(cfg->spiDev, cfg->spiComCfg);
+        if (!err) {
+            err = SharpMem_Clear(cfg);
+            whal_Spi_EndCom(cfg->spiDev);
+        }
+    }
+
     if (cfg->pwm)
         whal_Pwm_Stop(cfg->pwm, cfg->pwmChannel);
 
-    return SharpMem_CsDeassert(cfg);
+    if (err == WHAL_SUCCESS)
+        return SharpMem_CsDeassert(cfg);
+
+    SharpMem_CsDeassert(cfg);
+    return err;
 }
 
 whal_Error whal_SharpMemory_Display_Update(whal_Display *dev, uint16_t x, uint16_t y,
