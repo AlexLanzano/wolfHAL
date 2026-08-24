@@ -34,6 +34,9 @@ enum {
     LED_PIN,
     UART_TX_PIN,
     UART_RX_PIN,
+    SPI_SCK_PIN,
+    SPI_MOSI_PIN,
+    SPI_MISO_PIN,
     PIN_COUNT,
 };
 
@@ -43,6 +46,7 @@ enum {
  * single-instance drivers (driver ignores the pointer). */
 #define BOARD_GPIO_DEV WHAL_INTERNAL_DEV
 #define BOARD_UART_DEV WHAL_INTERNAL_DEV
+#define BOARD_SPI_DEV  WHAL_INTERNAL_DEV
 
 /* GPIO dev initializer — single-instance device defined in lpc55s6x_gpio.c. */
 #define WHAL_CFG_LPC55S6X_GPIO_DEV { \
@@ -69,6 +73,24 @@ enum {
                 .ioconCfg = WHAL_LPC55S6X_IOCON_TYPE_D(1, \
                     WHAL_LPC55S6X_IOCON_MODE_PULLUP, 0, 0, 1, 0), \
             }, \
+            [SPI_SCK_PIN] = { \
+                .port = 1, \
+                .pin  = 2, \
+                .ioconCfg = WHAL_LPC55S6X_IOCON_TYPE_D(6, \
+                    WHAL_LPC55S6X_IOCON_MODE_INACTIVE, 0, 0, 1, 0), \
+            }, \
+            [SPI_MOSI_PIN] = { \
+                .port = 0, \
+                .pin  = 26, \
+                .ioconCfg = WHAL_LPC55S6X_IOCON_TYPE_D(9, \
+                    WHAL_LPC55S6X_IOCON_MODE_INACTIVE, 0, 0, 1, 0), \
+            }, \
+            [SPI_MISO_PIN] = { \
+                .port = 1, \
+                .pin  = 3, \
+                .ioconCfg = WHAL_LPC55S6X_IOCON_TYPE_D(6, \
+                    WHAL_LPC55S6X_IOCON_MODE_INACTIVE, 0, 0, 1, 0), \
+            }, \
         }, \
     }, \
 }
@@ -83,6 +105,18 @@ enum {
         .cfgReg  = WHAL_LPC55S6X_USART_CFG(1, WHAL_LPC55S6X_USART_DATALEN_8BIT, \
                        WHAL_LPC55S6X_USART_PARITY_NONE, WHAL_LPC55S6X_USART_STOP_1), \
         .ctlReg  = WHAL_LPC55S6X_USART_CTL(0, 0, 0, 0, 0, 0), \
+        .timeout = &g_whalTimeout, \
+    }, \
+}
+
+/* SPI dev initializer — single-instance device defined in lpc55s6x_spi.c.
+ * cfg is non-const: StartCom writes _wordSz into it. */
+#define WHAL_CFG_LPC55S6X_SPI_DEV { \
+    .base = WHAL_LPC55S6X_SPI_BASE, \
+    /* .driver: direct API mapping */ \
+    .cfg  = (void *)&(whal_Lpc55s6x_Spi_Cfg){ \
+        .fclkHz  = 96000000, \
+        .cfgReg  = WHAL_LPC55S6X_SPI_CFG(1, 0, 0, 0, 0, 0, 0), \
         .timeout = &g_whalTimeout, \
     }, \
 }

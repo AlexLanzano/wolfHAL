@@ -52,10 +52,13 @@
 #define WHAL_LPC55S6X_SYSCON_FCCLKSEL_SEL_Pos 0
 #define WHAL_LPC55S6X_SYSCON_FCCLKSEL_SEL_Msk (WHAL_BITMASK(3) << WHAL_LPC55S6X_SYSCON_FCCLKSEL_SEL_Pos)
 
-/* FCCLKSEL SEL values. */
+/* FCCLKSEL SEL values (shared by HSLSPICLKSEL). */
 #define WHAL_LPC55S6X_SYSCON_FCCLKSEL_MAINCLK 0
 #define WHAL_LPC55S6X_SYSCON_FCCLKSEL_FRO12M  2
 #define WHAL_LPC55S6X_SYSCON_FCCLKSEL_FROHF   3
+
+/* High-speed SPI (Flexcomm 8) function-clock source select (no FRG). */
+#define WHAL_LPC55S6X_SYSCON_HSLSPICLKSEL     0x2D0
 
 /* Flexcomm fractional rate generator (FLEXFRGnCTRL, +4 per instance). */
 #define WHAL_LPC55S6X_SYSCON_FLEXFRGCTRL0     0x320
@@ -126,6 +129,25 @@ static inline whal_Error whal_Lpc55s6x_Syscon_SetFlexcommClk(
                                  WHAL_LPC55S6X_SYSCON_FLEXFRG_DIV_Pos, 0xFF) |
                     whal_SetBits(WHAL_LPC55S6X_SYSCON_FLEXFRG_MULT_Msk,
                                  WHAL_LPC55S6X_SYSCON_FLEXFRG_MULT_Pos, mult));
+    return WHAL_SUCCESS;
+}
+
+/*
+ * @brief Select the high-speed SPI (Flexcomm 8) function clock source.
+ *
+ * HS_SPI has no fractional rate generator; the source drives it directly.
+ *
+ * @param sel Clock source (WHAL_LPC55S6X_SYSCON_FCCLKSEL_*).
+ *
+ * @retval WHAL_SUCCESS Always.
+ */
+static inline whal_Error whal_Lpc55s6x_Syscon_SetHsSpiClk(size_t sel)
+{
+    whal_Reg_Update(WHAL_LPC55S6X_SYSCON_BASE,
+                    WHAL_LPC55S6X_SYSCON_HSLSPICLKSEL,
+                    WHAL_LPC55S6X_SYSCON_FCCLKSEL_SEL_Msk,
+                    whal_SetBits(WHAL_LPC55S6X_SYSCON_FCCLKSEL_SEL_Msk,
+                                 WHAL_LPC55S6X_SYSCON_FCCLKSEL_SEL_Pos, sel));
     return WHAL_SUCCESS;
 }
 
