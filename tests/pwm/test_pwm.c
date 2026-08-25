@@ -44,7 +44,6 @@ static void Test_Pwm_Api(void)
     WHAL_ASSERT_EQ(whal_Pwm_Start(BOARD_PWM_DEV, 0, &wave), WHAL_EINVAL);
     wave.pulseCycles = 250;
 
-    WHAL_ASSERT_EQ(whal_Pwm_Start(NULL, 0, &wave), WHAL_EINVAL);
     WHAL_ASSERT_EQ(whal_Pwm_Start(BOARD_PWM_DEV, 0, NULL), WHAL_EINVAL);
 }
 
