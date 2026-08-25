@@ -22,7 +22,7 @@
 _BOARD_DIR := $(patsubst %/,%,$(dir $(lastword $(MAKEFILE_LIST))))
 
 PLATFORM = lpc55s6x
-TESTS ?= gpio timer uart
+TESTS ?= gpio timer uart pwm
 
 GCC = $(GCC_PATH)arm-none-eabi-gcc
 LD = $(GCC_PATH)arm-none-eabi-ld
@@ -51,4 +51,4 @@ BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/lpc55s6x_*.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/systick.c)
 
-# include $(WHAL_DIR)/boards/peripheral/board.mk
+include $(WHAL_DIR)/boards/peripheral/board.mk

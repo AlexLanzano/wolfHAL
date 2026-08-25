@@ -141,10 +141,6 @@ whal_Error Board_Init(void)
     if (err)
         return err;
 
-    // err = Peripheral_Init();
-    // if (err)
-    //     return err;
-
     return WHAL_SUCCESS;
 }
 

@@ -37,6 +37,7 @@ enum {
     SPI_SCK_PIN,
     SPI_MOSI_PIN,
     SPI_MISO_PIN,
+    SPI_CS_PIN,
     PWM_PIN,
     PIN_COUNT,
 };
@@ -91,6 +92,13 @@ enum {
                 .port = 1, \
                 .pin  = 3, \
                 .ioconCfg = WHAL_LPC55S6X_IOCON_TYPE_D(6, \
+                    WHAL_LPC55S6X_IOCON_MODE_INACTIVE, 0, 0, 1, 0), \
+            }, \
+            [SPI_CS_PIN] = { \
+                .port = 1, \
+                .pin  = 1, \
+                .dir  = WHAL_LPC55S6X_GPIO_DIR_OUTPUT, \
+                .ioconCfg = WHAL_LPC55S6X_IOCON_TYPE_D(0, \
                     WHAL_LPC55S6X_IOCON_MODE_INACTIVE, 0, 0, 1, 0), \
             }, \
             [PWM_PIN] = { \
