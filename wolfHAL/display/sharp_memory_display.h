@@ -43,8 +43,8 @@
  *    and is driven as a plain GPIO (cfg->gpioDev / cfg->csPin).
  *  - The bus is mode 0 and runs at up to 1.1 MHz (set via cfg->spiComCfg).
  *  - COM inversion (VCOM) is performed in hardware: the board ties EXTMODE
- *    high and feeds EXTCOMIN from a ~1-60 Hz, 50%-duty signal. When a PWM
- *    is supplied (cfg->pwm) the driver starts/stops it as that source.
+ *    high and feeds EXTCOMIN from a ~1-60 Hz, 50%-duty signal. When a vcomCfg
+ *    waveform is supplied the driver starts/stops cfg->pwm as that source.
  *
  * Pixel data format for whal_SharpMemory_Display_Update():
  *  - 1 bit per pixel, packed MSB-first: bit 7 of the first byte is the
@@ -65,10 +65,15 @@ typedef struct whal_SharpMemory_Display_Cfg {
                                   *   may be WHAL_INTERNAL_DEV on platforms
                                   *   that direct-map the GPIO API */
     size_t csPin;                /**< GPIO pin index for SCS (active high) */
-    whal_Pwm *pwm;               /**< Optional PWM driving EXTCOMIN; NULL if
-                                  *   the board generates VCOM elsewhere */
+    whal_Pwm *pwm;               /**< PWM driving EXTCOMIN (used only when
+                                  *   vcomCfg is set) */
     uint8_t pwmChannel;          /**< PWM channel driving EXTCOMIN */
-    whal_Pwm_ChannelCfg *vcomCfg;/**< EXTCOMIN waveform; required when pwm != NULL */
+    whal_Pwm_ChannelCfg *vcomCfg;/**< EXTCOMIN waveform, and the presence flag
+                                  *   for the PWM VCOM source: NULL means the
+                                  *   board generates VCOM elsewhere and the
+                                  *   driver starts no PWM (the device handles
+                                  *   may be WHAL_INTERNAL_DEV/NULL, so they
+                                  *   cannot serve as the discriminator) */
     uint16_t width;              /**< Panel width in pixels (128) */
     uint16_t height;             /**< Panel height in pixels (128) */
 } whal_SharpMemory_Display_Cfg;

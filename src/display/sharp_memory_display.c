@@ -116,11 +116,9 @@ whal_Error whal_SharpMemory_Display_Init(whal_Display *dev)
      * direct-map the GPIO API, so it is not null-checked here; whal_Gpio_Set
      * validates it on vtable-dispatched platforms.
      */
-    if (!cfg || !cfg->spiDev || !cfg->spiComCfg)
+    if (!cfg || !cfg->spiComCfg)
         return WHAL_EINVAL;
     if (cfg->width == 0 || cfg->height == 0 || (cfg->width & 0x7))
-        return WHAL_EINVAL;
-    if (cfg->pwm && !cfg->vcomCfg)
         return WHAL_EINVAL;
 
     /* Ensure SCS starts deasserted (low) before configuring the bus. */
@@ -137,7 +135,7 @@ whal_Error whal_SharpMemory_Display_Init(whal_Display *dev)
      * periodically to avoid a DC bias building up on the panel; the board
      * ties EXTMODE high and feeds EXTCOMIN from this signal.
      */
-    if (cfg->pwm) {
+    if (cfg->vcomCfg) {
         err = whal_Pwm_Start(cfg->pwm, cfg->pwmChannel, cfg->vcomCfg);
         if (err)
             goto cleanup;
@@ -173,7 +171,7 @@ whal_Error whal_SharpMemory_Display_Deinit(whal_Display *dev)
 
     /* Blank the panel before halting COM inversion so no static image is left
      * latched without EXTCOMIN toggling (DC bias). */
-    if (cfg->spiDev && cfg->spiComCfg) {
+    if (cfg->spiComCfg) {
         err = whal_Spi_StartCom(cfg->spiDev, cfg->spiComCfg);
         if (!err) {
             err = SharpMem_Clear(cfg);
@@ -181,7 +179,7 @@ whal_Error whal_SharpMemory_Display_Deinit(whal_Display *dev)
         }
     }
 
-    if (cfg->pwm)
+    if (cfg->vcomCfg)
         whal_Pwm_Stop(cfg->pwm, cfg->pwmChannel);
 
     if (err == WHAL_SUCCESS)
@@ -212,7 +210,7 @@ whal_Error whal_SharpMemory_Display_Update(whal_Display *dev, uint16_t x, uint16
     cfg = (whal_SharpMemory_Display_Cfg *)dev->cfg;
 #endif
 
-    if (!cfg || !cfg->spiDev || !cfg->spiComCfg)
+    if (!cfg || !cfg->spiComCfg)
         return WHAL_EINVAL;
     if (!data || h == 0)
         return WHAL_EINVAL;
