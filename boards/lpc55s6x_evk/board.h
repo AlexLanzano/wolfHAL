@@ -37,6 +37,7 @@ enum {
     SPI_SCK_PIN,
     SPI_MOSI_PIN,
     SPI_MISO_PIN,
+    PWM_PIN,
     PIN_COUNT,
 };
 
@@ -47,6 +48,7 @@ enum {
 #define BOARD_GPIO_DEV WHAL_INTERNAL_DEV
 #define BOARD_UART_DEV WHAL_INTERNAL_DEV
 #define BOARD_SPI_DEV  WHAL_INTERNAL_DEV
+#define BOARD_PWM_DEV  WHAL_INTERNAL_DEV
 
 /* GPIO dev initializer — single-instance device defined in lpc55s6x_gpio.c. */
 #define WHAL_CFG_LPC55S6X_GPIO_DEV { \
@@ -91,6 +93,12 @@ enum {
                 .ioconCfg = WHAL_LPC55S6X_IOCON_TYPE_D(6, \
                     WHAL_LPC55S6X_IOCON_MODE_INACTIVE, 0, 0, 1, 0), \
             }, \
+            [PWM_PIN] = { \
+                .port = 1, \
+                .pin  = 5, \
+                .ioconCfg = WHAL_LPC55S6X_IOCON_TYPE_D(3, \
+                    WHAL_LPC55S6X_IOCON_MODE_INACTIVE, 0, 0, 1, 0), \
+            }, \
         }, \
     }, \
 }
@@ -118,6 +126,18 @@ enum {
         .fclkHz  = 96000000, \
         .cfgReg  = WHAL_LPC55S6X_SPI_CFG(1, 0, 0, 0, 0, 0, 0), \
         .timeout = &g_whalTimeout, \
+    }, \
+}
+
+/* CTIMER2 PWM dev initializer — single-instance device defined in
+ * lpc55s6x_ctimer_pwm.c. */
+#define WHAL_CFG_LPC55S6X_CTIMER_PWM_DEV { \
+    .base = WHAL_LPC55S6X_CTIMER2_BASE, \
+    /* .driver: direct API mapping */ \
+    .cfg  = (void *)&(const whal_Lpc55s6x_Ctimer_Pwm_Cfg){ \
+        .prescaler = 0, \
+        .clkSel    = WHAL_LPC55S6X_SYSCON_CTIMERCLKSEL_FRO96M, \
+        .timeout   = &g_whalTimeout, \
     }, \
 }
 

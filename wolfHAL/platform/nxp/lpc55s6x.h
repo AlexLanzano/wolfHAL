@@ -27,6 +27,7 @@
 #include <wolfHAL/gpio/lpc55s6x_gpio.h>
 #include <wolfHAL/uart/lpc55s6x_uart.h>
 #include <wolfHAL/spi/lpc55s6x_spi.h>
+#include <wolfHAL/pwm/lpc55s6x_ctimer_pwm.h>
 #include <wolfHAL/platform/arm/cortex_m33.h>
 
 /*
@@ -46,6 +47,9 @@
 
 #define WHAL_LPC55S6X_SPI_BASE    0x4009F000
 #define WHAL_LPC55S6X_SPI_DRIVER  &whal_Lpc55s6x_Spi_Driver
+
+#define WHAL_LPC55S6X_CTIMER2_BASE     0x40028000
+#define WHAL_LPC55S6X_CTIMER_PWM_DRIVER &whal_Lpc55s6x_Ctimer_Pwm_Driver
 
 /* Peripheral clock gate descriptors (AHBCLKCTRLn register + enable bit). */
 #define WHAL_LPC55S6X_IOCON_CLK                     \
@@ -67,5 +71,9 @@
 #define WHAL_LPC55S6X_HSSPI_CLK                     \
     .regOffset  = WHAL_LPC55S6X_SYSCON_AHBCLKCTRL2, \
     .enableMask = (1UL << 28)
+
+#define WHAL_LPC55S6X_CTIMER2_CLK                   \
+    .regOffset  = WHAL_LPC55S6X_SYSCON_AHBCLKCTRL1, \
+    .enableMask = (1UL << 22)
 
 #endif /* WHAL_LPC55S6X_H */

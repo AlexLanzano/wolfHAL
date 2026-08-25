@@ -76,6 +76,7 @@ static const whal_Lpc55s6x_Syscon_PeriphClk g_periphClks[] = {
     { WHAL_LPC55S6X_GPIO1_CLK },
     { WHAL_LPC55S6X_FC0_CLK },
     { WHAL_LPC55S6X_HSSPI_CLK },
+    { WHAL_LPC55S6X_CTIMER2_CLK },
 };
 #define PERIPH_CLK_COUNT (sizeof(g_periphClks) / sizeof(g_periphClks[0]))
 
@@ -111,6 +112,11 @@ whal_Error Board_Init(void)
     if (err)
         return err;
 
+    err = whal_Lpc55s6x_Syscon_SetCtimerClk(
+            2, WHAL_LPC55S6X_SYSCON_CTIMERCLKSEL_FRO96M);
+    if (err)
+        return err;
+
     err = whal_Gpio_Init(BOARD_GPIO_DEV);
     if (err)
         return err;
@@ -120,6 +126,10 @@ whal_Error Board_Init(void)
         return err;
 
     err = whal_Spi_Init(BOARD_SPI_DEV);
+    if (err)
+        return err;
+
+    err = whal_Pwm_Init(BOARD_PWM_DEV);
     if (err)
         return err;
 
@@ -151,6 +161,10 @@ whal_Error Board_Deinit(void)
         return err;
 
     err = whal_Timer_Deinit(WHAL_INTERNAL_DEV);
+    if (err)
+        return err;
+
+    err = whal_Pwm_Deinit(BOARD_PWM_DEV);
     if (err)
         return err;
 

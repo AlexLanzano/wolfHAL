@@ -60,6 +60,10 @@
 /* High-speed SPI (Flexcomm 8) function-clock source select (no FRG). */
 #define WHAL_LPC55S6X_SYSCON_HSLSPICLKSEL     0x2D0
 
+/* CTimer function-clock source select (CTIMERCLKSELn, +4 per instance). */
+#define WHAL_LPC55S6X_SYSCON_CTIMERCLKSEL0       0x26C
+#define WHAL_LPC55S6X_SYSCON_CTIMERCLKSEL_FRO96M 3
+
 /* Flexcomm fractional rate generator (FLEXFRGnCTRL, +4 per instance). */
 #define WHAL_LPC55S6X_SYSCON_FLEXFRGCTRL0     0x320
 #define WHAL_LPC55S6X_SYSCON_FLEXFRG_DIV_Pos  0
@@ -129,6 +133,25 @@ static inline whal_Error whal_Lpc55s6x_Syscon_SetFlexcommClk(
                                  WHAL_LPC55S6X_SYSCON_FLEXFRG_DIV_Pos, 0xFF) |
                     whal_SetBits(WHAL_LPC55S6X_SYSCON_FLEXFRG_MULT_Msk,
                                  WHAL_LPC55S6X_SYSCON_FLEXFRG_MULT_Pos, mult));
+    return WHAL_SUCCESS;
+}
+
+/*
+ * @brief Select a CTimer instance's function clock source.
+ *
+ * @param instance CTimer index (0-4).
+ * @param sel      Clock source (WHAL_LPC55S6X_SYSCON_CTIMERCLKSEL_*).
+ *
+ * @retval WHAL_SUCCESS Always.
+ */
+static inline whal_Error whal_Lpc55s6x_Syscon_SetCtimerClk(size_t instance,
+                                                           size_t sel)
+{
+    whal_Reg_Update(WHAL_LPC55S6X_SYSCON_BASE,
+                    WHAL_LPC55S6X_SYSCON_CTIMERCLKSEL0 + instance * 4,
+                    WHAL_LPC55S6X_SYSCON_FCCLKSEL_SEL_Msk,
+                    whal_SetBits(WHAL_LPC55S6X_SYSCON_FCCLKSEL_SEL_Msk,
+                                 WHAL_LPC55S6X_SYSCON_FCCLKSEL_SEL_Pos, sel));
     return WHAL_SUCCESS;
 }
 
