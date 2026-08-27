@@ -29,6 +29,13 @@ BOARD_SOURCE += $(_PERIPHERAL_DIR)/block/sdhc_spi_sdcard32gb.c
 BOARD_SOURCE += $(WHAL_DIR)/src/block/sdhc_spi_block.c
 endif
 
+ifneq ($(filter sdmmc_sdcard32gb,$(PERIPHERALS)),)
+CFLAGS += -DPERIPHERAL_SDMMC_SDCARD32GB
+BOARD_SOURCE += $(_PERIPHERAL_DIR)/block/sdmmc_sdcard32gb.c
+BOARD_SOURCE += $(WHAL_DIR)/src/block/sdmmc_block.c
+BOARD_SOURCE += $(WHAL_DIR)/src/block/block.c
+endif
+
 ifneq ($(filter spi_nor_w25q64,$(PERIPHERALS)),)
 CFLAGS += -DPERIPHERAL_SPI_NOR_W25Q64
 BOARD_SOURCE += $(_PERIPHERAL_DIR)/flash/spi_nor_w25q64.c

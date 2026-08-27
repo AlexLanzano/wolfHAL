@@ -47,6 +47,7 @@
 #include <wolfHAL/uart/uart.h>
 #include <wolfHAL/flash/flash.h>
 #include <wolfHAL/block/block.h>
+#include <wolfHAL/sdhc/sdhc.h>
 #include <wolfHAL/rng/rng.h>
 #include <wolfHAL/spi/spi.h>
 #include <wolfHAL/i2c/i2c.h>

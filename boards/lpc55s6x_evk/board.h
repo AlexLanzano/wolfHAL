@@ -28,6 +28,7 @@
 #include <wolfHAL/platform/nxp/lpc55s6x.h>
 
 extern whal_Timeout g_whalTimeout;
+extern whal_Timeout g_whalTimeoutSdio;
 extern volatile uint32_t g_tick;
 
 enum {
@@ -39,6 +40,9 @@ enum {
     SPI_MISO_PIN,
     SPI_CS_PIN,
     PWM_PIN,
+    SD_CLK_PIN,
+    SD_CMD_PIN,
+    SD_D0_PIN,
     PIN_COUNT,
 };
 
@@ -46,10 +50,11 @@ enum {
 
 /* BOARD_*_DEV: how this board reaches each peripheral. WHAL_INTERNAL_DEV for
  * single-instance drivers (driver ignores the pointer). */
-#define BOARD_GPIO_DEV WHAL_INTERNAL_DEV
-#define BOARD_UART_DEV WHAL_INTERNAL_DEV
-#define BOARD_SPI_DEV  WHAL_INTERNAL_DEV
-#define BOARD_PWM_DEV  WHAL_INTERNAL_DEV
+#define BOARD_GPIO_DEV  WHAL_INTERNAL_DEV
+#define BOARD_UART_DEV  WHAL_INTERNAL_DEV
+#define BOARD_SPI_DEV   WHAL_INTERNAL_DEV
+#define BOARD_PWM_DEV   WHAL_INTERNAL_DEV
+#define BOARD_SDHC_DEV  WHAL_INTERNAL_DEV
 
 /* GPIO dev initializer — single-instance device defined in lpc55s6x_gpio.c. */
 #define WHAL_CFG_LPC55S6X_GPIO_DEV { \
@@ -107,6 +112,24 @@ enum {
                 .ioconCfg = WHAL_LPC55S6X_IOCON_TYPE_D(3, \
                     WHAL_LPC55S6X_IOCON_MODE_INACTIVE, 0, 0, 1, 0), \
             }, \
+            [SD_CLK_PIN] = { \
+                .port = 0, \
+                .pin  = 7, \
+                .ioconCfg = WHAL_LPC55S6X_IOCON_TYPE_D(2, \
+                    WHAL_LPC55S6X_IOCON_MODE_INACTIVE, 1, 0, 1, 0), \
+            }, \
+            [SD_CMD_PIN] = { \
+                .port = 0, \
+                .pin  = 8, \
+                .ioconCfg = WHAL_LPC55S6X_IOCON_TYPE_D(2, \
+                    WHAL_LPC55S6X_IOCON_MODE_PULLUP, 1, 0, 1, 0), \
+            }, \
+            [SD_D0_PIN] = { \
+                .port = 0, \
+                .pin  = 24, \
+                .ioconCfg = WHAL_LPC55S6X_IOCON_TYPE_D(2, \
+                    WHAL_LPC55S6X_IOCON_MODE_PULLUP, 1, 0, 1, 0), \
+            }, \
         }, \
     }, \
 }
@@ -146,6 +169,17 @@ enum {
         .prescaler = 0, \
         .clkSel    = WHAL_LPC55S6X_SYSCON_CTIMERCLKSEL_FRO96M, \
         .timeout   = &g_whalTimeout, \
+    }, \
+}
+
+/* SDHC transport dev — single-instance device defined in lpc55s6x_sdhc.c. */
+#define WHAL_CFG_LPC55S6X_SDHC_DEV { \
+    .base = WHAL_LPC55S6X_SDHC_BASE, \
+    /* .driver: direct API mapping */ \
+    .cfg  = (void *)&(const whal_Lpc55s6x_Sdhc_Cfg){ \
+        .fclkHz  = 48000000, \
+        .cardNum = 0, \
+        .timeout = &g_whalTimeout, \
     }, \
 }
 

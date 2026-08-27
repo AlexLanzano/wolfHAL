@@ -64,6 +64,14 @@
 #define WHAL_LPC55S6X_SYSCON_CTIMERCLKSEL0       0x26C
 #define WHAL_LPC55S6X_SYSCON_CTIMERCLKSEL_FRO96M 3
 
+/* SDIO function-clock source select and divider. */
+#define WHAL_LPC55S6X_SYSCON_SDIOCLKSEL             0x2F8
+#define WHAL_LPC55S6X_SYSCON_SDIOCLKSEL_FRO96M      3
+#define WHAL_LPC55S6X_SYSCON_SDIOCLKDIV             0x3BC
+#define WHAL_LPC55S6X_SYSCON_SDIOCLKDIV_DIV_Msk     (WHAL_BITMASK(8) << 0)
+#define WHAL_LPC55S6X_SYSCON_SDIOCLKDIV_RESET_Msk   (1UL << 29)
+#define WHAL_LPC55S6X_SYSCON_SDIOCLKDIV_REQFLAG_Msk (1UL << 31)
+
 /* Flexcomm fractional rate generator (FLEXFRGnCTRL, +4 per instance). */
 #define WHAL_LPC55S6X_SYSCON_FLEXFRGCTRL0     0x320
 #define WHAL_LPC55S6X_SYSCON_FLEXFRG_DIV_Pos  0
@@ -171,6 +179,40 @@ static inline whal_Error whal_Lpc55s6x_Syscon_SetHsSpiClk(size_t sel)
                     WHAL_LPC55S6X_SYSCON_FCCLKSEL_SEL_Msk,
                     whal_SetBits(WHAL_LPC55S6X_SYSCON_FCCLKSEL_SEL_Msk,
                                  WHAL_LPC55S6X_SYSCON_FCCLKSEL_SEL_Pos, sel));
+    return WHAL_SUCCESS;
+}
+
+/*
+ * @brief Select the SDIO function-clock source and divider.
+ *
+ * The SDIO clock divider comes up halted, so this clears HALT while writing the
+ * divider value, pulses the counter reset, and waits for the output to stabilize
+ * (REQFLAG). Clock bring-up runs before the system timer, so the bare wait loop
+ * is acceptable here.
+ *
+ * @param sel Clock source (WHAL_LPC55S6X_SYSCON_SDIOCLKSEL_*).
+ * @param div Divider value (0 = divide by 1).
+ *
+ * @retval WHAL_SUCCESS Always.
+ */
+static inline whal_Error whal_Lpc55s6x_Syscon_SetSdioClk(size_t sel, size_t div)
+{
+    whal_Reg_Update(WHAL_LPC55S6X_SYSCON_BASE,
+                    WHAL_LPC55S6X_SYSCON_SDIOCLKSEL,
+                    WHAL_LPC55S6X_SYSCON_FCCLKSEL_SEL_Msk,
+                    whal_SetBits(WHAL_LPC55S6X_SYSCON_FCCLKSEL_SEL_Msk,
+                                 WHAL_LPC55S6X_SYSCON_FCCLKSEL_SEL_Pos, sel));
+    whal_Reg_Write(WHAL_LPC55S6X_SYSCON_BASE,
+                   WHAL_LPC55S6X_SYSCON_SDIOCLKDIV,
+                   WHAL_LPC55S6X_SYSCON_SDIOCLKDIV_RESET_Msk |
+                   (div & WHAL_LPC55S6X_SYSCON_SDIOCLKDIV_DIV_Msk));
+    whal_Reg_Write(WHAL_LPC55S6X_SYSCON_BASE,
+                   WHAL_LPC55S6X_SYSCON_SDIOCLKDIV,
+                   div & WHAL_LPC55S6X_SYSCON_SDIOCLKDIV_DIV_Msk);
+    while (whal_Reg_Read(WHAL_LPC55S6X_SYSCON_BASE,
+                         WHAL_LPC55S6X_SYSCON_SDIOCLKDIV)
+           & WHAL_LPC55S6X_SYSCON_SDIOCLKDIV_REQFLAG_Msk)
+        ;
     return WHAL_SUCCESS;
 }
 
