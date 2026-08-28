@@ -176,10 +176,10 @@ static whal_Error Fb_Flush(void)
 
 static void Test_SharpDisplay_Init(void)
 {
+    whal_Display *dev = &g_whalSharpLs013b7dh03;
     whal_SharpMemory_Display_Cfg *cfg;
 
-    g_dev = &g_whalSharpLs013b7dh03;
-    cfg = (whal_SharpMemory_Display_Cfg *)g_dev->cfg;
+    cfg = (whal_SharpMemory_Display_Cfg *)dev->cfg;
     WHAL_ASSERT_NEQ(cfg, NULL);
 
     g_w = cfg->width;
@@ -191,15 +191,24 @@ static void Test_SharpDisplay_Init(void)
         (g_w & 7))
         WHAL_SKIP();
 
-    WHAL_ASSERT_EQ(whal_SharpMemory_Display_Init(g_dev), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_SharpMemory_Display_Init(dev), WHAL_SUCCESS);
+
+    /* Only now is the panel geometry known to fit g_fb; the tests below run
+     * off g_dev being set. */
+    g_dev = dev;
 }
 
 static void Test_SharpDisplay_DrawShapes(void)
 {
-    int cx = g_w / 2;
-    int cy = g_h / 2;
-    int r = (g_w < g_h ? g_w : g_h) / 4;
+    int cx, cy, r;
     int gx, gy;
+
+    if (!g_dev)
+        WHAL_SKIP();
+
+    cx = g_w / 2;
+    cy = g_h / 2;
+    r = (g_w < g_h ? g_w : g_h) / 4;
 
     /* Start from a white background (1 = white). */
     Fb_Fill(PIXEL_WHITE);
@@ -230,8 +239,13 @@ static void Test_SharpDisplay_DrawShapes(void)
 
 static void Test_SharpDisplay_PartialUpdate(void)
 {
-    uint16_t bandY = g_h / 4;
-    uint16_t bandH = g_h / 2;
+    uint16_t bandY, bandH;
+
+    if (!g_dev)
+        WHAL_SKIP();
+
+    bandY = g_h / 4;
+    bandH = g_h / 2;
 
     /* Repaint just the middle band of rows as solid black, full width. */
     Fb_FillRect(0, bandY, g_w, bandH, PIXEL_BLACK);
@@ -245,6 +259,9 @@ static void Test_SharpDisplay_PartialUpdate(void)
 
 static void Test_SharpDisplay_ApiValidation(void)
 {
+    if (!g_dev)
+        WHAL_SKIP();
+
     /* NULL data. */
     WHAL_ASSERT_EQ(whal_SharpMemory_Display_Update(g_dev, 0, 0, g_w, g_h,
                                                    NULL, g_stride * g_h),
@@ -271,6 +288,9 @@ static void Test_SharpDisplay_ApiValidation(void)
 
 static void Test_SharpDisplay_Deinit(void)
 {
+    if (!g_dev)
+        WHAL_SKIP();
+
     WHAL_ASSERT_EQ(whal_SharpMemory_Display_Deinit(g_dev), WHAL_SUCCESS);
 }
 #endif /* PERIPHERAL_SHARP_LS013B7DH03 */

@@ -75,7 +75,8 @@ typedef struct whal_SharpMemory_Display_Cfg {
                                   *   may be WHAL_INTERNAL_DEV/NULL, so they
                                   *   cannot serve as the discriminator) */
     uint16_t width;              /**< Panel width in pixels (128) */
-    uint16_t height;             /**< Panel height in pixels (128) */
+    uint16_t height;             /**< Panel height in pixels (128); at most
+                                  *   255, the range of the gate address */
 } whal_SharpMemory_Display_Cfg;
 
 #ifdef WHAL_CFG_SHARPMEMORY_DISPLAY_SINGLE_INSTANCE
@@ -105,6 +106,9 @@ extern const whal_DisplayDriver whal_SharpMemory_Display_Driver;
  *
  * @retval WHAL_SUCCESS Initialization completed.
  * @retval WHAL_EINVAL  Null pointer or invalid configuration.
+ * @retval WHAL_ENOTSUP Panel height exceeds 255 lines; the update frame
+ *                      carries a single-byte gate address, so taller panels
+ *                      need a wire format this driver does not implement.
  */
 whal_Error whal_SharpMemory_Display_Init(whal_Display *dev);
 /**

@@ -120,6 +120,8 @@ whal_Error whal_SharpMemory_Display_Init(whal_Display *dev)
         return WHAL_EINVAL;
     if (cfg->width == 0 || cfg->height == 0 || (cfg->width & 0x7))
         return WHAL_EINVAL;
+    if (cfg->height > 255)
+        return WHAL_ENOTSUP;
 
     /* Ensure SCS starts deasserted (low) before configuring the bus. */
     err = SharpMem_CsDeassert(cfg);
