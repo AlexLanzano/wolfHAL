@@ -346,6 +346,100 @@ static void Test_Block_ValidDispatch(void)
     WHAL_ASSERT_EQ(whal_Block_Deinit(&dev), WHAL_SUCCESS);
 }
 
+/* --- PWM dispatch tests --- */
+
+static whal_Error MockPwmInit(whal_Pwm *d) { (void)d; return WHAL_SUCCESS; }
+static whal_Error MockPwmDeinit(whal_Pwm *d) { (void)d; return WHAL_SUCCESS; }
+static whal_Error MockPwmStart(whal_Pwm *d, uint8_t ch, const whal_Pwm_ChannelCfg *c) { (void)d; (void)ch; (void)c; return WHAL_SUCCESS; }
+static whal_Error MockPwmStop(whal_Pwm *d, uint8_t ch) { (void)d; (void)ch; return WHAL_SUCCESS; }
+
+static const whal_PwmDriver mockPwmDriver = {
+    .Init = MockPwmInit,
+    .Deinit = MockPwmDeinit,
+    .Start = MockPwmStart,
+    .Stop = MockPwmStop,
+};
+
+static void Test_Pwm_NullDev(void)
+{
+    whal_Pwm_ChannelCfg cfg = { .periodCycles = 100, .pulseCycles = 50 };
+    WHAL_ASSERT_EQ(whal_Pwm_Init(NULL), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Pwm_Deinit(NULL), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Pwm_Start(NULL, 0, &cfg), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Pwm_Stop(NULL, 0), WHAL_EINVAL);
+}
+
+static void Test_Pwm_NullDriver(void)
+{
+    whal_Pwm dev = { .driver = NULL };
+    WHAL_ASSERT_EQ(whal_Pwm_Init(&dev), WHAL_ENOTSUP);
+}
+
+static void Test_Pwm_BadWave(void)
+{
+    whal_Pwm dev = { .driver = &mockPwmDriver };
+    whal_Pwm_ChannelCfg cfg = { .periodCycles = 100, .pulseCycles = 101 };
+    whal_Pwm_ChannelCfg zero = { .periodCycles = 0, .pulseCycles = 0 };
+    WHAL_ASSERT_EQ(whal_Pwm_Start(&dev, 0, NULL), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Pwm_Start(&dev, 0, &cfg), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Pwm_Start(&dev, 0, &zero), WHAL_EINVAL);
+}
+
+static void Test_Pwm_ValidDispatch(void)
+{
+    whal_Pwm dev = { .driver = &mockPwmDriver };
+    whal_Pwm_ChannelCfg cfg = { .periodCycles = 100, .pulseCycles = 50 };
+    WHAL_ASSERT_EQ(whal_Pwm_Init(&dev), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Pwm_Start(&dev, 0, &cfg), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Pwm_Stop(&dev, 0), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Pwm_Deinit(&dev), WHAL_SUCCESS);
+}
+
+/* --- Display dispatch tests --- */
+
+static whal_Error MockDisplayInit(whal_Display *d) { (void)d; return WHAL_SUCCESS; }
+static whal_Error MockDisplayDeinit(whal_Display *d) { (void)d; return WHAL_SUCCESS; }
+static whal_Error MockDisplayUpdate(whal_Display *d, uint16_t x, uint16_t y, uint16_t w, uint16_t h, const void *data, size_t dataSz) { (void)d; (void)x; (void)y; (void)w; (void)h; (void)data; (void)dataSz; return WHAL_SUCCESS; }
+
+static const whal_DisplayDriver mockDisplayDriver = {
+    .Init = MockDisplayInit,
+    .Deinit = MockDisplayDeinit,
+    .Update = MockDisplayUpdate,
+};
+
+static void Test_Display_NullDev(void)
+{
+    uint8_t buf[1] = {0};
+    WHAL_ASSERT_EQ(whal_Display_Init(NULL), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Display_Deinit(NULL), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Display_Update(NULL, 0, 0, 1, 1, buf, sizeof(buf)), WHAL_EINVAL);
+}
+
+static void Test_Display_NullDriver(void)
+{
+    whal_Display dev = { .driver = NULL };
+    WHAL_ASSERT_EQ(whal_Display_Init(&dev), WHAL_ENOTSUP);
+}
+
+static void Test_Display_BadArgs(void)
+{
+    whal_Display dev = { .driver = &mockDisplayDriver };
+    uint8_t buf[1] = {0};
+    WHAL_ASSERT_EQ(whal_Display_Update(&dev, 0, 0, 1, 1, NULL, 1), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Display_Update(&dev, 0, 0, 1, 1, buf, 0), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Display_Update(&dev, 0, 0, 0, 1, buf, sizeof(buf)), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Display_Update(&dev, 0, 0, 1, 0, buf, sizeof(buf)), WHAL_EINVAL);
+}
+
+static void Test_Display_ValidDispatch(void)
+{
+    whal_Display dev = { .driver = &mockDisplayDriver };
+    uint8_t buf[4] = {0};
+    WHAL_ASSERT_EQ(whal_Display_Init(&dev), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Display_Update(&dev, 0, 0, 2, 2, buf, sizeof(buf)), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Display_Deinit(&dev), WHAL_SUCCESS);
+}
+
 void whal_Test_Dispatch(void)
 {
     WHAL_TEST_SUITE_START("dispatch");
@@ -371,5 +465,13 @@ void whal_Test_Dispatch(void)
     WHAL_TEST(Test_Block_NullDev);
     WHAL_TEST(Test_Block_NullDriver);
     WHAL_TEST(Test_Block_ValidDispatch);
+    WHAL_TEST(Test_Pwm_NullDev);
+    WHAL_TEST(Test_Pwm_NullDriver);
+    WHAL_TEST(Test_Pwm_BadWave);
+    WHAL_TEST(Test_Pwm_ValidDispatch);
+    WHAL_TEST(Test_Display_NullDev);
+    WHAL_TEST(Test_Display_NullDriver);
+    WHAL_TEST(Test_Display_BadArgs);
+    WHAL_TEST(Test_Display_ValidDispatch);
     WHAL_TEST_SUITE_END();
 }

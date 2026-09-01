@@ -37,6 +37,7 @@
 #include <wolfHAL/i2c/stm32wb_i2c.h>
 #include <wolfHAL/watchdog/stm32wb_iwdg.h>
 #include <wolfHAL/watchdog/stm32wb_wwdg.h>
+#include <wolfHAL/pwm/stm32wb_lptim_pwm.h>
 
 /*
  * @file stm32wb55xx.h
@@ -69,6 +70,9 @@
 
 #define WHAL_STM32WB55_I2C3_BASE 0x40005C00
 #define WHAL_STM32WB55_I2C3_DRIVER &whal_Stm32wb_I2c_Driver
+
+#define WHAL_STM32WB55_LPTIM1_BASE 0x40007C00
+#define WHAL_STM32WB55_LPTIM1_PWM_DRIVER &whal_Stm32wb_Lptim_Pwm_Driver
 
 #define WHAL_STM32WB55_IWDG_BASE 0x40003000
 #define WHAL_STM32WB55_IWDG_DRIVER &whal_Stm32wb_Iwdg_Driver
@@ -139,6 +143,11 @@
     .regOffset = 0x58,              \
     .enableMask = (1UL << 23),      \
     .enablePos = 23
+
+#define WHAL_STM32WB55_LPTIM1_GATE \
+    .regOffset = 0x58,             \
+    .enableMask = (1UL << 31),     \
+    .enablePos = 31
 
 #define WHAL_STM32WB55_LPUART1_GATE    \
     .regOffset = 0x5C,                  \

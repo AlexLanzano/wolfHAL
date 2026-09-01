@@ -983,6 +983,80 @@ Reset the timer counter back to its initialized state.
 
 ---
 
+## PWM
+
+Header: `wolfHAL/pwm/pwm.h`
+
+The PWM driver generates a pulse-width-modulated output. Each channel's waveform
+(frequency, duty, polarity) is described by a `whal_Pwm_ChannelCfg` passed to
+Start, which applies it and begins output; Stop halts the channel. Channels are
+addressed by a zero-based index, and a driver returns `WHAL_ENOTSUP` for any
+channel its hardware does not implement (a single-output peripheral accepts only
+channel 0).
+
+The waveform's `periodCycles` and `pulseCycles` are counted in ticks of the
+driver's (prescaled) timer clock, not seconds; the board translates real time
+into ticks. On hardware that shares one counter across channels, every channel
+of an instance must use the same `periodCycles`.
+
+### Init
+
+Configure the instance-static PWM settings (clock source, prescaler, waveform
+mode) with the output disabled. The board must enable the peripheral clock
+before calling Init.
+
+### Deinit
+
+Disable the PWM output and release resources.
+
+### Start
+
+Apply a `whal_Pwm_ChannelCfg` to a channel and begin output. The generic
+dispatcher rejects a null waveform, a zero period, and
+`pulseCycles > periodCycles` with `WHAL_EINVAL`; the driver returns
+`WHAL_ENOTSUP` for a channel or waveform its hardware cannot represent. Start is
+a repeatable toggle with Stop and does not require a re-Init.
+
+### Stop
+
+Halt output on a channel, parking the pin. A subsequent Start reprograms and
+resumes the waveform.
+
+---
+
+## Display
+
+Header: `wolfHAL/display/display.h`
+
+The display driver provides a bus-agnostic API for pixel-addressable panels.
+Each driver implements the vtable and talks to its panel over the appropriate
+bus (SPI, parallel, etc.) internally. The pixel format, the byte layout of the
+data buffer, and the meaning of a region are defined by each driver rather than
+by the generic API.
+
+### Init
+
+Bring the panel up: configure the bus session, start any refresh / COM-inversion
+source the panel needs, and clear pixel memory to a known state. A driver that
+acquires resources here (e.g. a VCOM PWM) should release them on any Init error
+path so a failed Init leaves nothing running.
+
+### Deinit
+
+Shut the panel down, mirroring Init's bring-up in reverse (e.g. blank the panel
+before halting COM inversion, then release the bus).
+
+### Update
+
+Push pixel data to the `w` by `h` region whose top-left corner is (`x`, `y`).
+The generic dispatcher rejects structural violations (null pointers, a zero-area
+region, a null or zero-length data buffer) with `WHAL_EINVAL`; the driver
+returns `WHAL_ENOTSUP` for a region its hardware cannot address (e.g. a panel
+that can only write whole lines requires a full-width region) and validates
+`dataSz` against its own pixel format.
+
+---
+
 ## RNG
 
 Header: `wolfHAL/rng/rng.h`

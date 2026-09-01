@@ -22,7 +22,7 @@
 _BOARD_DIR := $(patsubst %/,%,$(dir $(lastword $(MAKEFILE_LIST))))
 
 PLATFORM = stm32wb
-TESTS ?= clock gpio flash timer rng aes_ecb aes_cbc aes_ctr aes_gcm aes_gmac aes_ccm pka block uart i2c
+TESTS ?= clock gpio flash timer rng aes_ecb aes_cbc aes_ctr aes_gcm aes_gmac aes_ccm pka block uart i2c pwm
 
 GCC = $(GCC_PATH)arm-none-eabi-gcc
 LD = $(GCC_PATH)arm-none-eabi-ld
@@ -63,6 +63,7 @@ BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/flash.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/sensor.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/block.c)
+BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/pwm.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/irq/cortex_m4_nvic.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/stm32wb_*.c)
 BOARD_SOURCE += $(wildcard $(WHAL_DIR)/src/*/systick.c)

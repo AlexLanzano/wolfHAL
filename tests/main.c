@@ -141,6 +141,10 @@ void whal_Test_Eth_Platform(void);
 void whal_Test_Bmi270_Sensor(void);
 #endif
 
+#ifdef WHAL_TEST_ENABLE_SHARP_MEMORY_DISPLAY
+void whal_Test_SharpMemoryDisplay(void);
+#endif
+
 #ifdef WHAL_TEST_ENABLE_WATCHDOG
 void whal_Test_Watchdog(void);
 #ifdef WHAL_TEST_ENABLE_WATCHDOG_PLATFORM
@@ -160,6 +164,17 @@ void whal_Test_I2c(void);
 #ifdef WHAL_TEST_ENABLE_I2C_PLATFORM
 void whal_Test_I2c_Platform(void);
 #endif
+#endif
+
+#ifdef WHAL_TEST_ENABLE_PWM
+void whal_Test_Pwm(void);
+#ifdef WHAL_TEST_ENABLE_PWM_PLATFORM
+void whal_Test_Pwm_Platform(void);
+#endif
+#endif
+
+#ifdef WHAL_TEST_ENABLE_PWM_PULSE
+void whal_Test_Pwm_Pulse(void);
 #endif
 
 #ifdef WHAL_TEST_ENABLE_DMA_PLATFORM
@@ -322,6 +337,10 @@ void main(void)
     whal_Test_Bmi270_Sensor();
 #endif
 
+#ifdef WHAL_TEST_ENABLE_SHARP_MEMORY_DISPLAY
+    whal_Test_SharpMemoryDisplay();
+#endif
+
 #ifdef WHAL_TEST_ENABLE_WATCHDOG
     whal_Test_Watchdog();
 #ifdef WHAL_TEST_ENABLE_WATCHDOG_PLATFORM
@@ -341,6 +360,17 @@ void main(void)
 #ifdef WHAL_TEST_ENABLE_I2C_PLATFORM
     whal_Test_I2c_Platform();
 #endif
+#endif
+
+#ifdef WHAL_TEST_ENABLE_PWM
+    whal_Test_Pwm();
+#ifdef WHAL_TEST_ENABLE_PWM_PLATFORM
+    whal_Test_Pwm_Platform();
+#endif
+#endif
+
+#ifdef WHAL_TEST_ENABLE_PWM_PULSE
+    whal_Test_Pwm_Pulse();
 #endif
 
 #ifdef WHAL_TEST_ENABLE_DMA_PLATFORM
