@@ -197,5 +197,6 @@ enum {
 whal_Error Board_Init(void);
 whal_Error Board_Deinit(void);
 void Board_WaitMs(size_t ms);
+uint32_t Board_GetTick(void);
 
 #endif /* BOARD_H */
