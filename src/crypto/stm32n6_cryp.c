@@ -197,6 +197,10 @@ static void WriteIv16(size_t base, const uint8_t *iv)
 
 static void ZeroKeyIv(size_t base)
 {
+    /* KEYSIZE must cover K0LR..K3RR or the write sequence raises KERF */
+    whal_Reg_Update(base, CRYP_CR_REG, CRYP_CR_KEYSIZE_Msk,
+                    whal_SetBits(CRYP_CR_KEYSIZE_Msk, CRYP_CR_KEYSIZE_Pos,
+                                 CRYP_KEYSIZE_256));
     whal_Reg_Write(base, CRYP_K0LR_REG, 0);
     whal_Reg_Write(base, CRYP_K0RR_REG, 0);
     whal_Reg_Write(base, CRYP_K1LR_REG, 0);
@@ -755,6 +759,10 @@ static whal_Error GcmHeaderPhase(const uint8_t *aad, size_t aadSz)
 
     for (i = 0; i < aadSz; i += 16) {
         size_t remain = aadSz - i;
+        err = whal_Reg_ReadPoll(base, CRYP_SR_REG, CRYP_SR_IFNF_Msk,
+                                CRYP_SR_IFNF_Msk, cfg->timeout);
+        if (err)
+            return err;
         if (remain >= 16) {
             WriteBlock(base, aad + i);
         } else {
@@ -1285,6 +1293,10 @@ whal_Error whal_Stm32n6_CrypAesCcm_Oneshot(whal_AesCcm *dev,
             size_t j;
             for (j = 0; j < 16 && aadOff < aadSz; j++)
                 blk[j] = aadPtr[aadOff++];
+            err = whal_Reg_ReadPoll(base, CRYP_SR_REG, CRYP_SR_IFNF_Msk,
+                                    CRYP_SR_IFNF_Msk, cfg->timeout);
+            if (err)
+                goto cleanup;
             WriteBlock(base, blk);
         }
 
@@ -1453,6 +1465,10 @@ whal_Error whal_Stm32n6_CrypAesCcm_Start(whal_AesCcm *dev,
             size_t j;
             for (j = 0; j < 16 && aadOff < aadSz; j++)
                 blk[j] = aadPtr[aadOff++];
+            err = whal_Reg_ReadPoll(base, CRYP_SR_REG, CRYP_SR_IFNF_Msk,
+                                    CRYP_SR_IFNF_Msk, cfg->timeout);
+            if (err)
+                goto cleanup;
             WriteBlock(base, blk);
         }
 

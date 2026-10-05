@@ -80,9 +80,9 @@ enum {
     }, \
 }
 
-/* AES + mode dev initializers — singletons defined in stm32wb_aes.c
- * (stm32u5 alias points at stm32wb leaf). Mutable GCM/CCM state buffers
- * (g_stm32wbAesGcm/CcmDevState) are static in the driver TU. */
+/* AES + mode dev initializers — singletons defined in stm32wba_aes.c
+ * (stm32u5 alias points at stm32wba leaf). Mutable GCM/CCM state buffers
+ * (g_stm32wbaAesGcm/CcmDevState) are static in the driver TU. */
 #define WHAL_CFG_STM32U5_AES_DEV { \
     .base = WHAL_STM32U5A5_AES_BASE, \
     .cfg  = (void *)&(const whal_Stm32u5_Aes_Cfg){ \
@@ -104,7 +104,7 @@ enum {
 
 #define WHAL_CFG_STM32U5_AES_GCM_DEV { \
     .crypto = (whal_Crypto *)&whal_Stm32u5_Aes_Dev, \
-    .state  = &g_stm32wbAesGcmDevState, \
+    .state  = &g_stm32wbaAesGcmDevState, \
 }
 
 #define WHAL_CFG_STM32U5_AES_GMAC_DEV { \
@@ -113,7 +113,7 @@ enum {
 
 #define WHAL_CFG_STM32U5_AES_CCM_DEV { \
     .crypto = (whal_Crypto *)&whal_Stm32u5_Aes_Dev, \
-    .state  = &g_stm32wbAesCcmDevState, \
+    .state  = &g_stm32wbaAesCcmDevState, \
 }
 
 /* RNG dev initializer — singleton defined in stm32wba_rng.c (alias). */
