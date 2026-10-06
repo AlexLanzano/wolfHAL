@@ -71,6 +71,7 @@ typedef struct {
 extern const whal_Uart whal_Stm32wba_UartDma_Dev;
 #endif
 
+#ifndef WHAL_CFG_STM32WBA_UART_DMA_DIRECT_API_MAPPING
 /*
  * @brief Driver instance for the GPDMA-backed STM32WBA UART.
  */
@@ -148,6 +149,7 @@ whal_Error whal_Stm32wba_UartDma_SendAsync(whal_Uart *uartDev, const void *data,
  */
 whal_Error whal_Stm32wba_UartDma_RecvAsync(whal_Uart *uartDev, void *data,
                                            size_t dataSz);
+#endif /* !WHAL_CFG_STM32WBA_UART_DMA_DIRECT_API_MAPPING */
 
 /*
  * @brief GPDMA TX channel completion callback. Boards wire this into the
