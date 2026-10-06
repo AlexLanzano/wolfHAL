@@ -72,9 +72,6 @@ whal_Error whal_Stm32wba_UartDma_SendAsync(whal_Uart *uartDev, const void *data,
         return WHAL_EINVAL;
 #endif
 
-    if (dataSz == 0)
-        return WHAL_SUCCESS;
-
 #ifndef WHAL_CFG_STM32WBA_UART_DMA_SINGLE_INSTANCE
     cfg = (whal_Stm32wba_UartDma_Cfg *)uartDev->cfg;
 #endif
@@ -82,15 +79,17 @@ whal_Error whal_Stm32wba_UartDma_SendAsync(whal_Uart *uartDev, const void *data,
     if (cfg->txResult == WHAL_ENOTREADY)
         return WHAL_ENOTREADY;
 
+    if (dataSz == 0)
+        return WHAL_SUCCESS;
+
 #ifndef WHAL_CFG_STM32WBA_UART_DMA_SINGLE_INSTANCE
     base = uartDev->base;
 #endif
 
     /* Single-byte DMA from flash fails on GPDMA — bounce through SRAM */
-    static volatile uint8_t txBounce;
     if (dataSz == 1) {
-        txBounce = *(const uint8_t *)data;
-        cfg->txChCfg->srcAddr = (size_t)&txBounce;
+        cfg->txBounce = *(const uint8_t *)data;
+        cfg->txChCfg->srcAddr = (size_t)&cfg->txBounce;
     } else {
         cfg->txChCfg->srcAddr = (size_t)data;
     }
@@ -139,15 +138,15 @@ whal_Error whal_Stm32wba_UartDma_RecvAsync(whal_Uart *uartDev, void *data,
         return WHAL_EINVAL;
 #endif
 
-    if (dataSz == 0)
-        return WHAL_SUCCESS;
-
 #ifndef WHAL_CFG_STM32WBA_UART_DMA_SINGLE_INSTANCE
     cfg = (whal_Stm32wba_UartDma_Cfg *)uartDev->cfg;
 #endif
 
     if (cfg->rxResult == WHAL_ENOTREADY)
         return WHAL_ENOTREADY;
+
+    if (dataSz == 0)
+        return WHAL_SUCCESS;
 
 #ifndef WHAL_CFG_STM32WBA_UART_DMA_SINGLE_INSTANCE
     base = uartDev->base;
@@ -186,7 +185,7 @@ whal_Error whal_Stm32wba_UartDma_Send(whal_Uart *uartDev, const void *data,
     whal_Error err;
 
     err = whal_Stm32wba_UartDma_SendAsync(uartDev, data, dataSz);
-    if (err)
+    if (err || dataSz == 0)
         return err;
 
 #ifdef WHAL_CFG_STM32WBA_UART_DMA_SINGLE_INSTANCE
@@ -232,7 +231,7 @@ whal_Error whal_Stm32wba_UartDma_Recv(whal_Uart *uartDev, void *data,
     whal_Error err;
 
     err = whal_Stm32wba_UartDma_RecvAsync(uartDev, data, dataSz);
-    if (err)
+    if (err || dataSz == 0)
         return err;
 
 #ifdef WHAL_CFG_STM32WBA_UART_DMA_SINGLE_INSTANCE
@@ -261,6 +260,33 @@ cleanup:
     return err;
 }
 
+whal_Error whal_Stm32wba_UartDma_Deinit(whal_Uart *uartDev)
+{
+    whal_Stm32wba_UartDma_Cfg *cfg;
+    size_t base;
+
+#ifdef WHAL_CFG_STM32WBA_UART_DMA_SINGLE_INSTANCE
+    cfg = (whal_Stm32wba_UartDma_Cfg *)whal_Stm32wba_UartDma_Dev.cfg;
+    base = whal_Stm32wba_UartDma_Dev.base;
+#else
+    if (!uartDev || !uartDev->cfg)
+        return WHAL_EINVAL;
+
+    cfg = (whal_Stm32wba_UartDma_Cfg *)uartDev->cfg;
+    base = uartDev->base;
+#endif
+
+    /* Abandon any in-flight transfer so a later Init starts clean */
+    whal_Reg_Update(base, UART_CR3_REG,
+                    UART_CR3_DMAT_Msk | UART_CR3_DMAR_Msk, 0);
+    whal_Dma_Stop(cfg->dma, cfg->txCh);
+    whal_Dma_Stop(cfg->dma, cfg->rxCh);
+    cfg->txResult = WHAL_SUCCESS;
+    cfg->rxResult = WHAL_SUCCESS;
+
+    return whal_Stm32wb_Uart_Deinit(uartDev);
+}
+
 void whal_Stm32wba_UartDma_TxCallback(void *ctx, whal_Error err)
 {
     whal_Stm32wba_UartDma_Cfg *cfg = (whal_Stm32wba_UartDma_Cfg *)ctx;
@@ -275,7 +301,7 @@ void whal_Stm32wba_UartDma_RxCallback(void *ctx, whal_Error err)
 
 const whal_UartDriver whal_Stm32wba_UartDma_Driver = {
     .Init = whal_Stm32wb_Uart_Init,
-    .Deinit = whal_Stm32wb_Uart_Deinit,
+    .Deinit = whal_Stm32wba_UartDma_Deinit,
     .Send = whal_Stm32wba_UartDma_Send,
     .Recv = whal_Stm32wba_UartDma_Recv,
     .SendAsync = whal_Stm32wba_UartDma_SendAsync,

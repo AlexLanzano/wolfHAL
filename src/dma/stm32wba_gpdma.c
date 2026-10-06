@@ -122,7 +122,7 @@
 
 /* CxTR2 bits */
 #define GPDMA_CxTR2_REQSEL_Pos  0   /* Hardware request selection */
-#define GPDMA_CxTR2_REQSEL_Msk  (0x3FUL << GPDMA_CxTR2_REQSEL_Pos)
+#define GPDMA_CxTR2_REQSEL_Msk  (0xFFUL << GPDMA_CxTR2_REQSEL_Pos)
 #define GPDMA_CxTR2_SWREQ_Pos   9   /* Software request (memory-to-memory) */
 #define GPDMA_CxTR2_SWREQ_Msk   (1UL << GPDMA_CxTR2_SWREQ_Pos)
 #define GPDMA_CxTR2_DREQ_Pos    10  /* Direction: 0=src periph, 1=dst periph */

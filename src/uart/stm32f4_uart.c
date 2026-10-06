@@ -182,7 +182,9 @@ whal_Error whal_Stm32f4_Uart_Send(whal_Uart *uartDev, const void *data, size_t d
         whal_Reg_Write(base, UART_DR_REG, buf[i]);
     }
 
-    return WHAL_SUCCESS;
+    /* Wait for the last frame to finish shifting out */
+    return whal_Reg_ReadPoll(base, UART_SR_REG, UART_SR_TC_Msk,
+                             UART_SR_TC_Msk, cfg->timeout);
 }
 
 whal_Error whal_Stm32f4_Uart_Recv(whal_Uart *uartDev, void *data, size_t dataSz)

@@ -36,12 +36,12 @@
  * Typical usage from a peripheral driver:
  *   1. whal_Dma_Init()       — enable the DMA controller
  *   2. whal_Dma_Configure()  — set up a channel (direction, width, src/dst,
- *                              buffer, length, callback, etc.)
+ *                              buffer, length, etc.)
  *   3. whal_Dma_Start()      — kick off the transfer
  *   4. whal_Dma_Stop()       — abort or clean up after completion
  *
- * The completion callback (provided in the platform-specific channel config)
- * runs in ISR context.
+ * Completion callbacks are passed by the board's IRQ handler to the platform
+ * DMA IRQ handler and run in ISR context.
  */
 
 typedef struct whal_Dma whal_Dma;
