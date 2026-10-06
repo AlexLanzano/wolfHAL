@@ -63,6 +63,9 @@ const whal_Rng whal_Stm32h5_Rng_Dev = WHAL_CFG_STM32H5_RNG_DEV;
 #define RNG_SR_SECS_Pos 2
 #define RNG_SR_SECS_Msk (1UL << RNG_SR_SECS_Pos)
 
+#define RNG_SR_SEIS_Pos 6
+#define RNG_SR_SEIS_Msk (1UL << RNG_SR_SEIS_Pos)
+
 /* Data Register - 32-bit random value */
 #define RNG_DR_REG      0x08
 
@@ -156,7 +159,10 @@ whal_Error whal_Stm32h5_Rng_Generate(whal_Rng *rngDev, void *rngData,
 
             sr = whal_Reg_Read(base, RNG_SR_REG);
 
-            if (sr & RNG_SR_SECS_Msk) {
+            /* With auto-reset enabled SECS clears on its own; SEIS latches
+             * the error so the value around it is never returned */
+            if (sr & (RNG_SR_SECS_Msk | RNG_SR_SEIS_Msk)) {
+                whal_Reg_Update(base, RNG_SR_REG, RNG_SR_SEIS_Msk, 0);
                 err = WHAL_EHARDWARE;
                 goto exit;
             }

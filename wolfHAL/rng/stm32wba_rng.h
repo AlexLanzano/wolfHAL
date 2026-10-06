@@ -59,9 +59,7 @@ extern const whal_RngDriver whal_Stm32wba_Rng_Driver;
  * @param rngDev RNG device instance.
  *
  * @retval WHAL_SUCCESS   RNG is ready.
- * @retval WHAL_EINVAL    Null pointer.
  * @retval WHAL_ETIMEOUT  CONDRST did not complete within the configured timeout.
- * @retval WHAL_EHARDWARE Health check or seed error reported.
  */
 whal_Error whal_Stm32wba_Rng_Init(whal_Rng *rngDev);
 
@@ -71,7 +69,6 @@ whal_Error whal_Stm32wba_Rng_Init(whal_Rng *rngDev);
  * @param rngDev RNG device instance.
  *
  * @retval WHAL_SUCCESS RNG disabled.
- * @retval WHAL_EINVAL  Null pointer.
  */
 whal_Error whal_Stm32wba_Rng_Deinit(whal_Rng *rngDev);
 

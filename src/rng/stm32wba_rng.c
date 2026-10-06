@@ -74,6 +74,15 @@ const whal_Rng whal_Stm32wba_Rng_Dev = WHAL_CFG_STM32WBA_RNG_DEV;
 /* Data Register (offset 0x008) */
 #define RNG_DR_REG            0x08
 
+/* Health Test Control Register (offset 0x010) */
+#define RNG_HTCR_REG          0x10
+
+/* Configuration C health test value (RM0493 Table 178; same on U5 and N6) */
+#define RNG_HTCR_CONFIG_C     0x0000AAC7UL
+
+/* Magic value written before HTCR (ST HAL, AN4230) */
+#define RNG_HTCR_MAGIC        0x17590ABCUL
+
 /*
  * Configuration C values (RM0493 Table 178):
  *   NISTC=0, RNG_CONFIG1=0x0F, CLKDIV=0x0, RNG_CONFIG2=0x0,
@@ -98,6 +107,10 @@ whal_Error whal_Stm32wba_Rng_Init(whal_Rng *rngDev)
     /* Apply Configuration C with CONDRST=1 and RNGEN=1 */
     whal_Reg_Write(base, RNG_CR_REG,
                    RNG_CR_CONDRST_Msk | RNG_CR_CONFIG_C | RNG_CR_RNGEN_Msk);
+
+    /* HTCR only takes effect while CONDRST is set */
+    whal_Reg_Write(base, RNG_HTCR_REG, RNG_HTCR_MAGIC);
+    whal_Reg_Write(base, RNG_HTCR_REG, RNG_HTCR_CONFIG_C);
 
     /* Clear CONDRST to start conditioning */
     whal_Reg_Write(base, RNG_CR_REG,
@@ -145,7 +158,10 @@ whal_Error whal_Stm32wba_Rng_Generate(whal_Rng *rngDev, void *rngData, size_t rn
 
             sr = whal_Reg_Read(base, RNG_SR_REG);
 
-            if (sr & RNG_SR_SECS_Msk) {
+            /* With auto-reset enabled SECS clears on its own; SEIS latches
+             * the error so the value around it is never returned */
+            if (sr & (RNG_SR_SECS_Msk | RNG_SR_SEIS_Msk)) {
+                whal_Reg_Update(base, RNG_SR_REG, RNG_SR_SEIS_Msk, 0);
                 err = WHAL_EHARDWARE;
                 goto exit;
             }
