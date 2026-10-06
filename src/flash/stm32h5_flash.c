@@ -177,8 +177,13 @@ whal_Error whal_Stm32h5_Flash_Unlock(whal_Flash *flashDev, size_t addr,
     (void)addr;
     (void)len;
 
-    whal_Reg_Write(base, FLASH_NSKEYR_REG, FLASH_KEY1);
-    whal_Reg_Write(base, FLASH_NSKEYR_REG, FLASH_KEY2);
+    if (whal_Reg_Read(base, FLASH_NSCR_REG) & FLASH_NSCR_LOCK_Msk) {
+        whal_Reg_Write(base, FLASH_NSKEYR_REG, FLASH_KEY1);
+        whal_Reg_Write(base, FLASH_NSKEYR_REG, FLASH_KEY2);
+    }
+
+    if (whal_Reg_Read(base, FLASH_NSCR_REG) & FLASH_NSCR_LOCK_Msk)
+        return WHAL_EHARDWARE;
 
     return WHAL_SUCCESS;
 }

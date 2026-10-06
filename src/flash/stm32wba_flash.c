@@ -144,6 +144,9 @@ whal_Error whal_Stm32wba_Flash_Unlock(whal_Flash *flashDev, size_t addr, size_t 
         whal_Reg_Write(base, FLASH_NSKEYR_REG, FLASH_KEY2);
     }
 
+    if (whal_Reg_Read(base, FLASH_NSCR1_REG) & FLASH_NSCR1_LOCK_Msk)
+        return WHAL_EHARDWARE;
+
     return WHAL_SUCCESS;
 }
 
@@ -169,6 +172,12 @@ whal_Error whal_Stm32wba_Flash_Read(whal_Flash *flashDev, size_t addr, void *dat
 
 static whal_Error WaitNotBusy(size_t base, whal_Timeout *timeout)
 {
+    whal_Error err;
+
+    /* WDW must be checked clear before BSY */
+    err = whal_Reg_ReadPoll(base, FLASH_NSSR_REG, FLASH_NSSR_WDW_Msk, 0, timeout);
+    if (err)
+        return err;
     return whal_Reg_ReadPoll(base, FLASH_NSSR_REG, FLASH_NSSR_BSY_Msk, 0, timeout);
 }
 

@@ -305,15 +305,18 @@ cleanup:
 
 whal_Error whal_Stm32l1_Flash_Ext_SetLatency(whal_Stm32l1_Flash_Latency latency)
 {
-    size_t val;
+    const whal_Stm32l1_Flash_Cfg *cfg =
+        (const whal_Stm32l1_Flash_Cfg *)whal_Stm32l1_Flash_Dev.cfg;
+    whal_Error err;
 
     whal_Reg_Update(FLASH_BASE_ADDR, FLASH_ACR_REG, FLASH_ACR_ACC64_Msk,
                     whal_SetBits(FLASH_ACR_ACC64_Msk,
                                  FLASH_ACR_ACC64_Pos, 1));
-    do {
-        whal_Reg_Get(FLASH_BASE_ADDR, FLASH_ACR_REG,
-                     FLASH_ACR_ACC64_Msk, FLASH_ACR_ACC64_Pos, &val);
-    } while (!val);
+    err = whal_Reg_ReadPoll(FLASH_BASE_ADDR, FLASH_ACR_REG,
+                            FLASH_ACR_ACC64_Msk, FLASH_ACR_ACC64_Msk,
+                            cfg->timeout);
+    if (err)
+        return err;
 
     whal_Reg_Update(FLASH_BASE_ADDR, FLASH_ACR_REG, FLASH_ACR_PRFTEN_Msk,
                     whal_SetBits(FLASH_ACR_PRFTEN_Msk,
@@ -322,12 +325,11 @@ whal_Error whal_Stm32l1_Flash_Ext_SetLatency(whal_Stm32l1_Flash_Latency latency)
     whal_Reg_Update(FLASH_BASE_ADDR, FLASH_ACR_REG, FLASH_ACR_LATENCY_Msk,
                     whal_SetBits(FLASH_ACR_LATENCY_Msk,
                                  FLASH_ACR_LATENCY_Pos, latency));
-    do {
-        whal_Reg_Get(FLASH_BASE_ADDR, FLASH_ACR_REG,
-                     FLASH_ACR_LATENCY_Msk, FLASH_ACR_LATENCY_Pos, &val);
-    } while (val != (size_t)latency);
-
-    return WHAL_SUCCESS;
+    return whal_Reg_ReadPoll(FLASH_BASE_ADDR, FLASH_ACR_REG,
+                             FLASH_ACR_LATENCY_Msk,
+                             whal_SetBits(FLASH_ACR_LATENCY_Msk,
+                                          FLASH_ACR_LATENCY_Pos, latency),
+                             cfg->timeout);
 }
 
 #ifndef WHAL_CFG_STM32L1_FLASH_DIRECT_API_MAPPING

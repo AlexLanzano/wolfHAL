@@ -102,25 +102,26 @@ whal_Error whal_Stm32wb_Flash_Init(whal_Flash *flashDev);
  */
 whal_Error whal_Stm32wb_Flash_Deinit(whal_Flash *flashDev);
 /*
- * @brief Lock a flash range.
+ * @brief Lock the flash for writes (sets FLASH_CR.LOCK).
  *
  * @param flashDev Flash device instance.
- * @param addr     Flash address to lock.
- * @param len      Number of bytes to lock.
+ * @param addr     Unused; the whole flash is locked.
+ * @param len      Unused.
  *
  * @retval WHAL_SUCCESS Lock applied.
  * @retval WHAL_EINVAL  Invalid arguments.
  */
 whal_Error whal_Stm32wb_Flash_Lock(whal_Flash *flashDev, size_t addr, size_t len);
 /*
- * @brief Unlock a flash range.
+ * @brief Unlock the flash for writes via the KEYR sequence.
  *
  * @param flashDev Flash device instance.
- * @param addr     Flash address to unlock.
- * @param len      Number of bytes to unlock.
+ * @param addr     Unused; the whole flash is unlocked.
+ * @param len      Unused.
  *
- * @retval WHAL_SUCCESS Unlock applied.
- * @retval WHAL_EINVAL  Invalid arguments.
+ * @retval WHAL_SUCCESS   Unlock applied.
+ * @retval WHAL_EINVAL    Invalid arguments.
+ * @retval WHAL_EHARDWARE LOCK still set after the key sequence.
  */
 whal_Error whal_Stm32wb_Flash_Unlock(whal_Flash *flashDev, size_t addr, size_t len);
 /*

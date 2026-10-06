@@ -103,10 +103,15 @@ whal_Error whal_Stm32f0_Flash_Unlock(whal_Flash *flashDev, size_t addr, size_t l
     (void)addr;
     (void)len;
 
-    whal_Reg_Update(base, FLASH_KEYR_REG,
-                    FLASH_KEYR_KEY_Msk, 0x45670123);
-    whal_Reg_Update(base, FLASH_KEYR_REG,
-                    FLASH_KEYR_KEY_Msk, 0xCDEF89AB);
+    if (whal_Reg_Read(base, FLASH_CR_REG) & FLASH_CR_LOCK_Msk) {
+        whal_Reg_Update(base, FLASH_KEYR_REG,
+                        FLASH_KEYR_KEY_Msk, 0x45670123);
+        whal_Reg_Update(base, FLASH_KEYR_REG,
+                        FLASH_KEYR_KEY_Msk, 0xCDEF89AB);
+    }
+
+    if (whal_Reg_Read(base, FLASH_CR_REG) & FLASH_CR_LOCK_Msk)
+        return WHAL_EHARDWARE;
 
     return WHAL_SUCCESS;
 }
@@ -182,6 +187,13 @@ static whal_Error whal_Stm32f0_Flash_WriteOrErase(whal_Flash *flashDev,
                                     FLASH_SR_BSY_Msk, 0, cfg->timeout);
             if (err)
                 goto cleanup;
+
+            /* Check for errors */
+            if (whal_Reg_Read(base, FLASH_SR_REG) & FLASH_SR_ALL_ERR) {
+                whal_Reg_Update(base, FLASH_SR_REG, FLASH_SR_ALL_ERR, FLASH_SR_ALL_ERR);
+                err = WHAL_EHARDWARE;
+                goto cleanup;
+            }
         }
     } else {
         /* Calculate page range (2 KB per page) */
@@ -205,6 +217,13 @@ static whal_Error whal_Stm32f0_Flash_WriteOrErase(whal_Flash *flashDev,
                                     FLASH_SR_BSY_Msk, 0, cfg->timeout);
             if (err)
                 goto cleanup;
+
+            /* Check for errors */
+            if (whal_Reg_Read(base, FLASH_SR_REG) & FLASH_SR_ALL_ERR) {
+                whal_Reg_Update(base, FLASH_SR_REG, FLASH_SR_ALL_ERR, FLASH_SR_ALL_ERR);
+                err = WHAL_EHARDWARE;
+                goto cleanup;
+            }
         }
 
         /* Disable page erase */

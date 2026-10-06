@@ -146,8 +146,13 @@ whal_Error whal_Stm32f4_Flash_Unlock(whal_Flash *flashDev, size_t addr, size_t l
     (void)addr;
     (void)len;
 
-    whal_Reg_Write(base, FLASH_KEYR_REG, FLASH_KEY1);
-    whal_Reg_Write(base, FLASH_KEYR_REG, FLASH_KEY2);
+    if (whal_Reg_Read(base, FLASH_CR_REG) & FLASH_CR_LOCK_Msk) {
+        whal_Reg_Write(base, FLASH_KEYR_REG, FLASH_KEY1);
+        whal_Reg_Write(base, FLASH_KEYR_REG, FLASH_KEY2);
+    }
+
+    if (whal_Reg_Read(base, FLASH_CR_REG) & FLASH_CR_LOCK_Msk)
+        return WHAL_EHARDWARE;
 
     return WHAL_SUCCESS;
 }

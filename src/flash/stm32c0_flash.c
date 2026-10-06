@@ -159,8 +159,13 @@ whal_Error whal_Stm32c0_Flash_Unlock(whal_Flash *flashDev, size_t addr, size_t l
      * Unlock sequence: write KEY1 then KEY2 to KEYR register.
      * Incorrect sequence or order will trigger a bus error.
      */
-    whal_Reg_Update(base, FLASH_KEYR_REG, FLASH_KEYR_KEY_Msk, 0x45670123);
-    whal_Reg_Update(base, FLASH_KEYR_REG, FLASH_KEYR_KEY_Msk, 0xCDEF89AB);
+    if (whal_Reg_Read(base, FLASH_CR_REG) & FLASH_CR_LOCK_Msk) {
+        whal_Reg_Update(base, FLASH_KEYR_REG, FLASH_KEYR_KEY_Msk, 0x45670123);
+        whal_Reg_Update(base, FLASH_KEYR_REG, FLASH_KEYR_KEY_Msk, 0xCDEF89AB);
+    }
+
+    if (whal_Reg_Read(base, FLASH_CR_REG) & FLASH_CR_LOCK_Msk)
+        return WHAL_EHARDWARE;
 
     return WHAL_SUCCESS;
 }
@@ -245,6 +250,13 @@ static whal_Error whal_Stm32c0_Flash_WriteOrErase(whal_Flash *flashDev, size_t a
                                     FLASH_SR_CFGBSY_Msk, 0, cfg->timeout);
             if (err)
                 goto cleanup;
+
+            /* Check for errors */
+            if (whal_Reg_Read(base, FLASH_SR_REG) & FLASH_SR_ALL_ERR) {
+                whal_Reg_Update(base, FLASH_SR_REG, FLASH_SR_ALL_ERR, FLASH_SR_ALL_ERR);
+                err = WHAL_EHARDWARE;
+                goto cleanup;
+            }
         }
     }
     else {
@@ -272,6 +284,13 @@ static whal_Error whal_Stm32c0_Flash_WriteOrErase(whal_Flash *flashDev, size_t a
                                     FLASH_SR_CFGBSY_Msk, 0, cfg->timeout);
             if (err)
                 goto cleanup;
+
+            /* Check for errors */
+            if (whal_Reg_Read(base, FLASH_SR_REG) & FLASH_SR_ALL_ERR) {
+                whal_Reg_Update(base, FLASH_SR_REG, FLASH_SR_ALL_ERR, FLASH_SR_ALL_ERR);
+                err = WHAL_EHARDWARE;
+                goto cleanup;
+            }
         }
 
         /* Disable page erase mode */
