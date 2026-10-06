@@ -30,8 +30,8 @@
  * @brief STM32WBA AES hardware accelerator driver.
  *
  * The STM32WBA AES peripheral supports 128/256-bit keys in ECB, CBC,
- * CTR, GCM, GMAC, and CCM modes. Each algorithm is exposed through
- * a per-algorithm vtable with Oneshot/Start/Process/Finalize operations.
+ * CTR, GCM, GMAC, and CCM modes. ECB/CBC/CTR expose Oneshot/Start/Process,
+ * GMAC exposes Oneshot, and GCM/CCM add Finalize.
  */
 
 /**
@@ -49,14 +49,19 @@ typedef struct {
 typedef struct {
     size_t aadSz;
     size_t dataSz;
+    uint8_t partial;    /* A partial block was processed; no further Process */
 } whal_Stm32wba_AesGcm_State;
 
 /**
- * @brief AES-CCM streaming state (aadSz/dataSz for final-phase tag).
+ * @brief AES-CCM streaming state. msgSz and tagSz are the values Start encoded
+ *        in B0; dataSz counts processed bytes so Finalize can check them.
  */
 typedef struct {
     size_t aadSz;
     size_t dataSz;
+    size_t msgSz;
+    size_t tagSz;
+    uint8_t partial;    /* A partial block was processed; no further Process */
 } whal_Stm32wba_AesCcm_State;
 
 /* ---- Direct API mapping ---- */

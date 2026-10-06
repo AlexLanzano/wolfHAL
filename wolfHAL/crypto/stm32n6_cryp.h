@@ -30,8 +30,8 @@
  * @brief STM32N6 CRYP (cryptographic processor) driver.
  *
  * The CRYP peripheral on the STM32N6 supports AES-128/192/256 in ECB, CBC,
- * CTR, GCM, GMAC, and CCM chaining modes. Each algorithm is exposed through
- * a per-algorithm vtable with Oneshot/Start/Process/Finalize operations.
+ * CTR, GCM, GMAC, and CCM chaining modes. ECB/CBC/CTR expose
+ * Oneshot/Start/Process, GMAC exposes Oneshot, and GCM/CCM add Finalize.
  */
 
 /**
@@ -49,18 +49,22 @@ typedef struct {
 typedef struct {
     size_t aadSz;
     size_t dataSz;
+    uint8_t partial;    /* A partial block was processed; no further Process */
 } whal_Stm32n6_AesGcm_State;
 
 /**
  * @brief AES-CCM streaming state.
  *
  * @c ccmCtr0 is computed from the nonce in Start and replayed by Finalize for
- * the tag's final-phase counter. @c aadSz / @c dataSz feed the final-phase
- * length encoding.
+ * the tag's final-phase counter. @c msgSz and @c tagSz are the values Start
+ * encoded in B0; @c dataSz counts processed bytes so Finalize can check them.
  */
 typedef struct {
     size_t  aadSz;
     size_t  dataSz;
+    size_t  msgSz;
+    size_t  tagSz;
+    uint8_t partial;    /* A partial block was processed; no further Process */
     uint8_t ccmCtr0[16];
 } whal_Stm32n6_AesCcm_State;
 
