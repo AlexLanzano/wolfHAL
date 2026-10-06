@@ -27,6 +27,7 @@
 #include <wolfHAL/error.h>
 #include <wolfHAL/bitops.h>
 #include <wolfHAL/timeout.h>
+#include <wolfHAL/endian.h>
 
 const whal_Flash whal_Stm32c0_Flash_Dev = WHAL_CFG_STM32C0_FLASH_DEV;
 
@@ -238,12 +239,11 @@ static whal_Error whal_Stm32c0_Flash_WriteOrErase(whal_Flash *flashDev, size_t a
 
         /* Program data in 64-bit (8 byte) double-word chunks */
         for (size_t i = 0; i < dataSz; i += 8) {
-            uint32_t *flashAddr = (uint32_t *)(addr + i);
-            uint32_t *dataAddr = (uint32_t *)(data + i);
+            volatile uint32_t *flashAddr = (volatile uint32_t *)(addr + i);
 
             /* Write both 32-bit words to trigger the 64-bit programming */
-            flashAddr[0] = dataAddr[0];
-            flashAddr[1] = dataAddr[1];
+            flashAddr[0] = whal_LoadLe32(data + i);
+            flashAddr[1] = whal_LoadLe32(data + i + 4);
 
             /* Wait for programming to complete */
             err = whal_Reg_ReadPoll(base, FLASH_SR_REG,

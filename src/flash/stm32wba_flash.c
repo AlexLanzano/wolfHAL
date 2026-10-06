@@ -27,6 +27,7 @@
 #include <wolfHAL/error.h>
 #include <wolfHAL/bitops.h>
 #include <wolfHAL/timeout.h>
+#include <wolfHAL/endian.h>
 
 const whal_Flash whal_Stm32wba_Flash_Dev = WHAL_CFG_STM32WBA_FLASH_DEV;
 
@@ -226,13 +227,12 @@ whal_Error whal_Stm32wba_Flash_Write(whal_Flash *flashDev, size_t addr,
 
     /* Program in 128-bit (16 byte) flash-word chunks */
     for (size_t i = 0; i < dataSz; i += 16) {
-        uint32_t *flashAddr = (uint32_t *)(addr + i);
-        const uint32_t *dataAddr = (const uint32_t *)(dataBuf + i);
+        volatile uint32_t *flashAddr = (volatile uint32_t *)(addr + i);
 
-        flashAddr[0] = dataAddr[0];
-        flashAddr[1] = dataAddr[1];
-        flashAddr[2] = dataAddr[2];
-        flashAddr[3] = dataAddr[3];
+        flashAddr[0] = whal_LoadLe32(dataBuf + i);
+        flashAddr[1] = whal_LoadLe32(dataBuf + i + 4);
+        flashAddr[2] = whal_LoadLe32(dataBuf + i + 8);
+        flashAddr[3] = whal_LoadLe32(dataBuf + i + 12);
 
         err = WaitNotBusy(base, cfg->timeout);
         if (err)
