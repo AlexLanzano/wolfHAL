@@ -75,7 +75,7 @@ extern const whal_TimerDriver whal_SysTick_Driver;
  * @param timerDev Timer device instance to initialize.
  *
  * @retval WHAL_SUCCESS Initialization completed.
- * @retval WHAL_EINVAL  cyclesPerTick is 0 or exceeds the 24-bit counter (2^24).
+ * @retval WHAL_EINVAL  cyclesPerTick is below 2 or exceeds the 24-bit counter (2^24).
  */
 whal_Error whal_SysTick_Init(whal_Timer *timerDev);
 /*

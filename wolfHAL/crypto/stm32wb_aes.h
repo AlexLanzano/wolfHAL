@@ -215,7 +215,7 @@ whal_Error whal_Stm32wb_AesCbc_Process(whal_AesCbc *dev,
  * @param key   Key buffer.
  * @param keySz Key size in bytes (16 or 32).
  * @param iv    Initial counter block (16 bytes).
- * @param in    Input data.
+ * @param in    Input data (multiple of 16 bytes).
  * @param out   Output buffer.
  * @param sz    Data size in bytes.
  */
@@ -241,7 +241,7 @@ whal_Error whal_Stm32wb_AesCtr_Start(whal_AesCtr *dev, whal_Crypto_Dir dir,
  * @brief Process data through an active AES-CTR session.
  *
  * @param dev AES-CTR device instance.
- * @param in  Input data.
+ * @param in  Input data (multiple of 16 bytes).
  * @param out Output buffer.
  * @param sz  Data size in bytes.
  */
@@ -297,7 +297,8 @@ whal_Error whal_Stm32wb_AesGcm_Start(whal_AesGcm *dev, whal_Crypto_Dir dir,
  * @param dev AES-GCM device instance.
  * @param in  Input data.
  * @param out Output buffer.
- * @param sz  Data size in bytes.
+ * @param sz  Data size in bytes. Every call except the last must be a
+ *            multiple of 16 bytes.
  */
 whal_Error whal_Stm32wb_AesGcm_Process(whal_AesGcm *dev,
                                        const void *in, void *out, size_t sz);
@@ -370,8 +371,9 @@ whal_Error whal_Stm32wb_AesCcm_Oneshot(whal_AesCcm *dev, whal_Crypto_Dir dir,
  * @param nonceSz Nonce size in bytes (7-13).
  * @param aad     Additional authenticated data.
  * @param aadSz   AAD size in bytes.
- * @param tagSz   Tag size (needed for B0 block construction).
- * @param sz      Total payload size (needed for B0 block construction).
+ * @param tagSz   Tag size (encoded in B0); Finalize must pass the same value.
+ * @param sz      Total payload size (encoded in B0); the Process calls must
+ *                add up to exactly this many bytes.
  */
 whal_Error whal_Stm32wb_AesCcm_Start(whal_AesCcm *dev, whal_Crypto_Dir dir,
                                      const void *key, size_t keySz,
@@ -385,7 +387,8 @@ whal_Error whal_Stm32wb_AesCcm_Start(whal_AesCcm *dev, whal_Crypto_Dir dir,
  * @param dev AES-CCM device instance.
  * @param in  Input data.
  * @param out Output buffer.
- * @param sz  Data size in bytes.
+ * @param sz  Data size in bytes. Every call except the last must be a
+ *            multiple of 16 bytes.
  */
 whal_Error whal_Stm32wb_AesCcm_Process(whal_AesCcm *dev,
                                        const void *in, void *out, size_t sz);
@@ -395,7 +398,7 @@ whal_Error whal_Stm32wb_AesCcm_Process(whal_AesCcm *dev,
  *
  * @param dev   AES-CCM device instance.
  * @param tag   Authentication tag output.
- * @param tagSz Tag size in bytes.
+ * @param tagSz Tag size in bytes; must match the tagSz passed to Start.
  */
 whal_Error whal_Stm32wb_AesCcm_Finalize(whal_AesCcm *dev,
                                         void *tag, size_t tagSz);

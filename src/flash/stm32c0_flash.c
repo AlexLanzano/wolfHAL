@@ -185,7 +185,8 @@ whal_Error whal_Stm32c0_Flash_Read(whal_Flash *flashDev, size_t addr, void *data
     if (dataSz == 0)
         return WHAL_SUCCESS;
 
-    if (addr < cfg->startAddr || addr + dataSz > cfg->startAddr + cfg->size)
+    if (addr < cfg->startAddr || dataSz > cfg->size ||
+        addr - cfg->startAddr > cfg->size - dataSz)
         return WHAL_EINVAL;
 
     /* Flash is memory-mapped, so reading is a simple memory copy */
@@ -211,7 +212,8 @@ static whal_Error whal_Stm32c0_Flash_WriteOrErase(whal_Flash *flashDev, size_t a
     size_t bsy;
     (void)flashDev;
 
-    if (addr < cfg->startAddr || addr + dataSz > cfg->startAddr + cfg->size)
+    if (addr < cfg->startAddr || dataSz > cfg->size ||
+        addr - cfg->startAddr > cfg->size - dataSz)
         return WHAL_EINVAL;
 
     /* Write requires 8-byte alignment (64-bit double-word programming) */

@@ -116,8 +116,9 @@ whal_Error whal_Dma_Start(whal_Dma *dmaDev, size_t ch);
  * @param dmaDev DMA controller instance.
  * @param ch     Channel index.
  *
- * @retval WHAL_SUCCESS Channel stopped.
- * @retval WHAL_EINVAL  Null pointer or missing driver function.
+ * @retval WHAL_SUCCESS  Channel stopped.
+ * @retval WHAL_EINVAL   Null pointer or missing driver function.
+ * @retval WHAL_ETIMEOUT The channel did not stop within the timeout.
  */
 whal_Error whal_Dma_Stop(whal_Dma *dmaDev, size_t ch);
 

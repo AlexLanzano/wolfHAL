@@ -63,7 +63,7 @@ whal_Error whal_SysTick_Init(whal_Timer *timerDev)
     (void)timerDev;
 
     /* RELOAD is 24 bits and holds the period minus one */
-    if (cfg->cyclesPerTick == 0 || cfg->cyclesPerTick > 0x1000000)
+    if (cfg->cyclesPerTick < 2 || cfg->cyclesPerTick > 0x1000000)
         return WHAL_EINVAL;
 
     whal_Reg_Update(base, SYSTICK_CSR_REG,

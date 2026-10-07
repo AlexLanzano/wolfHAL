@@ -272,6 +272,7 @@ whal_Error whal_Stm32wba_UartDma_Deinit(whal_Uart *uartDev)
 {
     whal_Stm32wba_UartDma_Cfg *cfg;
     size_t base;
+    whal_Error err;
 
 #ifdef WHAL_CFG_STM32WBA_UART_DMA_SINGLE_INSTANCE
     cfg = (whal_Stm32wba_UartDma_Cfg *)whal_Stm32wba_UartDma_Dev.cfg;
@@ -287,8 +288,12 @@ whal_Error whal_Stm32wba_UartDma_Deinit(whal_Uart *uartDev)
     /* Abandon any in-flight transfer so a later Init starts clean */
     whal_Reg_Update(base, UART_CR3_REG,
                     UART_CR3_DMAT_Msk | UART_CR3_DMAR_Msk, 0);
-    whal_Dma_Stop(cfg->dma, cfg->txCh);
-    whal_Dma_Stop(cfg->dma, cfg->rxCh);
+    err = whal_Dma_Stop(cfg->dma, cfg->txCh);
+    if (err)
+        return err;
+    err = whal_Dma_Stop(cfg->dma, cfg->rxCh);
+    if (err)
+        return err;
     cfg->txResult = WHAL_SUCCESS;
     cfg->rxResult = WHAL_SUCCESS;
 

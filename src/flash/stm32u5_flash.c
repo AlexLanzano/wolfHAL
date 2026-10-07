@@ -164,7 +164,8 @@ whal_Error whal_Stm32u5_Flash_Read(whal_Flash *flashDev, size_t addr,
     if (!data)
         return WHAL_EINVAL;
 
-    if (addr < cfg->startAddr || addr + dataSz > cfg->startAddr + cfg->size)
+    if (addr < cfg->startAddr || dataSz > cfg->size ||
+        addr - cfg->startAddr > cfg->size - dataSz)
         return WHAL_EINVAL;
 
     uint8_t *flashAddr = (uint8_t *)addr;
@@ -208,7 +209,8 @@ whal_Error whal_Stm32u5_Flash_Write(whal_Flash *flashDev, size_t addr,
     if ((addr & 0xF) || (dataSz & 0xF))
         return WHAL_EINVAL;
 
-    if (addr < cfg->startAddr || addr + dataSz > cfg->startAddr + cfg->size)
+    if (addr < cfg->startAddr || dataSz > cfg->size ||
+        addr - cfg->startAddr > cfg->size - dataSz)
         return WHAL_EINVAL;
 
     err = WaitNotBusy(base, cfg->timeout);
@@ -262,7 +264,8 @@ whal_Error whal_Stm32u5_Flash_Erase(whal_Flash *flashDev, size_t addr, size_t da
     if (dataSz == 0)
         return WHAL_SUCCESS;
 
-    if (addr < cfg->startAddr || addr + dataSz > cfg->startAddr + cfg->size)
+    if (addr < cfg->startAddr || dataSz > cfg->size ||
+        addr - cfg->startAddr > cfg->size - dataSz)
         return WHAL_EINVAL;
 
     err = WaitNotBusy(base, cfg->timeout);

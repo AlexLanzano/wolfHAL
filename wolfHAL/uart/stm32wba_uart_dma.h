@@ -85,8 +85,9 @@ extern const whal_UartDriver whal_Stm32wba_UartDma_Driver;
  *
  * @param uartDev UART device instance.
  *
- * @retval WHAL_SUCCESS Deinit completed.
- * @retval WHAL_EINVAL  Invalid arguments.
+ * @retval WHAL_SUCCESS  Deinit completed.
+ * @retval WHAL_EINVAL   Invalid arguments.
+ * @retval WHAL_ETIMEOUT A DMA channel did not stop within the timeout.
  */
 whal_Error whal_Stm32wba_UartDma_Deinit(whal_Uart *uartDev);
 

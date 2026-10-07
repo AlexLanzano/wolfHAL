@@ -277,7 +277,8 @@ whal_Error whal_Pic32cz_Flash_Read(whal_Flash *flashDev, size_t addr, void *data
         return WHAL_EINVAL;
     }
 
-    if (addr < cfg->startAddr || addr + dataSz > cfg->startAddr + cfg->size)
+    if (addr < cfg->startAddr || dataSz > cfg->size ||
+        addr - cfg->startAddr > cfg->size - dataSz)
         return WHAL_EINVAL;
 
     err = whal_Pic32cz_Flash_MutexLock(base, cfg->timeout);
@@ -309,7 +310,8 @@ whal_Error whal_Pic32cz_Flash_Write(whal_Flash *flashDev, size_t addr, const voi
         return WHAL_EINVAL;
     }
 
-    if (addr < cfg->startAddr || addr + dataSz > cfg->startAddr + cfg->size)
+    if (addr < cfg->startAddr || dataSz > cfg->size ||
+        addr - cfg->startAddr > cfg->size - dataSz)
         return WHAL_EINVAL;
 
     /* Require double-word alignment */
@@ -383,7 +385,8 @@ whal_Error whal_Pic32cz_Flash_Erase(whal_Flash *flashDev, size_t addr, size_t da
     size_t endAddr;
     (void)flashDev;
 
-    if (addr < cfg->startAddr || addr + dataSz > cfg->startAddr + cfg->size)
+    if (addr < cfg->startAddr || dataSz > cfg->size ||
+        addr - cfg->startAddr > cfg->size - dataSz)
         return WHAL_EINVAL;
 
     if (dataSz == 0)

@@ -386,9 +386,10 @@ whal_Error whal_Stm32l1_I2c_StartCom(whal_I2c *i2cDev, whal_I2c_ComCfg *comCfg)
     base = i2cDev->base;
 #endif
 
-    /* A transfer abandoned on timeout can leave the bus marked busy; only a
-     * software reset clears that on the V1 peripheral */
-    if (whal_Reg_Read(base, I2C_SR2) & SR2_BUSY_Msk) {
+    /* Let a pending STOP finish; a bus still busy after the timeout was left
+     * by an abandoned transfer and only a software reset clears it */
+    if (whal_Reg_ReadPoll(base, I2C_SR2, SR2_BUSY_Msk, 0,
+                          cfg->timeout) != WHAL_SUCCESS) {
         whal_Reg_Update(base, I2C_CR1, CR1_SWRST_Msk, CR1_SWRST_Msk);
         whal_Reg_Update(base, I2C_CR1, CR1_SWRST_Msk, 0);
     }
