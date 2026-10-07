@@ -169,6 +169,9 @@ whal_Error whal_Stm32f4_Uart_Send(whal_Uart *uartDev, const void *data, size_t d
     cfg = (whal_Stm32f4_Uart_Cfg *)uartDev->cfg;
 #endif
 
+    if (dataSz == 0)
+        return WHAL_SUCCESS;
+
     for (size_t i = 0; i < dataSz; ++i) {
         whal_Error err;
 

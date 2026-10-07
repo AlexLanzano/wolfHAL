@@ -82,6 +82,7 @@ static void Test_Flash_OutOfBounds(void)
 {
     const size_t start = BOARD_FLASH_START_ADDR;
     const size_t end = BOARD_FLASH_START_ADDR + BOARD_FLASH_SIZE;
+    const size_t wrapSz = (size_t)0 - (end - 16) + 16;
     static uint8_t buf[32];
 
     /* Below the region */
@@ -106,6 +107,14 @@ static void Test_Flash_OutOfBounds(void)
     WHAL_ASSERT_EQ(whal_Flash_Write(g_testFlashDev, end - 16, buf, 32),
                    WHAL_EINVAL);
     WHAL_ASSERT_EQ(whal_Flash_Erase(g_testFlashDev, end - 16, 32),
+                   WHAL_EINVAL);
+
+    /* Size large enough that addr + dataSz wraps around to 16 */
+    WHAL_ASSERT_EQ(whal_Flash_Read(g_testFlashDev, end - 16, buf, wrapSz),
+                   WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Flash_Write(g_testFlashDev, end - 16, buf, wrapSz),
+                   WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Flash_Erase(g_testFlashDev, end - 16, wrapSz),
                    WHAL_EINVAL);
 }
 
