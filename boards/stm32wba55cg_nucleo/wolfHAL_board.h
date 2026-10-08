@@ -118,9 +118,13 @@ enum {
 }
 
 /* RNG dev initializer — singleton defined in stm32wba_rng.c. */
+/* RNG cr/htcr/nscr: AN4230 Table 3, STM32WBA5x */
 #define WHAL_CFG_STM32WBA_RNG_DEV { \
     .base = WHAL_STM32WBA55_RNG_BASE, \
     .cfg  = (void *)&(const whal_Stm32wba_Rng_Cfg){ \
+        .cr      = 0x08F01F00UL, \
+        .htcr    = 0x00006688UL, \
+        .nscr    = 0x00000FFFUL, \
         .timeout = &g_whalTimeout, \
     }, \
 }

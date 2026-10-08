@@ -74,22 +74,14 @@ const whal_Rng whal_Stm32wba_Rng_Dev = WHAL_CFG_STM32WBA_RNG_DEV;
 /* Data Register (offset 0x008) */
 #define RNG_DR_REG            0x08
 
+/* Noise Source Control Register (offset 0x00C) */
+#define RNG_NSCR_REG          0x0C
+
 /* Health Test Control Register (offset 0x010) */
 #define RNG_HTCR_REG          0x10
 
-/* Configuration C health test value (RM0493 Table 178; same on U5 and N6) */
-#define RNG_HTCR_CONFIG_C     0x0000AAC7UL
-
 /* Magic value written before HTCR (ST HAL, AN4230) */
 #define RNG_HTCR_MAGIC        0x17590ABCUL
-
-/*
- * Configuration C values (RM0493 Table 178):
- *   NISTC=0, RNG_CONFIG1=0x0F, CLKDIV=0x0, RNG_CONFIG2=0x0,
- *   RNG_CONFIG3=0xD, CED=0, N=2
- */
-#define RNG_CR_CONFIG_C  (whal_SetBits(RNG_CR_RNG_CONFIG1_Msk, RNG_CR_RNG_CONFIG1_Pos, 0x0F) | \
-                          whal_SetBits(RNG_CR_RNG_CONFIG3_Msk, RNG_CR_RNG_CONFIG3_Pos, 0x0D))
 
 #ifdef WHAL_CFG_STM32WBA_RNG_DIRECT_API_MAPPING
 #define whal_Stm32wba_Rng_Init     whal_Rng_Init
@@ -104,17 +96,18 @@ whal_Error whal_Stm32wba_Rng_Init(whal_Rng *rngDev)
     size_t base = whal_Stm32wba_Rng_Dev.base;
     (void)rngDev;
 
-    /* Apply Configuration C with CONDRST=1 and RNGEN=1 */
+    /* Apply the configuration with CONDRST=1 and RNGEN=1 */
     whal_Reg_Write(base, RNG_CR_REG,
-                   RNG_CR_CONDRST_Msk | RNG_CR_CONFIG_C | RNG_CR_RNGEN_Msk);
+                   RNG_CR_CONDRST_Msk | cfg->cr | RNG_CR_RNGEN_Msk);
 
-    /* HTCR only takes effect while CONDRST is set */
+    /* HTCR and NSCR only take effect while CONDRST is set */
     whal_Reg_Write(base, RNG_HTCR_REG, RNG_HTCR_MAGIC);
-    whal_Reg_Write(base, RNG_HTCR_REG, RNG_HTCR_CONFIG_C);
+    whal_Reg_Write(base, RNG_HTCR_REG, cfg->htcr);
+    whal_Reg_Write(base, RNG_NSCR_REG, cfg->nscr);
 
     /* Clear CONDRST to start conditioning */
     whal_Reg_Write(base, RNG_CR_REG,
-                   RNG_CR_CONFIG_C | RNG_CR_RNGEN_Msk);
+                   cfg->cr | RNG_CR_RNGEN_Msk);
 
     /* Wait for CONDRST to self-clear */
     return whal_Reg_ReadPoll(base, RNG_CR_REG, RNG_CR_CONDRST_Msk, 0,
