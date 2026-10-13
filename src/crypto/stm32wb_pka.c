@@ -100,6 +100,9 @@ const whal_Crypto whal_Stm32wb_Pka_Dev = WHAL_CFG_STM32WB_PKA_DEV;
 #define PKA_MODE_ECDSA_VERIFY        0x26
 #define PKA_MODE_ECC_POINT_CHECK     0x28
 
+#define PKA_RAM_REG               0x400
+#define PKA_RAM_SIZE              3576
+
 /* ---- PKA RAM operand offsets (from PKA base address) ---- */
 
 /* MODE 0x00 — Modular exponentiation (normal) */
@@ -211,6 +214,14 @@ static void ZeroOperand(size_t base, size_t offset, size_t dataSz)
         whal_Reg_Write(base, offset + i * 4, 0);
 }
 
+static void ZeroRam(size_t base)
+{
+    size_t off;
+
+    for (off = 0; off < PKA_RAM_SIZE; off += 4)
+        whal_Reg_Write(base, PKA_RAM_REG + off, 0);
+}
+
 static whal_Error WaitForProcEnd(size_t base, whal_Timeout *timeout)
 {
     const uint32_t errFlags  = PKA_SR_ADDRERRF_Msk | PKA_SR_RAMERRF_Msk;
@@ -251,6 +262,7 @@ whal_Error whal_Stm32wb_Pka_Deinit(whal_Crypto *dev)
 {
     size_t base = whal_Stm32wb_Pka_Dev.base;
     (void)dev;
+    ZeroRam(base);
     whal_Reg_Update(base, PKA_CR_REG, PKA_CR_EN_Msk, 0);
     return WHAL_SUCCESS;
 }

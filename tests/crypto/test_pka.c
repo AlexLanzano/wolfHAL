@@ -372,6 +372,213 @@ static void Test_Pka_IntSub_KnownAnswer(void)
     WHAL_ASSERT_MEM_EQ(out, expected, sizeof(expected));
 }
 
+/* Zeroed operands one byte past the 3136-bit (392-byte) hardware limit */
+static uint8_t g_oversize[2 * 393];
+
+static void Test_Pka_ModExp_BadArgs(void)
+{
+    uint8_t out[128];
+
+    WHAL_ASSERT_EQ(whal_Pka_ModExp(NULL, sizeof(testInput),
+                                   rsaE, sizeof(rsaE),
+                                   rsaN, sizeof(rsaN),
+                                   out, sizeof(out)),
+                   WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Pka_ModExp(testInput, sizeof(testInput),
+                                   rsaE, sizeof(rsaE),
+                                   rsaN, 0,
+                                   out, sizeof(out)),
+                   WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Pka_ModExp(testInput, sizeof(testInput),
+                                   rsaE, sizeof(rsaE),
+                                   rsaN, sizeof(rsaN),
+                                   NULL, sizeof(out)),
+                   WHAL_EINVAL);
+
+    WHAL_ASSERT_EQ(whal_Pka_ModExp(testInput, 64,
+                                   rsaE, sizeof(rsaE),
+                                   rsaN, sizeof(rsaN),
+                                   out, sizeof(out)),
+                   WHAL_ENOTSUP);
+    WHAL_ASSERT_EQ(whal_Pka_ModExp(testInput, sizeof(testInput),
+                                   rsaE, 64,
+                                   rsaN, sizeof(rsaN),
+                                   out, sizeof(out)),
+                   WHAL_ENOTSUP);
+    WHAL_ASSERT_EQ(whal_Pka_ModExp(testInput, sizeof(testInput),
+                                   rsaE, sizeof(rsaE),
+                                   rsaN, sizeof(rsaN),
+                                   out, 64),
+                   WHAL_ENOTSUP);
+
+    WHAL_ASSERT_EQ(whal_Pka_ModExp(g_oversize, 393,
+                                   g_oversize, 393,
+                                   g_oversize, 393,
+                                   g_oversize, 393),
+                   WHAL_ENOTSUP);
+}
+
+static void Test_Pka_ModInv_BadArgs(void)
+{
+    uint8_t out[128];
+
+    WHAL_ASSERT_EQ(whal_Pka_ModInv(NULL, sizeof(testInput),
+                                   rsaN, sizeof(rsaN),
+                                   out, sizeof(out)),
+                   WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Pka_ModInv(testInput, sizeof(testInput),
+                                   rsaN, sizeof(rsaN),
+                                   out, 0),
+                   WHAL_EINVAL);
+
+    WHAL_ASSERT_EQ(whal_Pka_ModInv(testInput, 64,
+                                   rsaN, sizeof(rsaN),
+                                   out, sizeof(out)),
+                   WHAL_ENOTSUP);
+    WHAL_ASSERT_EQ(whal_Pka_ModInv(testInput, sizeof(testInput),
+                                   rsaN, sizeof(rsaN),
+                                   out, 64),
+                   WHAL_ENOTSUP);
+
+    WHAL_ASSERT_EQ(whal_Pka_ModInv(g_oversize, 393,
+                                   g_oversize, 393,
+                                   g_oversize, 393),
+                   WHAL_ENOTSUP);
+}
+
+static void Test_Pka_ModReduce_BadArgs(void)
+{
+    uint8_t out[128];
+
+    WHAL_ASSERT_EQ(whal_Pka_ModReduce(testInput, sizeof(testInput),
+                                      NULL, sizeof(rsaN),
+                                      out, sizeof(out)),
+                   WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Pka_ModReduce(testInput, 0,
+                                      rsaN, sizeof(rsaN),
+                                      out, sizeof(out)),
+                   WHAL_EINVAL);
+
+    WHAL_ASSERT_EQ(whal_Pka_ModReduce(testInput, 64,
+                                      rsaN, sizeof(rsaN),
+                                      out, sizeof(out)),
+                   WHAL_ENOTSUP);
+    WHAL_ASSERT_EQ(whal_Pka_ModReduce(testInput, sizeof(testInput),
+                                      rsaN, sizeof(rsaN),
+                                      out, 64),
+                   WHAL_ENOTSUP);
+
+    WHAL_ASSERT_EQ(whal_Pka_ModReduce(g_oversize, 393,
+                                      g_oversize, 393,
+                                      g_oversize, 393),
+                   WHAL_ENOTSUP);
+}
+
+static void Test_Pka_IntMul_BadArgs(void)
+{
+    uint8_t out[128];
+
+    WHAL_ASSERT_EQ(whal_Pka_IntMul(rsaP, sizeof(rsaP),
+                                   NULL, sizeof(rsaQ),
+                                   out, sizeof(out)),
+                   WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Pka_IntMul(rsaP, sizeof(rsaP),
+                                   rsaQ, 0,
+                                   out, sizeof(out)),
+                   WHAL_EINVAL);
+
+    WHAL_ASSERT_EQ(whal_Pka_IntMul(rsaP, sizeof(rsaP),
+                                   rsaQ, 32,
+                                   out, sizeof(out)),
+                   WHAL_ENOTSUP);
+    WHAL_ASSERT_EQ(whal_Pka_IntMul(rsaP, sizeof(rsaP),
+                                   rsaQ, sizeof(rsaQ),
+                                   out, sizeof(rsaP)),
+                   WHAL_ENOTSUP);
+
+    WHAL_ASSERT_EQ(whal_Pka_IntMul(g_oversize, 393,
+                                   g_oversize, 393,
+                                   g_oversize, 2 * 393),
+                   WHAL_ENOTSUP);
+}
+
+static void Test_Pka_IntSub_BadArgs(void)
+{
+    uint8_t out[64];
+
+    WHAL_ASSERT_EQ(whal_Pka_IntSub(rsaP, sizeof(rsaP),
+                                   rsaQ, sizeof(rsaQ),
+                                   NULL, sizeof(out)),
+                   WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Pka_IntSub(rsaP, 0,
+                                   rsaQ, sizeof(rsaQ),
+                                   out, sizeof(out)),
+                   WHAL_EINVAL);
+
+    WHAL_ASSERT_EQ(whal_Pka_IntSub(rsaP, sizeof(rsaP),
+                                   rsaQ, 32,
+                                   out, sizeof(out)),
+                   WHAL_ENOTSUP);
+    WHAL_ASSERT_EQ(whal_Pka_IntSub(rsaP, sizeof(rsaP),
+                                   rsaQ, sizeof(rsaQ),
+                                   out, 32),
+                   WHAL_ENOTSUP);
+
+    WHAL_ASSERT_EQ(whal_Pka_IntSub(g_oversize, 393,
+                                   g_oversize, 393,
+                                   g_oversize, 393),
+                   WHAL_ENOTSUP);
+}
+
+static void Test_Pka_RsaCrtExp_BadArgs(void)
+{
+    uint8_t out[128];
+
+    WHAL_ASSERT_EQ(whal_Pka_RsaCrtExp(testInput, sizeof(testInput),
+                                      rsaDP, sizeof(rsaDP),
+                                      rsaDQ, sizeof(rsaDQ),
+                                      NULL, sizeof(rsaQInv),
+                                      rsaP, sizeof(rsaP),
+                                      rsaQ, sizeof(rsaQ),
+                                      out, sizeof(out)),
+                   WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Pka_RsaCrtExp(testInput, sizeof(testInput),
+                                      rsaDP, sizeof(rsaDP),
+                                      rsaDQ, sizeof(rsaDQ),
+                                      rsaQInv, sizeof(rsaQInv),
+                                      rsaP, 0,
+                                      rsaQ, sizeof(rsaQ),
+                                      out, sizeof(out)),
+                   WHAL_EINVAL);
+
+    WHAL_ASSERT_EQ(whal_Pka_RsaCrtExp(testInput, sizeof(testInput),
+                                      rsaDP, 32,
+                                      rsaDQ, sizeof(rsaDQ),
+                                      rsaQInv, sizeof(rsaQInv),
+                                      rsaP, sizeof(rsaP),
+                                      rsaQ, sizeof(rsaQ),
+                                      out, sizeof(out)),
+                   WHAL_ENOTSUP);
+    WHAL_ASSERT_EQ(whal_Pka_RsaCrtExp(testInput, sizeof(testInput),
+                                      rsaDP, sizeof(rsaDP),
+                                      rsaDQ, sizeof(rsaDQ),
+                                      rsaQInv, sizeof(rsaQInv),
+                                      rsaP, sizeof(rsaP),
+                                      rsaQ, sizeof(rsaQ),
+                                      out, 64),
+                   WHAL_ENOTSUP);
+
+    /* p and q of 197 bytes each put the modulus at 394 bytes */
+    WHAL_ASSERT_EQ(whal_Pka_RsaCrtExp(g_oversize, 394,
+                                      g_oversize, 197,
+                                      g_oversize, 197,
+                                      g_oversize, 197,
+                                      g_oversize, 197,
+                                      g_oversize, 197,
+                                      g_oversize, 394),
+                   WHAL_ENOTSUP);
+}
+
 void whal_Test_Pka(void)
 {
     WHAL_TEST_SUITE_START("pka");
@@ -385,5 +592,11 @@ void whal_Test_Pka(void)
     WHAL_TEST(Test_Pka_IntMul_KnownAnswer);
     WHAL_TEST(Test_Pka_ModReduce_KnownAnswer);
     WHAL_TEST(Test_Pka_IntSub_KnownAnswer);
+    WHAL_TEST(Test_Pka_ModExp_BadArgs);
+    WHAL_TEST(Test_Pka_ModInv_BadArgs);
+    WHAL_TEST(Test_Pka_ModReduce_BadArgs);
+    WHAL_TEST(Test_Pka_IntMul_BadArgs);
+    WHAL_TEST(Test_Pka_IntSub_BadArgs);
+    WHAL_TEST(Test_Pka_RsaCrtExp_BadArgs);
     WHAL_TEST_SUITE_END();
 }
