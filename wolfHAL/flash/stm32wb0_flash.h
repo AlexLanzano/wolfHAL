@@ -101,7 +101,9 @@ whal_Error whal_Stm32wb0_Flash_Init(whal_Flash *flashDev);
 whal_Error whal_Stm32wb0_Flash_Deinit(whal_Flash *flashDev);
 
 /**
- * @brief No-op lock (WB0 controller has no software lock register).
+ * @brief Write-protect the whole flash with a PAGEPROT segment.
+ *
+ * Ignores @p addr and @p len.
  *
  * @retval WHAL_SUCCESS Always.
  */
@@ -109,7 +111,9 @@ whal_Error whal_Stm32wb0_Flash_Lock(whal_Flash *flashDev, size_t addr,
                                     size_t len);
 
 /**
- * @brief No-op unlock (WB0 controller has no KEYR unlock sequence).
+ * @brief Clear every PAGEPROT segment so the whole flash is writable.
+ *
+ * Ignores @p addr and @p len.
  *
  * @retval WHAL_SUCCESS Always.
  */

@@ -69,6 +69,14 @@ const whal_Flash whal_Stm32wb0_Flash_Dev = WHAL_CFG_STM32WB0_FLASH_DEV;
 #define FLASH_IRQ_ALL_ERR_Msk  (FLASH_IRQ_CMDERR_Msk | FLASH_IRQ_ILLCMD_Msk)
 
 #define FLASH_ADDRESS_REG   0x18
+
+/* PAGEPROTx: two write-protect segments per register (RM0529 9.4.9) */
+#define FLASH_PAGEPROT0_REG 0x34
+#define FLASH_PAGEPROT1_REG 0x38
+#define FLASH_PAGEPROT_SEG0_SIZE_Pos   0
+#define FLASH_PAGEPROT_SEG0_SIZE_Msk   (0x7FUL << FLASH_PAGEPROT_SEG0_SIZE_Pos)
+#define FLASH_PAGEPROT_SEG0_OFFSET_Pos 8
+#define FLASH_PAGEPROT_SEG0_OFFSET_Msk (0x7FUL << FLASH_PAGEPROT_SEG0_OFFSET_Pos)
 #define FLASH_DATA0_REG     0x40
 #define FLASH_DATA1_REG     0x44
 #define FLASH_DATA2_REG     0x48
@@ -175,20 +183,30 @@ whal_Error whal_Stm32wb0_Flash_Deinit(whal_Flash *flashDev)
 whal_Error whal_Stm32wb0_Flash_Lock(whal_Flash *flashDev, size_t addr,
                                     size_t len)
 {
+    size_t base = whal_Stm32wb0_Flash_Dev.base;
     (void)flashDev;
     (void)addr;
     (void)len;
-    /* The WB0 flash controller has no software lock register — all
-     * writes are gated only by the per-page PAGEPROT bits. */
+
+    /* A segment from page 0 with the largest SIZE ends at the last page */
+    whal_Reg_Write(base, FLASH_PAGEPROT0_REG,
+                   whal_SetBits(FLASH_PAGEPROT_SEG0_OFFSET_Msk,
+                                FLASH_PAGEPROT_SEG0_OFFSET_Pos, 0) |
+                   whal_SetBits(FLASH_PAGEPROT_SEG0_SIZE_Msk,
+                                FLASH_PAGEPROT_SEG0_SIZE_Pos, 0x7F));
     return WHAL_SUCCESS;
 }
 
 whal_Error whal_Stm32wb0_Flash_Unlock(whal_Flash *flashDev, size_t addr,
                                       size_t len)
 {
+    size_t base = whal_Stm32wb0_Flash_Dev.base;
     (void)flashDev;
     (void)addr;
     (void)len;
+
+    whal_Reg_Write(base, FLASH_PAGEPROT0_REG, 0);
+    whal_Reg_Write(base, FLASH_PAGEPROT1_REG, 0);
     return WHAL_SUCCESS;
 }
 
