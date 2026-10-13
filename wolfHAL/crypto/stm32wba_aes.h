@@ -48,7 +48,7 @@ typedef struct {
  */
 typedef struct {
     size_t aadSz;
-    size_t dataSz;
+    uint64_t dataSz;
     uint8_t partial;    /* A partial block was processed; no further Process */
 } whal_Stm32wba_AesGcm_State;
 

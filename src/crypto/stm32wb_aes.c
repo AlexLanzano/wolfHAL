@@ -620,6 +620,8 @@ whal_Error whal_Stm32wb_AesGcm_Oneshot(whal_AesGcm *dev, whal_Crypto_Dir dir,
     size_t mode;
     size_t i;
     uint8_t tagBuf[16];
+    uint64_t aadBits;
+    uint64_t payloadBits;
     whal_Error err;
 
     (void)dev;
@@ -767,10 +769,12 @@ whal_Error whal_Stm32wb_AesGcm_Oneshot(whal_AesGcm *dev, whal_Crypto_Dir dir,
     if (aadSz == 0 && sz == 0)
         whal_Reg_Update(base, AES_CR_REG, AES_CR_EN_Msk, AES_CR_EN_Msk);
 
-    whal_Reg_Write(base, AES_DINR_REG, 0);
-    whal_Reg_Write(base, AES_DINR_REG, (uint32_t)(aadSz * 8));
-    whal_Reg_Write(base, AES_DINR_REG, 0);
-    whal_Reg_Write(base, AES_DINR_REG, (uint32_t)(sz * 8));
+    aadBits = (uint64_t)aadSz * 8;
+    payloadBits = (uint64_t)sz * 8;
+    whal_Reg_Write(base, AES_DINR_REG, (uint32_t)(aadBits >> 32));
+    whal_Reg_Write(base, AES_DINR_REG, (uint32_t)aadBits);
+    whal_Reg_Write(base, AES_DINR_REG, (uint32_t)(payloadBits >> 32));
+    whal_Reg_Write(base, AES_DINR_REG, (uint32_t)payloadBits);
 
     err = WaitForCCF(base, cfg->timeout);
     if (err)
@@ -998,6 +1002,8 @@ whal_Error whal_Stm32wb_AesGcm_Finalize(whal_AesGcm *dev,
     whal_Stm32wb_AesGcm_State *st =
         (whal_Stm32wb_AesGcm_State *)whal_Stm32wb_AesGcm_Dev.state;
     uint8_t tagBuf[16];
+    uint64_t aadBits;
+    uint64_t payloadBits;
     size_t i;
     whal_Error err;
 
@@ -1020,10 +1026,12 @@ whal_Error whal_Stm32wb_AesGcm_Finalize(whal_AesGcm *dev,
     if (st->aadSz == 0 && st->dataSz == 0)
         whal_Reg_Update(base, AES_CR_REG, AES_CR_EN_Msk, AES_CR_EN_Msk);
 
-    whal_Reg_Write(base, AES_DINR_REG, 0);
-    whal_Reg_Write(base, AES_DINR_REG, (uint32_t)(st->aadSz * 8));
-    whal_Reg_Write(base, AES_DINR_REG, 0);
-    whal_Reg_Write(base, AES_DINR_REG, (uint32_t)(st->dataSz * 8));
+    aadBits = (uint64_t)st->aadSz * 8;
+    payloadBits = st->dataSz * 8;
+    whal_Reg_Write(base, AES_DINR_REG, (uint32_t)(aadBits >> 32));
+    whal_Reg_Write(base, AES_DINR_REG, (uint32_t)aadBits);
+    whal_Reg_Write(base, AES_DINR_REG, (uint32_t)(payloadBits >> 32));
+    whal_Reg_Write(base, AES_DINR_REG, (uint32_t)payloadBits);
 
     err = WaitForCCF(base, cfg->timeout);
     if (err) {
@@ -1067,6 +1075,7 @@ whal_Error whal_Stm32wb_AesGmac_Oneshot(whal_AesGmac *dev,
     size_t keySizeBit;
     size_t i;
     uint8_t tagBuf[16];
+    uint64_t aadBits;
     whal_Error err;
 
     (void)dev;
@@ -1161,8 +1170,9 @@ whal_Error whal_Stm32wb_AesGmac_Oneshot(whal_AesGmac *dev,
     if (aadSz == 0)
         whal_Reg_Update(base, AES_CR_REG, AES_CR_EN_Msk, AES_CR_EN_Msk);
 
-    whal_Reg_Write(base, AES_DINR_REG, 0);
-    whal_Reg_Write(base, AES_DINR_REG, (uint32_t)(aadSz * 8));
+    aadBits = (uint64_t)aadSz * 8;
+    whal_Reg_Write(base, AES_DINR_REG, (uint32_t)(aadBits >> 32));
+    whal_Reg_Write(base, AES_DINR_REG, (uint32_t)aadBits);
     whal_Reg_Write(base, AES_DINR_REG, 0);
     whal_Reg_Write(base, AES_DINR_REG, 0);
 

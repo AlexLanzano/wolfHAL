@@ -1069,7 +1069,7 @@ whal_Error whal_Stm32n6_CrypAesGcm_Finalize(whal_AesGcm *dev,
     Enable(base);
 
     aadBits = (uint64_t)g_aesGcmState.aadSz * 8;
-    payloadBits = (uint64_t)g_aesGcmState.dataSz * 8;
+    payloadBits = g_aesGcmState.dataSz * 8;
     whal_Reg_Write(base, CRYP_DINR_REG, (uint32_t)(aadBits >> 32));
     whal_Reg_Write(base, CRYP_DINR_REG, (uint32_t)aadBits);
     whal_Reg_Write(base, CRYP_DINR_REG, (uint32_t)(payloadBits >> 32));
