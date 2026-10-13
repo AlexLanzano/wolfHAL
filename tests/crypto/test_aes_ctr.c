@@ -67,6 +67,17 @@ static const uint8_t nistCtrCt[16] = {
     0xB7, 0xA7, 0xF5, 0x04, 0xBB, 0xF3, 0xD2, 0x28,
 };
 
+/* NIST SP 800-38A F.5.1 AES-128-CTR (reuses nistPt and nistCtrIv) */
+static const uint8_t nistKey128[16] = {
+    0x2B, 0x7E, 0x15, 0x16, 0x28, 0xAE, 0xD2, 0xA6,
+    0xAB, 0xF7, 0x15, 0x88, 0x09, 0xCF, 0x4F, 0x3C,
+};
+
+static const uint8_t nistCtrCt128[16] = {
+    0x87, 0x4D, 0x61, 0x91, 0xB6, 0x20, 0xE3, 0x26,
+    0x1B, 0xEF, 0x68, 0x64, 0x99, 0x0D, 0xB6, 0xCE,
+};
+
 static void Test_AesCtr_Basic(void)
 {
     uint8_t ct[32] = {0};
@@ -94,6 +105,25 @@ static void Test_AesCtr_KnownAnswer(void)
                    WHAL_SUCCESS);
 
     WHAL_ASSERT_MEM_EQ(ct, nistCtrCt, sizeof(nistCtrCt));
+}
+
+static void Test_AesCtr_KnownAnswer128(void)
+{
+    uint8_t ct[16] = {0};
+    uint8_t pt[16] = {0};
+
+    WHAL_ASSERT_EQ(whal_AesCtr_Oneshot(BOARD_AES_CTR_DEV, WHAL_CRYPTO_ENCRYPT,
+                                        nistKey128, 16, nistCtrIv, nistPt, ct,
+                                        sizeof(nistPt)),
+                   WHAL_SUCCESS);
+    WHAL_ASSERT_MEM_EQ(ct, nistCtrCt128, sizeof(nistCtrCt128));
+
+    WHAL_ASSERT_EQ(whal_AesCtr_Oneshot(BOARD_AES_CTR_DEV, WHAL_CRYPTO_DECRYPT,
+                                        nistKey128, 16, nistCtrIv,
+                                        nistCtrCt128, pt,
+                                        sizeof(nistCtrCt128)),
+                   WHAL_SUCCESS);
+    WHAL_ASSERT_MEM_EQ(pt, nistPt, sizeof(nistPt));
 }
 
 static void Test_AesCtr_Streaming(void)
@@ -135,6 +165,7 @@ void whal_Test_AesCtr(void)
     WHAL_TEST_SUITE_START("aes_ctr");
     WHAL_TEST(Test_AesCtr_Basic);
     WHAL_TEST(Test_AesCtr_KnownAnswer);
+    WHAL_TEST(Test_AesCtr_KnownAnswer128);
     WHAL_TEST(Test_AesCtr_Streaming);
     WHAL_TEST_SUITE_END();
 }
