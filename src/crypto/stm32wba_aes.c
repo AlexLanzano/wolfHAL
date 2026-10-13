@@ -195,13 +195,24 @@ static void ReadBlock(size_t base, uint8_t *out)
     whal_StoreBe32(out + 12, whal_Reg_Read(base, AES_DOUTR_REG));
 }
 
+/* Discard any output block left in DOUTR. */
+static void DrainOutput(size_t base)
+{
+    (void)whal_Reg_Read(base, AES_DOUTR_REG);
+    (void)whal_Reg_Read(base, AES_DOUTR_REG);
+    (void)whal_Reg_Read(base, AES_DOUTR_REG);
+    (void)whal_Reg_Read(base, AES_DOUTR_REG);
+}
+
 static whal_Error WaitForCCF(size_t base, whal_Timeout *timeout)
 {
     whal_Error err;
     err = whal_Reg_ReadPoll(base, AES_ISR_REG, AES_ISR_CCF_Msk,
                             AES_ISR_CCF_Msk, timeout);
-    if (err)
+    if (err) {
+        DrainOutput(base);
         return err;
+    }
     whal_Reg_Write(base, AES_ICR_REG, AES_ICR_CCF_Msk);
     return WHAL_SUCCESS;
 }
@@ -314,6 +325,7 @@ whal_Error whal_Stm32wba_Aes_Init(whal_Crypto *dev)
 whal_Error whal_Stm32wba_Aes_Deinit(whal_Crypto *dev)
 {
     (void)dev;
+    DrainOutput(whal_Stm32wba_Aes_Dev.base);
     DisableAes((whal_Crypto *)&whal_Stm32wba_Aes_Dev);
     ZeroKeyIv(whal_Stm32wba_Aes_Dev.base);
     return WHAL_SUCCESS;
