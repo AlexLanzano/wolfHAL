@@ -34,7 +34,20 @@ WHAL_SRC = $(WHAL_DIR)/src/gpio/gpio.c \
            $(WHAL_DIR)/src/rng/rng.c \
            $(WHAL_DIR)/src/block/block.c \
            $(WHAL_DIR)/src/pwm/pwm.c \
-           $(WHAL_DIR)/src/display/display.c
+           $(WHAL_DIR)/src/display/display.c \
+           $(WHAL_DIR)/src/crypto/crypto.c \
+           $(WHAL_DIR)/src/crypto/aes_ecb.c \
+           $(WHAL_DIR)/src/crypto/aes_cbc.c \
+           $(WHAL_DIR)/src/crypto/aes_ctr.c \
+           $(WHAL_DIR)/src/crypto/aes_gcm.c \
+           $(WHAL_DIR)/src/crypto/aes_gmac.c \
+           $(WHAL_DIR)/src/crypto/aes_ccm.c \
+           $(WHAL_DIR)/src/crypto/sha1.c \
+           $(WHAL_DIR)/src/crypto/sha224.c \
+           $(WHAL_DIR)/src/crypto/sha256.c \
+           $(WHAL_DIR)/src/crypto/hmac_sha1.c \
+           $(WHAL_DIR)/src/crypto/hmac_sha224.c \
+           $(WHAL_DIR)/src/crypto/hmac_sha256.c
 
 SOURCE = $(TEST_SRC) $(WHAL_SRC)
 OBJECTS = $(patsubst %.c,%.o,$(SOURCE))
