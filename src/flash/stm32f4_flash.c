@@ -87,7 +87,7 @@ const whal_Flash whal_Stm32f4_Flash_Dev = WHAL_CFG_STM32F4_FLASH_DEV;
 #define FLASH_CR_SER_Msk (1UL << FLASH_CR_SER_Pos)
 
 #define FLASH_CR_SNB_Pos 3
-#define FLASH_CR_SNB_Msk (WHAL_BITMASK(4) << FLASH_CR_SNB_Pos)
+#define FLASH_CR_SNB_Msk (WHAL_BITMASK(5) << FLASH_CR_SNB_Pos)
 
 #define FLASH_CR_PSIZE_Pos 8
 #define FLASH_CR_PSIZE_Msk (WHAL_BITMASK(2) << FLASH_CR_PSIZE_Pos)
@@ -243,6 +243,12 @@ cleanup:
     return err;
 }
 
+/* Dual-bank parts encode sectors 12 and up as 0b1xxxx (RM0090 FLASH_CR.SNB) */
+static size_t SectorNumber(size_t sector)
+{
+    return (sector < 12) ? sector : sector + 4;
+}
+
 whal_Error whal_Stm32f4_Flash_Erase(whal_Flash *flashDev, size_t addr,
                                     size_t dataSz)
 {
@@ -281,7 +287,8 @@ whal_Error whal_Stm32f4_Flash_Erase(whal_Flash *flashDev, size_t addr,
         whal_Reg_Update(base, FLASH_CR_REG,
                         FLASH_CR_SER_Msk | FLASH_CR_SNB_Msk | FLASH_CR_PSIZE_Msk,
                         whal_SetBits(FLASH_CR_SER_Msk, FLASH_CR_SER_Pos, 1) |
-                        whal_SetBits(FLASH_CR_SNB_Msk, FLASH_CR_SNB_Pos, s) |
+                        whal_SetBits(FLASH_CR_SNB_Msk, FLASH_CR_SNB_Pos,
+                                     SectorNumber(s)) |
                         whal_SetBits(FLASH_CR_PSIZE_Msk, FLASH_CR_PSIZE_Pos, FLASH_PSIZE_WORD));
 
         /* Start erase */

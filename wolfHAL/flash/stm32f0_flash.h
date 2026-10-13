@@ -42,6 +42,7 @@
 typedef struct whal_Stm32f0_Flash_Cfg {
     size_t startAddr;            /* Flash region start address */
     size_t size;                 /* Flash region size in bytes */
+    size_t pageSize;             /* Erase page size in bytes (1 KB or 2 KB) */
     whal_Timeout *timeout;       /* Optional timeout for poll loops */
 } whal_Stm32f0_Flash_Cfg;
 
