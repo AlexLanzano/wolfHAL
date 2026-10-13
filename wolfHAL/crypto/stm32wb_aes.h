@@ -75,18 +75,21 @@ typedef struct {
 #define whal_Stm32wb_AesEcb_Oneshot  whal_AesEcb_Oneshot
 #define whal_Stm32wb_AesEcb_Start    whal_AesEcb_Start
 #define whal_Stm32wb_AesEcb_Process  whal_AesEcb_Process
+#define whal_Stm32wb_AesEcb_Stop     whal_AesEcb_Stop
 #endif
 
 #ifdef WHAL_CFG_STM32WB_AES_CBC_DIRECT_API_MAPPING
 #define whal_Stm32wb_AesCbc_Oneshot  whal_AesCbc_Oneshot
 #define whal_Stm32wb_AesCbc_Start    whal_AesCbc_Start
 #define whal_Stm32wb_AesCbc_Process  whal_AesCbc_Process
+#define whal_Stm32wb_AesCbc_Stop     whal_AesCbc_Stop
 #endif
 
 #ifdef WHAL_CFG_STM32WB_AES_CTR_DIRECT_API_MAPPING
 #define whal_Stm32wb_AesCtr_Oneshot  whal_AesCtr_Oneshot
 #define whal_Stm32wb_AesCtr_Start    whal_AesCtr_Start
 #define whal_Stm32wb_AesCtr_Process  whal_AesCtr_Process
+#define whal_Stm32wb_AesCtr_Stop     whal_AesCtr_Stop
 #endif
 
 #ifdef WHAL_CFG_STM32WB_AES_GCM_DIRECT_API_MAPPING
@@ -162,6 +165,13 @@ whal_Error whal_Stm32wb_AesEcb_Start(whal_AesEcb *dev, whal_Crypto_Dir dir,
 whal_Error whal_Stm32wb_AesEcb_Process(whal_AesEcb *dev,
                                        const void *in, void *out, size_t sz);
 
+/**
+ * @brief End an AES-ECB streaming session and clear the key.
+ *
+ * @param dev AES-ECB device instance.
+ */
+whal_Error whal_Stm32wb_AesEcb_Stop(whal_AesEcb *dev);
+
 /* ---- AES-CBC ---- */
 
 /**
@@ -205,6 +215,13 @@ whal_Error whal_Stm32wb_AesCbc_Start(whal_AesCbc *dev, whal_Crypto_Dir dir,
 whal_Error whal_Stm32wb_AesCbc_Process(whal_AesCbc *dev,
                                        const void *in, void *out, size_t sz);
 
+/**
+ * @brief End an AES-CBC streaming session and clear the key and IV.
+ *
+ * @param dev AES-CBC device instance.
+ */
+whal_Error whal_Stm32wb_AesCbc_Stop(whal_AesCbc *dev);
+
 /* ---- AES-CTR ---- */
 
 /**
@@ -247,6 +264,13 @@ whal_Error whal_Stm32wb_AesCtr_Start(whal_AesCtr *dev, whal_Crypto_Dir dir,
  */
 whal_Error whal_Stm32wb_AesCtr_Process(whal_AesCtr *dev,
                                        const void *in, void *out, size_t sz);
+
+/**
+ * @brief End an AES-CTR streaming session and clear the key and counter.
+ *
+ * @param dev AES-CTR device instance.
+ */
+whal_Error whal_Stm32wb_AesCtr_Stop(whal_AesCtr *dev);
 
 /* ---- AES-GCM ---- */
 

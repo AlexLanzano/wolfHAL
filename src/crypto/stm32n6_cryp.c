@@ -324,6 +324,15 @@ static whal_Error Process_BlockCipher(const uint8_t *in, uint8_t *out, size_t sz
     return WHAL_SUCCESS;
 }
 
+static whal_Error Stop_BlockCipher(void)
+{
+    size_t base = whal_Stm32n6_Cryp_Dev.base;
+
+    Disable(base);
+    ZeroKeyIv(base);
+    return WHAL_SUCCESS;
+}
+
 
 /* ---- Direct API mapping ---- */
 
@@ -335,16 +344,19 @@ static whal_Error Process_BlockCipher(const uint8_t *in, uint8_t *out, size_t sz
 #define whal_Stm32n6_CrypAesEcb_Oneshot  whal_AesEcb_Oneshot
 #define whal_Stm32n6_CrypAesEcb_Start    whal_AesEcb_Start
 #define whal_Stm32n6_CrypAesEcb_Process  whal_AesEcb_Process
+#define whal_Stm32n6_CrypAesEcb_Stop     whal_AesEcb_Stop
 #endif
 #ifdef WHAL_CFG_STM32N6_CRYP_CBC_DIRECT_API_MAPPING
 #define whal_Stm32n6_CrypAesCbc_Oneshot  whal_AesCbc_Oneshot
 #define whal_Stm32n6_CrypAesCbc_Start    whal_AesCbc_Start
 #define whal_Stm32n6_CrypAesCbc_Process  whal_AesCbc_Process
+#define whal_Stm32n6_CrypAesCbc_Stop     whal_AesCbc_Stop
 #endif
 #ifdef WHAL_CFG_STM32N6_CRYP_CTR_DIRECT_API_MAPPING
 #define whal_Stm32n6_CrypAesCtr_Oneshot  whal_AesCtr_Oneshot
 #define whal_Stm32n6_CrypAesCtr_Start    whal_AesCtr_Start
 #define whal_Stm32n6_CrypAesCtr_Process  whal_AesCtr_Process
+#define whal_Stm32n6_CrypAesCtr_Stop     whal_AesCtr_Stop
 #endif
 #ifdef WHAL_CFG_STM32N6_CRYP_GCM_DIRECT_API_MAPPING
 #define whal_Stm32n6_CrypAesGcm_Oneshot  whal_AesGcm_Oneshot
@@ -486,10 +498,17 @@ whal_Error whal_Stm32n6_CrypAesEcb_Process(whal_AesEcb *dev,
     return Process_BlockCipher(in, out, sz);
 }
 
+whal_Error whal_Stm32n6_CrypAesEcb_Stop(whal_AesEcb *dev)
+{
+    (void)dev;
+    return Stop_BlockCipher();
+}
+
 const whal_AesEcbDriver whal_Stm32n6_Cryp_EcbDriver = {
     .Oneshot = whal_Stm32n6_CrypAesEcb_Oneshot,
     .Start = whal_Stm32n6_CrypAesEcb_Start,
     .Process = whal_Stm32n6_CrypAesEcb_Process,
+    .Stop = whal_Stm32n6_CrypAesEcb_Stop,
 };
 
 
@@ -600,10 +619,17 @@ whal_Error whal_Stm32n6_CrypAesCbc_Process(whal_AesCbc *dev,
     return Process_BlockCipher(in, out, sz);
 }
 
+whal_Error whal_Stm32n6_CrypAesCbc_Stop(whal_AesCbc *dev)
+{
+    (void)dev;
+    return Stop_BlockCipher();
+}
+
 const whal_AesCbcDriver whal_Stm32n6_Cryp_CbcDriver = {
     .Oneshot = whal_Stm32n6_CrypAesCbc_Oneshot,
     .Start = whal_Stm32n6_CrypAesCbc_Start,
     .Process = whal_Stm32n6_CrypAesCbc_Process,
+    .Stop = whal_Stm32n6_CrypAesCbc_Stop,
 };
 
 
@@ -698,10 +724,17 @@ whal_Error whal_Stm32n6_CrypAesCtr_Process(whal_AesCtr *dev,
     return Process_BlockCipher(in, out, sz);
 }
 
+whal_Error whal_Stm32n6_CrypAesCtr_Stop(whal_AesCtr *dev)
+{
+    (void)dev;
+    return Stop_BlockCipher();
+}
+
 const whal_AesCtrDriver whal_Stm32n6_Cryp_CtrDriver = {
     .Oneshot = whal_Stm32n6_CrypAesCtr_Oneshot,
     .Start = whal_Stm32n6_CrypAesCtr_Start,
     .Process = whal_Stm32n6_CrypAesCtr_Process,
+    .Stop = whal_Stm32n6_CrypAesCtr_Stop,
 };
 
 

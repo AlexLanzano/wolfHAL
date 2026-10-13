@@ -98,6 +98,7 @@ typedef struct {
                         const void *key, size_t keySz);
     whal_Error (*Process)(whal_AesEcb *dev,
                           const void *in, void *out, size_t sz);
+    whal_Error (*Stop)(whal_AesEcb *dev);
 } whal_AesEcbDriver;
 
 /**
@@ -142,6 +143,12 @@ whal_Error whal_AesEcb_Start(whal_AesEcb *dev, whal_Crypto_Dir dir,
  */
 whal_Error whal_AesEcb_Process(whal_AesEcb *dev,
                                const void *in, void *out, size_t sz);
+/**
+ * @brief End an AES-ECB streaming session and clear the key.
+ *
+ * @param dev AES-ECB device instance.
+ */
+whal_Error whal_AesEcb_Stop(whal_AesEcb *dev);
 
 /* AES-CBC */
 
@@ -160,6 +167,7 @@ typedef struct {
                         const void *iv);
     whal_Error (*Process)(whal_AesCbc *dev,
                           const void *in, void *out, size_t sz);
+    whal_Error (*Stop)(whal_AesCbc *dev);
 } whal_AesCbcDriver;
 
 /**
@@ -208,6 +216,12 @@ whal_Error whal_AesCbc_Start(whal_AesCbc *dev, whal_Crypto_Dir dir,
  */
 whal_Error whal_AesCbc_Process(whal_AesCbc *dev,
                                const void *in, void *out, size_t sz);
+/**
+ * @brief End an AES-CBC streaming session and clear the key and IV.
+ *
+ * @param dev AES-CBC device instance.
+ */
+whal_Error whal_AesCbc_Stop(whal_AesCbc *dev);
 
 /* AES-CTR */
 
@@ -226,6 +240,7 @@ typedef struct {
                         const void *iv);
     whal_Error (*Process)(whal_AesCtr *dev,
                           const void *in, void *out, size_t sz);
+    whal_Error (*Stop)(whal_AesCtr *dev);
 } whal_AesCtrDriver;
 
 /**
@@ -274,6 +289,12 @@ whal_Error whal_AesCtr_Start(whal_AesCtr *dev, whal_Crypto_Dir dir,
  */
 whal_Error whal_AesCtr_Process(whal_AesCtr *dev,
                                const void *in, void *out, size_t sz);
+/**
+ * @brief End an AES-CTR streaming session and clear the key and counter.
+ *
+ * @param dev AES-CTR device instance.
+ */
+whal_Error whal_AesCtr_Stop(whal_AesCtr *dev);
 
 /* AES-GCM */
 

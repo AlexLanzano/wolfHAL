@@ -116,11 +116,46 @@ static void Test_AesEcb_KnownAnswer128(void)
     WHAL_ASSERT_MEM_EQ(pt, nistPt, sizeof(nistPt));
 }
 
+static void Test_AesEcb_Streaming(void)
+{
+    uint8_t expected[32] = {0};
+    uint8_t ct[32] = {0};
+    uint8_t pt[32] = {0};
+
+    WHAL_ASSERT_EQ(whal_AesEcb_Oneshot(BOARD_AES_ECB_DEV, WHAL_CRYPTO_ENCRYPT,
+                                        key, 32, plaintext, expected,
+                                        sizeof(plaintext)),
+                   WHAL_SUCCESS);
+
+    WHAL_ASSERT_EQ(whal_AesEcb_Start(BOARD_AES_ECB_DEV, WHAL_CRYPTO_ENCRYPT,
+                                      key, 32),
+                   WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_AesEcb_Process(BOARD_AES_ECB_DEV, plaintext, ct, 16),
+                   WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_AesEcb_Process(BOARD_AES_ECB_DEV,
+                                        plaintext + 16, ct + 16, 16),
+                   WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_AesEcb_Stop(BOARD_AES_ECB_DEV), WHAL_SUCCESS);
+    WHAL_ASSERT_MEM_EQ(ct, expected, sizeof(expected));
+
+    WHAL_ASSERT_EQ(whal_AesEcb_Start(BOARD_AES_ECB_DEV, WHAL_CRYPTO_DECRYPT,
+                                      key, 32),
+                   WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_AesEcb_Process(BOARD_AES_ECB_DEV, ct, pt, 16),
+                   WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_AesEcb_Process(BOARD_AES_ECB_DEV,
+                                        ct + 16, pt + 16, 16),
+                   WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_AesEcb_Stop(BOARD_AES_ECB_DEV), WHAL_SUCCESS);
+    WHAL_ASSERT_MEM_EQ(pt, plaintext, sizeof(plaintext));
+}
+
 void whal_Test_AesEcb(void)
 {
     WHAL_TEST_SUITE_START("aes_ecb");
     WHAL_TEST(Test_AesEcb_Basic);
     WHAL_TEST(Test_AesEcb_KnownAnswer);
     WHAL_TEST(Test_AesEcb_KnownAnswer128);
+    WHAL_TEST(Test_AesEcb_Streaming);
     WHAL_TEST_SUITE_END();
 }
