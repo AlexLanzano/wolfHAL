@@ -274,6 +274,37 @@ emit("hmacSha256UnalignedMac",
      hmac_mac(hashes.SHA256(), hmac_unaligned_key, hmac_unaligned_msg))
 
 
+
+# ---- HMAC with block-size and longer-than-block-size keys ----
+# RFC 4231 Test Case 6 message with a 64-byte key (no pre-hash) and the
+# 131-byte RFC 4231 key (pre-hashed through LKEY).
+hmac_long_msg = b"Test Using Larger Than Block-Size Key - Hash Key First"
+
+banner("test_hmac_sha*.c: 64-byte and 131-byte key vectors")
+emit("hmacLongMsg", hmac_long_msg)
+for bits, algo in (("1", hashes.SHA1()), ("224", hashes.SHA224()),
+                   ("256", hashes.SHA256())):
+    emit(f"hmacSha{bits}Key64Mac", hmac_mac(algo, bytes([0xAA] * 64),
+                                             hmac_long_msg))
+    emit(f"hmacSha{bits}Key131Mac", hmac_mac(algo, bytes([0xAA] * 131),
+                                              hmac_long_msg))
+
+
+# ---- SHA/HMAC over message lengths that leave 0-3 trailing bytes ----
+# Digests of prefixes of a 101-byte buffer whose first 100 bytes are LONG_BUF.
+# The tests build the buffer with the same formula.
+RESIDUE_MSG = bytes((i * 7 + 3) & 0xFF for i in range(101))
+RESIDUE_LENS = (0, 1, 3, 7, 101)
+
+banner("test_sha*.c / test_hmac_sha*.c: residue vectors")
+for bits, algo in (("1", hashes.SHA1()), ("224", hashes.SHA224()),
+                   ("256", hashes.SHA256())):
+    for n in RESIDUE_LENS:
+        emit(f"sha{bits}Residue{n}", sha_digest(algo, RESIDUE_MSG[:n]))
+    for n in RESIDUE_LENS:
+        emit(f"hmacSha{bits}Residue{n}",
+             hmac_mac(algo, hmac_key, RESIDUE_MSG[:n]))
+
 # ---- RSA-1024 raw primitive KAT ----
 # Fixed key matches the rsaN / rsaE / rsaD / ... arrays in test_pka.c.
 # Test plaintext is 0x00..0x7F (128 bytes), guaranteed < n (which starts

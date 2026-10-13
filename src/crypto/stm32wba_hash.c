@@ -69,6 +69,9 @@ const whal_HmacSha256 whal_Stm32wba_HmacSha256_Dev = WHAL_CFG_STM32WBA_HASH_HMAC
 /* Status Register */
 #define HASH_SR_REG           0x24
 
+#define HASH_SR_DINIS_Pos     0
+#define HASH_SR_DINIS_Msk     (1UL << HASH_SR_DINIS_Pos)
+
 #define HASH_SR_BUSY_Pos      3
 #define HASH_SR_BUSY_Msk      (1UL << HASH_SR_BUSY_Pos)
 
@@ -104,6 +107,13 @@ static uint32_t AlgoBits(size_t algo)
 static whal_Error WaitForReady(size_t base, whal_Timeout *timeout)
 {
     return whal_Reg_ReadPoll(base, HASH_SR_REG, HASH_SR_BUSY_Msk, 0, timeout);
+}
+
+/* Reset the hash core and clear DINIS so the context swap registers read 0. */
+static void ResetHash(size_t base)
+{
+    whal_Reg_Update(base, HASH_CR_REG, HASH_CR_INIT_Msk, HASH_CR_INIT_Msk);
+    whal_Reg_Update(base, HASH_SR_REG, HASH_SR_DINIS_Msk, 0);
 }
 
 /* Reset the stream staging buffer; called from each Start. */
@@ -239,6 +249,7 @@ whal_Error whal_Stm32wba_Hash_Init(whal_Crypto *dev)
 whal_Error whal_Stm32wba_Hash_Deinit(whal_Crypto *dev)
 {
     (void)dev;
+    ResetHash(whal_Stm32wba_Hash_Dev.base);
     return WHAL_SUCCESS;
 }
 
@@ -580,8 +591,10 @@ whal_Error whal_Stm32wba_HmacSha1_Oneshot(whal_HmacSha1 *dev,
                     HASH_STR_DCAL_Msk);
 
     err = WaitForReady(base, cfg->timeout);
-    if (err)
+    if (err) {
+        ResetHash(base);
         return err;
+    }
 
     /* Message */
     whal_Reg_Update(base, HASH_STR_REG, HASH_STR_NBLW_Msk, 0);
@@ -592,8 +605,10 @@ whal_Error whal_Stm32wba_HmacSha1_Oneshot(whal_HmacSha1 *dev,
                     HASH_STR_DCAL_Msk);
 
     err = WaitForReady(base, cfg->timeout);
-    if (err)
+    if (err) {
+        ResetHash(base);
         return err;
+    }
 
     /* Outer key */
     whal_Reg_Update(base, HASH_STR_REG, HASH_STR_NBLW_Msk, 0);
@@ -603,8 +618,10 @@ whal_Error whal_Stm32wba_HmacSha1_Oneshot(whal_HmacSha1 *dev,
                     HASH_STR_DCAL_Msk);
 
     err = WaitForReady(base, cfg->timeout);
-    if (err)
+    if (err) {
+        ResetHash(base);
         return err;
+    }
 
     ReadDigest(base, (uint8_t *)digest, digestSz);
     return WHAL_SUCCESS;
@@ -643,8 +660,10 @@ whal_Error whal_Stm32wba_HmacSha1_Start(whal_HmacSha1 *dev,
                     HASH_STR_DCAL_Msk);
 
     err = WaitForReady(base, cfg->timeout);
-    if (err)
+    if (err) {
+        ResetHash(base);
         return err;
+    }
 
     /* Store key for outer-key phase in Finalize */
     g_hmacSha1State.key = key;
@@ -686,8 +705,10 @@ whal_Error whal_Stm32wba_HmacSha1_Finalize(whal_HmacSha1 *dev,
                     HASH_STR_DCAL_Msk);
 
     err = WaitForReady(base, cfg->timeout);
-    if (err)
+    if (err) {
+        ResetHash(base);
         return err;
+    }
 
     /* Outer key */
     whal_Reg_Update(base, HASH_STR_REG, HASH_STR_NBLW_Msk, 0);
@@ -697,8 +718,10 @@ whal_Error whal_Stm32wba_HmacSha1_Finalize(whal_HmacSha1 *dev,
                     HASH_STR_DCAL_Msk);
 
     err = WaitForReady(base, cfg->timeout);
-    if (err)
+    if (err) {
+        ResetHash(base);
         return err;
+    }
 
     ReadDigest(base, (uint8_t *)digest, digestSz);
     return WHAL_SUCCESS;
@@ -750,8 +773,10 @@ whal_Error whal_Stm32wba_HmacSha224_Oneshot(whal_HmacSha224 *dev,
                     HASH_STR_DCAL_Msk);
 
     err = WaitForReady(base, cfg->timeout);
-    if (err)
+    if (err) {
+        ResetHash(base);
         return err;
+    }
 
     /* Message */
     whal_Reg_Update(base, HASH_STR_REG, HASH_STR_NBLW_Msk, 0);
@@ -762,8 +787,10 @@ whal_Error whal_Stm32wba_HmacSha224_Oneshot(whal_HmacSha224 *dev,
                     HASH_STR_DCAL_Msk);
 
     err = WaitForReady(base, cfg->timeout);
-    if (err)
+    if (err) {
+        ResetHash(base);
         return err;
+    }
 
     /* Outer key */
     whal_Reg_Update(base, HASH_STR_REG, HASH_STR_NBLW_Msk, 0);
@@ -773,8 +800,10 @@ whal_Error whal_Stm32wba_HmacSha224_Oneshot(whal_HmacSha224 *dev,
                     HASH_STR_DCAL_Msk);
 
     err = WaitForReady(base, cfg->timeout);
-    if (err)
+    if (err) {
+        ResetHash(base);
         return err;
+    }
 
     ReadDigest(base, (uint8_t *)digest, digestSz);
     return WHAL_SUCCESS;
@@ -813,8 +842,10 @@ whal_Error whal_Stm32wba_HmacSha224_Start(whal_HmacSha224 *dev,
                     HASH_STR_DCAL_Msk);
 
     err = WaitForReady(base, cfg->timeout);
-    if (err)
+    if (err) {
+        ResetHash(base);
         return err;
+    }
 
     /* Store key for outer-key phase in Finalize */
     g_hmacSha224State.key = key;
@@ -856,8 +887,10 @@ whal_Error whal_Stm32wba_HmacSha224_Finalize(whal_HmacSha224 *dev,
                     HASH_STR_DCAL_Msk);
 
     err = WaitForReady(base, cfg->timeout);
-    if (err)
+    if (err) {
+        ResetHash(base);
         return err;
+    }
 
     /* Outer key */
     whal_Reg_Update(base, HASH_STR_REG, HASH_STR_NBLW_Msk, 0);
@@ -867,8 +900,10 @@ whal_Error whal_Stm32wba_HmacSha224_Finalize(whal_HmacSha224 *dev,
                     HASH_STR_DCAL_Msk);
 
     err = WaitForReady(base, cfg->timeout);
-    if (err)
+    if (err) {
+        ResetHash(base);
         return err;
+    }
 
     ReadDigest(base, (uint8_t *)digest, digestSz);
     return WHAL_SUCCESS;
@@ -920,8 +955,10 @@ whal_Error whal_Stm32wba_HmacSha256_Oneshot(whal_HmacSha256 *dev,
                     HASH_STR_DCAL_Msk);
 
     err = WaitForReady(base, cfg->timeout);
-    if (err)
+    if (err) {
+        ResetHash(base);
         return err;
+    }
 
     /* Message */
     whal_Reg_Update(base, HASH_STR_REG, HASH_STR_NBLW_Msk, 0);
@@ -932,8 +969,10 @@ whal_Error whal_Stm32wba_HmacSha256_Oneshot(whal_HmacSha256 *dev,
                     HASH_STR_DCAL_Msk);
 
     err = WaitForReady(base, cfg->timeout);
-    if (err)
+    if (err) {
+        ResetHash(base);
         return err;
+    }
 
     /* Outer key */
     whal_Reg_Update(base, HASH_STR_REG, HASH_STR_NBLW_Msk, 0);
@@ -943,8 +982,10 @@ whal_Error whal_Stm32wba_HmacSha256_Oneshot(whal_HmacSha256 *dev,
                     HASH_STR_DCAL_Msk);
 
     err = WaitForReady(base, cfg->timeout);
-    if (err)
+    if (err) {
+        ResetHash(base);
         return err;
+    }
 
     ReadDigest(base, (uint8_t *)digest, digestSz);
     return WHAL_SUCCESS;
@@ -983,8 +1024,10 @@ whal_Error whal_Stm32wba_HmacSha256_Start(whal_HmacSha256 *dev,
                     HASH_STR_DCAL_Msk);
 
     err = WaitForReady(base, cfg->timeout);
-    if (err)
+    if (err) {
+        ResetHash(base);
         return err;
+    }
 
     /* Store key for outer-key phase in Finalize */
     g_hmacSha256State.key = key;
@@ -1026,8 +1069,10 @@ whal_Error whal_Stm32wba_HmacSha256_Finalize(whal_HmacSha256 *dev,
                     HASH_STR_DCAL_Msk);
 
     err = WaitForReady(base, cfg->timeout);
-    if (err)
+    if (err) {
+        ResetHash(base);
         return err;
+    }
 
     /* Outer key */
     whal_Reg_Update(base, HASH_STR_REG, HASH_STR_NBLW_Msk, 0);
@@ -1037,8 +1082,10 @@ whal_Error whal_Stm32wba_HmacSha256_Finalize(whal_HmacSha256 *dev,
                     HASH_STR_DCAL_Msk);
 
     err = WaitForReady(base, cfg->timeout);
-    if (err)
+    if (err) {
+        ResetHash(base);
         return err;
+    }
 
     ReadDigest(base, (uint8_t *)digest, digestSz);
     return WHAL_SUCCESS;
