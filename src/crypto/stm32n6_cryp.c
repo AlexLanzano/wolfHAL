@@ -195,24 +195,11 @@ static void WriteIv16(size_t base, const uint8_t *iv)
     whal_Reg_Write(base, CRYP_IV1RR_REG, whal_LoadBe32(iv + 12));
 }
 
-static void ZeroKeyIv(size_t base)
+/* Reset CRYP to clear its FIFOs, key, IV and configuration. */
+static void ResetCryp(size_t base)
 {
-    /* KEYSIZE must cover K0LR..K3RR or the write sequence raises KERF */
-    whal_Reg_Update(base, CRYP_CR_REG, CRYP_CR_KEYSIZE_Msk,
-                    whal_SetBits(CRYP_CR_KEYSIZE_Msk, CRYP_CR_KEYSIZE_Pos,
-                                 CRYP_KEYSIZE_256));
-    whal_Reg_Write(base, CRYP_K0LR_REG, 0);
-    whal_Reg_Write(base, CRYP_K0RR_REG, 0);
-    whal_Reg_Write(base, CRYP_K1LR_REG, 0);
-    whal_Reg_Write(base, CRYP_K1RR_REG, 0);
-    whal_Reg_Write(base, CRYP_K2LR_REG, 0);
-    whal_Reg_Write(base, CRYP_K2RR_REG, 0);
-    whal_Reg_Write(base, CRYP_K3LR_REG, 0);
-    whal_Reg_Write(base, CRYP_K3RR_REG, 0);
-    whal_Reg_Write(base, CRYP_IV0LR_REG, 0);
-    whal_Reg_Write(base, CRYP_IV0RR_REG, 0);
-    whal_Reg_Write(base, CRYP_IV1LR_REG, 0);
-    whal_Reg_Write(base, CRYP_IV1RR_REG, 0);
+    whal_Reg_Update(base, CRYP_CR_REG, CRYP_CR_IPRST_Msk, CRYP_CR_IPRST_Msk);
+    whal_Reg_Update(base, CRYP_CR_REG, CRYP_CR_IPRST_Msk, 0);
 }
 
 static void WriteBlock(size_t base, const uint8_t *in)
@@ -305,8 +292,7 @@ static whal_Error Process_BlockCipher(const uint8_t *in, uint8_t *out, size_t sz
         return WHAL_SUCCESS;
 
     if (!in || !out || (sz & 0xF) != 0) {
-        Disable(base);
-        ZeroKeyIv(base);
+        ResetCryp(base);
         return WHAL_EINVAL;
     }
 
@@ -314,8 +300,7 @@ static whal_Error Process_BlockCipher(const uint8_t *in, uint8_t *out, size_t sz
         WriteBlock(base, in + i);
         err = WaitOutputReady(base, cfg->timeout);
         if (err) {
-            Disable(base);
-            ZeroKeyIv(base);
+            ResetCryp(base);
             return err;
         }
         ReadBlock(base, out + i);
@@ -328,8 +313,7 @@ static whal_Error Stop_BlockCipher(void)
 {
     size_t base = whal_Stm32n6_Cryp_Dev.base;
 
-    Disable(base);
-    ZeroKeyIv(base);
+    ResetCryp(base);
     return WHAL_SUCCESS;
 }
 
@@ -386,8 +370,7 @@ whal_Error whal_Stm32n6_Cryp_Init(whal_Crypto *dev)
 whal_Error whal_Stm32n6_Cryp_Deinit(whal_Crypto *dev)
 {
     (void)dev;
-    Disable(whal_Stm32n6_Cryp_Dev.base);
-    ZeroKeyIv(whal_Stm32n6_Cryp_Dev.base);
+    ResetCryp(whal_Stm32n6_Cryp_Dev.base);
     return WHAL_SUCCESS;
 }
 
@@ -440,8 +423,7 @@ whal_Error whal_Stm32n6_CrypAesEcb_Oneshot(whal_AesEcb *dev,
 
     err = Process_BlockCipher(in, out, sz);
 cleanup:
-    Disable(base);
-    ZeroKeyIv(base);
+    ResetCryp(base);
     return err;
 }
 
@@ -485,8 +467,7 @@ whal_Error whal_Stm32n6_CrypAesEcb_Start(whal_AesEcb *dev,
     return WHAL_SUCCESS;
 
 cleanup:
-    Disable(base);
-    ZeroKeyIv(base);
+    ResetCryp(base);
     return err;
 }
 
@@ -558,8 +539,7 @@ whal_Error whal_Stm32n6_CrypAesCbc_Oneshot(whal_AesCbc *dev,
 
     err = Process_BlockCipher(in, out, sz);
 cleanup:
-    Disable(base);
-    ZeroKeyIv(base);
+    ResetCryp(base);
     return err;
 }
 
@@ -606,8 +586,7 @@ whal_Error whal_Stm32n6_CrypAesCbc_Start(whal_AesCbc *dev,
     return WHAL_SUCCESS;
 
 cleanup:
-    Disable(base);
-    ZeroKeyIv(base);
+    ResetCryp(base);
     return err;
 }
 
@@ -671,8 +650,7 @@ whal_Error whal_Stm32n6_CrypAesCtr_Oneshot(whal_AesCtr *dev,
 
     err = Process_BlockCipher(in, out, sz);
 cleanup:
-    Disable(base);
-    ZeroKeyIv(base);
+    ResetCryp(base);
     return err;
 }
 
@@ -711,8 +689,7 @@ whal_Error whal_Stm32n6_CrypAesCtr_Start(whal_AesCtr *dev,
     return WHAL_SUCCESS;
 
 cleanup:
-    Disable(base);
-    ZeroKeyIv(base);
+    ResetCryp(base);
     return err;
 }
 
@@ -936,8 +913,7 @@ whal_Error whal_Stm32n6_CrypAesGcm_Oneshot(whal_AesGcm *dev,
         ((uint8_t *)tag)[i] = tagBuf[i];
 
 cleanup:
-    Disable(base);
-    ZeroKeyIv(base);
+    ResetCryp(base);
     return err;
 }
 
@@ -993,8 +969,7 @@ whal_Error whal_Stm32n6_CrypAesGcm_Start(whal_AesGcm *dev,
     return WHAL_SUCCESS;
 
 cleanup:
-    Disable(base);
-    ZeroKeyIv(base);
+    ResetCryp(base);
     return err;
 }
 
@@ -1014,15 +989,13 @@ whal_Error whal_Stm32n6_CrypAesGcm_Process(whal_AesGcm *dev,
         return WHAL_SUCCESS;
 
     if (!in || !out) {
-        Disable(base);
-        ZeroKeyIv(base);
+        ResetCryp(base);
         return WHAL_EINVAL;
     }
 
     /* Only the last Process call may end in a partial block */
     if (g_aesGcmState.partial) {
-        Disable(base);
-        ZeroKeyIv(base);
+        ResetCryp(base);
         return WHAL_EINVAL;
     }
 
@@ -1052,8 +1025,7 @@ whal_Error whal_Stm32n6_CrypAesGcm_Process(whal_AesGcm *dev,
 
         err = WaitOutputReady(base, cfg->timeout);
         if (err) {
-            Disable(base);
-            ZeroKeyIv(base);
+            ResetCryp(base);
             return err;
         }
 
@@ -1087,8 +1059,7 @@ whal_Error whal_Stm32n6_CrypAesGcm_Finalize(whal_AesGcm *dev,
     (void)dev;
 
     if (!tag || tagSz == 0 || tagSz > 16) {
-        Disable(base);
-        ZeroKeyIv(base);
+        ResetCryp(base);
         return WHAL_EINVAL;
     }
 
@@ -1110,8 +1081,7 @@ whal_Error whal_Stm32n6_CrypAesGcm_Finalize(whal_AesGcm *dev,
 
     err = WaitOutputReady(base, cfg->timeout);
     if (err) {
-        Disable(base);
-        ZeroKeyIv(base);
+        ResetCryp(base);
         return err;
     }
 
@@ -1119,8 +1089,7 @@ whal_Error whal_Stm32n6_CrypAesGcm_Finalize(whal_AesGcm *dev,
     for (i = 0; i < tagSz; i++)
         ((uint8_t *)tag)[i] = tagBuf[i];
 
-    Disable(base);
-    ZeroKeyIv(base);
+    ResetCryp(base);
     return WHAL_SUCCESS;
 }
 
@@ -1199,8 +1168,7 @@ whal_Error whal_Stm32n6_CrypAesGmac_Oneshot(whal_AesGmac *dev,
         ((uint8_t *)tag)[i] = tagBuf[i];
 
 cleanup:
-    Disable(base);
-    ZeroKeyIv(base);
+    ResetCryp(base);
     return err;
 }
 
@@ -1427,8 +1395,7 @@ whal_Error whal_Stm32n6_CrypAesCcm_Oneshot(whal_AesCcm *dev,
         ((uint8_t *)tag)[i] = tagBuf[i];
 
 cleanup:
-    Disable(base);
-    ZeroKeyIv(base);
+    ResetCryp(base);
     return err;
 }
 
@@ -1565,8 +1532,7 @@ whal_Error whal_Stm32n6_CrypAesCcm_Start(whal_AesCcm *dev,
     return WHAL_SUCCESS;
 
 cleanup:
-    Disable(base);
-    ZeroKeyIv(base);
+    ResetCryp(base);
     return err;
 }
 
@@ -1586,8 +1552,7 @@ whal_Error whal_Stm32n6_CrypAesCcm_Process(whal_AesCcm *dev,
         return WHAL_SUCCESS;
 
     if (!in || !out) {
-        Disable(base);
-        ZeroKeyIv(base);
+        ResetCryp(base);
         return WHAL_EINVAL;
     }
 
@@ -1595,8 +1560,7 @@ whal_Error whal_Stm32n6_CrypAesCcm_Process(whal_AesCcm *dev,
      * total may not exceed the payload length declared at Start */
     if (g_aesCcmState.partial ||
         sz > g_aesCcmState.msgSz - g_aesCcmState.dataSz) {
-        Disable(base);
-        ZeroKeyIv(base);
+        ResetCryp(base);
         return WHAL_EINVAL;
     }
 
@@ -1627,8 +1591,7 @@ whal_Error whal_Stm32n6_CrypAesCcm_Process(whal_AesCcm *dev,
 
         err = WaitOutputReady(base, cfg->timeout);
         if (err) {
-            Disable(base);
-            ZeroKeyIv(base);
+            ResetCryp(base);
             return err;
         }
 
@@ -1663,8 +1626,7 @@ whal_Error whal_Stm32n6_CrypAesCcm_Finalize(whal_AesCcm *dev,
     if (!tag || tagSz < 4 || tagSz > 16 || (tagSz & 1) != 0 ||
         tagSz != g_aesCcmState.tagSz ||
         g_aesCcmState.dataSz != g_aesCcmState.msgSz) {
-        Disable(base);
-        ZeroKeyIv(base);
+        ResetCryp(base);
         return WHAL_EINVAL;
     }
 
@@ -1681,8 +1643,7 @@ whal_Error whal_Stm32n6_CrypAesCcm_Finalize(whal_AesCcm *dev,
 
     err = WaitOutputReady(base, cfg->timeout);
     if (err) {
-        Disable(base);
-        ZeroKeyIv(base);
+        ResetCryp(base);
         return err;
     }
 
@@ -1690,8 +1651,7 @@ whal_Error whal_Stm32n6_CrypAesCcm_Finalize(whal_AesCcm *dev,
     for (i = 0; i < tagSz; i++)
         ((uint8_t *)tag)[i] = tagBuf[i];
 
-    Disable(base);
-    ZeroKeyIv(base);
+    ResetCryp(base);
     return WHAL_SUCCESS;
 }
 
