@@ -29,6 +29,7 @@ static whal_Flash *g_testFlashDev;
 static size_t g_testFlashStart;
 static size_t g_testFlashAddr;
 static size_t g_testFlashSectorSz;
+static size_t g_testFlashPageSz;
 
 static const uint8_t g_extentPattern[32] = {
     0x5A, 0xA5, 0x3C, 0xC3, 0x69, 0x96, 0x0F, 0xF0,
@@ -182,6 +183,53 @@ static void Test_Flash_EraseOneBytePastSector(void)
                    WHAL_SUCCESS);
 }
 
+static void Test_Flash_CrossPageWrite(void)
+{
+    static uint8_t pattern[300];
+    static uint8_t readback[300];
+    const size_t page = g_testFlashPageSz;
+    const struct {
+        size_t offset;
+        size_t len;
+    } cases[] = {
+        { 100, 300 },               /* crosses the first page boundary */
+        { 2 * page - 8, page + 8 }, /* starts 8 bytes before a boundary */
+        { 3 * page, page },         /* exactly one aligned page */
+    };
+    size_t i;
+    size_t j;
+    whal_Error err;
+
+    for (i = 0; i < sizeof(pattern); i++)
+        pattern[i] = (uint8_t)(i * 7 + 3);
+
+    WHAL_ASSERT_EQ(whal_Flash_Unlock(g_testFlashDev, g_testFlashAddr,
+                                     g_testFlashSectorSz), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Flash_Erase(g_testFlashDev, g_testFlashAddr,
+                                    g_testFlashSectorSz), WHAL_SUCCESS);
+
+    for (i = 0; i < sizeof(cases) / sizeof(cases[0]); i++) {
+        size_t addr = g_testFlashAddr + cases[i].offset;
+
+        do {
+            err = whal_Flash_Write(g_testFlashDev, addr, pattern,
+                                   cases[i].len);
+        } while (err == WHAL_ENOTREADY);
+        WHAL_ASSERT_EQ(err, WHAL_SUCCESS);
+
+        for (j = 0; j < cases[i].len; j++)
+            readback[j] = 0;
+        WHAL_ASSERT_EQ(whal_Flash_Read(g_testFlashDev, addr, readback,
+                                       cases[i].len), WHAL_SUCCESS);
+        WHAL_ASSERT_MEM_EQ(readback, pattern, cases[i].len);
+    }
+
+    WHAL_ASSERT_EQ(whal_Flash_Erase(g_testFlashDev, g_testFlashAddr,
+                                    g_testFlashSectorSz), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Flash_Lock(g_testFlashDev, g_testFlashAddr,
+                                   g_testFlashSectorSz), WHAL_SUCCESS);
+}
+
 static void Test_Flash_OutOfBounds(void)
 {
     const size_t start = BOARD_FLASH_START_ADDR;
@@ -233,6 +281,8 @@ static void run_flash_tests(const char *name, int onChip)
     if (onChip) {
         WHAL_TEST(Test_Flash_EraseOneBytePastSector);
         WHAL_TEST(Test_Flash_OutOfBounds);
+    } else {
+        WHAL_TEST(Test_Flash_CrossPageWrite);
     }
     WHAL_TEST_SUITE_END();
 }
@@ -252,6 +302,7 @@ void whal_Test_Flash(void)
         g_testFlashStart = 0;
         g_testFlashAddr = 0;
         g_testFlashSectorSz = g_peripheralFlash[i].sectorSz;
+        g_testFlashPageSz = g_peripheralFlash[i].pageSz;
         run_flash_tests(g_peripheralFlash[i].name, 0);
     }
 }

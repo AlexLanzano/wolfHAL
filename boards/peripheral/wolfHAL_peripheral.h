@@ -44,6 +44,7 @@ typedef struct {
     const char *name;
     whal_Flash *dev;
     size_t sectorSz;     /* Sector (erase) size in bytes */
+    size_t pageSz;       /* Program page size in bytes */
 } whal_PeripheralFlash_Cfg;
 
 /* Peripheral sensor device test configuration */

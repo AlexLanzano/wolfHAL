@@ -190,7 +190,9 @@ whal_Error whal_SpiNor_Init(whal_Flash *flashDev)
 
     if (!cfg->spiDev || !cfg->spiComCfg || !cfg->gpioDev)
         return WHAL_EINVAL;
-    if (cfg->pageSz == 0 || cfg->capacity == 0)
+    /* Writes split pages with a mask, so pageSz must be a power of two */
+    if (cfg->pageSz == 0 || (cfg->pageSz & (cfg->pageSz - 1)) != 0 ||
+        cfg->capacity == 0)
         return WHAL_EINVAL;
 
     /* Ensure CS is deasserted */

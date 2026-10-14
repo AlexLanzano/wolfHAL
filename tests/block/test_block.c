@@ -102,6 +102,107 @@ static void Test_Block_MultiWriteRead(void)
     }
 }
 
+/* Distinct nonzero address bytes catch a swapped or dropped byte in the
+ * 32-bit command argument */
+#define HIGH_BLOCK 0x00010203u
+
+static void FillBlocks(uint8_t seed, size_t blocks)
+{
+    size_t i;
+
+    for (i = 0; i < blocks * g_testBlockSz; i++)
+        g_testBuf[i] = (uint8_t)(seed + i * 7);
+}
+
+static int CheckBlocks(uint8_t seed, size_t blocks)
+{
+    size_t i;
+
+    for (i = 0; i < blocks * g_testBlockSz; i++) {
+        if (g_testBuf[i] != (uint8_t)(seed + i * 7))
+            return 0;
+    }
+    return 1;
+}
+
+static int CheckErased(size_t blocks)
+{
+    size_t i;
+
+    for (i = 0; i < blocks * g_testBlockSz; i++) {
+        if (g_testBuf[i] != g_testErasedByte)
+            return 0;
+    }
+    return 1;
+}
+
+static void Test_Block_EraseExtent(void)
+{
+    /* Erase blocks 0-1: both erased, block 2 untouched */
+    FillBlocks(0x20, 1);
+    WHAL_ASSERT_EQ(whal_Block_Write(g_testBlockDev, 2, g_testBuf, 1),
+                   WHAL_SUCCESS);
+    FillBlocks(0x10, 2);
+    WHAL_ASSERT_EQ(whal_Block_Write(g_testBlockDev, 0, g_testBuf, 2),
+                   WHAL_SUCCESS);
+
+    WHAL_ASSERT_EQ(whal_Block_Erase(g_testBlockDev, 0, 2), WHAL_SUCCESS);
+
+    WHAL_ASSERT_EQ(whal_Block_Read(g_testBlockDev, 0, g_testBuf, 2),
+                   WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(CheckErased(2), 1);
+    WHAL_ASSERT_EQ(whal_Block_Read(g_testBlockDev, 2, g_testBuf, 1),
+                   WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(CheckBlocks(0x20, 1), 1);
+
+    /* Erase block 1 only: blocks 0 and 2 untouched */
+    FillBlocks(0x30, 1);
+    WHAL_ASSERT_EQ(whal_Block_Write(g_testBlockDev, 0, g_testBuf, 1),
+                   WHAL_SUCCESS);
+    FillBlocks(0x40, 1);
+    WHAL_ASSERT_EQ(whal_Block_Write(g_testBlockDev, 1, g_testBuf, 1),
+                   WHAL_SUCCESS);
+
+    WHAL_ASSERT_EQ(whal_Block_Erase(g_testBlockDev, 1, 1), WHAL_SUCCESS);
+
+    WHAL_ASSERT_EQ(whal_Block_Read(g_testBlockDev, 0, g_testBuf, 1),
+                   WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(CheckBlocks(0x30, 1), 1);
+    WHAL_ASSERT_EQ(whal_Block_Read(g_testBlockDev, 1, g_testBuf, 1),
+                   WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(CheckErased(1), 1);
+    WHAL_ASSERT_EQ(whal_Block_Read(g_testBlockDev, 2, g_testBuf, 1),
+                   WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(CheckBlocks(0x20, 1), 1);
+}
+
+static void Test_Block_HighAddress(void)
+{
+    /* Single-block write and read */
+    FillBlocks(0x50, 1);
+    WHAL_ASSERT_EQ(whal_Block_Write(g_testBlockDev, HIGH_BLOCK, g_testBuf, 1),
+                   WHAL_SUCCESS);
+    FillBlocks(0x00, 1);
+    WHAL_ASSERT_EQ(whal_Block_Read(g_testBlockDev, HIGH_BLOCK, g_testBuf, 1),
+                   WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(CheckBlocks(0x50, 1), 1);
+
+    /* Multi-block write and read */
+    FillBlocks(0x60, 2);
+    WHAL_ASSERT_EQ(whal_Block_Write(g_testBlockDev, HIGH_BLOCK, g_testBuf, 2),
+                   WHAL_SUCCESS);
+    FillBlocks(0x00, 2);
+    WHAL_ASSERT_EQ(whal_Block_Read(g_testBlockDev, HIGH_BLOCK, g_testBuf, 2),
+                   WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(CheckBlocks(0x60, 2), 1);
+
+    WHAL_ASSERT_EQ(whal_Block_Erase(g_testBlockDev, HIGH_BLOCK, 2),
+                   WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Block_Read(g_testBlockDev, HIGH_BLOCK, g_testBuf, 2),
+                   WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(CheckErased(2), 1);
+}
+
 static void Test_Block_Api(void)
 {
     WHAL_ASSERT_EQ(whal_Block_Read(g_testBlockDev, 0, NULL, 1), WHAL_EINVAL);
@@ -117,6 +218,8 @@ static void run_block_tests(const char *name)
     WHAL_TEST(Test_Block_EraseBlank);
     WHAL_TEST(Test_Block_WriteRead);
     WHAL_TEST(Test_Block_MultiWriteRead);
+    WHAL_TEST(Test_Block_EraseExtent);
+    WHAL_TEST(Test_Block_HighAddress);
     WHAL_TEST_SUITE_END();
 }
 
