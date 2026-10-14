@@ -49,6 +49,16 @@ static void Test_Eth_Api(void)
     WHAL_ASSERT_EQ(whal_Eth_MdioRead(BOARD_ETH_DEV, 0, 0, NULL), WHAL_EINVAL);
 }
 
+/* Zero-length and oversize frames are rejected before touching a descriptor */
+static void Test_Eth_SendBadLength(void)
+{
+    static uint8_t frame[BOARD_ETH_TX_BUF_SIZE + 1];
+
+    WHAL_ASSERT_EQ(whal_Eth_Send(BOARD_ETH_DEV, frame, 0), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Eth_Send(BOARD_ETH_DEV, frame, sizeof(frame)),
+                   WHAL_EINVAL);
+}
+
 static void Test_Eth_MdioReadPhyId(void)
 {
     uint16_t id1 = 0;
@@ -89,6 +99,7 @@ void whal_Test_Eth(void)
 {
     WHAL_TEST_SUITE_START("eth");
     WHAL_TEST(Test_Eth_Api);
+    WHAL_TEST(Test_Eth_SendBadLength);
     WHAL_TEST(Test_Eth_MdioReadPhyId);
     WHAL_TEST(Test_Eth_PhyGetLinkState);
     WHAL_TEST_SUITE_END();

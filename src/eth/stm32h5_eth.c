@@ -117,6 +117,12 @@ static struct {
 #define ETH_DMACRXCR_SR_Msk  (1UL << ETH_DMACRXCR_SR_Pos)
 #define ETH_DMACRXCR_RBSZ_Pos 1
 #define ETH_DMACRXCR_RBSZ_Msk (0x3FFFUL << ETH_DMACRXCR_RBSZ_Pos)
+
+/* RBSZ ignores bits 1:0, so RX buffers are a multiple of 4 bytes, and the
+ * TX buffer 1 length field is 14 bits */
+#define ETH_RX_BUF_ALIGN_Msk  0x3UL
+#define ETH_RX_BUF_MAX        0x3FFCUL
+#define ETH_TX_BUF_MAX        0x3FFFUL
 #define ETH_DMACRXCR_RXPBL_Pos 16
 #define ETH_DMACRXCR_RXPBL_Msk (0x3FUL << ETH_DMACRXCR_RXPBL_Pos)
 
@@ -179,6 +185,13 @@ whal_Error whal_Stm32h5_Eth_Init(whal_Eth *ethDev)
     whal_Error err;
 
     (void)ethDev;
+
+    if (!cfg->txDescs || !cfg->txBufs || cfg->txDescCount == 0 ||
+        !cfg->rxDescs || !cfg->rxBufs || cfg->rxDescCount == 0 ||
+        cfg->txBufSize == 0 || cfg->txBufSize > ETH_TX_BUF_MAX ||
+        cfg->rxBufSize == 0 || cfg->rxBufSize > ETH_RX_BUF_MAX ||
+        (cfg->rxBufSize & ETH_RX_BUF_ALIGN_Msk))
+        return WHAL_EINVAL;
 
     /* DMA software reset */
     whal_Reg_Update(base, ETH_DMAMR_REG, ETH_DMAMR_SWR_Msk,

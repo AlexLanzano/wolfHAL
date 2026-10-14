@@ -56,11 +56,11 @@ typedef struct whal_Stm32h5_Eth_Cfg {
     whal_Stm32h5_Eth_TxDesc *txDescs;     /* TX descriptor ring (pre-allocated) */
     uint8_t *txBufs;                      /* TX frame buffers (pre-allocated) */
     size_t txDescCount;                   /* Number of TX descriptors */
-    size_t txBufSize;                     /* Size of each TX buffer in bytes */
+    size_t txBufSize;                     /* TX buffer bytes, max 16383 */
     whal_Stm32h5_Eth_RxDesc *rxDescs;     /* RX descriptor ring (pre-allocated) */
     uint8_t *rxBufs;                      /* RX frame buffers (pre-allocated) */
     size_t rxDescCount;                   /* Number of RX descriptors */
-    size_t rxBufSize;                     /* Size of each RX buffer in bytes */
+    size_t rxBufSize;                     /* RX buffer bytes, 4n, max 16380 */
     /* MDIO clock range select (CR field in MACMDIOAR). Picks the AHB->MDC
      * divider for the board's HCLK; MDC must stay <= 2.5 MHz (IEEE 802.3).
      *   0: 60-100 MHz (/42)   1: 100-150 MHz (/62)
@@ -91,7 +91,8 @@ extern const whal_EthDriver whal_Stm32h5_Eth_Driver;
  * @param ethDev Ethernet device instance.
  *
  * @retval WHAL_SUCCESS Initialization completed.
- * @retval WHAL_EINVAL  Invalid arguments.
+ * @retval WHAL_EINVAL  Missing descriptor or buffer memory, a zero count,
+ *                      or a buffer size the DMA cannot represent.
  */
 whal_Error whal_Stm32h5_Eth_Init(whal_Eth *ethDev);
 

@@ -41,6 +41,10 @@
  * The driver uses descriptor rings in RAM for TX and RX DMA transfers.
  * Descriptor and buffer memory must be provided by the board configuration.
  * Descriptors must be 8-byte aligned.
+ *
+ * The driver does no data-cache maintenance, so the descriptor rings and
+ * buffers must be in memory the core does not cache (for example the
+ * non-cacheable AXISRAM1 alias used by the stm32n657a0_nucleo board).
  */
 
 #include <stdint.h>
@@ -65,11 +69,11 @@ typedef struct whal_Stm32n6_Eth_Cfg {
     whal_Stm32n6_Eth_TxDesc *txDescs;     /**< TX descriptor ring (8-byte aligned) */
     uint8_t *txBufs;                      /**< TX frame buffers */
     size_t txDescCount;                   /**< Number of TX descriptors */
-    size_t txBufSize;                     /**< Size of each TX buffer in bytes */
+    size_t txBufSize;                     /**< TX buffer bytes, max 16383 */
     whal_Stm32n6_Eth_RxDesc *rxDescs;     /**< RX descriptor ring (8-byte aligned) */
     uint8_t *rxBufs;                      /**< RX frame buffers */
     size_t rxDescCount;                   /**< Number of RX descriptors */
-    size_t rxBufSize;                     /**< Size of each RX buffer in bytes */
+    size_t rxBufSize;                     /**< RX buffer bytes, 8n, max 16376 */
     /* MDIO clock range select (CR field in MACMDIOAR). Picks the AXI->MDC
      * divider for the board's HCLK; MDC must stay <= 2.5 MHz (IEEE 802.3).
      *   0: 60-100 MHz (/42)   1: 100-150 MHz (/62)
@@ -100,7 +104,8 @@ extern const whal_EthDriver whal_Stm32n6_Eth_Driver;
  * @param ethDev Ethernet device instance.
  *
  * @retval WHAL_SUCCESS  MAC initialized.
- * @retval WHAL_EINVAL   Null pointer or missing cfg.
+ * @retval WHAL_EINVAL   Missing descriptor or buffer memory, a zero count,
+ *                       or a buffer size the DMA cannot represent.
  * @retval WHAL_ETIMEOUT DMA software-reset did not clear within the timeout.
  */
 whal_Error whal_Stm32n6_Eth_Init(whal_Eth *ethDev);
