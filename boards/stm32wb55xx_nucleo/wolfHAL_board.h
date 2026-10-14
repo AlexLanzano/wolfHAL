@@ -32,6 +32,9 @@ extern whal_Spi g_whalSpi;
 extern whal_Crypto g_whalCrypto;
 extern whal_I2c g_whalI2c;
 extern whal_Pwm g_whalPwm;
+#ifdef BOARD_DMA
+extern whal_Dma g_whalDma1;
+#endif
 
 extern whal_Timeout g_whalTimeout;
 extern volatile uint32_t g_tick;

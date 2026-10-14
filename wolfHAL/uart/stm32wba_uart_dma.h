@@ -95,7 +95,8 @@ whal_Error whal_Stm32wba_UartDma_Deinit(whal_Uart *uartDev);
  * @brief Send `dataSz` bytes via GPDMA. Blocks until the transfer completes.
  *
  * @param uartDev UART device instance.
- * @param data    Source buffer (must be DMA-accessible).
+ * @param data    Source buffer. Must be DMA-accessible unless dataSz is 1,
+ *                which is copied into an internal buffer.
  * @param dataSz  Number of bytes to send.
  *
  * @retval WHAL_SUCCESS   All bytes sent.
@@ -126,7 +127,9 @@ whal_Error whal_Stm32wba_UartDma_Recv(whal_Uart *uartDev, void *data,
  *        has been queued; completion is reported via the TX callback.
  *
  * @param uartDev UART device instance.
- * @param data    Source buffer (must be DMA-accessible until completion).
+ * @param data    Source buffer. Must be DMA-accessible and stay valid until
+ *                completion unless dataSz is 1, which is copied into an
+ *                internal buffer before this returns.
  * @param dataSz  Number of bytes to send.
  *
  * @retval WHAL_SUCCESS   Transfer started.

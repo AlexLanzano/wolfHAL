@@ -191,6 +191,7 @@ whal_Error whal_Stm32wba_UartDma_Send(whal_Uart *uartDev, const void *data,
     whal_Stm32wba_UartDma_Cfg *cfg;
     size_t base;
     whal_Error err;
+    whal_Error stopErr;
 
     err = whal_Stm32wba_UartDma_SendAsync(uartDev, data, dataSz);
     if (err || dataSz == 0)
@@ -224,7 +225,9 @@ whal_Error whal_Stm32wba_UartDma_Send(whal_Uart *uartDev, const void *data,
                             cfg->base.timeout);
 
 cleanup:
-    whal_Dma_Stop(cfg->dma, cfg->txCh);
+    stopErr = whal_Dma_Stop(cfg->dma, cfg->txCh);
+    if (stopErr)
+        err = stopErr;
     whal_Reg_Update(base, UART_CR3_REG, UART_CR3_DMAT_Msk, 0);
     cfg->txResult = err;
 
@@ -237,6 +240,7 @@ whal_Error whal_Stm32wba_UartDma_Recv(whal_Uart *uartDev, void *data,
     whal_Stm32wba_UartDma_Cfg *cfg;
     size_t base;
     whal_Error err;
+    whal_Error stopErr;
 
     err = whal_Stm32wba_UartDma_RecvAsync(uartDev, data, dataSz);
     if (err || dataSz == 0)
@@ -261,7 +265,9 @@ whal_Error whal_Stm32wba_UartDma_Recv(whal_Uart *uartDev, void *data,
     err = cfg->rxResult;
 
 cleanup:
-    whal_Dma_Stop(cfg->dma, cfg->rxCh);
+    stopErr = whal_Dma_Stop(cfg->dma, cfg->rxCh);
+    if (stopErr)
+        err = stopErr;
     whal_Reg_Update(base, UART_CR3_REG, UART_CR3_DMAR_Msk, 0);
     cfg->rxResult = err;
 
@@ -273,6 +279,7 @@ whal_Error whal_Stm32wba_UartDma_Deinit(whal_Uart *uartDev)
     whal_Stm32wba_UartDma_Cfg *cfg;
     size_t base;
     whal_Error err;
+    whal_Error stepErr;
 
 #ifdef WHAL_CFG_STM32WBA_UART_DMA_SINGLE_INSTANCE
     cfg = (whal_Stm32wba_UartDma_Cfg *)whal_Stm32wba_UartDma_Dev.cfg;
@@ -289,15 +296,17 @@ whal_Error whal_Stm32wba_UartDma_Deinit(whal_Uart *uartDev)
     whal_Reg_Update(base, UART_CR3_REG,
                     UART_CR3_DMAT_Msk | UART_CR3_DMAR_Msk, 0);
     err = whal_Dma_Stop(cfg->dma, cfg->txCh);
-    if (err)
-        return err;
-    err = whal_Dma_Stop(cfg->dma, cfg->rxCh);
-    if (err)
-        return err;
+    stepErr = whal_Dma_Stop(cfg->dma, cfg->rxCh);
+    if (stepErr && !err)
+        err = stepErr;
     cfg->txResult = WHAL_SUCCESS;
     cfg->rxResult = WHAL_SUCCESS;
 
-    return whal_Stm32wb_Uart_Deinit(uartDev);
+    stepErr = whal_Stm32wb_Uart_Deinit(uartDev);
+    if (stepErr && !err)
+        err = stepErr;
+
+    return err;
 }
 
 void whal_Stm32wba_UartDma_TxCallback(void *ctx, whal_Error err)
