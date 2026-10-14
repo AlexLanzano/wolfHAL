@@ -44,6 +44,9 @@
 /* Expected CHIP_ID value */
 #define WHAL_BMI270_CHIP_ID    0x24
 
+/* Length of the accel + gyro burst read decoded by whal_Bmi270_Decode */
+#define WHAL_BMI270_RAW_LEN    12
+
 /*
  * @brief BMI270 sensor data returned by Read.
  */
@@ -74,6 +77,17 @@ typedef struct {
 #ifdef WHAL_CFG_BMI270_SINGLE_INSTANCE
 extern const whal_Sensor whal_Bmi270_Dev;
 #endif
+
+/*
+ * @brief Decode a raw accel + gyro burst read into axis values.
+ *
+ * raw holds DATA_8 through DATA_19: six little-endian signed 16-bit values
+ * in the order accel X, Y, Z, then gyro X, Y, Z.
+ *
+ * @param raw Burst-read buffer of WHAL_BMI270_RAW_LEN bytes.
+ * @param out Decoded axis values.
+ */
+void whal_Bmi270_Decode(const uint8_t *raw, whal_Bmi270_Data *out);
 
 #ifndef WHAL_CFG_BMI270_SENSOR_DIRECT_API_MAPPING
 /*
