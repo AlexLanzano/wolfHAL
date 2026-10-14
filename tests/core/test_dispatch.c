@@ -383,14 +383,28 @@ static void Test_Pwm_BadWave(void)
     WHAL_ASSERT_EQ(whal_Pwm_Start(&dev, 0, NULL), WHAL_EINVAL);
     WHAL_ASSERT_EQ(whal_Pwm_Start(&dev, 0, &cfg), WHAL_EINVAL);
     WHAL_ASSERT_EQ(whal_Pwm_Start(&dev, 0, &zero), WHAL_EINVAL);
+    cfg.pulseCycles = 50;
+    cfg.polarity = WHAL_PWM_POLARITY_INVERTED + 1;
+    WHAL_ASSERT_EQ(whal_Pwm_Start(&dev, 0, &cfg), WHAL_EINVAL);
 }
 
 static void Test_Pwm_ValidDispatch(void)
 {
     whal_Pwm dev = { .driver = &mockPwmDriver };
     whal_Pwm_ChannelCfg cfg = { .periodCycles = 100, .pulseCycles = 50 };
+    whal_Pwm_ChannelCfg full = { .periodCycles = 100, .pulseCycles = 100 };
+    whal_Pwm_ChannelCfg inverted = {
+        .periodCycles = 100,
+        .pulseCycles = 50,
+        .polarity = WHAL_PWM_POLARITY_INVERTED,
+    };
     WHAL_ASSERT_EQ(whal_Pwm_Init(&dev), WHAL_SUCCESS);
     WHAL_ASSERT_EQ(whal_Pwm_Start(&dev, 0, &cfg), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Pwm_Stop(&dev, 0), WHAL_SUCCESS);
+    /* 100% duty (pulse == period) passes the dispatch check */
+    WHAL_ASSERT_EQ(whal_Pwm_Start(&dev, 0, &full), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Pwm_Stop(&dev, 0), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Pwm_Start(&dev, 0, &inverted), WHAL_SUCCESS);
     WHAL_ASSERT_EQ(whal_Pwm_Stop(&dev, 0), WHAL_SUCCESS);
     WHAL_ASSERT_EQ(whal_Pwm_Deinit(&dev), WHAL_SUCCESS);
 }

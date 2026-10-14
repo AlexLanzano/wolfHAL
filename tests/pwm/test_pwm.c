@@ -46,11 +46,36 @@ static void Test_Pwm_Api(void)
 
     WHAL_ASSERT_EQ(whal_Pwm_Start(NULL, 0, &wave), WHAL_EINVAL);
     WHAL_ASSERT_EQ(whal_Pwm_Start(BOARD_PWM_DEV, 0, NULL), WHAL_EINVAL);
+
+    /* Only the two documented polarities are accepted. */
+    wave.polarity = WHAL_PWM_POLARITY_INVERTED + 1;
+    WHAL_ASSERT_EQ(whal_Pwm_Start(BOARD_PWM_DEV, 0, &wave), WHAL_EINVAL);
+    wave.polarity = WHAL_PWM_POLARITY_NORMAL;
+}
+
+/* 100% duty is structurally valid, so the dispatch passes it to the driver;
+ * a driver that cannot produce it reports WHAL_ENOTSUP, never WHAL_EINVAL. */
+static void Test_Pwm_FullDuty(void)
+{
+    whal_Pwm_ChannelCfg wave = {
+        .periodCycles = 1000,
+        .pulseCycles  = 1000,
+        .pulseCount   = WHAL_PWM_PULSE_COUNT_CONTINUOUS,
+        .polarity     = WHAL_PWM_POLARITY_NORMAL,
+    };
+    whal_Error err;
+
+    err = whal_Pwm_Start(BOARD_PWM_DEV, 0, &wave);
+    if (err == WHAL_SUCCESS)
+        WHAL_ASSERT_EQ(whal_Pwm_Stop(BOARD_PWM_DEV, 0), WHAL_SUCCESS);
+    else
+        WHAL_ASSERT_EQ(err, WHAL_ENOTSUP);
 }
 
 void whal_Test_Pwm(void)
 {
     WHAL_TEST_SUITE_START("pwm");
     WHAL_TEST(Test_Pwm_Api);
+    WHAL_TEST(Test_Pwm_FullDuty);
     WHAL_TEST_SUITE_END();
 }
