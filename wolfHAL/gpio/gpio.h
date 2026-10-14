@@ -92,7 +92,7 @@ whal_Error whal_Gpio_Get(whal_Gpio *gpioDev, size_t pin, size_t *value);
  *
  * @param gpioDev GPIO instance containing the pin.
  * @param pin     Pin index into the configured pin table.
- * @param value   Output value to drive (typically 0 or 1).
+ * @param value   Output value to drive; any nonzero value drives the pin high.
  *
  * @retval WHAL_SUCCESS Pin updated.
  * @retval WHAL_EINVAL   Null pointer or bad pin.

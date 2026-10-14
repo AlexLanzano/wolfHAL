@@ -42,6 +42,8 @@ const whal_Gpio whal_Stm32wb0_Gpio_Dev = WHAL_CFG_STM32WB0_GPIO_DEV;
 #define GPIO_PULL_REG    0x0C /* PUPDR:   2 bits/pin */
 #define GPIO_IDR_REG     0x10
 #define GPIO_ODR_REG     0x14
+#define GPIO_BSRR_REG    0x18 /* BSRR:    0..15 set, 16..31 reset */
+#define GPIO_BSRR_BR_Pos 16
 #define GPIO_ALTFNL_REG  0x20 /* AFRL:    4 bits/pin for pins 0..7 */
 #define GPIO_ALTFNH_REG  0x24 /* AFRH:    4 bits/pin for pins 8..15 */
 
@@ -132,8 +134,8 @@ static whal_Error whal_Stm32wb0_Gpio_SetOrGet(whal_Gpio *gpioDev, size_t idx,
     mask = 1UL << pin;
 
     if (set) {
-        whal_Reg_Update(portBase, GPIO_ODR_REG, mask,
-                        whal_SetBits(mask, pin, *value));
+        whal_Reg_Write(portBase, GPIO_BSRR_REG,
+                       *value ? mask : (mask << GPIO_BSRR_BR_Pos));
     } else {
         whal_Reg_Get(portBase, GPIO_IDR_REG, mask, pin, value);
     }
