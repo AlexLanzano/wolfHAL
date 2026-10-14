@@ -183,6 +183,8 @@ whal_Error whal_Stm32wba_UartDma_RecvAsync(whal_Uart *uartDev, void *data,
         return err;
     }
 
+    /* Drop line errors latched before this transfer */
+    whal_Reg_Write(base, UART_ICR_REG, UART_ISR_ERR_Msk);
     whal_Reg_Update(base, UART_CR3_REG, UART_CR3_DMAR_Msk,
                     UART_CR3_DMAR_Msk);
 
@@ -236,6 +238,7 @@ whal_Error whal_Stm32wba_UartDma_Send(whal_Uart *uartDev, const void *data,
                             cfg->base.timeout);
 
 cleanup:
+    /* A failed stop wins: the channel may still own the caller's buffer */
     stopErr = whal_Dma_Stop(cfg->dma, cfg->txCh);
     if (stopErr)
         err = stopErr;
@@ -284,6 +287,7 @@ whal_Error whal_Stm32wba_UartDma_Recv(whal_Uart *uartDev, void *data,
     }
 
 cleanup:
+    /* A failed stop wins: the channel may still own the caller's buffer */
     stopErr = whal_Dma_Stop(cfg->dma, cfg->rxCh);
     if (stopErr)
         err = stopErr;

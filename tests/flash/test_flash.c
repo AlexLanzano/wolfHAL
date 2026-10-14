@@ -30,6 +30,12 @@ static size_t g_testFlashStart;
 static size_t g_testFlashAddr;
 static size_t g_testFlashSectorSz;
 static size_t g_testFlashPageSz;
+static int g_testFlashOnChip;
+
+/* Linker symbols: the .data load image follows the code in flash */
+extern uint8_t _sidata[];
+extern uint8_t _sdata[];
+extern uint8_t _edata[];
 
 static const uint8_t g_extentPattern[32] = {
     0x5A, 0xA5, 0x3C, 0xC3, 0x69, 0x96, 0x0F, 0xF0,
@@ -124,10 +130,21 @@ static size_t ExtentBase(void)
     return g_testFlashAddr;
 }
 
+/* On-chip flash below the end of the running image must not be erased */
+static int ExtentOverlapsImage(size_t base)
+{
+    size_t imageEnd = (size_t)_sidata + (size_t)(_edata - _sdata);
+
+    return g_testFlashOnChip && base < imageEnd;
+}
+
 static void Test_Flash_EraseExtent(void)
 {
     const size_t sz = g_testFlashSectorSz;
     const size_t base = ExtentBase();
+
+    if (ExtentOverlapsImage(base))
+        WHAL_SKIP();
 
     WHAL_ASSERT_EQ(whal_Flash_Unlock(g_testFlashDev, base, 3 * sz),
                    WHAL_SUCCESS);
@@ -162,6 +179,9 @@ static void Test_Flash_EraseOneBytePastSector(void)
 {
     const size_t sz = g_testFlashSectorSz;
     const size_t base = ExtentBase();
+
+    if (ExtentOverlapsImage(base))
+        WHAL_SKIP();
 
     WHAL_ASSERT_EQ(whal_Flash_Unlock(g_testFlashDev, base, 3 * sz),
                    WHAL_SUCCESS);
@@ -199,6 +219,11 @@ static void Test_Flash_CrossPageWrite(void)
     size_t i;
     size_t j;
     whal_Error err;
+
+    /* The cases need a page that fits the buffers and four pages per sector */
+    if (page == 0 || page + 8 > sizeof(pattern) ||
+        4 * page > g_testFlashSectorSz)
+        WHAL_SKIP();
 
     for (i = 0; i < sizeof(pattern); i++)
         pattern[i] = (uint8_t)(i * 7 + 3);
@@ -272,6 +297,7 @@ static void Test_Flash_OutOfBounds(void)
 
 static void run_flash_tests(const char *name, int onChip)
 {
+    g_testFlashOnChip = onChip;
     WHAL_TEST_SUITE_START("flash");
     if (name)
         whal_Test_Printf("  device: %s\n", name);

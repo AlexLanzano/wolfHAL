@@ -174,6 +174,8 @@ whal_Error whal_Stm32wb_UartDma_RecvAsync(whal_Uart *uartDev, void *data,
         return err;
     }
 
+    /* Drop line errors latched before this transfer */
+    whal_Reg_Write(base, UART_ICR_REG, UART_ISR_ERR_Msk);
     whal_Reg_Update(base, UART_CR3_REG, UART_CR3_DMAR_Msk,
                     UART_CR3_DMAR_Msk);
 

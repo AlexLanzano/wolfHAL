@@ -30,7 +30,7 @@
  * @brief STM32F0 flash driver configuration.
  *
  * The STM32F0 embedded flash provides:
- * - Up to 256 KB organized in 2 KB pages
+ * - Up to 256 KB organized in 1 KB or 2 KB pages, set by pageSz
  * - Half-word (16-bit) programming
  * - Page erase via FLASH_AR address register
  * - Configurable wait states based on CPU frequency
@@ -42,7 +42,7 @@
 typedef struct whal_Stm32f0_Flash_Cfg {
     size_t startAddr;            /* Flash region start address */
     size_t size;                 /* Flash region size in bytes */
-    size_t pageSize;             /* Erase page size in bytes (1 KB or 2 KB) */
+    size_t pageSz;               /* Erase page size in bytes (1 KB or 2 KB) */
     whal_Timeout *timeout;       /* Optional timeout for poll loops */
 } whal_Stm32f0_Flash_Cfg;
 
@@ -143,14 +143,14 @@ whal_Error whal_Stm32f0_Flash_Write(whal_Flash *flashDev, size_t addr,
                                     const void *data, size_t dataSz);
 
 /*
- * @brief Erase one or more 2 KB pages covering [addr, addr+dataSz).
+ * @brief Erase one or more pageSz pages covering [addr, addr+dataSz).
  *
  * @param flashDev Flash device instance.
  * @param addr     First page address.
  * @param dataSz   Number of bytes to erase (rounded up to whole pages).
  *
  * @retval WHAL_SUCCESS Erase completed.
- * @retval WHAL_EINVAL  Null pointer or address out of region.
+ * @retval WHAL_EINVAL  Null pointer, address out of region, or pageSz is 0.
  * @retval WHAL_ETIMEOUT BSY did not clear within the configured timeout.
  * @retval WHAL_EHARDWARE Erase error reported in FLASH_SR.
  */

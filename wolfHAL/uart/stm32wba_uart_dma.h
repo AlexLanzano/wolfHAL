@@ -144,6 +144,9 @@ whal_Error whal_Stm32wba_UartDma_SendAsync(whal_Uart *uartDev, const void *data,
  * @brief Start a non-blocking GPDMA RX transfer. Returns once the transfer
  *        has been queued; completion is reported via the RX callback.
  *
+ * Line errors latched before the transfer are cleared. The RX callback
+ * reports only the DMA result, not parity, framing, noise or overrun errors.
+ *
  * @param uartDev UART device instance.
  * @param data    Destination buffer (must be DMA-accessible until completion).
  * @param dataSz  Number of bytes to receive.

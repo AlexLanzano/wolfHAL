@@ -92,7 +92,7 @@ enum {
     .cfg    = (void *)&(const whal_Stm32f0_Flash_Cfg){ \
         .startAddr = 0x08000000, \
         .size      = 0x40000, \
-        .pageSize  = 0x800, \
+        .pageSz    = 0x800, \
         .timeout   = &g_whalTimeout, \
     }, \
 }

@@ -163,7 +163,7 @@ static whal_Error whal_Stm32f0_Flash_WriteOrErase(whal_Flash *flashDev,
     if (!write && dataSz == 0)
         return WHAL_SUCCESS;
 
-    if (!write && cfg->pageSize == 0)
+    if (!write && cfg->pageSz == 0)
         return WHAL_EINVAL;
 
     whal_Reg_Get(base, FLASH_SR_REG,
@@ -201,9 +201,9 @@ static whal_Error whal_Stm32f0_Flash_WriteOrErase(whal_Flash *flashDev,
             }
         }
     } else {
-        size_t startPage = (addr - cfg->startAddr) / cfg->pageSize;
+        size_t startPage = (addr - cfg->startAddr) / cfg->pageSz;
         size_t endPage = ((addr - cfg->startAddr) + dataSz - 1) /
-                         cfg->pageSize;
+                         cfg->pageSz;
 
         for (size_t page = startPage; page <= endPage; ++page) {
             /* Enable page erase */
@@ -212,7 +212,7 @@ static whal_Error whal_Stm32f0_Flash_WriteOrErase(whal_Flash *flashDev,
 
             /* Write page start address to AR */
             whal_Reg_Write(base, FLASH_AR_REG,
-                           cfg->startAddr + page * cfg->pageSize);
+                           cfg->startAddr + page * cfg->pageSz);
 
             /* Start erase */
             whal_Reg_Update(base, FLASH_CR_REG, FLASH_CR_STRT_Msk,
