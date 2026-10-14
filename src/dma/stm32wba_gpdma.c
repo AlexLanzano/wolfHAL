@@ -195,8 +195,12 @@ whal_Error whal_Stm32wba_Gpdma_Deinit(whal_Dma *dmaDev)
 
     for (uint8_t ch = 0; ch < cfg->numChannels; ch++) {
         abortErr = Gpdma_AbortChannel(base, ch, cfg->timeout);
-        if (abortErr && !err)
-            err = abortErr;
+        if (abortErr) {
+            /* Leave SUSP set; a reset of a non-idle channel may not apply */
+            if (!err)
+                err = abortErr;
+            continue;
+        }
         whal_Reg_Write(base, GPDMA_CxCR(ch),
                        GPDMA_CxCR_RESET_Msk);
     }
