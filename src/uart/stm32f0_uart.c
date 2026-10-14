@@ -43,12 +43,25 @@
 #define UART_BRR_Msk (WHAL_BITMASK(16) << UART_BRR_Pos)
 
 #define UART_ISR_REG 0x1C
+#define UART_ISR_PE_Pos 0
+#define UART_ISR_PE_Msk (1UL << UART_ISR_PE_Pos)
+#define UART_ISR_FE_Pos 1
+#define UART_ISR_FE_Msk (1UL << UART_ISR_FE_Pos)
+#define UART_ISR_NF_Pos 2
+#define UART_ISR_NF_Msk (1UL << UART_ISR_NF_Pos)
+#define UART_ISR_ORE_Pos 3
+#define UART_ISR_ORE_Msk (1UL << UART_ISR_ORE_Pos)
+#define UART_ISR_ERR_Msk (UART_ISR_PE_Msk | UART_ISR_FE_Msk | \
+                          UART_ISR_NF_Msk | UART_ISR_ORE_Msk)
 #define UART_ISR_RXNE_Pos 5
 #define UART_ISR_RXNE_Msk (1UL << UART_ISR_RXNE_Pos)
 #define UART_ISR_TC_Pos 6
 #define UART_ISR_TC_Msk (1UL << UART_ISR_TC_Pos)
 #define UART_ISR_TXE_Pos 7
 #define UART_ISR_TXE_Msk (1UL << UART_ISR_TXE_Pos)
+
+/* ICR clear bits share the ISR error bit positions */
+#define UART_ICR_REG 0x20
 
 #define UART_RDR_REG 0x24
 #define UART_RDR_Pos 0
@@ -189,14 +202,21 @@ whal_Error whal_Stm32f0_Uart_Recv(whal_Uart *uartDev, void *data, size_t dataSz)
 
     for (size_t i = 0; i < dataSz; ++i) {
         size_t d;
+        size_t isr;
         whal_Error err = whal_Reg_ReadPoll(base, UART_ISR_REG,
                                            UART_ISR_RXNE_Msk,
                                            UART_ISR_RXNE_Msk, cfg->timeout);
         if (err)
             return err;
 
+        isr = whal_Reg_Read(base, UART_ISR_REG);
         whal_Reg_Get(base, UART_RDR_REG, UART_RDR_Msk, UART_RDR_Pos, &d);
         buf[i] = d;
+
+        if (isr & UART_ISR_ERR_Msk) {
+            whal_Reg_Write(base, UART_ICR_REG, isr & UART_ISR_ERR_Msk);
+            return WHAL_EHARDWARE;
+        }
     }
 
     return WHAL_SUCCESS;

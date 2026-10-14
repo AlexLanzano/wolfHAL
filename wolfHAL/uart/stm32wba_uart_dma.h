@@ -117,7 +117,8 @@ whal_Error whal_Stm32wba_UartDma_Send(whal_Uart *uartDev, const void *data,
  * @retval WHAL_SUCCESS   All bytes received.
  * @retval WHAL_EINVAL    Null pointer.
  * @retval WHAL_ETIMEOUT  DMA transfer did not complete within the timeout.
- * @retval WHAL_EHARDWARE GPDMA reported a transfer error.
+ * @retval WHAL_EHARDWARE GPDMA reported a transfer error, or a parity,
+ *                        framing, noise or overrun error was detected.
  */
 whal_Error whal_Stm32wba_UartDma_Recv(whal_Uart *uartDev, void *data,
                                       size_t dataSz);

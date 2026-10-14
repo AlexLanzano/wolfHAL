@@ -483,10 +483,19 @@ whal_Error whal_Stm32wb_I2c_StartCom(whal_I2c *i2cDev, whal_I2c_ComCfg *comCfg)
         return WHAL_EINVAL;
     }
 
+    if (comCfg->addr >= (1U << comCfg->addrSz)) {
+        return WHAL_EINVAL;
+    }
+
 #ifndef WHAL_CFG_STM32WB_I2C_SINGLE_INSTANCE
     base = i2cDev->base;
     cfg = (whal_Stm32wb_I2c_Cfg *)i2cDev->cfg;
 #endif
+
+    /* Timing is computed in whole MHz of the peripheral clock */
+    if (cfg->pclk < 1000000) {
+        return WHAL_EINVAL;
+    }
 
     /* Disable PE to configure timing */
     whal_Reg_Update(base, I2C_CR1_REG, I2C_CR1_PE_Msk,

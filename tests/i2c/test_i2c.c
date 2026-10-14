@@ -29,9 +29,35 @@ static void Test_I2c_Api(void)
     WHAL_ASSERT_EQ(whal_I2c_Transfer(BOARD_I2C_DEV, NULL, 1), WHAL_EINVAL);
 }
 
+/* Addresses wider than addrSz and a zero frequency are rejected before any
+ * register is touched. */
+static void Test_I2c_StartComReject(void)
+{
+    whal_I2c_ComCfg com = {
+        .freq = 100000,
+        .addr = 0x80,
+        .addrSz = 7,
+    };
+
+    WHAL_ASSERT_EQ(whal_I2c_StartCom(BOARD_I2C_DEV, &com), WHAL_EINVAL);
+
+    com.addr = 0xFFFF;
+    WHAL_ASSERT_EQ(whal_I2c_StartCom(BOARD_I2C_DEV, &com), WHAL_EINVAL);
+
+    com.addr = 0x400;
+    com.addrSz = 10;
+    WHAL_ASSERT_EQ(whal_I2c_StartCom(BOARD_I2C_DEV, &com), WHAL_EINVAL);
+
+    com.addr = 0x50;
+    com.addrSz = 7;
+    com.freq = 0;
+    WHAL_ASSERT_EQ(whal_I2c_StartCom(BOARD_I2C_DEV, &com), WHAL_EINVAL);
+}
+
 void whal_Test_I2c(void)
 {
     WHAL_TEST_SUITE_START("i2c");
     WHAL_TEST(Test_I2c_Api);
+    WHAL_TEST(Test_I2c_StartComReject);
     WHAL_TEST_SUITE_END();
 }

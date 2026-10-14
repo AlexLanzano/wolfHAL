@@ -119,6 +119,8 @@ whal_Error whal_Stm32f4_Uart_Send(whal_Uart *uartDev, const void *data, size_t d
  *
  * @retval WHAL_SUCCESS Transfer completed.
  * @retval WHAL_EINVAL  Invalid arguments.
+ * @retval WHAL_EHARDWARE A parity, framing, noise or overrun error was
+ *                        detected.
  */
 whal_Error whal_Stm32f4_Uart_Recv(whal_Uart *uartDev, void *data, size_t dataSz);
 #endif /* !WHAL_CFG_STM32F4_UART_DIRECT_API_MAPPING */

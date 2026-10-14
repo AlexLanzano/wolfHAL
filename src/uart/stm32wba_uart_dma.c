@@ -38,9 +38,20 @@
 #define UART_CR3_DMAT_Msk (1UL << UART_CR3_DMAT_Pos)
 
 #define UART_ISR_REG      0x1C
+#define UART_ISR_PE_Pos   0
+#define UART_ISR_PE_Msk   (1UL << UART_ISR_PE_Pos)
+#define UART_ISR_FE_Pos   1
+#define UART_ISR_FE_Msk   (1UL << UART_ISR_FE_Pos)
+#define UART_ISR_NE_Pos   2
+#define UART_ISR_NE_Msk   (1UL << UART_ISR_NE_Pos)
+#define UART_ISR_ORE_Pos  3
+#define UART_ISR_ORE_Msk  (1UL << UART_ISR_ORE_Pos)
+#define UART_ISR_ERR_Msk  (UART_ISR_PE_Msk | UART_ISR_FE_Msk | \
+                           UART_ISR_NE_Msk | UART_ISR_ORE_Msk)
 #define UART_ISR_TC_Pos   6
 #define UART_ISR_TC_Msk   (1UL << UART_ISR_TC_Pos)
 
+/* ICR clear bits share the ISR error bit positions */
 #define UART_ICR_REG      0x20
 #define UART_ICR_TCCF_Pos 6
 #define UART_ICR_TCCF_Msk (1UL << UART_ICR_TCCF_Pos)
@@ -241,6 +252,7 @@ whal_Error whal_Stm32wba_UartDma_Recv(whal_Uart *uartDev, void *data,
     size_t base;
     whal_Error err;
     whal_Error stopErr;
+    size_t isr;
 
     err = whal_Stm32wba_UartDma_RecvAsync(uartDev, data, dataSz);
     if (err || dataSz == 0)
@@ -263,6 +275,13 @@ whal_Error whal_Stm32wba_UartDma_Recv(whal_Uart *uartDev, void *data,
     }
 
     err = cfg->rxResult;
+    if (err == WHAL_SUCCESS) {
+        isr = whal_Reg_Read(base, UART_ISR_REG) & UART_ISR_ERR_Msk;
+        if (isr) {
+            whal_Reg_Write(base, UART_ICR_REG, isr);
+            err = WHAL_EHARDWARE;
+        }
+    }
 
 cleanup:
     stopErr = whal_Dma_Stop(cfg->dma, cfg->rxCh);

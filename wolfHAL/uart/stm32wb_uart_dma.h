@@ -107,6 +107,8 @@ whal_Error whal_Stm32wb_UartDma_Send(whal_Uart *uartDev, const void *data,
  * @retval WHAL_SUCCESS  All bytes received.
  * @retval WHAL_ETIMEOUT DMA transfer timed out.
  * @retval WHAL_EINVAL   Invalid arguments.
+ * @retval WHAL_EHARDWARE A parity, framing, noise or overrun error was
+ *                        detected.
  */
 whal_Error whal_Stm32wb_UartDma_Recv(whal_Uart *uartDev, void *data,
                                      size_t dataSz);

@@ -100,7 +100,8 @@ whal_Error whal_Stm32wb_I2c_Deinit(whal_I2c *i2cDev);
  * @param comCfg  Per-session communication parameters.
  *
  * @retval WHAL_SUCCESS Communication session started.
- * @retval WHAL_EINVAL  Invalid arguments, or freq is 0 or above 1 MHz.
+ * @retval WHAL_EINVAL  Invalid arguments, freq is 0 or above 1 MHz, addr
+ *                      does not fit in addrSz bits, or pclk is below 1 MHz.
  */
 whal_Error whal_Stm32wb_I2c_StartCom(whal_I2c *i2cDev, whal_I2c_ComCfg *comCfg);
 

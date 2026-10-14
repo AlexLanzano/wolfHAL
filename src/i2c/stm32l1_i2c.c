@@ -378,7 +378,11 @@ whal_Error whal_Stm32l1_I2c_StartCom(whal_I2c *i2cDev, whal_I2c_ComCfg *comCfg)
         return WHAL_EINVAL;
 #endif
 
-    if ((comCfg->addrSz != 7 && comCfg->addrSz != 10) || comCfg->freq == 0)
+    if ((comCfg->addrSz != 7 && comCfg->addrSz != 10) || comCfg->freq == 0 ||
+        comCfg->freq > 400000)
+        return WHAL_EINVAL;
+
+    if (comCfg->addr >= (1U << comCfg->addrSz))
         return WHAL_EINVAL;
 
 #ifndef WHAL_CFG_STM32L1_I2C_SINGLE_INSTANCE

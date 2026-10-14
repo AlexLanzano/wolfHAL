@@ -105,6 +105,8 @@ whal_Error whal_Uart_Send(whal_Uart *uartDev, const void *data, size_t dataSz);
  * @retval WHAL_SUCCESS  Buffer was filled or receive started.
  * @retval WHAL_EINVAL   Null pointer.
  * @retval WHAL_ENOTSUP Operation not implemented by this driver.
+ * @retval WHAL_EHARDWARE A receive line error (parity, framing, noise or
+ *                        overrun) was detected.
  */
 whal_Error whal_Uart_Recv(whal_Uart *uartDev, void *data, size_t dataSz);
 

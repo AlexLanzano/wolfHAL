@@ -39,6 +39,21 @@
 
 /* Status Register */
 #define UART_SR_REG 0x00
+#define UART_SR_PE_Pos 0                                               /* Parity error */
+#define UART_SR_PE_Msk (1UL << UART_SR_PE_Pos)
+
+#define UART_SR_FE_Pos 1                                               /* Framing error */
+#define UART_SR_FE_Msk (1UL << UART_SR_FE_Pos)
+
+#define UART_SR_NF_Pos 2                                               /* Noise detected */
+#define UART_SR_NF_Msk (1UL << UART_SR_NF_Pos)
+
+#define UART_SR_ORE_Pos 3                                              /* Overrun error */
+#define UART_SR_ORE_Msk (1UL << UART_SR_ORE_Pos)
+
+#define UART_SR_ERR_Msk (UART_SR_PE_Msk | UART_SR_FE_Msk | \
+                         UART_SR_NF_Msk | UART_SR_ORE_Msk)
+
 #define UART_SR_RXNE_Pos 5                                             /* Receive data register not empty */
 #define UART_SR_RXNE_Msk (1UL << UART_SR_RXNE_Pos)
 
@@ -194,6 +209,7 @@ whal_Error whal_Stm32f4_Uart_Recv(whal_Uart *uartDev, void *data, size_t dataSz)
 {
     uint8_t *buf = data;
     size_t d;
+    size_t sr;
 #ifdef WHAL_CFG_STM32F4_UART_SINGLE_INSTANCE
     const whal_Stm32f4_Uart_Cfg *cfg =
         (const whal_Stm32f4_Uart_Cfg *)whal_Stm32f4_Uart_Dev.cfg;
@@ -221,11 +237,15 @@ whal_Error whal_Stm32f4_Uart_Recv(whal_Uart *uartDev, void *data, size_t dataSz)
         if (err)
             return err;
 
-        /* Read received byte */
+        /* Reading SR then DR also clears the error flags */
+        sr = whal_Reg_Read(base, UART_SR_REG);
         whal_Reg_Get(base, UART_DR_REG,
                      UART_DR_Msk, UART_DR_Pos, &d);
 
         buf[i] = d;
+
+        if (sr & UART_SR_ERR_Msk)
+            return WHAL_EHARDWARE;
     }
 
     return WHAL_SUCCESS;
