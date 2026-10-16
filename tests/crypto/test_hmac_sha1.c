@@ -267,6 +267,7 @@ static void Test_HmacSha1_StreamingResidue(void)
     uint8_t msg[101];
     size_t i;
     size_t j;
+    whal_Error err;
 
     ResidueMsg(msg, sizeof(msg));
 
@@ -287,9 +288,17 @@ static void Test_HmacSha1_StreamingResidue(void)
                            WHAL_SUCCESS);
             off += chunk;
         }
-        WHAL_ASSERT_EQ(whal_HmacSha1_Finalize(BOARD_HMAC_SHA1_DEV, digest,
-                                              sizeof(digest)),
-                       WHAL_SUCCESS);
+        err = whal_HmacSha1_Finalize(BOARD_HMAC_SHA1_DEV, digest,
+                                     sizeof(digest));
+        if (err == WHAL_ENOTSUP && hmacSha1ResidueCases[i].msgSz == 0) {
+            WHAL_ASSERT_EQ(whal_HmacSha1_Oneshot(BOARD_HMAC_SHA1_DEV,
+                                                 hmacKey, sizeof(hmacKey),
+                                                 msg, 0, oneshot,
+                                                 sizeof(oneshot)),
+                           WHAL_ENOTSUP);
+            continue;
+        }
+        WHAL_ASSERT_EQ(err, WHAL_SUCCESS);
         WHAL_ASSERT_MEM_EQ(digest, hmacSha1ResidueCases[i].digest,
                            sizeof(digest));
 

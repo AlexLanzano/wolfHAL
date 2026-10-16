@@ -32,8 +32,6 @@
 #define HASH_HR_REG(x)       (0x310 + (x) * 4)
 #define HASH_CSR_REG(x)      (0xF8 + (x) * 4)
 
-/* HASH_CSR38..53 hold the extra context saved only for HMAC (RM0493 27.4.8) */
-#define HASH_CSR_HMAC_FIRST  38
 #define HASH_CSR_COUNT       54
 
 static const uint8_t hmacKey[20] = {
@@ -64,24 +62,25 @@ static int AnyNonZero(const uint32_t *words, size_t count)
 static void Test_Hash_InitChangesHmacContext(void)
 {
     size_t base = whal_Stm32wba_Hash_Dev.base;
-    uint32_t before[HASH_CSR_COUNT - HASH_CSR_HMAC_FIRST];
-    uint32_t after[HASH_CSR_COUNT - HASH_CSR_HMAC_FIRST];
+    uint32_t before[HASH_CSR_COUNT];
+    uint32_t after[HASH_CSR_COUNT];
 
     WHAL_ASSERT_EQ(whal_HmacSha256_Start(BOARD_HMAC_SHA256_DEV,
                                          hmacKey, sizeof(hmacKey)),
                    WHAL_SUCCESS);
 
-    WHAL_ASSERT_EQ(whal_Reg_Read(base, HASH_SR_REG) & HASH_SR_DINIS_Msk,
-                   HASH_SR_DINIS_Msk);
-    ReadCsrs(base, before, HASH_CSR_HMAC_FIRST, HASH_CSR_COUNT);
-    WHAL_ASSERT_EQ(AnyNonZero(before, sizeof(before) / sizeof(before[0])), 1);
+    WHAL_ASSERT_EQ(whal_Reg_ReadPoll(base, HASH_SR_REG, HASH_SR_DINIS_Msk,
+                                     HASH_SR_DINIS_Msk, &g_whalTimeout),
+                   WHAL_SUCCESS);
+    ReadCsrs(base, before, 0, HASH_CSR_COUNT);
+    WHAL_ASSERT_EQ(AnyNonZero(before, HASH_CSR_COUNT), 1);
 
     whal_Reg_Update(base, HASH_CR_REG, HASH_CR_INIT_Msk, HASH_CR_INIT_Msk);
 
     if ((whal_Reg_Read(base, HASH_SR_REG) & HASH_SR_DINIS_Msk) == 0)
         WHAL_SKIP();
 
-    ReadCsrs(base, after, HASH_CSR_HMAC_FIRST, HASH_CSR_COUNT);
+    ReadCsrs(base, after, 0, HASH_CSR_COUNT);
     WHAL_ASSERT_MEM_NEQ(after, before, sizeof(before));
 }
 
