@@ -42,6 +42,11 @@ static void Test_Stm32wb_Lptim_Pwm_Reject(void)
                        WHAL_STM32WB_LPTIM_PWM_CHANNEL, &wave), WHAL_EINVAL);
     wave.pulseCycles = 500;
 
+    wave.polarity = WHAL_PWM_POLARITY_INVERTED + 1;
+    WHAL_ASSERT_EQ(whal_Stm32wb_Lptim_Pwm_Start(BOARD_PWM_DEV,
+                       WHAL_STM32WB_LPTIM_PWM_CHANNEL, &wave), WHAL_EINVAL);
+    wave.polarity = WHAL_PWM_POLARITY_NORMAL;
+
     wave.periodCycles = 0;
     WHAL_ASSERT_EQ(whal_Stm32wb_Lptim_Pwm_Start(BOARD_PWM_DEV,
                        WHAL_STM32WB_LPTIM_PWM_CHANNEL, &wave), WHAL_EINVAL);

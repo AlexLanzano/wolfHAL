@@ -95,7 +95,8 @@ whal_Error whal_Stm32wba_UartDma_Deinit(whal_Uart *uartDev);
  * @brief Send `dataSz` bytes via GPDMA. Blocks until the transfer completes.
  *
  * @param uartDev UART device instance.
- * @param data    Source buffer (must be DMA-accessible).
+ * @param data    Source buffer. Must be DMA-accessible unless dataSz is 1,
+ *                which is copied into an internal buffer.
  * @param dataSz  Number of bytes to send.
  *
  * @retval WHAL_SUCCESS   All bytes sent.
@@ -116,7 +117,8 @@ whal_Error whal_Stm32wba_UartDma_Send(whal_Uart *uartDev, const void *data,
  * @retval WHAL_SUCCESS   All bytes received.
  * @retval WHAL_EINVAL    Null pointer.
  * @retval WHAL_ETIMEOUT  DMA transfer did not complete within the timeout.
- * @retval WHAL_EHARDWARE GPDMA reported a transfer error.
+ * @retval WHAL_EHARDWARE GPDMA reported a transfer error, or a parity,
+ *                        framing, noise or overrun error was detected.
  */
 whal_Error whal_Stm32wba_UartDma_Recv(whal_Uart *uartDev, void *data,
                                       size_t dataSz);
@@ -126,7 +128,9 @@ whal_Error whal_Stm32wba_UartDma_Recv(whal_Uart *uartDev, void *data,
  *        has been queued; completion is reported via the TX callback.
  *
  * @param uartDev UART device instance.
- * @param data    Source buffer (must be DMA-accessible until completion).
+ * @param data    Source buffer. Must be DMA-accessible and stay valid until
+ *                completion unless dataSz is 1, which is copied into an
+ *                internal buffer before this returns.
  * @param dataSz  Number of bytes to send.
  *
  * @retval WHAL_SUCCESS   Transfer started.
@@ -139,6 +143,9 @@ whal_Error whal_Stm32wba_UartDma_SendAsync(whal_Uart *uartDev, const void *data,
 /*
  * @brief Start a non-blocking GPDMA RX transfer. Returns once the transfer
  *        has been queued; completion is reported via the RX callback.
+ *
+ * Line errors latched before the transfer are cleared. The RX callback
+ * reports only the DMA result, not parity, framing, noise or overrun errors.
  *
  * @param uartDev UART device instance.
  * @param data    Destination buffer (must be DMA-accessible until completion).

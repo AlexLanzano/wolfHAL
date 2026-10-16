@@ -39,6 +39,7 @@ non-block-aligned payloads.
 import sys
 
 try:
+    from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
     from cryptography.hazmat.primitives.ciphers.aead import AESGCM, AESCCM
     from cryptography.hazmat.primitives import hashes, hmac as hmac_mod
 except ImportError:
@@ -133,6 +134,98 @@ emit("ccmStreamNoAadTag", ccm_noaad_tag)
 emit("ccmStreamNoPtTag", ccm_nopt_tag)
 
 
+
+# ---- AES-128 / AES-192 known-answer vectors ----
+# NIST SP 800-38A F.1.3 / F.5.1 inputs. The AES-128 AEAD vectors reuse the
+# first 16 bytes of the existing AES-256 keys with the same IV/nonce, AAD and
+# plaintext as the matching AES-256 KAT.
+nist_pt = bytes.fromhex("6BC1BEE22E409F96E93D7E117393172A")
+nist_key128 = bytes.fromhex("2B7E151628AED2A6ABF7158809CF4F3C")
+nist_key192 = bytes.fromhex("8E73B0F7DA0E6452C810F32B809079E562F8EAD2522C6B7B")
+nist_ctr_iv = bytes.fromhex("F0F1F2F3F4F5F6F7F8F9FAFBFCFDFEFF")
+
+
+def aes_block(key, mode, data):
+    enc = Cipher(algorithms.AES(key), mode).encryptor()
+    return enc.update(data) + enc.finalize()
+
+
+banner("test_aes_ctr.c: AES-128 vector")
+emit("nistCtrCt128", aes_block(nist_key128, modes.CTR(nist_ctr_iv), nist_pt))
+
+banner("test_stm32n6_aes_ecb.c: AES-192 vector")
+emit("nistKey192", nist_key192)
+emit("nistEcbCt192", aes_block(nist_key192, modes.ECB(), nist_pt))
+
+gcm16_pt = bytes.fromhex(
+    "D9313225F88406E5A55909C5AFF5269A86A7A9531534F7DA2E4C303D8A318A72"
+    "1C3C0C95956809532FCF0E2449A6B525B16AEDF5AA0DE657BA637B39"
+)
+gcm16_aad = bytes.fromhex("FEEDFACEDEADBEEFFEEDFACEDEADBEEFABADDAD2")
+ct_full = AESGCM(gcm_key[:16]).encrypt(gcm_iv, gcm16_pt, gcm16_aad)
+banner("test_aes_gcm.c: AES-128 vector (gcmKey[0..15], gcm16Pt, gcm16Aad)")
+emit("gcm128Ct", ct_full[:-16])
+emit("gcm128Tag", ct_full[-16:])
+
+gmac_key = bytes.fromhex(
+    "78DC4E0AAF52D935C3C01EEA57428F00CA1FD475F5DA86A49C8DD73D68C8E223"
+)
+gmac_iv = bytes.fromhex("D79CF22D504CC793C3FB6C8A")
+gmac_aad = bytes.fromhex("B96BAA8C1C75A671BFB2D08D06BE5F36")
+banner("test_aes_gmac.c: AES-128 vector (gmacKey[0..15], gmacIv, gmacAad)")
+emit("gmac128Tag", AESGCM(gmac_key[:16]).encrypt(gmac_iv, b"", gmac_aad))
+
+ccm_pt = bytes.fromhex("E8DE970F6EE8E80EDE933581B5BCF4D837E2B72BAA8B00C3")
+ccm_aad = bytes.fromhex(
+    "3C0E2815D37D844F7AC240BA9D6E3A0B2A86F706E885959E09A1005E024F6907"
+)
+ct_full = AESCCM(ccm_key[:16], tag_length=16).encrypt(ccm_nonce, ccm_pt,
+                                                       ccm_aad)
+banner("test_aes_ccm.c: AES-128 vector (ccmKey[0..15], ccmNonce/Aad/Pt)")
+emit("ccm128Ct", ct_full[:-16])
+emit("ccm128Tag", ct_full[-16:])
+
+
+# ---- GMAC with AAD that is not a multiple of the block size ----
+# Tags over prefixes of one 31-byte AAD buffer, with gmacKey/gmacIv.
+GMAC_AAD = bytes((i * 13 + 7) & 0xFF for i in range(31))
+
+banner("test_aes_gmac.c: partial-AAD vectors")
+emit("gmacPartialAad", GMAC_AAD)
+for n in (0, 1, 15, 17, 20, 31):
+    emit(f"gmacTagAad{n}", AESGCM(gmac_key).encrypt(gmac_iv, b"", GMAC_AAD[:n]))
+
+
+# ---- CCM with AAD short enough to fit in the first framing block ----
+# Tags over prefixes of one 15-byte AAD buffer, with ccmKey/ccmNonce/ccmPt.
+# The ciphertext does not depend on the AAD, so it is always ccmCt.
+CCM_SHORT_AAD = bytes((i * 17 + 9) & 0xFF for i in range(15))
+aesccm = AESCCM(ccm_key, tag_length=16)
+
+banner("test_aes_ccm.c: short-AAD vectors")
+emit("ccmShortAad", CCM_SHORT_AAD)
+for n in (1, 13, 14, 15):
+    ct_full = aesccm.encrypt(ccm_nonce, ccm_pt, CCM_SHORT_AAD[:n])
+    assert ct_full[:-16] == aesccm.encrypt(ccm_nonce, ccm_pt, ccm_aad)[:-16]
+    emit(f"ccmTagShortAad{n}", ct_full[-16:])
+
+
+# ---- CCM with every accepted nonce length below 13 ----
+# Nonces are prefixes of ccmNonce, with ccmKey/ccmAad/ccmPt.
+banner("test_aes_ccm.c: nonce-length vectors")
+for n in range(7, 13):
+    ct_full = aesccm.encrypt(ccm_nonce[:n], ccm_pt, ccm_aad)
+    emit(f"ccmCtNonce{n}", ct_full[:-16])
+    emit(f"ccmTagNonce{n}", ct_full[-16:])
+
+# 300-byte payload with a 12-byte nonce, so the 3-byte B0 length field holds a
+# value above 255. The plaintext is generated in the test with the same formula.
+CCM_LONG_PT = bytes((i * 5 + 1) & 0xFF for i in range(300))
+ct_full = aesccm.encrypt(ccm_nonce[:12], CCM_LONG_PT, ccm_aad)
+banner("test_aes_ccm.c: 300-byte payload with a 12-byte nonce")
+emit("ccmLongCt", ct_full[:-16])
+emit("ccmLongTag", ct_full[-16:])
+
 # ---- SHA streaming (100-byte message) ----
 def sha_digest(algo, data):
     h = hashes.Hash(algo)
@@ -180,6 +273,37 @@ emit("hmacSha224UnalignedMac",
 emit("hmacSha256UnalignedMac",
      hmac_mac(hashes.SHA256(), hmac_unaligned_key, hmac_unaligned_msg))
 
+
+
+# ---- HMAC with block-size and longer-than-block-size keys ----
+# RFC 4231 Test Case 6 message with a 64-byte key (no pre-hash) and the
+# 131-byte RFC 4231 key (pre-hashed through LKEY).
+hmac_long_msg = b"Test Using Larger Than Block-Size Key - Hash Key First"
+
+banner("test_hmac_sha*.c: 64-byte and 131-byte key vectors")
+emit("hmacLongMsg", hmac_long_msg)
+for bits, algo in (("1", hashes.SHA1()), ("224", hashes.SHA224()),
+                   ("256", hashes.SHA256())):
+    emit(f"hmacSha{bits}Key64Mac", hmac_mac(algo, bytes([0xAA] * 64),
+                                             hmac_long_msg))
+    emit(f"hmacSha{bits}Key131Mac", hmac_mac(algo, bytes([0xAA] * 131),
+                                              hmac_long_msg))
+
+
+# ---- SHA/HMAC over message lengths that leave 0-3 trailing bytes ----
+# Digests of prefixes of a 101-byte buffer whose first 100 bytes are LONG_BUF.
+# The tests build the buffer with the same formula.
+RESIDUE_MSG = bytes((i * 7 + 3) & 0xFF for i in range(101))
+RESIDUE_LENS = (0, 1, 3, 7, 101)
+
+banner("test_sha*.c / test_hmac_sha*.c: residue vectors")
+for bits, algo in (("1", hashes.SHA1()), ("224", hashes.SHA224()),
+                   ("256", hashes.SHA256())):
+    for n in RESIDUE_LENS:
+        emit(f"sha{bits}Residue{n}", sha_digest(algo, RESIDUE_MSG[:n]))
+    for n in RESIDUE_LENS:
+        emit(f"hmacSha{bits}Residue{n}",
+             hmac_mac(algo, hmac_key, RESIDUE_MSG[:n]))
 
 # ---- RSA-1024 raw primitive KAT ----
 # Fixed key matches the rsaN / rsaE / rsaD / ... arrays in test_pka.c.

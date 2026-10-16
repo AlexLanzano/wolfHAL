@@ -120,8 +120,8 @@ whal_Error whal_Stm32wb_Lptim_Pwm_Deinit(whal_Pwm *dev);
  * @param cfg     Waveform (period, pulse, polarity) to apply.
  *
  * @retval WHAL_SUCCESS Output started.
- * @retval WHAL_EINVAL  Null pointer, missing configuration, zero period, or
- *                      pulse exceeding period.
+ * @retval WHAL_EINVAL  Null pointer, missing configuration, zero period,
+ *                      pulse exceeding period, or undefined polarity.
  * @retval WHAL_ENOTSUP Unsupported channel, period out of the 16-bit range or
  *                      below 2, pulse of 0 or equal to the period, or a
  *                      non-continuous pulse count.

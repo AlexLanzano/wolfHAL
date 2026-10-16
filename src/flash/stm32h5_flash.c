@@ -128,11 +128,6 @@ const whal_Flash whal_Stm32h5_Flash_Dev = WHAL_CFG_STM32H5_FLASH_DEV;
 #define FLASH_SECTOR_SIZE 0x2000
 #define FLASH_SECTOR_SHIFT 13
 
-/* Sectors per bank */
-#define FLASH_SECTORS_PER_BANK 128
-
-/* Bank size: 1 MB */
-#define FLASH_BANK_SIZE (FLASH_SECTORS_PER_BANK * FLASH_SECTOR_SIZE)
 
 #ifdef WHAL_CFG_STM32H5_FLASH_DIRECT_API_MAPPING
 #define whal_Stm32h5_Flash_Init   whal_Flash_Init
@@ -295,6 +290,7 @@ whal_Error whal_Stm32h5_Flash_Erase(whal_Flash *flashDev, size_t addr,
     whal_Error err;
     size_t offset;
     size_t startSector, endSector;
+    size_t sectorsPerBank;
     (void)flashDev;
 
     if (dataSz == 0)
@@ -312,13 +308,15 @@ whal_Error whal_Stm32h5_Flash_Erase(whal_Flash *flashDev, size_t addr,
     /* Clear all error and status flags */
     whal_Reg_Write(base, FLASH_NSCCR_REG, FLASH_NSCCR_CLR_ALL);
 
+    /* Every STM32H5 is dual-bank with the flash split evenly between banks */
+    sectorsPerBank = (cfg->size / 2) >> FLASH_SECTOR_SHIFT;
     offset = addr - cfg->startAddr;
     startSector = offset >> FLASH_SECTOR_SHIFT;
     endSector = (offset + dataSz - 1) >> FLASH_SECTOR_SHIFT;
 
     for (size_t sector = startSector; sector <= endSector; sector++) {
-        size_t bank = (sector >= FLASH_SECTORS_PER_BANK) ? 1 : 0;
-        size_t sectorInBank = sector - (bank * FLASH_SECTORS_PER_BANK);
+        size_t bank = (sector >= sectorsPerBank) ? 1 : 0;
+        size_t sectorInBank = sector - (bank * sectorsPerBank);
 
         /* Configure and start sector erase in one write */
         whal_Reg_Update(base, FLASH_NSCR_REG,

@@ -51,6 +51,9 @@ const whal_Gpio whal_Stm32wb_Gpio_Dev = WHAL_CFG_STM32WB_GPIO_DEV;
 #define GPIO_IDR_REG      0x10
 /* Output data register - 1 bit per pin */
 #define GPIO_ODR_REG      0x14
+/* Bit set/reset register - bits 0-15 set pins, bits 16-31 reset pins */
+#define GPIO_BSRR_REG     0x18
+#define GPIO_BSRR_BR_Pos  16
 /* Alternate function low register - 4 bits per pin for pins 0-7 */
 #define GPIO_ALTFNL_REG   0x20
 /* Alternate function high register - 4 bits per pin for pins 8-15 */
@@ -134,7 +137,7 @@ whal_Error whal_Stm32wb_Gpio_Deinit(whal_Gpio *gpioDev)
 /*
  * Shared helper for reading or writing GPIO pin values.
  *
- * For set operations (set=1): writes value to ODR register
+ * For set operations (set=1): sets or resets the pin through BSRR
  * For get operations (set=0): reads value from IDR register
  */
 static whal_Error whal_Stm32wb_Gpio_SetOrGet(whal_Gpio *gpioDev, size_t idx,
@@ -159,8 +162,8 @@ static whal_Error whal_Stm32wb_Gpio_SetOrGet(whal_Gpio *gpioDev, size_t idx,
     mask = 1UL << pin;
 
     if (set) {
-        whal_Reg_Update(portBase, GPIO_ODR_REG, mask,
-                        whal_SetBits(mask, pin, *value));
+        whal_Reg_Write(portBase, GPIO_BSRR_REG,
+                       *value ? mask : (mask << GPIO_BSRR_BR_Pos));
     } else {
         whal_Reg_Get(portBase, GPIO_IDR_REG, mask, pin, value);
     }

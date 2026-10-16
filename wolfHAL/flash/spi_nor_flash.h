@@ -65,7 +65,7 @@ typedef struct whal_SpiNor_Cfg {
     whal_Gpio *gpioDev;         /* GPIO device for chip select */
     size_t csPin;               /* GPIO pin index for chip select */
     whal_Timeout *timeout;
-    size_t pageSz;              /* Page program size in bytes (typically 256) */
+    size_t pageSz;              /* Page program size in bytes, a power of two */
     size_t capacity;            /* Total flash capacity in bytes */
 } whal_SpiNor_Cfg;
 

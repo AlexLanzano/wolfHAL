@@ -166,7 +166,12 @@ whal_Error whal_Stm32l1_Flash_Unlock(whal_Flash *flashDev, size_t addr, size_t l
 
     /* Unlock PECR then program memory */
     UnlockPecr(base);
+    if (whal_Reg_Read(base, FLASH_PECR_REG) & FLASH_PECR_PELOCK_Msk)
+        return WHAL_EHARDWARE;
+
     UnlockProgram(base);
+    if (whal_Reg_Read(base, FLASH_PECR_REG) & FLASH_PECR_PRGLOCK_Msk)
+        return WHAL_EHARDWARE;
 
     return WHAL_SUCCESS;
 }

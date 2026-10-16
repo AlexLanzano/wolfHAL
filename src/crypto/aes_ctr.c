@@ -53,3 +53,12 @@ whal_Error whal_AesCtr_Process(whal_AesCtr *dev,
         return WHAL_ENOTSUP;
     return dev->driver->Process(dev, in, out, sz);
 }
+
+whal_Error whal_AesCtr_Stop(whal_AesCtr *dev)
+{
+    if (!dev)
+        return WHAL_EINVAL;
+    if (!dev->driver || !dev->driver->Stop)
+        return WHAL_ENOTSUP;
+    return dev->driver->Stop(dev);
+}

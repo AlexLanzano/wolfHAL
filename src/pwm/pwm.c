@@ -46,7 +46,9 @@ inline whal_Error whal_Pwm_Start(whal_Pwm *dev, uint8_t channel,
                                  const whal_Pwm_ChannelCfg *cfg)
 {
     if (!dev || !cfg || cfg->periodCycles == 0 ||
-        cfg->pulseCycles > cfg->periodCycles)
+        cfg->pulseCycles > cfg->periodCycles ||
+        (cfg->polarity != WHAL_PWM_POLARITY_NORMAL &&
+         cfg->polarity != WHAL_PWM_POLARITY_INVERTED))
         return WHAL_EINVAL;
     if (!dev->driver || !dev->driver->Start)
         return WHAL_ENOTSUP;

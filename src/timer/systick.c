@@ -83,7 +83,13 @@ whal_Error whal_SysTick_Init(whal_Timer *timerDev)
 
 whal_Error whal_SysTick_Deinit(whal_Timer *timerDev)
 {
+    size_t base = whal_SysTick_Dev.base;
     (void)timerDev;
+
+    whal_Reg_Update(base, SYSTICK_CSR_REG,
+                    SYSTICK_CSR_ENABLE_Msk | SYSTICK_CSR_TICKINT_Msk, 0);
+    whal_Reg_Write(base, SYSTICK_CVR_REG, 0);
+
     return WHAL_SUCCESS;
 }
 

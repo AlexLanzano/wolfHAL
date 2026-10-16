@@ -66,11 +66,32 @@ static void Test_Rng_GenerateUnique(void)
     WHAL_ASSERT_EQ(same, 0);
 }
 
+static void Test_Rng_GenerateOddLength(void)
+{
+    static const size_t lens[] = { 1, 3, 5, 7 };
+    const size_t pre = 4;
+    uint8_t buf[16];
+
+    for (size_t i = 0; i < sizeof(lens) / sizeof(lens[0]); i++) {
+        for (size_t j = 0; j < sizeof(buf); j++)
+            buf[j] = 0xA5;
+
+        WHAL_ASSERT_EQ(whal_Rng_Generate(BOARD_RNG_DEV, buf + pre, lens[i]),
+                       WHAL_SUCCESS);
+
+        for (size_t j = 0; j < sizeof(buf); j++) {
+            if (j < pre || j >= pre + lens[i])
+                WHAL_ASSERT_EQ(buf[j], 0xA5);
+        }
+    }
+}
+
 void whal_Test_Rng(void)
 {
     WHAL_TEST_SUITE_START("rng");
     WHAL_TEST(Test_Rng_Api);
     WHAL_TEST(Test_Rng_GenerateNonzero);
     WHAL_TEST(Test_Rng_GenerateUnique);
+    WHAL_TEST(Test_Rng_GenerateOddLength);
     WHAL_TEST_SUITE_END();
 }

@@ -169,6 +169,13 @@
 #define USART_STATUS_TXE_Pos        6
 #define USART_STATUS_TXE_Msk        (1UL << USART_STATUS_TXE_Pos)
 
+#define USART_STATUS_ERR_Msk        (USART_STATUS_PERR_Msk | \
+                                     USART_STATUS_FERR_Msk | \
+                                     USART_STATUS_BUFOVF_Msk)
+
+/* STATUS is the upper halfword of the 32-bit word at INTFLAG */
+#define USART_STATUS_WORD_Pos       16
+
 /* SYNCBUSY Register Bit Definitions */
 #define USART_SYNCBUSY_SWRST_Pos    0
 #define USART_SYNCBUSY_SWRST_Msk    (1UL << USART_SYNCBUSY_SWRST_Pos)
@@ -350,6 +357,9 @@ whal_Error whal_Pic32cz_Uart_Send(whal_Uart *uartDev, const void *data, size_t d
     cfg = (whal_Pic32cz_Uart_Cfg *)uartDev->cfg;
 #endif
 
+    if (dataSz == 0)
+        return WHAL_SUCCESS;
+
     for (size_t i = 0; i < dataSz; ++i) {
         /* Wait for data register to be empty */
         err = whal_Reg_ReadPoll(base, USART_INTFLAG_REG,
@@ -403,6 +413,7 @@ whal_Error whal_Pic32cz_Uart_Recv(whal_Uart *uartDev, void *data, size_t dataSz)
 
     for (size_t i = 0; i < dataSz; ++i) {
         size_t rxData;
+        size_t status;
         whal_Error err;
 
         /* Wait for receive complete */
@@ -412,11 +423,21 @@ whal_Error whal_Pic32cz_Uart_Recv(whal_Uart *uartDev, void *data, size_t dataSz)
         if (err)
             return err;
 
+        status = (whal_Reg_Read(base, USART_INTFLAG_REG) >>
+                  USART_STATUS_WORD_Pos) & USART_STATUS_ERR_Msk;
+
         /* Read received data */
         whal_Reg_Get(base, USART_DATA_REG,
                      USART_DATA_Msk, USART_DATA_Pos, &rxData);
 
         buf[i] = (uint8_t)rxData;
+
+        if (status) {
+            whal_Reg_Write(base, USART_INTFLAG_REG,
+                           (status << USART_STATUS_WORD_Pos) |
+                           USART_INTFLAG_ERROR_Msk);
+            return WHAL_EHARDWARE;
+        }
     }
 
     return WHAL_SUCCESS;

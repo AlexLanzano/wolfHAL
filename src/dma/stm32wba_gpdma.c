@@ -140,6 +140,27 @@
 const whal_Dma whal_Stm32wba_Gpdma_Dev = WHAL_CFG_STM32WBA_GPDMA_DEV;
 #endif
 
+/* Abort an enabled channel: suspend, wait for idle, then reset */
+static whal_Error Gpdma_AbortChannel(size_t base, size_t ch,
+                                     whal_Timeout *timeout)
+{
+    size_t cr;
+    whal_Error err;
+
+    cr = whal_Reg_Read(base, GPDMA_CxCR(ch));
+    if (cr & GPDMA_CxCR_EN_Msk) {
+        whal_Reg_Write(base, GPDMA_CxCR(ch),
+                       (cr & ~GPDMA_CxCR_EN_Msk) | GPDMA_CxCR_SUSP_Msk);
+        err = whal_Reg_ReadPoll(base, GPDMA_CxSR(ch), GPDMA_CxSR_IDLEF_Msk,
+                                 GPDMA_CxSR_IDLEF_Msk, timeout);
+        if (err)
+            return err;
+        whal_Reg_Write(base, GPDMA_CxCR(ch), GPDMA_CxCR_RESET_Msk);
+    }
+
+    return WHAL_SUCCESS;
+}
+
 whal_Error whal_Stm32wba_Gpdma_Init(whal_Dma *dmaDev)
 {
 #ifdef WHAL_CFG_STM32WBA_GPDMA_SINGLE_INSTANCE
@@ -154,6 +175,8 @@ whal_Error whal_Stm32wba_Gpdma_Init(whal_Dma *dmaDev)
 
 whal_Error whal_Stm32wba_Gpdma_Deinit(whal_Dma *dmaDev)
 {
+    whal_Error err = WHAL_SUCCESS;
+    whal_Error abortErr;
 #ifdef WHAL_CFG_STM32WBA_GPDMA_SINGLE_INSTANCE
     const whal_Stm32wba_Gpdma_Cfg *cfg =
         (const whal_Stm32wba_Gpdma_Cfg *)whal_Stm32wba_Gpdma_Dev.cfg;
@@ -170,13 +193,19 @@ whal_Error whal_Stm32wba_Gpdma_Deinit(whal_Dma *dmaDev)
     base = dmaDev->base;
 #endif
 
-    /* Reset all channels */
     for (uint8_t ch = 0; ch < cfg->numChannels; ch++) {
+        abortErr = Gpdma_AbortChannel(base, ch, cfg->timeout);
+        if (abortErr) {
+            /* Leave SUSP set; a reset of a non-idle channel may not apply */
+            if (!err)
+                err = abortErr;
+            continue;
+        }
         whal_Reg_Write(base, GPDMA_CxCR(ch),
                        GPDMA_CxCR_RESET_Msk);
     }
 
-    return WHAL_SUCCESS;
+    return err;
 }
 
 whal_Error whal_Stm32wba_Gpdma_Configure(whal_Dma *dmaDev, size_t ch,
@@ -209,6 +238,11 @@ whal_Error whal_Stm32wba_Gpdma_Configure(whal_Dma *dmaDev, size_t ch,
         return WHAL_EINVAL;
 
     if (ccfg->nbytes == 0 || ccfg->nbytes > 0xFFFF)
+        return WHAL_EINVAL;
+
+    if (ccfg->dir != WHAL_STM32WBA_GPDMA_DIR_PERIPH_TO_MEM &&
+        ccfg->dir != WHAL_STM32WBA_GPDMA_DIR_MEM_TO_PERIPH &&
+        ccfg->dir != WHAL_STM32WBA_GPDMA_DIR_MEM_TO_MEM)
         return WHAL_EINVAL;
 
     /* Reset the channel and wait for idle */
@@ -300,7 +334,6 @@ whal_Error whal_Stm32wba_Gpdma_Start(whal_Dma *dmaDev, size_t ch)
 
 whal_Error whal_Stm32wba_Gpdma_Stop(whal_Dma *dmaDev, size_t ch)
 {
-    size_t cr;
     whal_Error err;
 #ifdef WHAL_CFG_STM32WBA_GPDMA_SINGLE_INSTANCE
     const whal_Stm32wba_Gpdma_Cfg *cfg =
@@ -321,18 +354,10 @@ whal_Error whal_Stm32wba_Gpdma_Stop(whal_Dma *dmaDev, size_t ch)
     if (ch >= cfg->numChannels)
         return WHAL_EINVAL;
 
-    /* EN cannot be cleared by software; abort by suspending, waiting for
-     * idle, then resetting the channel (RM0493 17.4.4) */
-    cr = whal_Reg_Read(base, GPDMA_CxCR(ch));
-    if (cr & GPDMA_CxCR_EN_Msk) {
-        whal_Reg_Write(base, GPDMA_CxCR(ch),
-                       (cr & ~GPDMA_CxCR_EN_Msk) | GPDMA_CxCR_SUSP_Msk);
-        err = whal_Reg_ReadPoll(base, GPDMA_CxSR(ch), GPDMA_CxSR_IDLEF_Msk,
-                                 GPDMA_CxSR_IDLEF_Msk, cfg->timeout);
-        if (err)
-            return err;
-        whal_Reg_Write(base, GPDMA_CxCR(ch), GPDMA_CxCR_RESET_Msk);
-    }
+    /* EN cannot be cleared by software (RM0493 17.4.4) */
+    err = Gpdma_AbortChannel(base, ch, cfg->timeout);
+    if (err)
+        return err;
 
     whal_Reg_Write(base, GPDMA_CxFCR(ch), GPDMA_CxFCR_ALL);
 

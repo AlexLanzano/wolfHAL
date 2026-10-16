@@ -184,13 +184,24 @@ static void ReadBlock(size_t base, uint8_t *out)
     whal_StoreBe32(out + 12, whal_Reg_Read(base, AES_DOUTR_REG));
 }
 
+/* Discard any output block left in DOUTR. */
+static void DrainOutput(size_t base)
+{
+    (void)whal_Reg_Read(base, AES_DOUTR_REG);
+    (void)whal_Reg_Read(base, AES_DOUTR_REG);
+    (void)whal_Reg_Read(base, AES_DOUTR_REG);
+    (void)whal_Reg_Read(base, AES_DOUTR_REG);
+}
+
 static whal_Error WaitForCCF(size_t base, whal_Timeout *timeout)
 {
     whal_Error err;
     err = whal_Reg_ReadPoll(base, AES_SR_REG, AES_SR_CCF_Msk,
                             AES_SR_CCF_Msk, timeout);
-    if (err)
+    if (err) {
+        DrainOutput(base);
         return err;
+    }
     whal_Reg_Update(base, AES_CR_REG, AES_CR_CCFC_Msk, AES_CR_CCFC_Msk);
     return WHAL_SUCCESS;
 }
@@ -233,6 +244,13 @@ static void DisableAes(whal_Crypto *cryptoDev)
     whal_Reg_Update(cryptoDev->base, AES_CR_REG, AES_CR_EN_Msk, 0);
 }
 
+static whal_Error StopBlockCipher(whal_Crypto *cryptoDev)
+{
+    DisableAes(cryptoDev);
+    ZeroKeyIv(cryptoDev->base);
+    return WHAL_SUCCESS;
+}
+
 
 /* ---- Direct API mapping ---- */
 
@@ -244,16 +262,19 @@ static void DisableAes(whal_Crypto *cryptoDev)
 #define whal_Stm32wb_AesEcb_Oneshot whal_AesEcb_Oneshot
 #define whal_Stm32wb_AesEcb_Start   whal_AesEcb_Start
 #define whal_Stm32wb_AesEcb_Process whal_AesEcb_Process
+#define whal_Stm32wb_AesEcb_Stop    whal_AesEcb_Stop
 #endif
 #ifdef WHAL_CFG_STM32WB_AES_CBC_DIRECT_API_MAPPING
 #define whal_Stm32wb_AesCbc_Oneshot whal_AesCbc_Oneshot
 #define whal_Stm32wb_AesCbc_Start   whal_AesCbc_Start
 #define whal_Stm32wb_AesCbc_Process whal_AesCbc_Process
+#define whal_Stm32wb_AesCbc_Stop    whal_AesCbc_Stop
 #endif
 #ifdef WHAL_CFG_STM32WB_AES_CTR_DIRECT_API_MAPPING
 #define whal_Stm32wb_AesCtr_Oneshot whal_AesCtr_Oneshot
 #define whal_Stm32wb_AesCtr_Start   whal_AesCtr_Start
 #define whal_Stm32wb_AesCtr_Process whal_AesCtr_Process
+#define whal_Stm32wb_AesCtr_Stop    whal_AesCtr_Stop
 #endif
 #ifdef WHAL_CFG_STM32WB_AES_GCM_DIRECT_API_MAPPING
 #define whal_Stm32wb_AesGcm_Oneshot  whal_AesGcm_Oneshot
@@ -283,6 +304,7 @@ whal_Error whal_Stm32wb_Aes_Init(whal_Crypto *dev)
 whal_Error whal_Stm32wb_Aes_Deinit(whal_Crypto *dev)
 {
     (void)dev;
+    DrainOutput(whal_Stm32wb_Aes_Dev.base);
     DisableAes((whal_Crypto *)&whal_Stm32wb_Aes_Dev);
     ZeroKeyIv(whal_Stm32wb_Aes_Dev.base);
     return WHAL_SUCCESS;
@@ -362,6 +384,7 @@ whal_Error whal_Stm32wb_AesEcb_Start(whal_AesEcb *dev, whal_Crypto_Dir dir,
         ? AES_MODE_ENCRYPT : AES_MODE_KEYDERIV_DECRYPT;
 
     whal_Reg_Update(base, AES_CR_REG, AES_CR_EN_Msk, 0);
+    ZeroKeyIv(base);
 
     whal_Reg_Update(base, AES_CR_REG,
                     AES_CR_MODE_Msk | AES_CR_CHMOD_Msk | AES_CR_CHMOD2_Msk |
@@ -388,10 +411,17 @@ whal_Error whal_Stm32wb_AesEcb_Process(whal_AesEcb *dev,
     return ProcessBlockCipher(whal_Stm32wb_AesEcb_Dev.crypto, in, out, sz);
 }
 
+whal_Error whal_Stm32wb_AesEcb_Stop(whal_AesEcb *dev)
+{
+    (void)dev;
+    return StopBlockCipher(whal_Stm32wb_AesEcb_Dev.crypto);
+}
+
 const whal_AesEcbDriver whal_Stm32wb_Aes_EcbDriver = {
     .Oneshot = whal_Stm32wb_AesEcb_Oneshot,
     .Start = whal_Stm32wb_AesEcb_Start,
     .Process = whal_Stm32wb_AesEcb_Process,
+    .Stop = whal_Stm32wb_AesEcb_Stop,
 };
 
 
@@ -466,6 +496,7 @@ whal_Error whal_Stm32wb_AesCbc_Start(whal_AesCbc *dev, whal_Crypto_Dir dir,
         ? AES_MODE_ENCRYPT : AES_MODE_KEYDERIV_DECRYPT;
 
     whal_Reg_Update(base, AES_CR_REG, AES_CR_EN_Msk, 0);
+    ZeroKeyIv(base);
 
     whal_Reg_Update(base, AES_CR_REG,
                     AES_CR_MODE_Msk | AES_CR_CHMOD_Msk | AES_CR_CHMOD2_Msk |
@@ -493,10 +524,17 @@ whal_Error whal_Stm32wb_AesCbc_Process(whal_AesCbc *dev,
     return ProcessBlockCipher(whal_Stm32wb_AesCbc_Dev.crypto, in, out, sz);
 }
 
+whal_Error whal_Stm32wb_AesCbc_Stop(whal_AesCbc *dev)
+{
+    (void)dev;
+    return StopBlockCipher(whal_Stm32wb_AesCbc_Dev.crypto);
+}
+
 const whal_AesCbcDriver whal_Stm32wb_Aes_CbcDriver = {
     .Oneshot = whal_Stm32wb_AesCbc_Oneshot,
     .Start = whal_Stm32wb_AesCbc_Start,
     .Process = whal_Stm32wb_AesCbc_Process,
+    .Stop = whal_Stm32wb_AesCbc_Stop,
 };
 
 
@@ -566,6 +604,7 @@ whal_Error whal_Stm32wb_AesCtr_Start(whal_AesCtr *dev, whal_Crypto_Dir dir,
     keySizeBit = (keySz == 32) ? 1 : 0;
 
     whal_Reg_Update(base, AES_CR_REG, AES_CR_EN_Msk, 0);
+    ZeroKeyIv(base);
 
     whal_Reg_Update(base, AES_CR_REG,
                     AES_CR_MODE_Msk | AES_CR_CHMOD_Msk | AES_CR_CHMOD2_Msk |
@@ -594,10 +633,17 @@ whal_Error whal_Stm32wb_AesCtr_Process(whal_AesCtr *dev,
     return ProcessBlockCipher(whal_Stm32wb_AesCtr_Dev.crypto, in, out, sz);
 }
 
+whal_Error whal_Stm32wb_AesCtr_Stop(whal_AesCtr *dev)
+{
+    (void)dev;
+    return StopBlockCipher(whal_Stm32wb_AesCtr_Dev.crypto);
+}
+
 const whal_AesCtrDriver whal_Stm32wb_Aes_CtrDriver = {
     .Oneshot = whal_Stm32wb_AesCtr_Oneshot,
     .Start = whal_Stm32wb_AesCtr_Start,
     .Process = whal_Stm32wb_AesCtr_Process,
+    .Stop = whal_Stm32wb_AesCtr_Stop,
 };
 
 
@@ -620,6 +666,8 @@ whal_Error whal_Stm32wb_AesGcm_Oneshot(whal_AesGcm *dev, whal_Crypto_Dir dir,
     size_t mode;
     size_t i;
     uint8_t tagBuf[16];
+    uint64_t aadBits;
+    uint64_t payloadBits;
     whal_Error err;
 
     (void)dev;
@@ -767,10 +815,12 @@ whal_Error whal_Stm32wb_AesGcm_Oneshot(whal_AesGcm *dev, whal_Crypto_Dir dir,
     if (aadSz == 0 && sz == 0)
         whal_Reg_Update(base, AES_CR_REG, AES_CR_EN_Msk, AES_CR_EN_Msk);
 
-    whal_Reg_Write(base, AES_DINR_REG, 0);
-    whal_Reg_Write(base, AES_DINR_REG, (uint32_t)(aadSz * 8));
-    whal_Reg_Write(base, AES_DINR_REG, 0);
-    whal_Reg_Write(base, AES_DINR_REG, (uint32_t)(sz * 8));
+    aadBits = (uint64_t)aadSz * 8;
+    payloadBits = (uint64_t)sz * 8;
+    whal_Reg_Write(base, AES_DINR_REG, (uint32_t)(aadBits >> 32));
+    whal_Reg_Write(base, AES_DINR_REG, (uint32_t)aadBits);
+    whal_Reg_Write(base, AES_DINR_REG, (uint32_t)(payloadBits >> 32));
+    whal_Reg_Write(base, AES_DINR_REG, (uint32_t)payloadBits);
 
     err = WaitForCCF(base, cfg->timeout);
     if (err)
@@ -998,6 +1048,8 @@ whal_Error whal_Stm32wb_AesGcm_Finalize(whal_AesGcm *dev,
     whal_Stm32wb_AesGcm_State *st =
         (whal_Stm32wb_AesGcm_State *)whal_Stm32wb_AesGcm_Dev.state;
     uint8_t tagBuf[16];
+    uint64_t aadBits;
+    uint64_t payloadBits;
     size_t i;
     whal_Error err;
 
@@ -1020,10 +1072,12 @@ whal_Error whal_Stm32wb_AesGcm_Finalize(whal_AesGcm *dev,
     if (st->aadSz == 0 && st->dataSz == 0)
         whal_Reg_Update(base, AES_CR_REG, AES_CR_EN_Msk, AES_CR_EN_Msk);
 
-    whal_Reg_Write(base, AES_DINR_REG, 0);
-    whal_Reg_Write(base, AES_DINR_REG, (uint32_t)(st->aadSz * 8));
-    whal_Reg_Write(base, AES_DINR_REG, 0);
-    whal_Reg_Write(base, AES_DINR_REG, (uint32_t)(st->dataSz * 8));
+    aadBits = (uint64_t)st->aadSz * 8;
+    payloadBits = st->dataSz * 8;
+    whal_Reg_Write(base, AES_DINR_REG, (uint32_t)(aadBits >> 32));
+    whal_Reg_Write(base, AES_DINR_REG, (uint32_t)aadBits);
+    whal_Reg_Write(base, AES_DINR_REG, (uint32_t)(payloadBits >> 32));
+    whal_Reg_Write(base, AES_DINR_REG, (uint32_t)payloadBits);
 
     err = WaitForCCF(base, cfg->timeout);
     if (err) {
@@ -1067,6 +1121,7 @@ whal_Error whal_Stm32wb_AesGmac_Oneshot(whal_AesGmac *dev,
     size_t keySizeBit;
     size_t i;
     uint8_t tagBuf[16];
+    uint64_t aadBits;
     whal_Error err;
 
     (void)dev;
@@ -1161,8 +1216,9 @@ whal_Error whal_Stm32wb_AesGmac_Oneshot(whal_AesGmac *dev,
     if (aadSz == 0)
         whal_Reg_Update(base, AES_CR_REG, AES_CR_EN_Msk, AES_CR_EN_Msk);
 
-    whal_Reg_Write(base, AES_DINR_REG, 0);
-    whal_Reg_Write(base, AES_DINR_REG, (uint32_t)(aadSz * 8));
+    aadBits = (uint64_t)aadSz * 8;
+    whal_Reg_Write(base, AES_DINR_REG, (uint32_t)(aadBits >> 32));
+    whal_Reg_Write(base, AES_DINR_REG, (uint32_t)aadBits);
     whal_Reg_Write(base, AES_DINR_REG, 0);
     whal_Reg_Write(base, AES_DINR_REG, 0);
 

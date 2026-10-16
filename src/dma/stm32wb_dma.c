@@ -418,16 +418,18 @@ void whal_Stm32wb_Dma_IRQHandler(whal_Dma *dmaDev, size_t ch,
 
     isr = whal_Reg_Read(base, DMA_ISR_REG);
 
+    if (isr & (1UL << DMA_ISR_TEIF_Pos(hw_ch))) {
+        whal_Reg_Write(base, DMA_IFCR_REG,
+                       DMA_IFCR_CTEIF(hw_ch) | DMA_IFCR_CTCIF(hw_ch));
+        if (cb)
+            cb(ctx, WHAL_EHARDWARE);
+        return;
+    }
+
     if (isr & (1UL << DMA_ISR_TCIF_Pos(hw_ch))) {
         whal_Reg_Write(base, DMA_IFCR_REG, DMA_IFCR_CTCIF(hw_ch));
         if (cb)
             cb(ctx, WHAL_SUCCESS);
-    }
-
-    if (isr & (1UL << DMA_ISR_TEIF_Pos(hw_ch))) {
-        whal_Reg_Write(base, DMA_IFCR_REG, DMA_IFCR_CTEIF(hw_ch));
-        if (cb)
-            cb(ctx, WHAL_EHARDWARE);
     }
 }
 

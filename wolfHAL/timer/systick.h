@@ -81,6 +81,8 @@ whal_Error whal_SysTick_Init(whal_Timer *timerDev);
 /*
  * @brief Deinitialize the SysTick timer.
  *
+ * Stops the counter, disables the tick interrupt and clears the counter.
+ *
  * @param timerDev Timer device instance to deinitialize.
  *
  * @retval WHAL_SUCCESS Deinit completed.

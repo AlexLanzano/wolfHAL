@@ -101,6 +101,8 @@ whal_Error whal_Stm32f0_Uart_Send(whal_Uart *uartDev, const void *data,
  * @retval WHAL_SUCCESS All bytes received.
  * @retval WHAL_EINVAL  Null pointer.
  * @retval WHAL_ETIMEOUT Hardware did not assert RXNE within the configured timeout.
+ * @retval WHAL_EHARDWARE A parity, framing, noise or overrun error was
+ *                        detected.
  */
 whal_Error whal_Stm32f0_Uart_Recv(whal_Uart *uartDev, void *data,
                                   size_t dataSz);

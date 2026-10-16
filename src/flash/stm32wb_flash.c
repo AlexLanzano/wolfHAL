@@ -229,9 +229,13 @@ static whal_Error whal_Stm32wb_Flash_WriteOrErase(whal_Flash *flashDev, size_t a
     whal_Reg_Get(base, FLASH_SR_REG, FLASH_SR_BSY_Msk, FLASH_SR_BSY_Pos, &bsy);
     whal_Reg_Get(base, FLASH_SR_REG, FLASH_SR_PESD_Msk, FLASH_SR_PESD_Pos, &pesd);
 
-    if (bsy || pesd) {
+    if (bsy || pesd ||
+        (whal_Reg_Read(base, FLASH_SR_REG) & FLASH_SR_CFGBSY_Msk)) {
         return WHAL_ENOTREADY;
     }
+
+    /* Drop PG/PER left set by an earlier operation that timed out */
+    whal_Reg_Update(base, FLASH_CR_REG, FLASH_CR_PG_Msk | FLASH_CR_PER_Msk, 0);
 
     /* Clear all error flags by writing 1 to each */
     whal_Reg_Update(base, FLASH_SR_REG, FLASH_SR_ALL_ERR, 0xffffffff);
@@ -300,8 +304,10 @@ static whal_Error whal_Stm32wb_Flash_WriteOrErase(whal_Flash *flashDev, size_t a
     }
 
 cleanup:
-    /* Disable flash programming and page erase modes */
-    whal_Reg_Update(base, FLASH_CR_REG, FLASH_CR_PG_Msk | FLASH_CR_PER_Msk, 0);
+    /* FLASH_CR must not be written while CFGBSY is set */
+    if (!(whal_Reg_Read(base, FLASH_SR_REG) & FLASH_SR_CFGBSY_Msk))
+        whal_Reg_Update(base, FLASH_CR_REG,
+                        FLASH_CR_PG_Msk | FLASH_CR_PER_Msk, 0);
 
     return err;
 }

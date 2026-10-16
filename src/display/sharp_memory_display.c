@@ -84,6 +84,7 @@ static whal_Error SharpMem_Clear(whal_SharpMemory_Display_Cfg *cfg)
 {
     uint8_t frame[2];
     whal_Error err;
+    whal_Error stepErr;
 
     frame[0] = MODE_CLEAR;
     frame[1] = DUMMY;
@@ -92,7 +93,9 @@ static whal_Error SharpMem_Clear(whal_SharpMemory_Display_Cfg *cfg)
     if (err)
         return err;
     err = whal_Spi_SendRecv(cfg->spiDev, frame, sizeof(frame), NULL, 0);
-    SharpMem_CsDeassert(cfg);
+    stepErr = SharpMem_CsDeassert(cfg);
+    if (stepErr && !err)
+        err = stepErr;
     return err;
 }
 
@@ -100,6 +103,7 @@ whal_Error whal_SharpMemory_Display_Init(whal_Display *dev)
 {
     whal_SharpMemory_Display_Cfg *cfg;
     whal_Error err;
+    whal_Error stepErr;
     int pwmStarted = 0;
 
 #ifdef WHAL_CFG_SHARPMEMORY_DISPLAY_SINGLE_INSTANCE
@@ -148,9 +152,11 @@ whal_Error whal_SharpMemory_Display_Init(whal_Display *dev)
     err = SharpMem_Clear(cfg);
 
 cleanup:
+    stepErr = whal_Spi_EndCom(cfg->spiDev);
+    if (stepErr && !err)
+        err = stepErr;
     if (err && pwmStarted)
         whal_Pwm_Stop(cfg->pwm, cfg->pwmChannel);
-    whal_Spi_EndCom(cfg->spiDev);
     return err;
 }
 
@@ -158,6 +164,7 @@ whal_Error whal_SharpMemory_Display_Deinit(whal_Display *dev)
 {
     whal_SharpMemory_Display_Cfg *cfg;
     whal_Error err = WHAL_SUCCESS;
+    whal_Error stepErr;
 
 #ifdef WHAL_CFG_SHARPMEMORY_DISPLAY_SINGLE_INSTANCE
     cfg = (whal_SharpMemory_Display_Cfg *)whal_SharpMemory_Display_Dev.cfg;
@@ -177,17 +184,22 @@ whal_Error whal_SharpMemory_Display_Deinit(whal_Display *dev)
         err = whal_Spi_StartCom(cfg->spiDev, cfg->spiComCfg);
         if (!err) {
             err = SharpMem_Clear(cfg);
-            whal_Spi_EndCom(cfg->spiDev);
+            stepErr = whal_Spi_EndCom(cfg->spiDev);
+            if (stepErr && !err)
+                err = stepErr;
         }
     }
 
-    if (cfg->vcomCfg)
-        whal_Pwm_Stop(cfg->pwm, cfg->pwmChannel);
+    if (cfg->vcomCfg) {
+        stepErr = whal_Pwm_Stop(cfg->pwm, cfg->pwmChannel);
+        if (stepErr && !err)
+            err = stepErr;
+    }
 
-    if (err == WHAL_SUCCESS)
-        return SharpMem_CsDeassert(cfg);
+    stepErr = SharpMem_CsDeassert(cfg);
+    if (stepErr && !err)
+        err = stepErr;
 
-    SharpMem_CsDeassert(cfg);
     return err;
 }
 
@@ -202,6 +214,7 @@ whal_Error whal_SharpMemory_Display_Update(whal_Display *dev, uint16_t x, uint16
     uint8_t trailer = DUMMY;
     uint16_t line;
     whal_Error err;
+    whal_Error stepErr;
 
 #ifdef WHAL_CFG_SHARPMEMORY_DISPLAY_SINGLE_INSTANCE
     cfg = (whal_SharpMemory_Display_Cfg *)whal_SharpMemory_Display_Dev.cfg;
@@ -260,10 +273,14 @@ whal_Error whal_SharpMemory_Display_Update(whal_Display *dev, uint16_t x, uint16
     if (!err)
         err = whal_Spi_SendRecv(cfg->spiDev, &trailer, 1, NULL, 0);
 
-    SharpMem_CsDeassert(cfg);
+    stepErr = SharpMem_CsDeassert(cfg);
+    if (stepErr && !err)
+        err = stepErr;
 
 cleanup:
-    whal_Spi_EndCom(cfg->spiDev);
+    stepErr = whal_Spi_EndCom(cfg->spiDev);
+    if (stepErr && !err)
+        err = stepErr;
     return err;
 }
 

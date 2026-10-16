@@ -38,10 +38,14 @@
 
 /*
  * @brief Flash device configuration.
+ *
+ * Erase derives the bank boundary from this configuration, so it must
+ * describe the whole device: startAddr is the start of bank 1 and size
+ * covers both banks. Bank swap (SWAP_BANK) is not supported.
  */
 typedef struct whal_Stm32h5_Flash_Cfg {
-    size_t startAddr;     /* Flash base address (typically 0x08000000) */
-    size_t size;          /* Flash size in bytes */
+    size_t startAddr;     /* Start of bank 1 (0x08000000) */
+    size_t size;          /* Total flash size in bytes, both banks */
     whal_Timeout *timeout;
 } whal_Stm32h5_Flash_Cfg;
 

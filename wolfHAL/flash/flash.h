@@ -85,13 +85,16 @@ whal_Error whal_Flash_Deinit(whal_Flash *flashDev);
 /*
  * @brief Lock flash to prevent modification.
  *
- * Current drivers lock the whole device and ignore @p addr and @p len.
+ * Behavior is driver-specific. Drivers that implement locking protect the
+ * whole device and ignore @p addr and @p len. Drivers without a lock
+ * mechanism return WHAL_SUCCESS without applying any protection; see the
+ * driver header.
  *
  * @param flashDev Flash instance to lock.
  * @param addr     Byte address of the region to lock (driver-defined).
  * @param len      Number of bytes to lock (driver-defined).
  *
- * @retval WHAL_SUCCESS Lock applied.
+ * @retval WHAL_SUCCESS Lock applied, or the driver has no lock mechanism.
  * @retval WHAL_EINVAL   Null pointer.
  * @retval WHAL_ENOTSUP Operation not implemented by this driver.
  */
@@ -99,13 +102,16 @@ whal_Error whal_Flash_Lock(whal_Flash *flashDev, size_t addr, size_t len);
 /*
  * @brief Unlock flash to allow modification.
  *
- * Current drivers unlock the whole device and ignore @p addr and @p len.
+ * Behavior is driver-specific. Drivers that implement locking unlock the
+ * whole device and ignore @p addr and @p len. Drivers without a lock
+ * mechanism return WHAL_SUCCESS without changing anything; see the driver
+ * header.
  *
  * @param flashDev Flash instance to unlock.
  * @param addr     Byte address of the region to unlock (driver-defined).
  * @param len      Number of bytes to unlock (driver-defined).
  *
- * @retval WHAL_SUCCESS Unlock applied.
+ * @retval WHAL_SUCCESS Unlock applied, or the driver has no lock mechanism.
  * @retval WHAL_EINVAL   Null pointer.
  * @retval WHAL_ENOTSUP Operation not implemented by this driver.
  */

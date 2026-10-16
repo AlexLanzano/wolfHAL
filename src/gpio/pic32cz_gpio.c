@@ -44,6 +44,10 @@ const whal_Gpio whal_Pic32cz_Gpio_Dev = WHAL_CFG_PIC32CZ_GPIO_DEV;
 /* Output register - bit N is the output value for pin N */
 #define OUT_REG(port) (0x10 + (port * 0x80))
 
+/* Output clear and set registers - writing 1 to bit N clears or sets pin N */
+#define OUTCLR_REG(port) (0x14 + (port * 0x80))
+#define OUTSET_REG(port) (0x18 + (port * 0x80))
+
 /* Input register - bit N is the sampled input value for pin N */
 #define IN_REG(port) (0x20 + (port * 0x80))
 
@@ -207,10 +211,8 @@ whal_Error whal_Pic32cz_Gpio_Set(whal_Gpio *gpioDev, size_t pin, size_t value)
     pinCfg = &cfg->pinCfg[pin];
     pinMask = (1UL << (pinCfg->pin));
 
-    /* Update the output register to drive the new value */
-    whal_Reg_Update(base, OUT_REG(pinCfg->port),
-                    pinMask,
-                    whal_SetBits(pinMask, pinCfg->pin, value));
+    whal_Reg_Write(base, value ? OUTSET_REG(pinCfg->port) :
+                                 OUTCLR_REG(pinCfg->port), pinMask);
 
     return WHAL_SUCCESS;
 }

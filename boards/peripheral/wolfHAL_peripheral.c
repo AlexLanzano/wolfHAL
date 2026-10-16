@@ -53,6 +53,7 @@ whal_PeripheralFlash_Cfg g_peripheralFlash[] = {
         .name = "spi_nor_w25q64",
         .dev = &g_whalSpiNorW25q64,
         .sectorSz = 4096,
+        .pageSz = 256,
     },
 #endif
     {0}, /* sentinel */

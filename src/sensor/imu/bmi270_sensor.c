@@ -55,7 +55,7 @@
 #define BMI270_GYR_RANGE_2000DPS    0x08  /* +/- 2000 deg/s */
 
 /* Number of raw data bytes: accel (6) + gyro (6) */
-#define BMI270_DATA_LEN  12
+#define BMI270_DATA_LEN  WHAL_BMI270_RAW_LEN
 
 #ifdef WHAL_CFG_BMI270_SENSOR_DIRECT_API_MAPPING
 #define whal_Bmi270_Init   whal_Sensor_Init
@@ -67,10 +67,21 @@
 const whal_Sensor whal_Bmi270_Dev = WHAL_CFG_BMI270_DEV;
 #endif
 
+void whal_Bmi270_Decode(const uint8_t *raw, whal_Bmi270_Data *out)
+{
+    out->accelX = (int16_t)(raw[0]  | (raw[1]  << 8));
+    out->accelY = (int16_t)(raw[2]  | (raw[3]  << 8));
+    out->accelZ = (int16_t)(raw[4]  | (raw[5]  << 8));
+    out->gyroX  = (int16_t)(raw[6]  | (raw[7]  << 8));
+    out->gyroY  = (int16_t)(raw[8]  | (raw[9]  << 8));
+    out->gyroZ  = (int16_t)(raw[10] | (raw[11] << 8));
+}
+
 whal_Error whal_Bmi270_Init(whal_Sensor *dev)
 {
     whal_Bmi270_Cfg *cfg;
     whal_Error err;
+    whal_Error endErr;
     uint8_t val;
 
 #ifdef WHAL_CFG_BMI270_SINGLE_INSTANCE
@@ -185,7 +196,9 @@ whal_Error whal_Bmi270_Init(whal_Sensor *dev)
     cfg->DelayMs(100);
 
 cleanup:
-    whal_I2c_EndCom(cfg->i2c);
+    endErr = whal_I2c_EndCom(cfg->i2c);
+    if (endErr && !err)
+        err = endErr;
     return err;
 }
 
@@ -193,6 +206,7 @@ whal_Error whal_Bmi270_Deinit(whal_Sensor *dev)
 {
     whal_Bmi270_Cfg *cfg;
     whal_Error err;
+    whal_Error endErr;
     uint8_t val = BMI270_CMD_SOFT_RESET;
 
 #ifdef WHAL_CFG_BMI270_SINGLE_INSTANCE
@@ -211,7 +225,9 @@ whal_Error whal_Bmi270_Deinit(whal_Sensor *dev)
         return err;
 
     err = whal_I2c_WriteReg(cfg->i2c, BMI270_REG_CMD, &val, 1);
-    whal_I2c_EndCom(cfg->i2c);
+    endErr = whal_I2c_EndCom(cfg->i2c);
+    if (endErr && !err)
+        err = endErr;
 
     return err;
 }
@@ -222,6 +238,7 @@ whal_Error whal_Bmi270_Read(whal_Sensor *dev, void *data)
     whal_Bmi270_Data *out;
     uint8_t raw[BMI270_DATA_LEN];
     whal_Error err;
+    whal_Error endErr;
 
 #ifdef WHAL_CFG_BMI270_SINGLE_INSTANCE
     cfg = (whal_Bmi270_Cfg *)whal_Bmi270_Dev.cfg;
@@ -247,18 +264,14 @@ whal_Error whal_Bmi270_Read(whal_Sensor *dev, void *data)
     err = whal_I2c_ReadReg(cfg->i2c, BMI270_REG_DATA_ACC_X_LSB,
                             raw, BMI270_DATA_LEN);
 
-    whal_I2c_EndCom(cfg->i2c);
+    endErr = whal_I2c_EndCom(cfg->i2c);
+    if (endErr && !err)
+        err = endErr;
 
     if (err)
         return err;
 
-    /* Parse little-endian 16-bit values */
-    out->accelX = (int16_t)(raw[0]  | (raw[1]  << 8));
-    out->accelY = (int16_t)(raw[2]  | (raw[3]  << 8));
-    out->accelZ = (int16_t)(raw[4]  | (raw[5]  << 8));
-    out->gyroX  = (int16_t)(raw[6]  | (raw[7]  << 8));
-    out->gyroY  = (int16_t)(raw[8]  | (raw[9]  << 8));
-    out->gyroZ  = (int16_t)(raw[10] | (raw[11] << 8));
+    whal_Bmi270_Decode(raw, out);
 
     return WHAL_SUCCESS;
 }

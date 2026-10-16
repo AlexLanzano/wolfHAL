@@ -48,6 +48,21 @@
 #define UART_BRR_Msk (WHAL_BITMASK(20) << UART_BRR_Pos)
 
 #define UART_ISR_REG 0x1C
+#define UART_ISR_PE_Pos 0
+#define UART_ISR_PE_Msk (1UL << UART_ISR_PE_Pos)
+
+#define UART_ISR_FE_Pos 1
+#define UART_ISR_FE_Msk (1UL << UART_ISR_FE_Pos)
+
+#define UART_ISR_NE_Pos 2
+#define UART_ISR_NE_Msk (1UL << UART_ISR_NE_Pos)
+
+#define UART_ISR_ORE_Pos 3
+#define UART_ISR_ORE_Msk (1UL << UART_ISR_ORE_Pos)
+
+#define UART_ISR_ERR_Msk (UART_ISR_PE_Msk | UART_ISR_FE_Msk | \
+                          UART_ISR_NE_Msk | UART_ISR_ORE_Msk)
+
 #define UART_ISR_RXFNE_Pos 5
 #define UART_ISR_RXFNE_Msk (1UL << UART_ISR_RXFNE_Pos)
 
@@ -56,6 +71,9 @@
 
 #define UART_ISR_TXE_Pos 7
 #define UART_ISR_TXE_Msk (1UL << UART_ISR_TXE_Pos)
+
+/* ICR clear bits share the ISR error bit positions */
+#define UART_ICR_REG 0x20
 
 #define UART_RDR_REG 0x24
 #define UART_RDR_Pos 0
@@ -139,6 +157,10 @@ whal_Error whal_Stm32wb_Uart_Deinit(whal_Uart *uartDev)
                     whal_SetBits(UART_CR1_RE_Msk, UART_CR1_RE_Pos, 0) |
                     whal_SetBits(UART_CR1_TE_Msk, UART_CR1_TE_Pos, 0));
 
+    /* FIFOEN is only writable while UE is 0 */
+    whal_Reg_Update(base, UART_CR1_REG, UART_CR1_FIFOEN_Msk,
+                    whal_SetBits(UART_CR1_FIFOEN_Msk, UART_CR1_FIFOEN_Pos, 0));
+
     whal_Reg_Update(base, UART_BRR_REG,
                           UART_BRR_Msk,
                           whal_SetBits(UART_BRR_Msk, UART_BRR_Pos, 0));
@@ -208,6 +230,7 @@ whal_Error whal_Stm32wb_Uart_Recv(whal_Uart *uartDev, void *data, size_t dataSz)
     cfg = (whal_Stm32wb_Uart_Cfg *)uartDev->cfg;
 #endif
     size_t d;
+    size_t isr;
 
     for (size_t i = 0; i < dataSz; ++i) {
         whal_Error err = whal_Reg_ReadPoll(base, UART_ISR_REG,
@@ -216,10 +239,17 @@ whal_Error whal_Stm32wb_Uart_Recv(whal_Uart *uartDev, void *data, size_t dataSz)
         if (err)
             return err;
 
+        isr = whal_Reg_Read(base, UART_ISR_REG);
+
         whal_Reg_Get(base, UART_RDR_REG,
                      UART_RDR_Msk, UART_RDR_Pos, &d);
 
         buf[i] = d;
+
+        if (isr & UART_ISR_ERR_Msk) {
+            whal_Reg_Write(base, UART_ICR_REG, isr & UART_ISR_ERR_Msk);
+            return WHAL_EHARDWARE;
+        }
     }
 
     return WHAL_SUCCESS;

@@ -188,7 +188,7 @@ whal_Error whal_SdhcSpi_Init(whal_Block *blockDev)
     cfg = (whal_SdhcSpi_Cfg *)blockDev->cfg;
 #endif
 
-    if (!cfg->spiDev || !cfg->spiComCfg || !cfg->gpioDev)
+    if (!cfg->spiComCfg)
         return WHAL_EINVAL;
 
     slow = *cfg->spiComCfg;

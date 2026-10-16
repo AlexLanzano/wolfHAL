@@ -383,14 +383,28 @@ static void Test_Pwm_BadWave(void)
     WHAL_ASSERT_EQ(whal_Pwm_Start(&dev, 0, NULL), WHAL_EINVAL);
     WHAL_ASSERT_EQ(whal_Pwm_Start(&dev, 0, &cfg), WHAL_EINVAL);
     WHAL_ASSERT_EQ(whal_Pwm_Start(&dev, 0, &zero), WHAL_EINVAL);
+    cfg.pulseCycles = 50;
+    cfg.polarity = WHAL_PWM_POLARITY_INVERTED + 1;
+    WHAL_ASSERT_EQ(whal_Pwm_Start(&dev, 0, &cfg), WHAL_EINVAL);
 }
 
 static void Test_Pwm_ValidDispatch(void)
 {
     whal_Pwm dev = { .driver = &mockPwmDriver };
     whal_Pwm_ChannelCfg cfg = { .periodCycles = 100, .pulseCycles = 50 };
+    whal_Pwm_ChannelCfg full = { .periodCycles = 100, .pulseCycles = 100 };
+    whal_Pwm_ChannelCfg inverted = {
+        .periodCycles = 100,
+        .pulseCycles = 50,
+        .polarity = WHAL_PWM_POLARITY_INVERTED,
+    };
     WHAL_ASSERT_EQ(whal_Pwm_Init(&dev), WHAL_SUCCESS);
     WHAL_ASSERT_EQ(whal_Pwm_Start(&dev, 0, &cfg), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Pwm_Stop(&dev, 0), WHAL_SUCCESS);
+    /* 100% duty (pulse == period) passes the dispatch check */
+    WHAL_ASSERT_EQ(whal_Pwm_Start(&dev, 0, &full), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Pwm_Stop(&dev, 0), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Pwm_Start(&dev, 0, &inverted), WHAL_SUCCESS);
     WHAL_ASSERT_EQ(whal_Pwm_Stop(&dev, 0), WHAL_SUCCESS);
     WHAL_ASSERT_EQ(whal_Pwm_Deinit(&dev), WHAL_SUCCESS);
 }
@@ -440,6 +454,550 @@ static void Test_Display_ValidDispatch(void)
     WHAL_ASSERT_EQ(whal_Display_Deinit(&dev), WHAL_SUCCESS);
 }
 
+/* --- Crypto dispatch tests --- */
+
+static uint8_t cIn[16];
+static uint8_t cOut[32];
+static uint8_t cTag[16];
+
+static whal_Error MockCryptoInit(whal_Crypto *d) { (void)d; return WHAL_SUCCESS; }
+static whal_Error MockCryptoDeinit(whal_Crypto *d) { (void)d; return WHAL_SUCCESS; }
+
+static const whal_CryptoDriver mockCryptoDriver = {
+    .Init = MockCryptoInit,
+    .Deinit = MockCryptoDeinit,
+};
+
+static void Test_Crypto_NullDev(void)
+{
+    WHAL_ASSERT_EQ(whal_Crypto_Init(NULL), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Crypto_Deinit(NULL), WHAL_EINVAL);
+}
+
+static void Test_Crypto_NullDriver(void)
+{
+    whal_Crypto dev = { .driver = NULL };
+    WHAL_ASSERT_EQ(whal_Crypto_Init(&dev), WHAL_ENOTSUP);
+    WHAL_ASSERT_EQ(whal_Crypto_Deinit(&dev), WHAL_ENOTSUP);
+}
+
+static void Test_Crypto_ValidDispatch(void)
+{
+    whal_Crypto dev = { .driver = &mockCryptoDriver };
+    WHAL_ASSERT_EQ(whal_Crypto_Init(&dev), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Crypto_Deinit(&dev), WHAL_SUCCESS);
+}
+
+static whal_Error MockAesEcbOneshot(whal_AesEcb *d, whal_Crypto_Dir dir, const void *k, size_t kSz, const void *in, void *out, size_t sz) { (void)d; (void)dir; (void)k; (void)kSz; (void)in; (void)out; (void)sz; return WHAL_SUCCESS; }
+static whal_Error MockAesEcbStart(whal_AesEcb *d, whal_Crypto_Dir dir, const void *k, size_t kSz) { (void)d; (void)dir; (void)k; (void)kSz; return WHAL_SUCCESS; }
+static whal_Error MockAesEcbProcess(whal_AesEcb *d, const void *in, void *out, size_t sz) { (void)d; (void)in; (void)out; (void)sz; return WHAL_SUCCESS; }
+static whal_Error MockAesEcbStop(whal_AesEcb *d) { (void)d; return WHAL_SUCCESS; }
+
+static const whal_AesEcbDriver mockAesEcbDriver = {
+    .Oneshot = MockAesEcbOneshot,
+    .Start = MockAesEcbStart,
+    .Process = MockAesEcbProcess,
+    .Stop = MockAesEcbStop,
+};
+
+static const whal_AesEcbDriver mockAesEcbDriverNoStop = {
+    .Oneshot = MockAesEcbOneshot,
+    .Start = MockAesEcbStart,
+    .Process = MockAesEcbProcess,
+};
+
+static void Test_AesEcb_NullDev(void)
+{
+    WHAL_ASSERT_EQ(whal_AesEcb_Oneshot(NULL, WHAL_CRYPTO_ENCRYPT, cIn, 16, cIn, cOut, 16), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_AesEcb_Start(NULL, WHAL_CRYPTO_ENCRYPT, cIn, 16), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_AesEcb_Process(NULL, cIn, cOut, 16), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_AesEcb_Stop(NULL), WHAL_EINVAL);
+}
+
+static void Test_AesEcb_NullDriver(void)
+{
+    whal_AesEcb dev = { .driver = NULL };
+    WHAL_ASSERT_EQ(whal_AesEcb_Oneshot(&dev, WHAL_CRYPTO_ENCRYPT, cIn, 16, cIn, cOut, 16), WHAL_ENOTSUP);
+    WHAL_ASSERT_EQ(whal_AesEcb_Start(&dev, WHAL_CRYPTO_ENCRYPT, cIn, 16), WHAL_ENOTSUP);
+    WHAL_ASSERT_EQ(whal_AesEcb_Process(&dev, cIn, cOut, 16), WHAL_ENOTSUP);
+    WHAL_ASSERT_EQ(whal_AesEcb_Stop(&dev), WHAL_ENOTSUP);
+}
+
+static void Test_AesEcb_NoStop(void)
+{
+    whal_AesEcb dev = { .driver = &mockAesEcbDriverNoStop };
+    WHAL_ASSERT_EQ(whal_AesEcb_Stop(&dev), WHAL_ENOTSUP);
+}
+
+static void Test_AesEcb_ValidDispatch(void)
+{
+    whal_AesEcb dev = { .driver = &mockAesEcbDriver };
+    WHAL_ASSERT_EQ(whal_AesEcb_Oneshot(&dev, WHAL_CRYPTO_ENCRYPT, cIn, 16, cIn, cOut, 16), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_AesEcb_Start(&dev, WHAL_CRYPTO_ENCRYPT, cIn, 16), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_AesEcb_Process(&dev, cIn, cOut, 16), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_AesEcb_Stop(&dev), WHAL_SUCCESS);
+}
+
+static whal_Error MockAesCbcOneshot(whal_AesCbc *d, whal_Crypto_Dir dir, const void *k, size_t kSz, const void *iv, const void *in, void *out, size_t sz) { (void)d; (void)dir; (void)k; (void)kSz; (void)iv; (void)in; (void)out; (void)sz; return WHAL_SUCCESS; }
+static whal_Error MockAesCbcStart(whal_AesCbc *d, whal_Crypto_Dir dir, const void *k, size_t kSz, const void *iv) { (void)d; (void)dir; (void)k; (void)kSz; (void)iv; return WHAL_SUCCESS; }
+static whal_Error MockAesCbcProcess(whal_AesCbc *d, const void *in, void *out, size_t sz) { (void)d; (void)in; (void)out; (void)sz; return WHAL_SUCCESS; }
+static whal_Error MockAesCbcStop(whal_AesCbc *d) { (void)d; return WHAL_SUCCESS; }
+
+static const whal_AesCbcDriver mockAesCbcDriver = {
+    .Oneshot = MockAesCbcOneshot,
+    .Start = MockAesCbcStart,
+    .Process = MockAesCbcProcess,
+    .Stop = MockAesCbcStop,
+};
+
+static const whal_AesCbcDriver mockAesCbcDriverNoStop = {
+    .Oneshot = MockAesCbcOneshot,
+    .Start = MockAesCbcStart,
+    .Process = MockAesCbcProcess,
+};
+
+static void Test_AesCbc_NullDev(void)
+{
+    WHAL_ASSERT_EQ(whal_AesCbc_Oneshot(NULL, WHAL_CRYPTO_ENCRYPT, cIn, 16, cIn, cIn, cOut, 16), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_AesCbc_Start(NULL, WHAL_CRYPTO_ENCRYPT, cIn, 16, cIn), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_AesCbc_Process(NULL, cIn, cOut, 16), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_AesCbc_Stop(NULL), WHAL_EINVAL);
+}
+
+static void Test_AesCbc_NullDriver(void)
+{
+    whal_AesCbc dev = { .driver = NULL };
+    WHAL_ASSERT_EQ(whal_AesCbc_Oneshot(&dev, WHAL_CRYPTO_ENCRYPT, cIn, 16, cIn, cIn, cOut, 16), WHAL_ENOTSUP);
+    WHAL_ASSERT_EQ(whal_AesCbc_Start(&dev, WHAL_CRYPTO_ENCRYPT, cIn, 16, cIn), WHAL_ENOTSUP);
+    WHAL_ASSERT_EQ(whal_AesCbc_Process(&dev, cIn, cOut, 16), WHAL_ENOTSUP);
+    WHAL_ASSERT_EQ(whal_AesCbc_Stop(&dev), WHAL_ENOTSUP);
+}
+
+static void Test_AesCbc_NoStop(void)
+{
+    whal_AesCbc dev = { .driver = &mockAesCbcDriverNoStop };
+    WHAL_ASSERT_EQ(whal_AesCbc_Stop(&dev), WHAL_ENOTSUP);
+}
+
+static void Test_AesCbc_ValidDispatch(void)
+{
+    whal_AesCbc dev = { .driver = &mockAesCbcDriver };
+    WHAL_ASSERT_EQ(whal_AesCbc_Oneshot(&dev, WHAL_CRYPTO_ENCRYPT, cIn, 16, cIn, cIn, cOut, 16), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_AesCbc_Start(&dev, WHAL_CRYPTO_ENCRYPT, cIn, 16, cIn), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_AesCbc_Process(&dev, cIn, cOut, 16), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_AesCbc_Stop(&dev), WHAL_SUCCESS);
+}
+
+static whal_Error MockAesCtrOneshot(whal_AesCtr *d, whal_Crypto_Dir dir, const void *k, size_t kSz, const void *iv, const void *in, void *out, size_t sz) { (void)d; (void)dir; (void)k; (void)kSz; (void)iv; (void)in; (void)out; (void)sz; return WHAL_SUCCESS; }
+static whal_Error MockAesCtrStart(whal_AesCtr *d, whal_Crypto_Dir dir, const void *k, size_t kSz, const void *iv) { (void)d; (void)dir; (void)k; (void)kSz; (void)iv; return WHAL_SUCCESS; }
+static whal_Error MockAesCtrProcess(whal_AesCtr *d, const void *in, void *out, size_t sz) { (void)d; (void)in; (void)out; (void)sz; return WHAL_SUCCESS; }
+static whal_Error MockAesCtrStop(whal_AesCtr *d) { (void)d; return WHAL_SUCCESS; }
+
+static const whal_AesCtrDriver mockAesCtrDriver = {
+    .Oneshot = MockAesCtrOneshot,
+    .Start = MockAesCtrStart,
+    .Process = MockAesCtrProcess,
+    .Stop = MockAesCtrStop,
+};
+
+static const whal_AesCtrDriver mockAesCtrDriverNoStop = {
+    .Oneshot = MockAesCtrOneshot,
+    .Start = MockAesCtrStart,
+    .Process = MockAesCtrProcess,
+};
+
+static void Test_AesCtr_NullDev(void)
+{
+    WHAL_ASSERT_EQ(whal_AesCtr_Oneshot(NULL, WHAL_CRYPTO_ENCRYPT, cIn, 16, cIn, cIn, cOut, 16), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_AesCtr_Start(NULL, WHAL_CRYPTO_ENCRYPT, cIn, 16, cIn), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_AesCtr_Process(NULL, cIn, cOut, 16), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_AesCtr_Stop(NULL), WHAL_EINVAL);
+}
+
+static void Test_AesCtr_NullDriver(void)
+{
+    whal_AesCtr dev = { .driver = NULL };
+    WHAL_ASSERT_EQ(whal_AesCtr_Oneshot(&dev, WHAL_CRYPTO_ENCRYPT, cIn, 16, cIn, cIn, cOut, 16), WHAL_ENOTSUP);
+    WHAL_ASSERT_EQ(whal_AesCtr_Start(&dev, WHAL_CRYPTO_ENCRYPT, cIn, 16, cIn), WHAL_ENOTSUP);
+    WHAL_ASSERT_EQ(whal_AesCtr_Process(&dev, cIn, cOut, 16), WHAL_ENOTSUP);
+    WHAL_ASSERT_EQ(whal_AesCtr_Stop(&dev), WHAL_ENOTSUP);
+}
+
+static void Test_AesCtr_NoStop(void)
+{
+    whal_AesCtr dev = { .driver = &mockAesCtrDriverNoStop };
+    WHAL_ASSERT_EQ(whal_AesCtr_Stop(&dev), WHAL_ENOTSUP);
+}
+
+static void Test_AesCtr_ValidDispatch(void)
+{
+    whal_AesCtr dev = { .driver = &mockAesCtrDriver };
+    WHAL_ASSERT_EQ(whal_AesCtr_Oneshot(&dev, WHAL_CRYPTO_ENCRYPT, cIn, 16, cIn, cIn, cOut, 16), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_AesCtr_Start(&dev, WHAL_CRYPTO_ENCRYPT, cIn, 16, cIn), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_AesCtr_Process(&dev, cIn, cOut, 16), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_AesCtr_Stop(&dev), WHAL_SUCCESS);
+}
+
+static whal_Error MockAesGcmOneshot(whal_AesGcm *d, whal_Crypto_Dir dir, const void *k, size_t kSz, const void *iv, size_t ivSz, const void *aad, size_t aadSz, const void *in, void *out, size_t sz, void *tag, size_t tagSz) { (void)d; (void)dir; (void)k; (void)kSz; (void)iv; (void)ivSz; (void)aad; (void)aadSz; (void)in; (void)out; (void)sz; (void)tag; (void)tagSz; return WHAL_SUCCESS; }
+static whal_Error MockAesGcmStart(whal_AesGcm *d, whal_Crypto_Dir dir, const void *k, size_t kSz, const void *iv, size_t ivSz, const void *aad, size_t aadSz) { (void)d; (void)dir; (void)k; (void)kSz; (void)iv; (void)ivSz; (void)aad; (void)aadSz; return WHAL_SUCCESS; }
+static whal_Error MockAesGcmProcess(whal_AesGcm *d, const void *in, void *out, size_t sz) { (void)d; (void)in; (void)out; (void)sz; return WHAL_SUCCESS; }
+static whal_Error MockAesGcmFinalize(whal_AesGcm *d, void *tag, size_t tagSz) { (void)d; (void)tag; (void)tagSz; return WHAL_SUCCESS; }
+
+static const whal_AesGcmDriver mockAesGcmDriver = {
+    .Oneshot = MockAesGcmOneshot,
+    .Start = MockAesGcmStart,
+    .Process = MockAesGcmProcess,
+    .Finalize = MockAesGcmFinalize,
+};
+
+static const whal_AesGcmDriver mockAesGcmDriverNoFinalize = {
+    .Oneshot = MockAesGcmOneshot,
+    .Start = MockAesGcmStart,
+    .Process = MockAesGcmProcess,
+};
+
+static void Test_AesGcm_NullDev(void)
+{
+    WHAL_ASSERT_EQ(whal_AesGcm_Oneshot(NULL, WHAL_CRYPTO_ENCRYPT, cIn, 16, cIn, 12, cIn, 16, cIn, cOut, 16, cTag, 16), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_AesGcm_Start(NULL, WHAL_CRYPTO_ENCRYPT, cIn, 16, cIn, 12, cIn, 16), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_AesGcm_Process(NULL, cIn, cOut, 16), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_AesGcm_Finalize(NULL, cTag, 16), WHAL_EINVAL);
+}
+
+static void Test_AesGcm_NullDriver(void)
+{
+    whal_AesGcm dev = { .driver = NULL };
+    WHAL_ASSERT_EQ(whal_AesGcm_Oneshot(&dev, WHAL_CRYPTO_ENCRYPT, cIn, 16, cIn, 12, cIn, 16, cIn, cOut, 16, cTag, 16), WHAL_ENOTSUP);
+    WHAL_ASSERT_EQ(whal_AesGcm_Start(&dev, WHAL_CRYPTO_ENCRYPT, cIn, 16, cIn, 12, cIn, 16), WHAL_ENOTSUP);
+    WHAL_ASSERT_EQ(whal_AesGcm_Process(&dev, cIn, cOut, 16), WHAL_ENOTSUP);
+    WHAL_ASSERT_EQ(whal_AesGcm_Finalize(&dev, cTag, 16), WHAL_ENOTSUP);
+}
+
+static void Test_AesGcm_NoFinalize(void)
+{
+    whal_AesGcm dev = { .driver = &mockAesGcmDriverNoFinalize };
+    WHAL_ASSERT_EQ(whal_AesGcm_Finalize(&dev, cTag, 16), WHAL_ENOTSUP);
+}
+
+static void Test_AesGcm_ValidDispatch(void)
+{
+    whal_AesGcm dev = { .driver = &mockAesGcmDriver };
+    WHAL_ASSERT_EQ(whal_AesGcm_Oneshot(&dev, WHAL_CRYPTO_ENCRYPT, cIn, 16, cIn, 12, cIn, 16, cIn, cOut, 16, cTag, 16), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_AesGcm_Start(&dev, WHAL_CRYPTO_ENCRYPT, cIn, 16, cIn, 12, cIn, 16), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_AesGcm_Process(&dev, cIn, cOut, 16), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_AesGcm_Finalize(&dev, cTag, 16), WHAL_SUCCESS);
+}
+
+static whal_Error MockAesGmacOneshot(whal_AesGmac *d, const void *k, size_t kSz, const void *iv, size_t ivSz, const void *aad, size_t aadSz, void *tag, size_t tagSz) { (void)d; (void)k; (void)kSz; (void)iv; (void)ivSz; (void)aad; (void)aadSz; (void)tag; (void)tagSz; return WHAL_SUCCESS; }
+
+static const whal_AesGmacDriver mockAesGmacDriver = {
+    .Oneshot = MockAesGmacOneshot,
+};
+
+static const whal_AesGmacDriver mockAesGmacDriverNoOneshot = {
+};
+
+static void Test_AesGmac_NullDev(void)
+{
+    WHAL_ASSERT_EQ(whal_AesGmac_Oneshot(NULL, cIn, 16, cIn, 12, cIn, 16, cTag, 16), WHAL_EINVAL);
+}
+
+static void Test_AesGmac_NullDriver(void)
+{
+    whal_AesGmac dev = { .driver = NULL };
+    WHAL_ASSERT_EQ(whal_AesGmac_Oneshot(&dev, cIn, 16, cIn, 12, cIn, 16, cTag, 16), WHAL_ENOTSUP);
+}
+
+static void Test_AesGmac_NoOneshot(void)
+{
+    whal_AesGmac dev = { .driver = &mockAesGmacDriverNoOneshot };
+    WHAL_ASSERT_EQ(whal_AesGmac_Oneshot(&dev, cIn, 16, cIn, 12, cIn, 16, cTag, 16), WHAL_ENOTSUP);
+}
+
+static void Test_AesGmac_ValidDispatch(void)
+{
+    whal_AesGmac dev = { .driver = &mockAesGmacDriver };
+    WHAL_ASSERT_EQ(whal_AesGmac_Oneshot(&dev, cIn, 16, cIn, 12, cIn, 16, cTag, 16), WHAL_SUCCESS);
+}
+
+static whal_Error MockAesCcmOneshot(whal_AesCcm *d, whal_Crypto_Dir dir, const void *k, size_t kSz, const void *n, size_t nSz, const void *aad, size_t aadSz, const void *in, void *out, size_t sz, void *tag, size_t tagSz) { (void)d; (void)dir; (void)k; (void)kSz; (void)n; (void)nSz; (void)aad; (void)aadSz; (void)in; (void)out; (void)sz; (void)tag; (void)tagSz; return WHAL_SUCCESS; }
+static whal_Error MockAesCcmStart(whal_AesCcm *d, whal_Crypto_Dir dir, const void *k, size_t kSz, const void *n, size_t nSz, const void *aad, size_t aadSz, size_t tagSz, size_t sz) { (void)d; (void)dir; (void)k; (void)kSz; (void)n; (void)nSz; (void)aad; (void)aadSz; (void)tagSz; (void)sz; return WHAL_SUCCESS; }
+static whal_Error MockAesCcmProcess(whal_AesCcm *d, const void *in, void *out, size_t sz) { (void)d; (void)in; (void)out; (void)sz; return WHAL_SUCCESS; }
+static whal_Error MockAesCcmFinalize(whal_AesCcm *d, void *tag, size_t tagSz) { (void)d; (void)tag; (void)tagSz; return WHAL_SUCCESS; }
+
+static const whal_AesCcmDriver mockAesCcmDriver = {
+    .Oneshot = MockAesCcmOneshot,
+    .Start = MockAesCcmStart,
+    .Process = MockAesCcmProcess,
+    .Finalize = MockAesCcmFinalize,
+};
+
+static const whal_AesCcmDriver mockAesCcmDriverNoFinalize = {
+    .Oneshot = MockAesCcmOneshot,
+    .Start = MockAesCcmStart,
+    .Process = MockAesCcmProcess,
+};
+
+static void Test_AesCcm_NullDev(void)
+{
+    WHAL_ASSERT_EQ(whal_AesCcm_Oneshot(NULL, WHAL_CRYPTO_ENCRYPT, cIn, 16, cIn, 13, cIn, 16, cIn, cOut, 16, cTag, 16), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_AesCcm_Start(NULL, WHAL_CRYPTO_ENCRYPT, cIn, 16, cIn, 13, cIn, 16, 16, 16), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_AesCcm_Process(NULL, cIn, cOut, 16), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_AesCcm_Finalize(NULL, cTag, 16), WHAL_EINVAL);
+}
+
+static void Test_AesCcm_NullDriver(void)
+{
+    whal_AesCcm dev = { .driver = NULL };
+    WHAL_ASSERT_EQ(whal_AesCcm_Oneshot(&dev, WHAL_CRYPTO_ENCRYPT, cIn, 16, cIn, 13, cIn, 16, cIn, cOut, 16, cTag, 16), WHAL_ENOTSUP);
+    WHAL_ASSERT_EQ(whal_AesCcm_Start(&dev, WHAL_CRYPTO_ENCRYPT, cIn, 16, cIn, 13, cIn, 16, 16, 16), WHAL_ENOTSUP);
+    WHAL_ASSERT_EQ(whal_AesCcm_Process(&dev, cIn, cOut, 16), WHAL_ENOTSUP);
+    WHAL_ASSERT_EQ(whal_AesCcm_Finalize(&dev, cTag, 16), WHAL_ENOTSUP);
+}
+
+static void Test_AesCcm_NoFinalize(void)
+{
+    whal_AesCcm dev = { .driver = &mockAesCcmDriverNoFinalize };
+    WHAL_ASSERT_EQ(whal_AesCcm_Finalize(&dev, cTag, 16), WHAL_ENOTSUP);
+}
+
+static void Test_AesCcm_ValidDispatch(void)
+{
+    whal_AesCcm dev = { .driver = &mockAesCcmDriver };
+    WHAL_ASSERT_EQ(whal_AesCcm_Oneshot(&dev, WHAL_CRYPTO_ENCRYPT, cIn, 16, cIn, 13, cIn, 16, cIn, cOut, 16, cTag, 16), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_AesCcm_Start(&dev, WHAL_CRYPTO_ENCRYPT, cIn, 16, cIn, 13, cIn, 16, 16, 16), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_AesCcm_Process(&dev, cIn, cOut, 16), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_AesCcm_Finalize(&dev, cTag, 16), WHAL_SUCCESS);
+}
+
+static whal_Error MockSha1Oneshot(whal_Sha1 *d, const void *in, size_t inSz, void *dig, size_t digSz) { (void)d; (void)in; (void)inSz; (void)dig; (void)digSz; return WHAL_SUCCESS; }
+static whal_Error MockSha1Start(whal_Sha1 *d) { (void)d; return WHAL_SUCCESS; }
+static whal_Error MockSha1Process(whal_Sha1 *d, const void *in, size_t inSz) { (void)d; (void)in; (void)inSz; return WHAL_SUCCESS; }
+static whal_Error MockSha1Finalize(whal_Sha1 *d, void *dig, size_t digSz) { (void)d; (void)dig; (void)digSz; return WHAL_SUCCESS; }
+
+static const whal_Sha1Driver mockSha1Driver = {
+    .Oneshot = MockSha1Oneshot,
+    .Start = MockSha1Start,
+    .Process = MockSha1Process,
+    .Finalize = MockSha1Finalize,
+};
+
+static void Test_Sha1_NullDev(void)
+{
+    WHAL_ASSERT_EQ(whal_Sha1_Oneshot(NULL, cIn, 16, cOut, 32), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Sha1_Start(NULL), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Sha1_Process(NULL, cIn, 16), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Sha1_Finalize(NULL, cOut, 32), WHAL_EINVAL);
+}
+
+static void Test_Sha1_NullDriver(void)
+{
+    whal_Sha1 dev = { .driver = NULL };
+    WHAL_ASSERT_EQ(whal_Sha1_Oneshot(&dev, cIn, 16, cOut, 32), WHAL_ENOTSUP);
+    WHAL_ASSERT_EQ(whal_Sha1_Start(&dev), WHAL_ENOTSUP);
+    WHAL_ASSERT_EQ(whal_Sha1_Process(&dev, cIn, 16), WHAL_ENOTSUP);
+    WHAL_ASSERT_EQ(whal_Sha1_Finalize(&dev, cOut, 32), WHAL_ENOTSUP);
+}
+
+static void Test_Sha1_ValidDispatch(void)
+{
+    whal_Sha1 dev = { .driver = &mockSha1Driver };
+    WHAL_ASSERT_EQ(whal_Sha1_Oneshot(&dev, cIn, 16, cOut, 32), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Sha1_Start(&dev), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Sha1_Process(&dev, cIn, 16), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Sha1_Finalize(&dev, cOut, 32), WHAL_SUCCESS);
+}
+
+static whal_Error MockSha224Oneshot(whal_Sha224 *d, const void *in, size_t inSz, void *dig, size_t digSz) { (void)d; (void)in; (void)inSz; (void)dig; (void)digSz; return WHAL_SUCCESS; }
+static whal_Error MockSha224Start(whal_Sha224 *d) { (void)d; return WHAL_SUCCESS; }
+static whal_Error MockSha224Process(whal_Sha224 *d, const void *in, size_t inSz) { (void)d; (void)in; (void)inSz; return WHAL_SUCCESS; }
+static whal_Error MockSha224Finalize(whal_Sha224 *d, void *dig, size_t digSz) { (void)d; (void)dig; (void)digSz; return WHAL_SUCCESS; }
+
+static const whal_Sha224Driver mockSha224Driver = {
+    .Oneshot = MockSha224Oneshot,
+    .Start = MockSha224Start,
+    .Process = MockSha224Process,
+    .Finalize = MockSha224Finalize,
+};
+
+static void Test_Sha224_NullDev(void)
+{
+    WHAL_ASSERT_EQ(whal_Sha224_Oneshot(NULL, cIn, 16, cOut, 32), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Sha224_Start(NULL), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Sha224_Process(NULL, cIn, 16), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Sha224_Finalize(NULL, cOut, 32), WHAL_EINVAL);
+}
+
+static void Test_Sha224_NullDriver(void)
+{
+    whal_Sha224 dev = { .driver = NULL };
+    WHAL_ASSERT_EQ(whal_Sha224_Oneshot(&dev, cIn, 16, cOut, 32), WHAL_ENOTSUP);
+    WHAL_ASSERT_EQ(whal_Sha224_Start(&dev), WHAL_ENOTSUP);
+    WHAL_ASSERT_EQ(whal_Sha224_Process(&dev, cIn, 16), WHAL_ENOTSUP);
+    WHAL_ASSERT_EQ(whal_Sha224_Finalize(&dev, cOut, 32), WHAL_ENOTSUP);
+}
+
+static void Test_Sha224_ValidDispatch(void)
+{
+    whal_Sha224 dev = { .driver = &mockSha224Driver };
+    WHAL_ASSERT_EQ(whal_Sha224_Oneshot(&dev, cIn, 16, cOut, 32), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Sha224_Start(&dev), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Sha224_Process(&dev, cIn, 16), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Sha224_Finalize(&dev, cOut, 32), WHAL_SUCCESS);
+}
+
+static whal_Error MockSha256Oneshot(whal_Sha256 *d, const void *in, size_t inSz, void *dig, size_t digSz) { (void)d; (void)in; (void)inSz; (void)dig; (void)digSz; return WHAL_SUCCESS; }
+static whal_Error MockSha256Start(whal_Sha256 *d) { (void)d; return WHAL_SUCCESS; }
+static whal_Error MockSha256Process(whal_Sha256 *d, const void *in, size_t inSz) { (void)d; (void)in; (void)inSz; return WHAL_SUCCESS; }
+static whal_Error MockSha256Finalize(whal_Sha256 *d, void *dig, size_t digSz) { (void)d; (void)dig; (void)digSz; return WHAL_SUCCESS; }
+
+static const whal_Sha256Driver mockSha256Driver = {
+    .Oneshot = MockSha256Oneshot,
+    .Start = MockSha256Start,
+    .Process = MockSha256Process,
+    .Finalize = MockSha256Finalize,
+};
+
+static void Test_Sha256_NullDev(void)
+{
+    WHAL_ASSERT_EQ(whal_Sha256_Oneshot(NULL, cIn, 16, cOut, 32), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Sha256_Start(NULL), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Sha256_Process(NULL, cIn, 16), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_Sha256_Finalize(NULL, cOut, 32), WHAL_EINVAL);
+}
+
+static void Test_Sha256_NullDriver(void)
+{
+    whal_Sha256 dev = { .driver = NULL };
+    WHAL_ASSERT_EQ(whal_Sha256_Oneshot(&dev, cIn, 16, cOut, 32), WHAL_ENOTSUP);
+    WHAL_ASSERT_EQ(whal_Sha256_Start(&dev), WHAL_ENOTSUP);
+    WHAL_ASSERT_EQ(whal_Sha256_Process(&dev, cIn, 16), WHAL_ENOTSUP);
+    WHAL_ASSERT_EQ(whal_Sha256_Finalize(&dev, cOut, 32), WHAL_ENOTSUP);
+}
+
+static void Test_Sha256_ValidDispatch(void)
+{
+    whal_Sha256 dev = { .driver = &mockSha256Driver };
+    WHAL_ASSERT_EQ(whal_Sha256_Oneshot(&dev, cIn, 16, cOut, 32), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Sha256_Start(&dev), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Sha256_Process(&dev, cIn, 16), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Sha256_Finalize(&dev, cOut, 32), WHAL_SUCCESS);
+}
+
+static whal_Error MockHmacSha1Oneshot(whal_HmacSha1 *d, const void *k, size_t kSz, const void *in, size_t inSz, void *dig, size_t digSz) { (void)d; (void)k; (void)kSz; (void)in; (void)inSz; (void)dig; (void)digSz; return WHAL_SUCCESS; }
+static whal_Error MockHmacSha1Start(whal_HmacSha1 *d, const void *k, size_t kSz) { (void)d; (void)k; (void)kSz; return WHAL_SUCCESS; }
+static whal_Error MockHmacSha1Process(whal_HmacSha1 *d, const void *in, size_t inSz) { (void)d; (void)in; (void)inSz; return WHAL_SUCCESS; }
+static whal_Error MockHmacSha1Finalize(whal_HmacSha1 *d, void *dig, size_t digSz) { (void)d; (void)dig; (void)digSz; return WHAL_SUCCESS; }
+
+static const whal_HmacSha1Driver mockHmacSha1Driver = {
+    .Oneshot = MockHmacSha1Oneshot,
+    .Start = MockHmacSha1Start,
+    .Process = MockHmacSha1Process,
+    .Finalize = MockHmacSha1Finalize,
+};
+
+static void Test_HmacSha1_NullDev(void)
+{
+    WHAL_ASSERT_EQ(whal_HmacSha1_Oneshot(NULL, cIn, 16, cIn, 16, cOut, 32), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_HmacSha1_Start(NULL, cIn, 16), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_HmacSha1_Process(NULL, cIn, 16), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_HmacSha1_Finalize(NULL, cOut, 32), WHAL_EINVAL);
+}
+
+static void Test_HmacSha1_NullDriver(void)
+{
+    whal_HmacSha1 dev = { .driver = NULL };
+    WHAL_ASSERT_EQ(whal_HmacSha1_Oneshot(&dev, cIn, 16, cIn, 16, cOut, 32), WHAL_ENOTSUP);
+    WHAL_ASSERT_EQ(whal_HmacSha1_Start(&dev, cIn, 16), WHAL_ENOTSUP);
+    WHAL_ASSERT_EQ(whal_HmacSha1_Process(&dev, cIn, 16), WHAL_ENOTSUP);
+    WHAL_ASSERT_EQ(whal_HmacSha1_Finalize(&dev, cOut, 32), WHAL_ENOTSUP);
+}
+
+static void Test_HmacSha1_ValidDispatch(void)
+{
+    whal_HmacSha1 dev = { .driver = &mockHmacSha1Driver };
+    WHAL_ASSERT_EQ(whal_HmacSha1_Oneshot(&dev, cIn, 16, cIn, 16, cOut, 32), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_HmacSha1_Start(&dev, cIn, 16), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_HmacSha1_Process(&dev, cIn, 16), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_HmacSha1_Finalize(&dev, cOut, 32), WHAL_SUCCESS);
+}
+
+static whal_Error MockHmacSha224Oneshot(whal_HmacSha224 *d, const void *k, size_t kSz, const void *in, size_t inSz, void *dig, size_t digSz) { (void)d; (void)k; (void)kSz; (void)in; (void)inSz; (void)dig; (void)digSz; return WHAL_SUCCESS; }
+static whal_Error MockHmacSha224Start(whal_HmacSha224 *d, const void *k, size_t kSz) { (void)d; (void)k; (void)kSz; return WHAL_SUCCESS; }
+static whal_Error MockHmacSha224Process(whal_HmacSha224 *d, const void *in, size_t inSz) { (void)d; (void)in; (void)inSz; return WHAL_SUCCESS; }
+static whal_Error MockHmacSha224Finalize(whal_HmacSha224 *d, void *dig, size_t digSz) { (void)d; (void)dig; (void)digSz; return WHAL_SUCCESS; }
+
+static const whal_HmacSha224Driver mockHmacSha224Driver = {
+    .Oneshot = MockHmacSha224Oneshot,
+    .Start = MockHmacSha224Start,
+    .Process = MockHmacSha224Process,
+    .Finalize = MockHmacSha224Finalize,
+};
+
+static void Test_HmacSha224_NullDev(void)
+{
+    WHAL_ASSERT_EQ(whal_HmacSha224_Oneshot(NULL, cIn, 16, cIn, 16, cOut, 32), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_HmacSha224_Start(NULL, cIn, 16), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_HmacSha224_Process(NULL, cIn, 16), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_HmacSha224_Finalize(NULL, cOut, 32), WHAL_EINVAL);
+}
+
+static void Test_HmacSha224_NullDriver(void)
+{
+    whal_HmacSha224 dev = { .driver = NULL };
+    WHAL_ASSERT_EQ(whal_HmacSha224_Oneshot(&dev, cIn, 16, cIn, 16, cOut, 32), WHAL_ENOTSUP);
+    WHAL_ASSERT_EQ(whal_HmacSha224_Start(&dev, cIn, 16), WHAL_ENOTSUP);
+    WHAL_ASSERT_EQ(whal_HmacSha224_Process(&dev, cIn, 16), WHAL_ENOTSUP);
+    WHAL_ASSERT_EQ(whal_HmacSha224_Finalize(&dev, cOut, 32), WHAL_ENOTSUP);
+}
+
+static void Test_HmacSha224_ValidDispatch(void)
+{
+    whal_HmacSha224 dev = { .driver = &mockHmacSha224Driver };
+    WHAL_ASSERT_EQ(whal_HmacSha224_Oneshot(&dev, cIn, 16, cIn, 16, cOut, 32), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_HmacSha224_Start(&dev, cIn, 16), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_HmacSha224_Process(&dev, cIn, 16), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_HmacSha224_Finalize(&dev, cOut, 32), WHAL_SUCCESS);
+}
+
+static whal_Error MockHmacSha256Oneshot(whal_HmacSha256 *d, const void *k, size_t kSz, const void *in, size_t inSz, void *dig, size_t digSz) { (void)d; (void)k; (void)kSz; (void)in; (void)inSz; (void)dig; (void)digSz; return WHAL_SUCCESS; }
+static whal_Error MockHmacSha256Start(whal_HmacSha256 *d, const void *k, size_t kSz) { (void)d; (void)k; (void)kSz; return WHAL_SUCCESS; }
+static whal_Error MockHmacSha256Process(whal_HmacSha256 *d, const void *in, size_t inSz) { (void)d; (void)in; (void)inSz; return WHAL_SUCCESS; }
+static whal_Error MockHmacSha256Finalize(whal_HmacSha256 *d, void *dig, size_t digSz) { (void)d; (void)dig; (void)digSz; return WHAL_SUCCESS; }
+
+static const whal_HmacSha256Driver mockHmacSha256Driver = {
+    .Oneshot = MockHmacSha256Oneshot,
+    .Start = MockHmacSha256Start,
+    .Process = MockHmacSha256Process,
+    .Finalize = MockHmacSha256Finalize,
+};
+
+static void Test_HmacSha256_NullDev(void)
+{
+    WHAL_ASSERT_EQ(whal_HmacSha256_Oneshot(NULL, cIn, 16, cIn, 16, cOut, 32), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_HmacSha256_Start(NULL, cIn, 16), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_HmacSha256_Process(NULL, cIn, 16), WHAL_EINVAL);
+    WHAL_ASSERT_EQ(whal_HmacSha256_Finalize(NULL, cOut, 32), WHAL_EINVAL);
+}
+
+static void Test_HmacSha256_NullDriver(void)
+{
+    whal_HmacSha256 dev = { .driver = NULL };
+    WHAL_ASSERT_EQ(whal_HmacSha256_Oneshot(&dev, cIn, 16, cIn, 16, cOut, 32), WHAL_ENOTSUP);
+    WHAL_ASSERT_EQ(whal_HmacSha256_Start(&dev, cIn, 16), WHAL_ENOTSUP);
+    WHAL_ASSERT_EQ(whal_HmacSha256_Process(&dev, cIn, 16), WHAL_ENOTSUP);
+    WHAL_ASSERT_EQ(whal_HmacSha256_Finalize(&dev, cOut, 32), WHAL_ENOTSUP);
+}
+
+static void Test_HmacSha256_ValidDispatch(void)
+{
+    whal_HmacSha256 dev = { .driver = &mockHmacSha256Driver };
+    WHAL_ASSERT_EQ(whal_HmacSha256_Oneshot(&dev, cIn, 16, cIn, 16, cOut, 32), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_HmacSha256_Start(&dev, cIn, 16), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_HmacSha256_Process(&dev, cIn, 16), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_HmacSha256_Finalize(&dev, cOut, 32), WHAL_SUCCESS);
+}
+
 void whal_Test_Dispatch(void)
 {
     WHAL_TEST_SUITE_START("dispatch");
@@ -473,5 +1031,50 @@ void whal_Test_Dispatch(void)
     WHAL_TEST(Test_Display_NullDriver);
     WHAL_TEST(Test_Display_BadArgs);
     WHAL_TEST(Test_Display_ValidDispatch);
+    WHAL_TEST(Test_Crypto_NullDev);
+    WHAL_TEST(Test_Crypto_NullDriver);
+    WHAL_TEST(Test_Crypto_ValidDispatch);
+    WHAL_TEST(Test_AesEcb_NullDev);
+    WHAL_TEST(Test_AesEcb_NullDriver);
+    WHAL_TEST(Test_AesEcb_NoStop);
+    WHAL_TEST(Test_AesEcb_ValidDispatch);
+    WHAL_TEST(Test_AesCbc_NullDev);
+    WHAL_TEST(Test_AesCbc_NullDriver);
+    WHAL_TEST(Test_AesCbc_NoStop);
+    WHAL_TEST(Test_AesCbc_ValidDispatch);
+    WHAL_TEST(Test_AesCtr_NullDev);
+    WHAL_TEST(Test_AesCtr_NullDriver);
+    WHAL_TEST(Test_AesCtr_NoStop);
+    WHAL_TEST(Test_AesCtr_ValidDispatch);
+    WHAL_TEST(Test_AesGcm_NullDev);
+    WHAL_TEST(Test_AesGcm_NullDriver);
+    WHAL_TEST(Test_AesGcm_NoFinalize);
+    WHAL_TEST(Test_AesGcm_ValidDispatch);
+    WHAL_TEST(Test_AesGmac_NullDev);
+    WHAL_TEST(Test_AesGmac_NullDriver);
+    WHAL_TEST(Test_AesGmac_NoOneshot);
+    WHAL_TEST(Test_AesGmac_ValidDispatch);
+    WHAL_TEST(Test_AesCcm_NullDev);
+    WHAL_TEST(Test_AesCcm_NullDriver);
+    WHAL_TEST(Test_AesCcm_NoFinalize);
+    WHAL_TEST(Test_AesCcm_ValidDispatch);
+    WHAL_TEST(Test_Sha1_NullDev);
+    WHAL_TEST(Test_Sha1_NullDriver);
+    WHAL_TEST(Test_Sha1_ValidDispatch);
+    WHAL_TEST(Test_Sha224_NullDev);
+    WHAL_TEST(Test_Sha224_NullDriver);
+    WHAL_TEST(Test_Sha224_ValidDispatch);
+    WHAL_TEST(Test_Sha256_NullDev);
+    WHAL_TEST(Test_Sha256_NullDriver);
+    WHAL_TEST(Test_Sha256_ValidDispatch);
+    WHAL_TEST(Test_HmacSha1_NullDev);
+    WHAL_TEST(Test_HmacSha1_NullDriver);
+    WHAL_TEST(Test_HmacSha1_ValidDispatch);
+    WHAL_TEST(Test_HmacSha224_NullDev);
+    WHAL_TEST(Test_HmacSha224_NullDriver);
+    WHAL_TEST(Test_HmacSha224_ValidDispatch);
+    WHAL_TEST(Test_HmacSha256_NullDev);
+    WHAL_TEST(Test_HmacSha256_NullDriver);
+    WHAL_TEST(Test_HmacSha256_ValidDispatch);
     WHAL_TEST_SUITE_END();
 }

@@ -124,7 +124,8 @@ whal_Error whal_Pwm_Deinit(whal_Pwm *dev);
  * @param cfg     Waveform (period, pulse, polarity) to apply.
  *
  * @retval WHAL_SUCCESS Output started.
- * @retval WHAL_EINVAL  Null pointer, zero period, or pulse exceeds period.
+ * @retval WHAL_EINVAL  Null pointer, zero period, pulse exceeds period, or
+ *                      undefined polarity.
  * @retval WHAL_ENOTSUP No driver bound, or channel/waveform unsupported.
  */
 whal_Error whal_Pwm_Start(whal_Pwm *dev, uint8_t channel,

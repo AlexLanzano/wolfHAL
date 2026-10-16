@@ -123,10 +123,44 @@ static void Test_Eth_UndersizedRecv(void)
                    WHAL_SUCCESS);
 }
 
+/* A frame of exactly the configured TX buffer size is accepted. It is longer
+ * than a standard Ethernet frame, so the looped-back copy may be flagged as a
+ * giant packet; the RX ring is only drained, not checked. */
+static void Test_Eth_SendMaxLength(void)
+{
+    static uint8_t frame[BOARD_ETH_TX_BUF_SIZE];
+    uint8_t rxFrame[1536];
+    size_t rxLen;
+    uint32_t start;
+
+    for (size_t i = 0; i < sizeof(frame); i++)
+        frame[i] = (uint8_t)i;
+    for (size_t i = 0; i < 6; i++)
+        frame[i] = 0xFF;
+
+    WHAL_ASSERT_EQ(whal_Stm32h5_Eth_Ext_EnableLoopback(BOARD_ETH_DEV, 1),
+                   WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Eth_Start(BOARD_ETH_DEV, WHAL_ETH_SPEED_100,
+                                  WHAL_ETH_DUPLEX_FULL), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Eth_Send(BOARD_ETH_DEV, frame, sizeof(frame)),
+                   WHAL_SUCCESS);
+
+    start = g_tick;
+    while ((g_tick - start) < 100) {
+        rxLen = sizeof(rxFrame);
+        (void)whal_Eth_Recv(BOARD_ETH_DEV, rxFrame, &rxLen);
+    }
+
+    WHAL_ASSERT_EQ(whal_Eth_Stop(BOARD_ETH_DEV), WHAL_SUCCESS);
+    WHAL_ASSERT_EQ(whal_Stm32h5_Eth_Ext_EnableLoopback(BOARD_ETH_DEV, 0),
+                   WHAL_SUCCESS);
+}
+
 void whal_Test_Eth_Platform(void)
 {
     WHAL_TEST_SUITE_START("eth_platform");
     WHAL_TEST(Test_Eth_Loopback);
     WHAL_TEST(Test_Eth_UndersizedRecv);
+    WHAL_TEST(Test_Eth_SendMaxLength);
     WHAL_TEST_SUITE_END();
 }

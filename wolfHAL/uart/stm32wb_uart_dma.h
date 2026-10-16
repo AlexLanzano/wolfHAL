@@ -107,6 +107,8 @@ whal_Error whal_Stm32wb_UartDma_Send(whal_Uart *uartDev, const void *data,
  * @retval WHAL_SUCCESS  All bytes received.
  * @retval WHAL_ETIMEOUT DMA transfer timed out.
  * @retval WHAL_EINVAL   Invalid arguments.
+ * @retval WHAL_EHARDWARE A parity, framing, noise or overrun error was
+ *                        detected.
  */
 whal_Error whal_Stm32wb_UartDma_Recv(whal_Uart *uartDev, void *data,
                                      size_t dataSz);
@@ -133,6 +135,9 @@ whal_Error whal_Stm32wb_UartDma_SendAsync(whal_Uart *uartDev, const void *data,
  *
  * Returns immediately after starting the DMA transfer. The buffer must
  * remain valid until cfg->rxResult is no longer WHAL_ENOTREADY.
+ *
+ * Line errors latched before the transfer are cleared. cfg->rxResult carries
+ * only the DMA result, not parity, framing, noise or overrun errors.
  *
  * @param uartDev UART device instance.
  * @param data    Receive buffer. Must remain valid until completion.

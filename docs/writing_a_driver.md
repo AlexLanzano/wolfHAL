@@ -1180,7 +1180,7 @@ the HMAC key for the outer hash pass).
 Each algorithm defines a vtable with typed function pointers. The available
 operations depend on the algorithm category:
 
-**Block ciphers** have `Oneshot`, `Start`, and `Process`:
+**Block ciphers** have `Oneshot`, `Start`, `Process`, and `Stop`:
 
 ```c
 typedef struct {
@@ -1193,6 +1193,7 @@ typedef struct {
                         const void *iv);
     whal_Error (*Process)(whal_AesCbc *dev,
                           const void *in, void *out, size_t sz);
+    whal_Error (*Stop)(whal_AesCbc *dev);
 } whal_AesCbcDriver;
 ```
 
@@ -1272,6 +1273,8 @@ typedef struct {
   for AEAD, digest for hash/HMAC). Only present on algorithms that need a
   finalization step. Block ciphers (ECB, CBC, CTR) do not have Finalize
   because each Process call produces complete output.
+- **Stop** ends a block cipher (ECB, CBC, CTR) streaming session. It disables
+  the engine and clears the key and IV from the hardware.
 
 Unsupported parameter combinations (e.g. AES-192 on hardware that only
 supports 128/256) return `WHAL_ENOTSUP`.
@@ -1332,6 +1335,7 @@ Streaming (block cipher):
 whal_AesCbc_Start(BOARD_AES_CBC_DEV, WHAL_CRYPTO_ENCRYPT, key, 32, iv);
 whal_AesCbc_Process(BOARD_AES_CBC_DEV, block1, out1, 16);
 whal_AesCbc_Process(BOARD_AES_CBC_DEV, block2, out2, 16);
+whal_AesCbc_Stop(BOARD_AES_CBC_DEV);
 ```
 
 ### Math Primitives

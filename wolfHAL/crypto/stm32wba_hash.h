@@ -250,6 +250,8 @@ whal_Error whal_Stm32wba_Sha256_Finalize(whal_Sha256 *dev,
 /**
  * @brief HMAC-SHA-1 one-shot.
  *
+ * An empty message is not supported and returns WHAL_ENOTSUP.
+ *
  * @param dev      HMAC-SHA-1 device instance.
  * @param key      Key buffer.
  * @param keySz    Key size in bytes.
@@ -286,6 +288,8 @@ whal_Error whal_Stm32wba_HmacSha1_Process(whal_HmacSha1 *dev,
 /**
  * @brief Finalize an HMAC-SHA-1 session and produce the digest.
  *
+ * Returns WHAL_ENOTSUP if no message data was processed.
+ *
  * @param dev      HMAC-SHA-1 device instance.
  * @param digest   Output digest buffer.
  * @param digestSz Digest size in bytes (must be 20).
@@ -297,6 +301,8 @@ whal_Error whal_Stm32wba_HmacSha1_Finalize(whal_HmacSha1 *dev,
 
 /**
  * @brief HMAC-SHA-224 one-shot.
+ *
+ * An empty message is not supported and returns WHAL_ENOTSUP.
  *
  * @param dev      HMAC-SHA-224 device instance.
  * @param key      Key buffer.
@@ -334,6 +340,8 @@ whal_Error whal_Stm32wba_HmacSha224_Process(whal_HmacSha224 *dev,
 /**
  * @brief Finalize an HMAC-SHA-224 session and produce the digest.
  *
+ * Returns WHAL_ENOTSUP if no message data was processed.
+ *
  * @param dev      HMAC-SHA-224 device instance.
  * @param digest   Output digest buffer.
  * @param digestSz Digest size in bytes (must be 28).
@@ -345,6 +353,8 @@ whal_Error whal_Stm32wba_HmacSha224_Finalize(whal_HmacSha224 *dev,
 
 /**
  * @brief HMAC-SHA-256 one-shot.
+ *
+ * An empty message is not supported and returns WHAL_ENOTSUP.
  *
  * @param dev      HMAC-SHA-256 device instance.
  * @param key      Key buffer.
@@ -381,6 +391,8 @@ whal_Error whal_Stm32wba_HmacSha256_Process(whal_HmacSha256 *dev,
 
 /**
  * @brief Finalize an HMAC-SHA-256 session and produce the digest.
+ *
+ * Returns WHAL_ENOTSUP if no message data was processed.
  *
  * @param dev      HMAC-SHA-256 device instance.
  * @param digest   Output digest buffer.

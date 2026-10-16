@@ -48,7 +48,7 @@ typedef struct {
  */
 typedef struct {
     size_t aadSz;
-    size_t dataSz;
+    uint64_t dataSz;
     uint8_t partial;    /* A partial block was processed; no further Process */
 } whal_Stm32n6_AesGcm_State;
 
@@ -79,18 +79,21 @@ typedef struct {
 #define whal_Stm32n6_CrypAesEcb_Oneshot  whal_AesEcb_Oneshot
 #define whal_Stm32n6_CrypAesEcb_Start    whal_AesEcb_Start
 #define whal_Stm32n6_CrypAesEcb_Process  whal_AesEcb_Process
+#define whal_Stm32n6_CrypAesEcb_Stop     whal_AesEcb_Stop
 #endif
 
 #ifdef WHAL_CFG_STM32N6_CRYP_CBC_DIRECT_API_MAPPING
 #define whal_Stm32n6_CrypAesCbc_Oneshot  whal_AesCbc_Oneshot
 #define whal_Stm32n6_CrypAesCbc_Start    whal_AesCbc_Start
 #define whal_Stm32n6_CrypAesCbc_Process  whal_AesCbc_Process
+#define whal_Stm32n6_CrypAesCbc_Stop     whal_AesCbc_Stop
 #endif
 
 #ifdef WHAL_CFG_STM32N6_CRYP_CTR_DIRECT_API_MAPPING
 #define whal_Stm32n6_CrypAesCtr_Oneshot  whal_AesCtr_Oneshot
 #define whal_Stm32n6_CrypAesCtr_Start    whal_AesCtr_Start
 #define whal_Stm32n6_CrypAesCtr_Process  whal_AesCtr_Process
+#define whal_Stm32n6_CrypAesCtr_Stop     whal_AesCtr_Stop
 #endif
 
 #ifdef WHAL_CFG_STM32N6_CRYP_GCM_DIRECT_API_MAPPING
@@ -170,6 +173,13 @@ whal_Error whal_Stm32n6_CrypAesEcb_Process(whal_AesEcb *dev,
                                            const void *in, void *out,
                                            size_t sz);
 
+/**
+ * @brief End an AES-ECB streaming session and clear the key.
+ *
+ * @param dev AES-ECB device instance.
+ */
+whal_Error whal_Stm32n6_CrypAesEcb_Stop(whal_AesEcb *dev);
+
 /* ---- AES-CBC ---- */
 
 /**
@@ -217,6 +227,13 @@ whal_Error whal_Stm32n6_CrypAesCbc_Process(whal_AesCbc *dev,
                                            const void *in, void *out,
                                            size_t sz);
 
+/**
+ * @brief End an AES-CBC streaming session and clear the key and IV.
+ *
+ * @param dev AES-CBC device instance.
+ */
+whal_Error whal_Stm32n6_CrypAesCbc_Stop(whal_AesCbc *dev);
+
 /* ---- AES-CTR ---- */
 
 /**
@@ -263,6 +280,13 @@ whal_Error whal_Stm32n6_CrypAesCtr_Start(whal_AesCtr *dev,
 whal_Error whal_Stm32n6_CrypAesCtr_Process(whal_AesCtr *dev,
                                            const void *in, void *out,
                                            size_t sz);
+
+/**
+ * @brief End an AES-CTR streaming session and clear the key and counter.
+ *
+ * @param dev AES-CTR device instance.
+ */
+whal_Error whal_Stm32n6_CrypAesCtr_Stop(whal_AesCtr *dev);
 
 /* ---- AES-GCM ---- */
 

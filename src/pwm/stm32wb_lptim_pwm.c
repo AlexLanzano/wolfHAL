@@ -105,7 +105,9 @@ whal_Error whal_Stm32wb_Lptim_Pwm_Start(whal_Pwm *dev, uint8_t channel,
 
     if (!dev || !dev->cfg || !channelCfg ||
         channelCfg->periodCycles == 0 ||
-        channelCfg->pulseCycles > channelCfg->periodCycles) {
+        channelCfg->pulseCycles > channelCfg->periodCycles ||
+        (channelCfg->polarity != WHAL_PWM_POLARITY_NORMAL &&
+         channelCfg->polarity != WHAL_PWM_POLARITY_INVERTED)) {
         return WHAL_EINVAL;
     }
     if (channel != WHAL_STM32WB_LPTIM_PWM_CHANNEL) {
