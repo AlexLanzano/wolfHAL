@@ -188,7 +188,7 @@ whal_Error whal_SpiNor_Init(whal_Flash *flashDev)
     cfg = (whal_SpiNor_Cfg *)flashDev->cfg;
 #endif
 
-    if (!cfg->spiDev || !cfg->spiComCfg || !cfg->gpioDev)
+    if (!cfg->spiComCfg)
         return WHAL_EINVAL;
     /* Writes split pages with a mask, so pageSz must be a power of two */
     if (cfg->pageSz == 0 || (cfg->pageSz & (cfg->pageSz - 1)) != 0 ||
